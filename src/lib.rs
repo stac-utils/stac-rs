@@ -8,7 +8,7 @@
 //! - [Catalog](https://github.com/radiantearth/stac-spec/blob/master/catalog-spec/catalog-spec.md)
 //! - [Collection](https://github.com/radiantearth/stac-spec/blob/master/collection-spec/collection-spec.md)
 //!
-//! All three structures are provided as serde (de)serializable structures with public attributes.
+//! All three structures are provided as [serde](https://serde.rs/) (de)serializable structures with public attributes.
 //! Because `id` is always required, the structures do not implement `Default`.
 //! Each provides a `new` method that takes an `id` and fills the rest with sensible defaults.
 //!
