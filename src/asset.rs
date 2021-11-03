@@ -1,18 +1,38 @@
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
+/// An Asset is an object that contains a URI to data associated with the Item that can be downloaded or streamed.
+///
+/// It is allowed to add additional fields.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Asset {
+    /// URI to the asset object.
+    ///
+    /// Relative and absolute URI are both allowed.
     pub href: String,
+
+    /// The displayed title for clients and users.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
+
+    /// A description of the Asset providing additional details, such as how it was processed or created.
+    ///
+    /// CommonMark 0.29 syntax MAY be used for rich text representation.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
+
+    /// Media type of the asset.
+    ///
+    /// See the common media types in the best practice doc for commonly used asset types.
     #[serde(rename = "type")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub type_: Option<String>,
+
+    /// The semantic roles of the asset, similar to the use of rel in links.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub roles: Option<Vec<String>>,
+
+    /// Additional fields on the asset.
     #[serde(flatten)]
     pub additional_fields: Map<String, Value>,
 }

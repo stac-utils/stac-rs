@@ -5,30 +5,76 @@ use std::collections::HashMap;
 
 const COLLECTION_TYPE: &str = "Collection";
 
+/// The STAC Collection Specification defines a set of common fields to describe
+/// a group of Items that share properties and metadata.
+///
+/// The Collection Specification shares all fields with the STAC Catalog
+/// Specification (with different allowed values for type and stac_extensions)
+/// and adds fields to describe the whole dataset and the included set of Items.
+/// Collections can have both parent Catalogs and Collections and child Items,
+/// Catalogs and Collections.
+///
+/// A STAC Collection is represented in JSON format. Any JSON object that
+/// contains all the required fields is a valid STAC Collection and also a valid
+/// STAC Catalog.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Collection {
+    /// Must be set to Collection to be a valid Collection.
     #[serde(rename = "type")]
     pub type_: String,
+
+    /// The STAC version the Collection implements.
     #[serde(rename = "stac_version")]
     pub version: String,
+
+    /// A list of extension identifiers the Collection implements.
     #[serde(rename = "stac_extensions")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub extensions: Option<Vec<String>>,
+
+    /// Identifier for the Collection that is unique across the provider.
     pub id: String,
+
+    /// A short descriptive one-line title for the Collection.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
+
+    /// Detailed multi-line description to fully explain the Collection.
+    ///
+    /// CommonMark 0.29 syntax MAY be used for rich text representation.
     pub description: String,
+
+    /// List of keywords describing the Collection.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub keywords: Option<Vec<String>>,
+
+    /// Collection's license(s), either a SPDX License identifier, various if
+    /// multiple licenses apply or proprietary for all other cases.
     pub license: String,
+
+    /// A list of providers, which may include all organizations capturing or
+    /// processing the data or the hosting provider.
+    ///
+    /// Providers should be listed in chronological order with the most recent
+    /// provider being the last element of the list.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub providers: Option<Vec<Provider>>,
+
+    /// Spatial and temporal extents.
     pub extent: Extent,
+
+    /// A map of property summaries, either a set of values, a range of values or a JSON Schema.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub summaries: Option<Map<String, Value>>,
+
+    /// A list of references to other documents.
     pub links: Vec<Link>,
+
+    /// Dictionary of asset objects that can be downloaded, each with a unique key.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub assets: Option<HashMap<String, Asset>>,
+
+    /// Additional fields on the `Collection`.
     #[serde(flatten)]
     pub additional_fields: Map<String, Value>,
 }

@@ -1,5 +1,4 @@
-use crate::{Asset, Link, STAC_VERSION};
-use chrono::Utc;
+use crate::{Asset, Link, Properties, STAC_VERSION};
 use geojson::Geometry;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
@@ -7,31 +6,67 @@ use std::collections::HashMap;
 
 const ITEM_TYPE: &str = "Feature";
 
+/// An Item is a GeoJSON Feature augmented with foreign members relevant to a
+/// STAC object.
+///
+/// These include fields that identify the time range and assets of the Item. An
+/// Item is the core object in a STAC Catalog, containing the core metadata that
+/// enables any client to search or crawl online catalogs of spatial 'assets'
+/// (e.g., satellite imagery, derived data, DEMs).
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Item {
+    /// Type of the GeoJSON Object. MUST be set to `Feature`.
     #[serde(rename = "type")]
     pub type_: String,
+
+    /// The STAC version the Item implements.
     #[serde(rename = "stac_version")]
     pub version: String,
+
+    /// A list of extensions the Item implements.
     #[serde(rename = "stac_extensions")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub extensions: Option<Vec<String>>,
+
+    /// Provider identifier.
+    ///
+    /// The ID should be unique within the Collection that contains the Item.
     pub id: String,
+
+    /// Defines the full footprint of the asset represented by this item,
+    /// formatted according to RFC 7946, section 3.1.
+    ///
+    /// The footprint should be the default GeoJSON geometry, though additional
+    /// geometries can be included. Coordinates are specified in
+    /// Longitude/Latitude or Longitude/Latitude/Elevation based on WGS 84.
     pub geometry: Option<Geometry>,
+
+    /// Bounding Box of the asset represented by this Item, formatted according
+    /// to RFC 7946, section 5.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub bbox: Option<Vec<f64>>,
+
+    /// A dictionary of additional metadata for the Item.
     pub properties: Properties,
+
+    /// List of link objects to resources and related URLs.
+    ///
+    /// A link with the rel set to self is strongly recommended.
     pub links: Vec<Link>,
+
+    /// Dictionary of asset objects that can be downloaded, each with a unique key.
     pub assets: HashMap<String, Asset>,
+
+    /// The id of the STAC Collection this Item references to (see collection relation type).
+    ///
+    /// This field is required if such a relation type is present and is not
+    /// allowed otherwise. This field provides an easy way for a user to search
+    /// for any Items that belong in a specified Collection. Must be a non-empty
+    /// string.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub collection: Option<String>,
-    #[serde(flatten)]
-    pub additional_fields: Map<String, Value>,
-}
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Properties {
-    pub datetime: Option<String>,
+    /// Additional fields on the Item.
     #[serde(flatten)]
     pub additional_fields: Map<String, Value>,
 }
@@ -56,10 +91,7 @@ impl Item {
             id: id.to_string(),
             geometry: None,
             bbox: None,
-            properties: Properties {
-                datetime: Some(Utc::now().to_rfc3339()),
-                additional_fields: Map::new(),
-            },
+            properties: Properties::default(),
             links: Vec::new(),
             assets: HashMap::new(),
             collection: None,
