@@ -1,9 +1,12 @@
 use serde::{Deserialize, Serialize};
+use serde_json::{Map, Value};
 
 #[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
 pub struct Extent {
     pub spatial: SpatialExtent,
     pub temporal: TemporalExtent,
+    #[serde(flatten)]
+    pub additional_fields: Map<String, Value>,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
@@ -41,5 +44,6 @@ mod tests {
         let extent = Extent::default();
         assert_eq!(extent.spatial.bbox, [[-180.0, -90.0, 180.0, 90.0]]);
         assert_eq!(extent.temporal.interval, [[None, None]]);
+        assert!(extent.additional_fields.is_empty());
     }
 }
