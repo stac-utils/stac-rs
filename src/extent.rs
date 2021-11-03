@@ -18,14 +18,14 @@ pub struct Extent {
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct SpatialExtent {
     /// Potential spatial extents covered by the Collection.
-    bbox: Vec<Vec<f64>>,
+    pub bbox: Vec<Vec<f64>>,
 }
 
 /// The object describes the temporal extents of the Collection.
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct TemporalExtent {
     /// Potential temporal extents covered by the Collection.
-    interval: Vec<[Option<String>; 2]>,
+    pub interval: Vec<[Option<String>; 2]>,
 }
 
 impl Default for SpatialExtent {
