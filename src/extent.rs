@@ -1,21 +1,30 @@
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
+/// The object describes the spatio-temporal extents of the Collection.
 #[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
 pub struct Extent {
+    /// Potential spatial extents covered by the Collection.
     pub spatial: SpatialExtent,
+    /// Potential temporal extents covered by the Collection.
     pub temporal: TemporalExtent,
+
+    /// Additional fields on the extent.
     #[serde(flatten)]
     pub additional_fields: Map<String, Value>,
 }
 
+/// The object describes the spatial extents of the Collection.
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct SpatialExtent {
+    /// Potential spatial extents covered by the Collection.
     bbox: Vec<Vec<f64>>,
 }
 
+/// The object describes the temporal extents of the Collection.
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct TemporalExtent {
+    /// Potential temporal extents covered by the Collection.
     interval: Vec<[Option<String>; 2]>,
 }
 
