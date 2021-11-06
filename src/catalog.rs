@@ -103,6 +103,6 @@ mod tests {
         use super::Catalog;
         use crate::tests::roundtrip;
 
-        roundtrip!(catalog, "examples/catalog.json", Catalog);
+        roundtrip!(catalog, "data/catalog.json", Catalog);
     }
 }

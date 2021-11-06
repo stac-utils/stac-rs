@@ -147,20 +147,20 @@ mod tests {
         use super::Collection;
         use crate::tests::roundtrip;
 
-        roundtrip!(collection, "examples/collection.json", Collection);
+        roundtrip!(collection, "data/collection.json", Collection);
         roundtrip!(
             collection_with_schemas,
-            "examples/collection-only/collection-with-schemas.json",
+            "data/collection-only/collection-with-schemas.json",
             Collection
         );
         roundtrip!(
             collection_only,
-            "examples/collection-only/collection.json",
+            "data/collection-only/collection.json",
             Collection
         );
         roundtrip!(
             extensions_collection,
-            "examples/extensions-collection/collection.json",
+            "data/extensions-collection/collection.json",
             Collection
         );
     }

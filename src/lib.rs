@@ -33,7 +33,7 @@
 //! use serde_json::Value;
 //! use stac::Item;
 //!
-//! let file = File::open("examples/simple-item.json").unwrap();
+//! let file = File::open("data/simple-item.json").unwrap();
 //! let buf_reader = BufReader::new(file);
 //! let before: Value = serde_json::from_reader(buf_reader).unwrap();
 //! let item: Item = serde_json::from_value(before.clone()).unwrap();
