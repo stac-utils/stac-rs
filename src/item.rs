@@ -131,17 +131,13 @@ mod tests {
         use super::Item;
         use crate::tests::roundtrip;
 
-        roundtrip!(simple_item, "examples/simple-item.json", Item);
-        roundtrip!(extended_item, "examples/extended-item.json", Item);
-        roundtrip!(core_item, "examples/core-item.json", Item);
-        roundtrip!(
-            collectionless_item,
-            "examples/collectionless-item.json",
-            Item
-        );
+        roundtrip!(simple_item, "data/simple-item.json", Item);
+        roundtrip!(extended_item, "data/extended-item.json", Item);
+        roundtrip!(core_item, "data/core-item.json", Item);
+        roundtrip!(collectionless_item, "data/collectionless-item.json", Item);
         roundtrip!(
             proj_example_item,
-            "examples/extensions-collection/proj-example/proj-example.json",
+            "data/extensions-collection/proj-example/proj-example.json",
             Item
         );
     }
