@@ -70,6 +70,21 @@ impl Link {
     pub fn is_item(&self) -> bool {
         self.rel == ITEM_REL
     }
+
+    /// Returns true if this link's rel is "child".
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac::Link;
+    /// let link = Link::new("an-href", "child");
+    /// assert!(link.is_child());
+    /// let link = Link::new("an-href", "not-a-child");
+    /// assert!(!link.is_child());
+    /// ```
+    pub fn is_child(&self) -> bool {
+        self.rel == CHILD_REL
+    }
 }
 
 #[cfg(test)]
