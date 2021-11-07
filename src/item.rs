@@ -69,6 +69,12 @@ pub struct Item {
     /// Additional fields on the Item.
     #[serde(flatten)]
     pub additional_fields: Map<String, Value>,
+
+    /// The href from which the Item was read.
+    ///
+    /// Not serialized.
+    #[serde(skip)]
+    pub href: Option<String>,
 }
 
 impl Item {
@@ -96,6 +102,7 @@ impl Item {
             assets: HashMap::new(),
             collection: None,
             additional_fields: Map::new(),
+            href: None,
         }
     }
 }
