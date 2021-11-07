@@ -77,6 +77,7 @@ mod catalog;
 mod collection;
 mod error;
 mod extent;
+pub mod fs;
 mod item;
 mod link;
 mod object;

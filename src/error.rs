@@ -4,6 +4,10 @@ use thiserror::Error;
 /// Error enum for the stac crate.
 #[derive(Error, Debug)]
 pub enum Error {
+    /// std::io::Error.
+    #[error("std::io error: {0}")]
+    Io(#[from] std::io::Error),
+
     /// Invalid type field (not a string).
     #[error("Invalid \"type\" field: {0}")]
     InvalidTypeField(Value),
