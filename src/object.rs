@@ -47,7 +47,12 @@ impl Object {
     ///
     /// # Examples
     ///
-    /// TODO
+    /// ```
+    /// let catalog = stac::fs::read_from_path("data/catalog.json").unwrap();
+    /// assert!(catalog.is_catalog());
+    /// let item = stac::fs::read_from_path("data/simple-item.json").unwrap();
+    /// assert!(!item.is_catalog());
+    /// ```
     pub fn is_catalog(&self) -> bool {
         matches!(self, Object::Catalog(_))
     }
@@ -56,7 +61,12 @@ impl Object {
     ///
     /// # Examples
     ///
-    /// TODO
+    /// ```
+    /// let collection = stac::fs::read_from_path("data/collection.json").unwrap();
+    /// assert!(collection.is_collection());
+    /// let item = stac::fs::read_from_path("data/simple-item.json").unwrap();
+    /// assert!(!item.is_collection());
+    /// ```
     pub fn is_collection(&self) -> bool {
         matches!(self, Object::Collection(_))
     }
@@ -65,7 +75,12 @@ impl Object {
     ///
     /// # Examples
     ///
-    /// TODO
+    /// ```
+    /// let item = stac::fs::read_from_path("data/simple-item.json").unwrap();
+    /// assert!(item.is_item());
+    /// let catalog = stac::fs::read_from_path("data/catalog.json").unwrap();
+    /// assert!(!catalog.is_item());
+    /// ```
     pub fn is_item(&self) -> bool {
         matches!(self, Object::Item(_))
     }
@@ -74,7 +89,10 @@ impl Object {
     ///
     /// # Examples
     ///
-    /// TODO
+    /// ```
+    /// let item = stac::fs::read_from_path("data/simple-item.json").unwrap();
+    /// assert_eq!(item.href().unwrap(), "data/simple-item.json");
+    /// ```
     pub fn href(&self) -> Option<&str> {
         use Object::*;
         match self {
@@ -88,7 +106,12 @@ impl Object {
     ///
     /// # Examples
     ///
-    /// TODO
+    /// ```
+    /// use stac::{Item, Object};
+    /// let mut item = Object::from(Item::new("an-id"));
+    /// item.set_href("foobar");
+    /// assert_eq!(item.href().unwrap(), "foobar");
+    /// ```
     pub fn set_href<S: ToString>(&mut self, href: S) {
         use Object::*;
         match self {
@@ -131,6 +154,24 @@ impl TryFrom<Value> for Object {
             },
             None => Err(Error::MissingType),
         }
+    }
+}
+
+impl From<Catalog> for Object {
+    fn from(catalog: Catalog) -> Object {
+        Object::Catalog(catalog)
+    }
+}
+
+impl From<Collection> for Object {
+    fn from(collection: Collection) -> Object {
+        Object::Collection(collection)
+    }
+}
+
+impl From<Item> for Object {
+    fn from(item: Item) -> Object {
+        Object::Item(item)
     }
 }
 
