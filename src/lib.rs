@@ -83,6 +83,7 @@ mod link;
 mod object;
 mod properties;
 mod provider;
+pub mod utils;
 
 pub use {
     asset::Asset,
