@@ -1,6 +1,8 @@
+use crate::{utils, Error, Object};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
+const CHILD_REL: &str = "child";
 const ITEM_REL: &str = "item";
 
 /// This object describes a relationship with another entity.
@@ -84,6 +86,16 @@ impl Link {
     /// ```
     pub fn is_child(&self) -> bool {
         self.rel == CHILD_REL
+    }
+
+    /// Returns the target of this link, as resolved from the given href.
+    ///
+    /// # Examples
+    ///
+    /// TODO
+    pub fn resolve_from(&self, base: Option<&str>) -> Result<Object, Error> {
+        let href = utils::absolute_href(&self.href, base)?;
+        Object::read_from_href(href)
     }
 }
 
