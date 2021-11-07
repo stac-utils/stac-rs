@@ -48,6 +48,12 @@ pub struct Catalog {
     /// Addititional fields on the Catalog.
     #[serde(flatten)]
     pub additional_fields: Map<String, Value>,
+
+    /// The href from which the Catalog was read.
+    ///
+    /// Not serialized.
+    #[serde(skip)]
+    pub href: Option<String>,
 }
 
 impl Catalog {
@@ -70,6 +76,7 @@ impl Catalog {
             description: String::new(),
             links: Vec::new(),
             additional_fields: Map::new(),
+            href: None,
         }
     }
 }

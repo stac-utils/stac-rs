@@ -77,6 +77,12 @@ pub struct Collection {
     /// Additional fields on the `Collection`.
     #[serde(flatten)]
     pub additional_fields: Map<String, Value>,
+
+    /// The href from which the Collection was read.
+    ///
+    /// Not serialized.
+    #[serde(skip)]
+    pub href: Option<String>,
 }
 
 impl Collection {
@@ -105,6 +111,7 @@ impl Collection {
             links: Vec::new(),
             assets: None,
             additional_fields: Map::new(),
+            href: None,
         }
     }
 }
