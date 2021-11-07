@@ -156,8 +156,19 @@ impl Object {
     ///
     /// # Examples
     ///
-    /// TODO
+    /// ```
+    /// let item = stac::fs::read_from_path("data/simple-item.json").unwrap();
+    /// assert_eq!(item.id(), "20201211_223832_CS2");
+    /// ```
     pub fn id(&self) -> &str {
+        use Object::*;
+        match self {
+            Catalog(catalog) => &catalog.id,
+            Collection(collection) => &collection.id,
+            Item(item) => &item.id,
+        }
+    }
+
         unimplemented!()
     }
 }
