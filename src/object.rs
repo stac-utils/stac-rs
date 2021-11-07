@@ -6,6 +6,7 @@ use crate::{
 };
 use serde_json::Value;
 use std::convert::TryFrom;
+use url::Url;
 
 /// An enum that can hold all three STAC object types.
 #[derive(Debug)]
@@ -22,6 +23,23 @@ pub enum Object {
 }
 
 impl Object {
+    /// Reads an object from a href.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac::Object;
+    /// let item = Object::read_from_href("data/simple-item.json").unwrap();
+    /// ```
+    pub fn read_from_href<S: ToString>(href: S) -> Result<Object, Error> {
+        let href = href.to_string();
+        if Url::parse(&href).is_ok() {
+            unimplemented!()
+        } else {
+            crate::fs::read_from_path(href)
+        }
+    }
+
     /// Creates a new Object from some JSON and an href.
     ///
     /// # Examples
@@ -169,7 +187,22 @@ impl Object {
         }
     }
 
-        unimplemented!()
+    /// Returns an iterator over this object's children.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let catalog = stac::fs::read_from_path("data/catalog.json").unwrap();
+    /// let children: Vec<_> = catalog.iter_children().map(|result| result.unwrap()).collect();
+    /// ```
+    pub fn iter_children(&self) -> impl Iterator<Item = Result<Object, Error>> + '_ {
+        self.iter_links().filter_map(move |link| {
+            if link.is_child() {
+                Some(link.resolve_from(self.href()))
+            } else {
+                None
+            }
+        })
     }
 }
 
