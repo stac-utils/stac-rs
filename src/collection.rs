@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::collections::HashMap;
 
-const COLLECTION_TYPE: &str = "Collection";
+pub(crate) const COLLECTION_TYPE: &str = "Collection";
 
 /// The STAC Collection Specification defines a set of common fields to describe
 /// a group of Items that share properties and metadata.
