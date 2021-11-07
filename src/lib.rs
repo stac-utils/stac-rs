@@ -75,9 +75,11 @@
 mod asset;
 mod catalog;
 mod collection;
+mod error;
 mod extent;
 mod item;
 mod link;
+mod object;
 mod properties;
 mod provider;
 
@@ -85,9 +87,11 @@ pub use {
     asset::Asset,
     catalog::Catalog,
     collection::Collection,
+    error::Error,
     extent::{Extent, SpatialExtent, TemporalExtent},
     item::Item,
     link::Link,
+    object::Object,
     properties::Properties,
     provider::Provider,
 };
