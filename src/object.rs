@@ -2,7 +2,7 @@ use crate::{
     catalog::{Catalog, CATALOG_TYPE},
     collection::{Collection, COLLECTION_TYPE},
     item::{Item, ITEM_TYPE},
-    Error,
+    Error, Link,
 };
 use serde_json::Value;
 use std::convert::TryFrom;
@@ -125,9 +125,31 @@ impl Object {
     ///
     /// # Examples
     ///
-    /// TODO
+    /// ```
+    /// let collection = stac::fs::read_from_path("data/collection.json").unwrap();
+    /// assert!(collection.has_items());
+    /// let collection = stac::fs::read_from_path("data/collection-only/collection.json").unwrap();
+    /// assert!(!collection.has_items());
+    /// ```
     pub fn has_items(&self) -> bool {
-        unimplemented!()
+        self.iter_links().any(|link| link.is_item())
+    }
+
+    /// Returns an iterator over this object's links.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let catalog = stac::fs::read_from_path("data/catalog.json").unwrap();
+    /// let links: Vec<_> = catalog.iter_links().collect();
+    /// ```
+    pub fn iter_links(&self) -> impl Iterator<Item = &Link> {
+        use Object::*;
+        match self {
+            Catalog(catalog) => catalog.links.iter(),
+            Collection(collection) => collection.links.iter(),
+            Item(item) => item.links.iter(),
+        }
     }
 
     /// Returns this object's id.
