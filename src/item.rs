@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::collections::HashMap;
 
-const ITEM_TYPE: &str = "Feature";
+pub(crate) const ITEM_TYPE: &str = "Feature";
 
 /// An Item is a GeoJSON Feature augmented with foreign members relevant to a
 /// STAC object.

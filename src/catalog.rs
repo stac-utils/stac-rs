@@ -2,7 +2,7 @@ use crate::{Link, STAC_VERSION};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
-const CATALOG_TYPE: &str = "Catalog";
+pub(crate) const CATALOG_TYPE: &str = "Catalog";
 
 /// A STAC Catalog object represents a logical group of other Catalog,
 /// Collection, and Item objects.
