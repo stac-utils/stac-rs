@@ -23,4 +23,8 @@ pub enum Error {
     /// A serde_json error.
     #[error("serde_json error: {0}")]
     SerdeJson(#[from] serde_json::Error),
+
+    /// A url parse error.
+    #[error("url parse error: {0}")]
+    Url(#[from] url::ParseError),
 }
