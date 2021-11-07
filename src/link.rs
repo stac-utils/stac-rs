@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
+const ITEM_REL: &str = "item";
+
 /// This object describes a relationship with another entity.
 ///
 /// Data providers are advised to be liberal with the links section, to describe
@@ -52,6 +54,21 @@ impl Link {
             title: None,
             additional_fields: Map::new(),
         }
+    }
+
+    /// Returns true if this link's rel is "item".
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac::Link;
+    /// let link = Link::new("an-href", "item");
+    /// assert!(link.is_item());
+    /// let link = Link::new("an-href", "not-an-item");
+    /// assert!(!link.is_item());
+    /// ```
+    pub fn is_item(&self) -> bool {
+        self.rel == ITEM_REL
     }
 }
 
