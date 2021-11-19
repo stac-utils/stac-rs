@@ -39,7 +39,7 @@ pub struct Catalog {
 
     /// Detailed multi-line description to fully explain the Catalog.
     ///
-    /// CommonMark 0.29 syntax MAY be used for rich text representation.
+    /// [CommonMark 0.29](http://commonmark.org/) syntax MAY be used for rich text representation.
     pub description: String,
 
     /// A list of references to other documents.

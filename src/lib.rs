@@ -1,15 +1,28 @@
-//! Reads and writes SpatioTemporal Asset Catalogs (STACs) in Rust.
+//! Reads and writes [SpatioTemporal Asset Catalogs (STACs)](https://stacspec.org/) in Rust.
+//!
+//! The SpatioTemporal Asset Catalog (STAC) specification provides a common language to describe a range of geospatial information, so it can more easily be indexed and discovered.
+//! A 'spatiotemporal asset' is any file that represents information about the earth captured in a certain space and time.
+//!
+//! The goal is for all providers of spatiotemporal assets (Imagery, SAR, Point Clouds, Data Cubes, Full Motion Video, etc) to expose their data as SpatioTemporal Asset Catalogs (STAC), so that new code doesn't need to be written whenever a new data set or API is released.
+//!
+//! This is a Rust implementation of the specification, with associated utilties.
+//! Similar projects in other languages include:
+//!
+//! - Python: [PySTAC](https://pystac.readthedocs.io/en/1.0/)
+//! - Go: [go-stac](https://github.com/planetlabs/go-stac)
+//! - .NET: [DotNetStac](https://github.com/Terradue/DotNetStac)
+//! - PHP: [resto](https://github.com/jjrom/resto)
 //!
 //! # Basic data strutures
 //!
 //! STAC is built on three data structures:
 //!
-//! - [Item](https://github.com/radiantearth/stac-spec/blob/master/item-spec/item-spec.md)
-//! - [Catalog](https://github.com/radiantearth/stac-spec/blob/master/catalog-spec/catalog-spec.md)
-//! - [Collection](https://github.com/radiantearth/stac-spec/blob/master/collection-spec/collection-spec.md)
+//! - [Item](https://github.com/radiantearth/stac-spec/blob/master/item-spec/item-spec.md) is a [GeoJSON](http://geojson.org/) [Feature](https://tools.ietf.org/html/rfc7946#section-3.2) augmented with [foreign members](https://tools.ietf.org/html/rfc7946#section-6) relevant to a STAC object.
+//! - [Catalog](https://github.com/radiantearth/stac-spec/blob/master/catalog-spec/catalog-spec.md) represents a logical group of other Catalog, Collection, and Item objects.
+//! - [Collection](https://github.com/radiantearth/stac-spec/blob/master/collection-spec/collection-spec.md) shares all fields with the Catalog (with different allowed values for `type` and `stac_extensions`) and adds fields to describe the whole dataset and the included set of Items.
 //!
 //! All three structures are provided as [serde](https://serde.rs/) (de)serializable structures with public attributes.
-//! Because `id` is always required, the structures do not implement `Default`.
+//! Because `id` is always required, these structures do not implement `Default`.
 //! Each provides a `new` method that takes an `id` and fills the rest with sensible defaults.
 //! Fields that have a `stac_*` prefix are stripped down to the suffix, e.g. `stac_version` becomes `version`.
 //!
