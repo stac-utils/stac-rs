@@ -4,7 +4,7 @@ use serde_json::{Map, Value};
 /// An Asset is an object that contains a URI to data associated with the Item that can be downloaded or streamed.
 ///
 /// It is allowed to add additional fields.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Asset {
     /// URI to the asset object.
     ///

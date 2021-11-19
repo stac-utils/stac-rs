@@ -2,224 +2,187 @@ use crate::{
     catalog::{Catalog, CATALOG_TYPE},
     collection::{Collection, COLLECTION_TYPE},
     item::{Item, ITEM_TYPE},
-    Error, Link,
+    Error,
 };
 use serde_json::Value;
 use std::convert::TryFrom;
-use url::Url;
 
-/// An enum that can hold all three STAC object types.
-#[derive(Debug)]
-#[allow(clippy::large_enum_variant)]
+/// A STAC object.
+///
+/// Can be an Item, Catalog, or Collection.
+#[derive(Debug, Clone)]
 pub enum Object {
-    /// A STAC Catalog.
-    Catalog(Catalog),
-
-    /// A STAC Collection.
-    Collection(Collection),
-
     /// A STAC Item.
     Item(Item),
+    /// A STAC Catalog.
+    Catalog(Catalog),
+    /// A STAC Collection.
+    Collection(Collection),
 }
 
 impl Object {
-    /// Reads an object from a href.
+    /// Returns true if this object is an Item.
     ///
     /// # Examples
     ///
     /// ```
-    /// # use stac::Object;
-    /// let item = Object::read_from_href("data/simple-item.json").unwrap();
-    /// ```
-    pub fn read_from_href<S: ToString>(href: S) -> Result<Object, Error> {
-        let href = href.to_string();
-        if Url::parse(&href).is_ok() {
-            unimplemented!()
-        } else {
-            crate::fs::read_from_path(href)
-        }
-    }
-
-    /// Creates a new Object from some JSON and an href.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use std::fs::File;
-    /// use std::io::BufReader;
-    /// use stac::Object;
-    /// use serde_json::Value;
-    ///
-    /// let file = File::open("data/simple-item.json").unwrap();
-    /// let buf_reader = BufReader::new(file);
-    /// let value: Value = serde_json::from_reader(buf_reader).unwrap();
-    /// let object = Object::new(value, "data/simple-item.json").unwrap();
-    /// ```
-    pub fn new<S: ToString>(value: Value, href: S) -> Result<Object, Error> {
-        let mut object = Object::try_from(value)?;
-        object.set_href(href);
-        Ok(object)
-    }
-
-    /// Returns true if this object is a catalog.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let catalog = stac::fs::read_from_path("data/catalog.json").unwrap();
-    /// assert!(catalog.is_catalog());
-    /// let item = stac::fs::read_from_path("data/simple-item.json").unwrap();
-    /// assert!(!item.is_catalog());
-    /// ```
-    pub fn is_catalog(&self) -> bool {
-        matches!(self, Object::Catalog(_))
-    }
-
-    /// Returns true if this object is a collection.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let collection = stac::fs::read_from_path("data/collection.json").unwrap();
-    /// assert!(collection.is_collection());
-    /// let item = stac::fs::read_from_path("data/simple-item.json").unwrap();
-    /// assert!(!item.is_collection());
-    /// ```
-    pub fn is_collection(&self) -> bool {
-        matches!(self, Object::Collection(_))
-    }
-
-    /// Returns true if this object is an item.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let item = stac::fs::read_from_path("data/simple-item.json").unwrap();
-    /// assert!(item.is_item());
-    /// let catalog = stac::fs::read_from_path("data/catalog.json").unwrap();
-    /// assert!(!catalog.is_item());
+    /// # use stac::{Object, Catalog, Item};
+    /// let object = Object::Item(Item::new("an-id"));
+    /// assert!(object.is_item());
+    /// let object = Object::Catalog(Catalog::new("an-id"));
+    /// assert!(!object.is_item());
     /// ```
     pub fn is_item(&self) -> bool {
         matches!(self, Object::Item(_))
     }
 
-    /// Returns this object's href.
+    /// Returns a reference to the underlying Item.
     ///
     /// # Examples
     ///
     /// ```
-    /// let item = stac::fs::read_from_path("data/simple-item.json").unwrap();
-    /// assert_eq!(item.href().unwrap(), "data/simple-item.json");
+    /// # use stac::{Object, Item};
+    /// let object = Object::Item(Item::new("an-id"));
+    /// let item = object.as_item().unwrap();
     /// ```
-    pub fn href(&self) -> Option<&str> {
-        use Object::*;
+    pub fn as_item(&self) -> Option<&Item> {
         match self {
-            Catalog(catalog) => catalog.href.as_deref(),
-            Collection(collection) => collection.href.as_deref(),
-            Item(item) => item.href.as_deref(),
+            Object::Item(item) => Some(item),
+            _ => None,
         }
     }
 
-    /// Sets this object's href.
+    /// Returns a mutable reference to the underlying Item.
     ///
     /// # Examples
     ///
     /// ```
-    /// use stac::{Item, Object};
-    /// let mut item = Object::from(Item::new("an-id"));
-    /// item.set_href("foobar");
-    /// assert_eq!(item.href().unwrap(), "foobar");
+    /// # use stac::{Object, Item};
+    /// let mut object = Object::Item(Item::new("an-id"));
+    /// let item = object.as_item_mut().unwrap();
     /// ```
-    pub fn set_href<S: ToString>(&mut self, href: S) {
-        use Object::*;
+    pub fn as_item_mut(&mut self) -> Option<&mut Item> {
         match self {
-            Catalog(catalog) => catalog.href = Some(href.to_string()),
-            Collection(collection) => collection.href = Some(href.to_string()),
-            Item(item) => item.href = Some(href.to_string()),
+            Object::Item(item) => Some(item),
+            _ => None,
         }
     }
 
-    /// Returns true if this object has items.
+    /// Returns true if this object is a Catalog.
     ///
     /// # Examples
     ///
     /// ```
-    /// let collection = stac::fs::read_from_path("data/collection.json").unwrap();
-    /// assert!(collection.has_items());
-    /// let collection = stac::fs::read_from_path("data/collection-only/collection.json").unwrap();
-    /// assert!(!collection.has_items());
+    /// # use stac::{Object, Catalog, Item};
+    /// let object = Object::Catalog(Catalog::new("an-id"));
+    /// assert!(object.is_catalog());
+    /// let object = Object::Item(Item::new("an-id"));
+    /// assert!(!object.is_catalog());
     /// ```
-    pub fn has_items(&self) -> bool {
-        self.iter_links().any(|link| link.is_item())
+    pub fn is_catalog(&self) -> bool {
+        matches!(self, Object::Catalog(_))
     }
 
-    /// Returns an iterator over this object's links.
+    /// Returns a reference to the underlying Catalog.
     ///
     /// # Examples
     ///
     /// ```
-    /// let catalog = stac::fs::read_from_path("data/catalog.json").unwrap();
-    /// let links: Vec<_> = catalog.iter_links().collect();
+    /// # use stac::{Object, Catalog};
+    /// let object = Object::Catalog(Catalog::new("an-id"));
+    /// let catalog = object.as_catalog().unwrap();
     /// ```
-    pub fn iter_links(&self) -> impl Iterator<Item = &Link> {
-        use Object::*;
+    pub fn as_catalog(&self) -> Option<&Catalog> {
         match self {
-            Catalog(catalog) => catalog.links.iter(),
-            Collection(collection) => collection.links.iter(),
-            Item(item) => item.links.iter(),
+            Object::Catalog(catalog) => Some(catalog),
+            _ => None,
         }
     }
 
-    /// Returns this object's id.
+    /// Returns a mutable reference to the underlying Catalog.
     ///
     /// # Examples
     ///
     /// ```
-    /// let item = stac::fs::read_from_path("data/simple-item.json").unwrap();
-    /// assert_eq!(item.id(), "20201211_223832_CS2");
+    /// # use stac::{Object, Catalog};
+    /// let mut object = Object::Catalog(Catalog::new("an-id"));
+    /// let catalog = object.as_catalog_mut().unwrap();
     /// ```
-    pub fn id(&self) -> &str {
-        use Object::*;
+    pub fn as_catalog_mut(&mut self) -> Option<&mut Catalog> {
         match self {
-            Catalog(catalog) => &catalog.id,
-            Collection(collection) => &collection.id,
-            Item(item) => &item.id,
+            Object::Catalog(catalog) => Some(catalog),
+            _ => None,
         }
     }
 
-    /// Returns an iterator over this object's children.
+    /// Returns true if this object is a Collection.
     ///
     /// # Examples
     ///
     /// ```
-    /// let catalog = stac::fs::read_from_path("data/catalog.json").unwrap();
-    /// let children: Vec<_> = catalog.iter_children().map(|result| result.unwrap()).collect();
+    /// # use stac::{Object, Collection, Item};
+    /// let object = Object::Collection(Collection::new("an-id"));
+    /// assert!(object.is_collection());
+    /// let object = Object::Item(Item::new("an-id"));
+    /// assert!(!object.is_collection());
     /// ```
-    pub fn iter_children(&self) -> impl Iterator<Item = Result<Object, Error>> + '_ {
-        self.iter_links().filter_map(move |link| {
-            if link.is_child() {
-                Some(link.resolve_from(self.href()))
-            } else {
-                None
-            }
-        })
+    pub fn is_collection(&self) -> bool {
+        matches!(self, Object::Collection(_))
+    }
+
+    /// Converts this object to a serde_json::Value, if possible.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac::{Object, Item};
+    /// let object = Object::Item(Item::new("an-id"));
+    /// let value = object.to_value().unwrap();
+    /// ```
+    pub fn to_value(&self) -> Result<Value, Error> {
+        match self {
+            Object::Item(item) => serde_json::to_value(item).map_err(Error::from),
+            Object::Catalog(catalog) => serde_json::to_value(catalog).map_err(Error::from),
+            Object::Collection(collection) => serde_json::to_value(collection).map_err(Error::from),
+        }
+    }
+
+    /// Returns a reference to the underlying Collection.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac::{Object, Collection};
+    /// let object = Object::Collection(Collection::new("an-id"));
+    /// let collection = object.as_collection().unwrap();
+    /// ```
+    pub fn as_collection(&self) -> Option<&Collection> {
+        match self {
+            Object::Collection(collection) => Some(collection),
+            _ => None,
+        }
+    }
+
+    /// Returns a mutable reference to the underlying Collection.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac::{Object, Collection};
+    /// let mut object = Object::Collection(Collection::new("an-id"));
+    /// let collection = object.as_collection_mut().unwrap();
+    /// ```
+    pub fn as_collection_mut(&mut self) -> Option<&mut Collection> {
+        match self {
+            Object::Collection(collection) => Some(collection),
+            _ => None,
+        }
     }
 }
 
-impl TryFrom<Value> for Object {
-    type Error = Error;
-
-    fn try_from(mut value: Value) -> Result<Object, Error> {
-        match value.get_mut("type") {
-            Some(type_) => match type_.as_str() {
-                Some(CATALOG_TYPE) => Ok(Object::Catalog(serde_json::from_value(value)?)),
-                Some(COLLECTION_TYPE) => Ok(Object::Collection(serde_json::from_value(value)?)),
-                Some(ITEM_TYPE) => Ok(Object::Item(serde_json::from_value(value)?)),
-                Some(other) => Err(Error::InvalidTypeValue(other.to_owned())),
-                None => Err(Error::InvalidTypeField(type_.take())),
-            },
-            None => Err(Error::MissingType),
-        }
+impl From<Item> for Object {
+    fn from(item: Item) -> Object {
+        Object::Item(item)
     }
 }
 
@@ -235,58 +198,42 @@ impl From<Collection> for Object {
     }
 }
 
-impl From<Item> for Object {
-    fn from(item: Item) -> Object {
-        Object::Item(item)
+impl TryFrom<Value> for Object {
+    type Error = Error;
+    fn try_from(value: Value) -> Result<Object, Error> {
+        match value.get("type").and_then(|v| v.as_str()) {
+            Some(ITEM_TYPE) => Ok(Object::Item(serde_json::from_value(value)?)),
+            Some(CATALOG_TYPE) => Ok(Object::Catalog(serde_json::from_value(value)?)),
+            Some(COLLECTION_TYPE) => Ok(Object::Collection(serde_json::from_value(value)?)),
+            Some(v) => Err(Error::InvalidTypeValue(v.to_string())),
+            None => Err(Error::MissingType),
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::Object;
-    use serde_json::{json, Value};
+    use serde_json::Value;
     use std::{convert::TryFrom, fs::File, io::BufReader};
 
-    fn from_path(path: &str) -> Value {
-        let file = File::open(path).unwrap();
+    #[test]
+    fn unknown_type() {
+        let file = File::open("data/simple-item.json").unwrap();
         let buf_reader = BufReader::new(file);
-        serde_json::from_reader(buf_reader).unwrap()
+        let mut value: Value = serde_json::from_reader(buf_reader).unwrap();
+        let type_ = value.get_mut("type").unwrap();
+        *type_ = Value::String("not-a-type".to_string());
+        assert!(Object::try_from(value).is_err());
     }
 
     #[test]
-    fn new_catalog() {
-        let value = from_path("data/catalog.json");
-        let object = Object::new(value, "data/catalog.json").unwrap();
-        assert!(object.is_catalog());
-        assert_eq!(object.href().unwrap(), "data/catalog.json");
-    }
-
-    #[test]
-    fn new_collection() {
-        let value = from_path("data/collection.json");
-        let object = Object::new(value, "data/collection.json").unwrap();
-        assert!(object.is_collection());
-        assert_eq!(object.href().unwrap(), "data/collection.json");
-    }
-
-    #[test]
-    fn new_item() {
-        let value = from_path("data/simple-item.json");
-        let object = Object::new(value, "data/simple-item.json").unwrap();
-        assert!(object.is_item());
-        assert_eq!(object.href().unwrap(), "data/simple-item.json");
-    }
-
-    #[test]
-    fn try_from() {
-        assert!(Object::try_from(json!({})).is_err());
-        assert!(Object::try_from(json!({
-            "type": []
-        }))
-        .is_err(),);
-        assert!(Object::try_from(json!({
-            "type": "panda"
-        }))
-        .is_err(),);
+    fn missing_type() {
+        let file = File::open("data/simple-item.json").unwrap();
+        let buf_reader = BufReader::new(file);
+        let mut value: Value = serde_json::from_reader(buf_reader).unwrap();
+        let object = value.as_object_mut().unwrap();
+        let _ = object.remove("type");
+        assert!(Object::try_from(value).is_err());
     }
 }

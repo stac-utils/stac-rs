@@ -17,7 +17,7 @@ pub(crate) const COLLECTION_TYPE: &str = "Collection";
 /// A STAC Collection is represented in JSON format. Any JSON object that
 /// contains all the required fields is a valid STAC Collection and also a valid
 /// STAC Catalog.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Collection {
     /// Must be set to Collection to be a valid Collection.
     #[serde(rename = "type")]

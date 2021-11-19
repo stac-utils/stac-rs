@@ -1,4 +1,3 @@
-use crate::{utils, Error, Object};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
@@ -11,7 +10,7 @@ const ITEM_REL: &str = "item";
 /// things like the Catalog an Item is in, related Items, parent or child Items
 /// (modeled in different ways, like an 'acquisition' or derived data). It is
 /// allowed to add additional fields such as a title and type.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Link {
     /// The actual link in the format of an URL.
     ///
@@ -86,16 +85,6 @@ impl Link {
     /// ```
     pub fn is_child(&self) -> bool {
         self.rel == CHILD_REL
-    }
-
-    /// Returns the target of this link, as resolved from the given href.
-    ///
-    /// # Examples
-    ///
-    /// TODO
-    pub fn resolve_from(&self, base: Option<&str>) -> Result<Object, Error> {
-        let href = utils::absolute_href(&self.href, base)?;
-        Object::read_from_href(href)
     }
 }
 

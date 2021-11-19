@@ -13,7 +13,7 @@ pub(crate) const ITEM_TYPE: &str = "Feature";
 /// Item is the core object in a STAC Catalog, containing the core metadata that
 /// enables any client to search or crawl online catalogs of spatial 'assets'
 /// (e.g., satellite imagery, derived data, DEMs).
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Item {
     /// Type of the GeoJSON Object. MUST be set to `Feature`.
     #[serde(rename = "type")]
