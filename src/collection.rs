@@ -41,15 +41,14 @@ pub struct Collection {
 
     /// Detailed multi-line description to fully explain the Collection.
     ///
-    /// CommonMark 0.29 syntax MAY be used for rich text representation.
+    /// [CommonMark 0.29](http://commonmark.org/) syntax MAY be used for rich text representation.
     pub description: String,
 
     /// List of keywords describing the Collection.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub keywords: Option<Vec<String>>,
 
-    /// Collection's license(s), either a SPDX License identifier, various if
-    /// multiple licenses apply or proprietary for all other cases.
+    /// Collection's license(s), either a SPDX [License identifier](https://spdx.org/licenses/), `various` if multiple licenses apply or `proprietary` for all other cases.
     pub license: String,
 
     /// A list of providers, which may include all organizations capturing or

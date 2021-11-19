@@ -33,12 +33,10 @@ pub struct Item {
     /// The ID should be unique within the Collection that contains the Item.
     pub id: String,
 
-    /// Defines the full footprint of the asset represented by this item,
-    /// formatted according to RFC 7946, section 3.1.
+    /// Defines the full footprint of the asset represented by this item, formatted according to [RFC 7946, section 3.1](https://tools.ietf.org/html/rfc7946#section-3.1).
     ///
-    /// The footprint should be the default GeoJSON geometry, though additional
-    /// geometries can be included. Coordinates are specified in
-    /// Longitude/Latitude or Longitude/Latitude/Elevation based on WGS 84.
+    /// The footprint should be the default GeoJSON geometry, though additional geometries can be included.
+    /// Coordinates are specified in Longitude/Latitude or Longitude/Latitude/Elevation based on [WGS 84](http://www.opengis.net/def/crs/OGC/1.3/CRS84).
     pub geometry: Option<Geometry>,
 
     /// Bounding Box of the asset represented by this Item, formatted according
@@ -51,7 +49,7 @@ pub struct Item {
 
     /// List of link objects to resources and related URLs.
     ///
-    /// A link with the rel set to self is strongly recommended.
+    /// A link with the `rel` set to `self` is strongly recommended.
     pub links: Vec<Link>,
 
     /// Dictionary of asset objects that can be downloaded, each with a unique key.
