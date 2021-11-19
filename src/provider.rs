@@ -7,7 +7,7 @@ use serde_json::{Map, Value};
 /// content of the Collection and therefore influences the data offered by this
 /// Collection. May also include information about the final storage provider
 /// hosting the data.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Provider {
     /// The name of the organization or the individual.
     pub name: String,

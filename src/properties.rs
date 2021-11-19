@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
 /// Additional metadata fields can be added to the GeoJSON Object Properties.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Properties {
     /// The searchable date and time of the assets, which must be in UTC.
     ///

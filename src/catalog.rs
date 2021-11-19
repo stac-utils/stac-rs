@@ -16,7 +16,7 @@ pub(crate) const CATALOG_TYPE: &str = "Catalog";
 /// A Catalog object will typically be the entry point into a STAC catalog.
 /// Their purpose is discovery: to be browsed by people or be crawled by clients
 /// to build a searchable index.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Catalog {
     /// Set to Catalog if this Catalog only implements the Catalog spec.
     #[serde(rename = "type")]
