@@ -1,91 +1,63 @@
-use crate::{Catalog, Collection, Item, Link};
-use serde::de::DeserializeOwned;
-use std::slice::Iter;
+use crate::{
+    core::{Core, CoreStruct},
+    Catalog, Collection, Error, Item, CATALOG_TYPE, COLLECTION_TYPE, ITEM_TYPE,
+};
+use serde_json::Value;
+use std::io::Read;
 
-/// A trait implemented by all three STAC objects (`Catalog`, `Container`, and `Item`).
-pub trait Object: DeserializeOwned {
-    /// Returns this object's href.
-    ///
-    /// # Examples
-    ///
-    /// `Catalog` implements `Object`:
-    ///
-    /// ```
-    /// use stac::{Catalog, Object};
-    /// let catalog = Catalog::new("an-id");
-    /// assert_eq!(catalog.href(), None);
-    /// let catalog: Catalog = stac::read("data/catalog.json").unwrap();
-    /// assert!(catalog.href().is_some());
-    /// ```
-    fn href(&self) -> Option<&str>;
+const TYPE_FIELD: &str = "type";
 
-    /// Sets this object's href.
-    ///
-    /// # Examples
-    ///
-    /// `Catalog` implements `Object`:
-    ///
-    /// ```
-    /// use stac::{Catalog, Object};
-    /// let mut catalog = Catalog::new("an-id");
-    /// assert_eq!(catalog.href(), None);
-    /// catalog.set_href("anything");
-    /// assert_eq!(catalog.href().unwrap(), "anything");
-    /// ```
-    fn set_href<T: ToString>(&mut self, href: T);
+/// An enum to hold any of the STAC object types.
+#[derive(Debug)]
+pub enum Object {
+    /// A STAC Item.
+    Item(Item),
 
-    /// Returns an iterator over this object's links.
-    ///
-    /// # Example
-    ///
-    /// `Catalog` implements `Object`:
-    ///
-    /// ```
-    /// use stac::{Catalog, Object};
-    /// let catalog: Catalog = stac::read("data/catalog.json").unwrap();
-    /// let links: Vec<_> = catalog.iter_links().collect();
-    /// ```
-    fn iter_links(&self) -> Iter<'_, Link>;
+    /// A STAC Catalog.
+    Catalog(Catalog),
+
+    /// A STAC Collection.
+    Collection(Collection),
 }
 
-impl Object for Catalog {
-    fn href(&self) -> Option<&str> {
-        self.href.as_deref()
-    }
-
-    fn set_href<T: ToString>(&mut self, href: T) {
-        self.href = Some(href.to_string())
-    }
-
-    fn iter_links(&self) -> Iter<'_, Link> {
-        self.links.iter()
+impl Object {
+    pub(crate) fn from_reader<R: Read>(reader: R) -> Result<Object, Error> {
+        let value: Value = serde_json::from_reader(reader)?;
+        if let Some(type_) = value.get(TYPE_FIELD) {
+            if let Some(type_) = type_.as_str() {
+                match type_ {
+                    ITEM_TYPE => Ok(Object::Item(serde_json::from_value(value)?)),
+                    CATALOG_TYPE => Ok(Object::Catalog(serde_json::from_value(value)?)),
+                    COLLECTION_TYPE => Ok(Object::Collection(serde_json::from_value(value)?)),
+                    _ => Err(Error::InvalidTypeValue(type_.to_string())),
+                }
+            } else {
+                Err(Error::InvalidTypeField(type_.clone()))
+            }
+        } else {
+            Err(Error::MissingType)
+        }
     }
 }
 
-impl Object for Collection {
-    fn href(&self) -> Option<&str> {
-        self.href.as_deref()
-    }
-
-    fn set_href<T: ToString>(&mut self, href: T) {
-        self.href = Some(href.to_string())
-    }
-
-    fn iter_links(&self) -> Iter<'_, Link> {
-        self.links.iter()
+impl AsRef<CoreStruct> for Object {
+    fn as_ref(&self) -> &CoreStruct {
+        match self {
+            Object::Item(item) => item.as_ref(),
+            Object::Catalog(catalog) => catalog.as_ref(),
+            Object::Collection(collection) => collection.as_ref(),
+        }
     }
 }
 
-impl Object for Item {
-    fn href(&self) -> Option<&str> {
-        self.href.as_deref()
-    }
-
-    fn set_href<T: ToString>(&mut self, href: T) {
-        self.href = Some(href.to_string())
-    }
-
-    fn iter_links(&self) -> Iter<'_, Link> {
-        self.links.iter()
+impl AsMut<CoreStruct> for Object {
+    fn as_mut(&mut self) -> &mut CoreStruct {
+        match self {
+            Object::Item(item) => item.as_mut(),
+            Object::Catalog(catalog) => catalog.as_mut(),
+            Object::Collection(collection) => collection.as_mut(),
+        }
     }
 }
+
+impl Core for Object {}
