@@ -31,7 +31,6 @@
 //! let item = Item::new("id");
 //! let catalog = Catalog::new("id");
 //! let collection = Catalog::new("id");
-//! assert_eq!(item.version, "1.0.0");
 //! ```
 //!
 //! # Full specification compliance
@@ -88,6 +87,7 @@
 mod asset;
 mod catalog;
 mod collection;
+mod core;
 mod error;
 mod extent;
 mod item;
@@ -99,12 +99,13 @@ mod reader;
 pub mod utils;
 
 pub use {
+    crate::core::Core,
     asset::Asset,
-    catalog::Catalog,
-    collection::Collection,
+    catalog::{Catalog, CATALOG_TYPE},
+    collection::{Collection, COLLECTION_TYPE},
     error::Error,
     extent::{Extent, SpatialExtent, TemporalExtent},
-    item::Item,
+    item::{Item, ITEM_TYPE},
     link::Link,
     object::Object,
     properties::Properties,
@@ -120,9 +121,9 @@ pub const STAC_VERSION: &str = "1.0.0";
 /// # Examples
 ///
 /// ```
-/// let catalog: stac::Catalog = stac::read("data/catalog.json").unwrap();
+/// let catalog = stac::read("data/catalog.json").unwrap();
 /// ```
-pub fn read<O: Object>(href: &str) -> Result<O, Error> {
+pub fn read(href: &str) -> Result<Object, Error> {
     let reader = Reader::new();
     reader.read(href, None)
 }

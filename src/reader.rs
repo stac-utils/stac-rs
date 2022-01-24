@@ -18,21 +18,21 @@ impl Reader {
         Reader {}
     }
 
-    /// Reads a STAC object from an href and, optionally, an HREF base.
+    /// Reads a STAC object from an href and, optionally, an HREF Core.
     ///
     /// # Examples
     ///
     /// ```
     /// # use stac::{Reader, Catalog};
     /// let reader = Reader::new();
-    /// let catalog: Catalog = reader.read("data/catalog.json", None).unwrap();
+    /// let catalog = reader.read("data/catalog.json", None).unwrap();
     /// ```
-    pub fn read<O: Object>(&self, href: &str, base: Option<&str>) -> Result<O, Error> {
+    pub fn read(&self, href: &str, base: Option<&str>) -> Result<Object, Error> {
         let href = crate::utils::absolute_href(href, base)?;
         let file = File::open(&href)?;
         let buf_reader = BufReader::new(file);
-        let mut object: O = serde_json::from_reader(buf_reader)?;
-        object.set_href(href);
+        let mut object = Object::from_reader(buf_reader)?;
+        object.as_mut().href = Some(href.to_string());
         Ok(object)
     }
 }
@@ -40,14 +40,13 @@ impl Reader {
 #[cfg(test)]
 mod tests {
     use super::Reader;
-    use crate::{Catalog, Object};
 
     #[test]
     fn read_fs() {
         let reader = Reader::new();
-        let catalog: Catalog = reader.read("data/catalog.json", None).unwrap();
+        let catalog = reader.read("data/catalog.json", None).unwrap();
         assert_eq!(
-            catalog.href().unwrap(),
+            catalog.as_ref().href.as_deref().unwrap(),
             std::fs::canonicalize("data/catalog.json")
                 .unwrap()
                 .to_str()
