@@ -16,5 +16,3 @@ url = "2"
 
 [dev-dependencies]
 assert-json-diff = "2"
-tempfile = "3"
-walkdir = "2"

@@ -72,7 +72,7 @@ pub struct Item {
     ///
     /// Not serialized.
     #[serde(skip)]
-    pub href: Option<String>,
+    pub(crate) href: Option<String>,
 }
 
 impl Item {
