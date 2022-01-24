@@ -90,12 +90,12 @@ mod catalog;
 mod collection;
 mod error;
 mod extent;
-pub mod fs;
 mod item;
 mod link;
 mod object;
 mod properties;
 mod provider;
+mod reader;
 pub mod utils;
 
 pub use {
@@ -109,10 +109,23 @@ pub use {
     object::Object,
     properties::Properties,
     provider::Provider,
+    reader::Reader,
 };
 
 /// The default STAC version supported by this library.
 pub const STAC_VERSION: &str = "1.0.0";
+
+/// Reads a STAC object from an HREF.
+///
+/// # Examples
+///
+/// ```
+/// let catalog: stac::Catalog = stac::read("data/catalog.json").unwrap();
+/// ```
+pub fn read<O: Object>(href: &str) -> Result<O, Error> {
+    let reader = Reader::new();
+    reader.read(href, None)
+}
 
 #[cfg(test)]
 mod tests {
