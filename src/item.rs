@@ -21,31 +21,17 @@ pub struct Item {
     #[serde(flatten)]
     core: CoreStruct,
 
-    /// Defines the full footprint of the asset represented by this item, formatted according to [RFC 7946, section 3.1](https://tools.ietf.org/html/rfc7946#section-3.1).
-    ///
-    /// The footprint should be the default GeoJSON geometry, though additional geometries can be included.
-    /// Coordinates are specified in Longitude/Latitude or Longitude/Latitude/Elevation Cored on [WGS 84](http://www.opengis.net/def/crs/OGC/1.3/CRS84).
-    pub geometry: Option<Geometry>,
+    geometry: Option<Geometry>,
 
-    /// Bounding Box of the asset represented by this Item, formatted according
-    /// to RFC 7946, section 5.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub bbox: Option<Vec<f64>>,
+    bbox: Option<Vec<f64>>,
 
-    /// A dictionary of additional metadata for the Object.
-    pub properties: Properties,
+    properties: Properties,
 
-    /// Dictionary of asset objects that can be downloaded, each with a unique key.
-    pub assets: HashMap<String, Asset>,
+    assets: HashMap<String, Asset>,
 
-    /// The id of the STAC Collection this Item references to (see collection relation type).
-    ///
-    /// This field is required if such a relation type is present and is not
-    /// allowed otherwise. This field provides an easy way for a user to search
-    /// for any Items that belong in a specified Collection. Must be a non-empty
-    /// string.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub collection: Option<String>,
+    collection: Option<String>,
 }
 
 impl Item {
