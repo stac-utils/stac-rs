@@ -58,6 +58,19 @@ pub trait Core: AsRef<CoreStruct> + AsMut<CoreStruct> {
         &self.as_ref().id
     }
 
+    /// Sets this object's id.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac::{Core, Catalog};
+    /// let mut catalog = Catalog::new("an-id");
+    /// catalog.set_id("a-new-id");
+    /// assert_eq!(catalog.id(), "a-new-id");
+    fn set_id<T: ToString>(&mut self, id: T) {
+        self.as_mut().id = id.to_string();
+    }
+
     /// Returns a reference to this structure's links.
     ///
     /// # Examples

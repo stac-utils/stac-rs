@@ -33,6 +33,17 @@
 //! let collection = Catalog::new("id");
 //! ```
 //!
+//! Attributes of STAC objects are accessed via getter and setter methods.
+//! Since many attributes are shared between object types, their getters and setters are grouped into a `Core` trait that must be imported before use:
+//!
+//! ```
+//! use stac::{Item, Core};
+//! let mut item = Item::new("id");
+//! assert_eq!(item.id(), "id");
+//! item.set_id("new-id");
+//! assert_eq!(item.id(), "new-id");
+//! ```
+//!
 //! # Full specification compliance
 //!
 //! The source repository contains canonical examples copied the [stac-spec repository](https://github.com/radiantearth/stac-spec/tree/master/examples), and these examples are tested for round trip equality.
