@@ -1,3 +1,4 @@
+use crate::stac::Handle;
 use serde_json::Value;
 use thiserror::Error;
 
@@ -7,6 +8,10 @@ pub enum Error {
     /// std::io::Error.
     #[error("std::io error: {0}")]
     Io(#[from] std::io::Error),
+
+    /// An invalid handle for a `Stac`
+    #[error("invalid handle: {0:?}")]
+    InvalidHandle(Handle),
 
     /// Invalid type field (not a string).
     #[error("Invalid \"type\" field: {0}")]
@@ -23,6 +28,10 @@ pub enum Error {
     /// A serde_json error.
     #[error("serde_json error: {0}")]
     SerdeJson(#[from] serde_json::Error),
+
+    /// Unresolvable node.
+    #[error("the node is unresolved and does not have an href")]
+    UnresolvableNode,
 
     /// A url parse error.
     #[error("url parse error: {0}")]

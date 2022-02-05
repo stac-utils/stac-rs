@@ -44,6 +44,53 @@
 //! assert_eq!(item.id(), "new-id");
 //! ```
 //!
+//! # Tree traversal
+//!
+//! STAC resources are trees, where `Catalog`s and `Collection`s can contain other `Catalog`s and `Collection`s via `child` links and `Item`s via `item` links.
+//! STAC objects may (but don't have to) have pointers back to their parents and the tree root, also via links.
+//!
+//! Tree structures in Rust can be a little tricky to implement, because Rust's strict ownership and mutability rules make storing multiple references to one object tricky.
+//! This is a good thing, as tree structures in other languages (e.g. Python in PySTAC) can be hard to manage.
+//! **stac-rs** provides an arena-based tree structure, inspired by [indextree](https://docs.rs/indextree/latest/indextree/), called `Stac`.
+//! The `Stac` arena uses handles to point to objects in the tree, making the ergonomics slighly clumsier than a direct access tree (e.g. one based on RefCells, as described [here](https://www.nikbrendler.com/posts/rust-leetcode-primer-trees/)).
+//! However, the arena tree doesn't require us to do any "interior mutability" workarounds, making this implementation hopefully easier to audit and keep correct.
+//!
+//! `Stac`s can be created from an href.
+//! The `Stac::read` method returns both the `Stac` arena, and a handle to the read object:
+//!
+//! ```
+//! use stac::Stac;
+//! let (stac, handle) = Stac::read("data/catalog.json").unwrap();
+//! ```
+//!
+//! This handle can be used to fetch references (mutable or immutable) to that object:
+//!
+//! ```
+//! use stac::{Stac, Core};
+//! let (mut stac, handle) = Stac::read("data/catalog.json").unwrap();
+//! let catalog = stac.get(handle).unwrap();
+//! assert_eq!(catalog.id(), "examples");
+//! let catalog = stac.get_mut(handle).unwrap();
+//! catalog.set_id("new-id");
+//! let catalog = stac.get(handle).unwrap();
+//! assert_eq!(catalog.id(), "new-id");
+//! ```
+//!
+//! When objects are read into a `Stac`, their children are inserted into the tree as "unresolved" nodes.
+//! They are only fetched if asked for, e.g. via the `find_child` method on the handle.
+//! Note that the `Stac` object must be mutable to find children, becuase we are changing the tree by "resolving" those nodes:
+//!
+//! ```
+//! # use stac::{Stac, Core};
+//! let (mut stac, handle) = Stac::read("data/catalog.json").unwrap();
+//! let child = handle
+//!     .find_child(&mut stac, |child| child.id() == "sentinel-2")
+//!     .unwrap()
+//!     .unwrap();
+//! ```
+//!
+//! For a more complete picture of the `Stac` object, see the [module-level documentation](stac).
+//!
 //! # Full specification compliance
 //!
 //! The source repository contains canonical examples copied the [stac-spec repository](https://github.com/radiantearth/stac-spec/tree/master/examples), and these examples are tested for round trip equality.
@@ -107,10 +154,12 @@ mod object;
 mod properties;
 mod provider;
 mod reader;
+pub mod stac;
 pub mod utils;
 
 pub use {
     crate::core::Core,
+    crate::stac::Stac,
     asset::Asset,
     catalog::{Catalog, CATALOG_TYPE},
     collection::{Collection, COLLECTION_TYPE},
