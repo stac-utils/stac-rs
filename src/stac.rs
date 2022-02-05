@@ -145,14 +145,6 @@ impl<R: Read> Stac<R> {
         Handle(index)
     }
 
-    fn children(&self, handle: Handle) -> impl Iterator<Item = Handle> {
-        self.nodes[handle.0].children.clone().into_iter()
-    }
-
-    fn items(&self, handle: Handle) -> impl Iterator<Item = Handle> {
-        self.nodes[handle.0].items.clone().into_iter()
-    }
-
     fn resolve(&mut self, handle: Handle) -> Result<(), Error> {
         let object = self.reader.read(
             self.nodes[handle.0]
@@ -199,7 +191,7 @@ impl Handle {
         F: Fn(&Object) -> bool,
         R: Read,
     {
-        for handle in stac.children(*self) {
+        for handle in self.children(stac) {
             let child = stac.get(handle)?;
             if f(child) {
                 return Ok(Some(handle));
@@ -227,13 +219,43 @@ impl Handle {
         F: Fn(&Object) -> bool,
         R: Read,
     {
-        for handle in stac.items(*self) {
+        for handle in self.items(stac) {
             let item = stac.get(handle)?;
             if f(item) {
                 return Ok(Some(handle));
             }
         }
         Ok(None)
+    }
+
+    /// Returns an iterator over this object's children (as handles).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac::{Stac, Core};
+    /// let (mut stac, catalog) = Stac::read("data/catalog.json").unwrap();
+    /// for child in catalog.children(&stac) {
+    ///     println!("{}", stac.get(child).unwrap().id());
+    /// }
+    /// ```
+    pub fn children<R: Read>(&self, stac: &Stac<R>) -> impl Iterator<Item = Handle> {
+        stac.nodes[self.0].children.clone().into_iter()
+    }
+
+    /// Returns an iterator over this object's items (as handles).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac::{Stac, Core};
+    /// let (mut stac, catalog) = Stac::read("data/catalog.json").unwrap();
+    /// for item in catalog.items(&stac) {
+    ///     println!("{}", stac.get(item).unwrap().id());
+    /// }
+    /// ```
+    pub fn items<R: Read>(&self, stac: &Stac<R>) -> impl Iterator<Item = Handle> {
+        stac.nodes[self.0].items.clone().into_iter()
     }
 }
 
