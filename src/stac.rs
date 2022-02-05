@@ -1,16 +1,18 @@
 //! An arena-based tree implementation for STAC catalogs.
 
-use crate::{Core, Error, Link, Object, Read, Reader};
+use crate::{utils, Core, Error, Link, Object, Read, Reader};
+use std::collections::HashMap;
 
 /// An arena-based tree for accessing STAC catalogs.
 #[derive(Debug)]
 pub struct Stac<R: Read> {
     reader: R,
     nodes: Vec<Node>,
+    hrefs: HashMap<String, Handle>,
 }
 
 /// A pointer to a STAC object in a `Stac` tree.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Handle(usize);
 
 #[derive(Debug)]
@@ -19,7 +21,6 @@ struct Node {
     children: Vec<Handle>,
     items: Vec<Handle>,
     href: Option<String>,
-    base: Option<String>,
 }
 
 impl Stac<Reader> {
@@ -90,6 +91,7 @@ impl<R: Read> Stac<R> {
         Stac {
             reader,
             nodes: self.nodes,
+            hrefs: self.hrefs,
         }
     }
 
@@ -103,46 +105,57 @@ impl<R: Read> Stac<R> {
     /// let catalog = stac.add_via_href("data/catalog.json").unwrap();
     /// ```
     pub fn add_via_href(&mut self, href: &str) -> Result<Handle, Error> {
-        let object = self.reader.read(href, None)?;
-        Ok(self.add_object(object))
+        let href = utils::absolute_href(href, None)?;
+        if let Some(handle) = self.hrefs.get(&href) {
+            Ok(*handle)
+        } else {
+            let object = self.reader.read(&href, None)?;
+            self.add_object(object)
+        }
     }
 
-    fn add_object(&mut self, object: Object) -> Handle {
-        let (children, items) = self.add_links(&object);
-        let index = self.nodes.len();
-        self.nodes.push(Node {
+    fn add_object(&mut self, object: Object) -> Result<Handle, Error> {
+        let (children, items) = self.add_links(&object)?;
+        Ok(self.add_node(Node {
             href: object.as_ref().href.clone(),
             object: Some(object),
             children,
             items,
-            base: None,
-        });
-        Handle(index)
+        }))
     }
 
-    fn add_links(&mut self, object: &Object) -> (Vec<Handle>, Vec<Handle>) {
+    fn add_links(&mut self, object: &Object) -> Result<(Vec<Handle>, Vec<Handle>), Error> {
         let mut children = Vec::new();
         let mut items = Vec::new();
         for link in object.links() {
             if link.is_child() {
-                children.push(self.add_link(link, object.as_ref().href.clone()));
+                children.push(self.add_link(link, object.as_ref().href.clone())?);
             } else if link.is_item() {
-                items.push(self.add_link(link, object.as_ref().href.clone()));
+                items.push(self.add_link(link, object.as_ref().href.clone())?);
             }
         }
-        (children, items)
+        Ok((children, items))
     }
 
-    fn add_link(&mut self, link: &Link, base: Option<String>) -> Handle {
-        let index = self.nodes.len();
-        self.nodes.push(Node {
+    fn add_link(&mut self, link: &Link, base: Option<String>) -> Result<Handle, Error> {
+        Ok(self.add_node(Node {
             object: None,
             children: Vec::new(),
             items: Vec::new(),
-            href: Some(link.href.clone()),
-            base,
-        });
-        Handle(index)
+            href: Some(utils::absolute_href(&link.href, base.as_deref())?),
+        }))
+    }
+
+    fn add_node(&mut self, node: Node) -> Handle {
+        let handle = Handle(self.nodes.len());
+        if let Some(href) = node.href.as_ref() {
+            if self.hrefs.insert(href.clone(), handle).is_some() {
+                // TODO implement
+                unimplemented!()
+            }
+        }
+        self.nodes.push(node);
+        handle
     }
 
     fn resolve(&mut self, handle: Handle) -> Result<(), Error> {
@@ -151,9 +164,9 @@ impl<R: Read> Stac<R> {
                 .href
                 .as_deref()
                 .ok_or(Error::UnresolvableNode)?,
-            self.nodes[handle.0].base.as_deref(),
+            None,
         )?;
-        let (children, items) = self.add_links(&object);
+        let (children, items) = self.add_links(&object)?;
         let node = &mut self.nodes[handle.0];
         node.object = Some(object);
         node.children = children;
@@ -167,6 +180,7 @@ impl Default for Stac<Reader> {
         Stac {
             reader: Reader::default(),
             nodes: Vec::new(),
+            hrefs: HashMap::new(),
         }
     }
 }
@@ -311,5 +325,12 @@ mod tests {
             .unwrap()
             .unwrap();
         assert_eq!(stac.get(item).unwrap().id(), "proj-example");
+    }
+
+    #[test]
+    fn prevent_duplicates() {
+        let (mut stac, catalog) = Stac::read("data/catalog.json").unwrap();
+        let item = stac.add_via_href("data/collectionless-item.json").unwrap();
+        assert_eq!(catalog.items(&stac).collect::<Vec<_>>(), vec![item]);
     }
 }
