@@ -70,6 +70,23 @@ impl Item {
         self.geometry.as_ref()
     }
 
+    /// Sets this Item's geometry.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use geojson::{Geometry, Value};
+    /// # use stac::Item;
+    /// let mut item = Item::new("an-id");
+    /// item.set_geometry(Geometry::new(Value::Point(vec![4.0, 2.0])));
+    /// assert!(item.geometry().is_some());
+    /// item.set_geometry(None);
+    /// assert!(item.geometry().is_none());
+    /// ```
+    pub fn set_geometry<T: Into<Option<Geometry>>>(&mut self, geometry: T) {
+        self.geometry = geometry.into();
+    }
+
     /// Returns a reference to this Item's properties.
     ///
     /// # Examples
