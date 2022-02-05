@@ -77,6 +77,22 @@ impl<R: Read> Stac<R> {
             .expect("node should be resolved"))
     }
 
+    /// Moves this `Stac` into a new one with a the provided reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::{Stac, Reader};
+    /// let stac = Stac::default();
+    /// let stac = stac.with_reader(Reader::default());
+    /// ```
+    pub fn with_reader<T: Read>(self, reader: T) -> Stac<T> {
+        Stac {
+            reader,
+            nodes: self.nodes,
+        }
+    }
+
     fn add_via_href(&mut self, href: &str) -> Result<Handle, Error> {
         let object = self.reader.read(href, None)?;
         Ok(self.add_object(object))
