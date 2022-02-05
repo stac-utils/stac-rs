@@ -93,7 +93,16 @@ impl<R: Read> Stac<R> {
         }
     }
 
-    fn add_via_href(&mut self, href: &str) -> Result<Handle, Error> {
+    /// Add an object to the `Stac` via an href.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::Stac;
+    /// let mut stac = Stac::default();
+    /// let catalog = stac.add_via_href("data/catalog.json").unwrap();
+    /// ```
+    pub fn add_via_href(&mut self, href: &str) -> Result<Handle, Error> {
         let object = self.reader.read(href, None)?;
         Ok(self.add_object(object))
     }
