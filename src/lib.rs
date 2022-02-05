@@ -170,7 +170,7 @@ pub use {
     object::Object,
     properties::Properties,
     provider::Provider,
-    reader::Reader,
+    reader::{Read, Reader},
 };
 
 /// The default STAC version supported by this library.
@@ -184,7 +184,7 @@ pub const STAC_VERSION: &str = "1.0.0";
 /// let catalog = stac::read("data/catalog.json").unwrap();
 /// ```
 pub fn read(href: &str) -> Result<Object, Error> {
-    let reader = Reader::new();
+    let reader = Reader::default();
     reader.read(href, None)
 }
 

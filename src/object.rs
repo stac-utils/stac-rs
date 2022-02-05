@@ -3,7 +3,6 @@ use crate::{
     Catalog, Collection, Error, Item, CATALOG_TYPE, COLLECTION_TYPE, ITEM_TYPE,
 };
 use serde_json::Value;
-use std::io::Read;
 
 const TYPE_FIELD: &str = "type";
 
@@ -21,8 +20,7 @@ pub enum Object {
 }
 
 impl Object {
-    pub(crate) fn from_reader<R: Read>(reader: R) -> Result<Object, Error> {
-        let value: Value = serde_json::from_reader(reader)?;
+    pub(crate) fn from_value(value: Value) -> Result<Object, Error> {
         if let Some(type_) = value.get(TYPE_FIELD) {
             if let Some(type_) = type_.as_str() {
                 match type_ {

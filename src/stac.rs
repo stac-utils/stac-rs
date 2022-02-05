@@ -1,12 +1,11 @@
 //! An arena-based tree implementation for STAC catalogs.
 
-use crate::{Core, Error, Link, Object, Reader};
+use crate::{Core, Error, Link, Object, Read, Reader};
 
 /// An arena-based tree for accessing STAC catalogs.
-#[derive(Debug, Default)]
-pub struct Stac {
-    // TODO refactor this to be generic over a `Read` trait.
-    reader: Reader,
+#[derive(Debug)]
+pub struct Stac<R: Read> {
+    reader: R,
     nodes: Vec<Node>,
 }
 
@@ -23,7 +22,7 @@ struct Node {
     base: Option<String>,
 }
 
-impl Stac {
+impl Stac<Reader> {
     /// Reads a STAC object and returns a `Stac` and a handle to that object.
     ///
     /// # Examples
@@ -32,12 +31,14 @@ impl Stac {
     /// use stac::Stac;
     /// let (stac, handle) = Stac::read("data/catalog.json").unwrap();
     /// ```
-    pub fn read(href: &str) -> Result<(Stac, Handle), Error> {
+    pub fn read(href: &str) -> Result<(Stac<Reader>, Handle), Error> {
         let mut stac = Stac::default();
         let handle = stac.add_via_href(href)?;
         Ok((stac, handle))
     }
+}
 
+impl<R: Read> Stac<R> {
     /// Gets a reference to an object in a `Stac`.
     ///
     /// # Examples
@@ -144,6 +145,15 @@ impl Stac {
     }
 }
 
+impl Default for Stac<Reader> {
+    fn default() -> Stac<Reader> {
+        Stac {
+            reader: Reader::default(),
+            nodes: Vec::new(),
+        }
+    }
+}
+
 impl Handle {
     /// Finds a child and returns its handle.
     ///
@@ -159,9 +169,10 @@ impl Handle {
     /// let collection = stac.get(collection).unwrap();
     /// assert_eq!(collection.id(), "extensions-collection");
     /// ```
-    pub fn find_child<F>(&self, stac: &mut Stac, f: F) -> Result<Option<Handle>, Error>
+    pub fn find_child<F, R>(&self, stac: &mut Stac<R>, f: F) -> Result<Option<Handle>, Error>
     where
         F: Fn(&Object) -> bool,
+        R: Read,
     {
         for handle in stac.children(*self) {
             let child = stac.get(handle)?;
@@ -186,9 +197,10 @@ impl Handle {
     /// let item = stac.get(item).unwrap();
     /// assert_eq!(item.id(), "CS3-20160503_132131_08");
     /// ```
-    pub fn find_item<F>(&self, stac: &mut Stac, f: F) -> Result<Option<Handle>, Error>
+    pub fn find_item<F, R>(&self, stac: &mut Stac<R>, f: F) -> Result<Option<Handle>, Error>
     where
         F: Fn(&Object) -> bool,
+        R: Read,
     {
         for handle in stac.items(*self) {
             let item = stac.get(handle)?;
