@@ -134,19 +134,15 @@ impl<R: Read> Stac<R> {
         }
     }
 
-    fn add_object(&mut self, object: Object) -> Result<Handle, Error> {
+    fn add_object(&mut self, mut object: Object) -> Result<Handle, Error> {
         let links = self.add_links(&object)?;
-        if let Some(handle) = object
-            .as_ref()
-            .href
-            .as_deref()
-            .and_then(|href| self.hrefs.get(href).cloned())
-        {
+        let href = object.as_mut().href.take();
+        if let Some(handle) = href.as_ref().and_then(|href| self.hrefs.get(href).cloned()) {
             self.update_node_unchecked(handle, object, links);
             Ok(handle)
         } else {
             Ok(self.add_node(Node {
-                href: object.as_ref().href.clone(),
+                href,
                 object: Some(object),
                 children: links.children,
                 items: links.items,
