@@ -22,9 +22,8 @@
 //! - [Collection](https://github.com/radiantearth/stac-spec/blob/master/collection-spec/collection-spec.md) shares all fields with the Catalog (with different allowed values for `type` and `stac_extensions`) and adds fields to describe the whole dataset and the included set of Items.
 //!
 //! All three structures are provided as [serde](https://serde.rs/) (de)serializable structures with public attributes.
-//! Because `id` is always required, these structures do not implement `Default`.
+//! Because `id` is always required, these structures do not implement [Default].
 //! Each provides a `new` method that takes an `id` and fills the rest with sensible defaults.
-//! Fields that have a `stac_*` prefix are stripped down to the suffix, e.g. `stac_version` becomes `version`.
 //!
 //! ```
 //! use stac::{Item, Catalog, Collection};
@@ -34,7 +33,7 @@
 //! ```
 //!
 //! Attributes of STAC objects are accessed via getter and setter methods.
-//! Since many attributes are shared between object types, their getters and setters are grouped into a `Core` trait that must be imported before use:
+//! Since many attributes are shared between object types, their getters and setters are grouped into a [Core] trait that must be imported before use:
 //!
 //! ```
 //! use stac::{Item, Core};
@@ -68,17 +67,16 @@
 //!
 //! # Tree traversal
 //!
-//! STAC resources are trees, where `Catalog`s and `Collection`s can contain other `Catalog`s and `Collection`s via `child` links and `Item`s via `item` links.
+//! STAC resources are trees, where [Catalog]s and [Collection]s can contain other [Catalog]s and [Collection]s via `child` links and [Item]s via `item` links.
 //! STAC objects may (but don't have to) have pointers back to their parents and the tree root, also via links.
 //!
 //! Tree structures in Rust can be a little tricky to implement, because Rust's strict ownership and mutability rules make storing multiple references to one object tricky.
-//! This is a good thing, as tree structures in other languages (e.g. Python in PySTAC) can be hard to manage.
-//! **stac-rs** provides an arena-based tree structure, inspired by [indextree](https://docs.rs/indextree/latest/indextree/), called `Stac`.
-//! The `Stac` arena uses handles to point to objects in the tree, making the ergonomics slighly clumsier than a direct access tree (e.g. one based on RefCells, as described [here](https://www.nikbrendler.com/posts/rust-leetcode-primer-trees/)).
+//! **stac-rs** provides an arena-based tree structure, inspired by [indextree](https://docs.rs/indextree/latest/indextree/), called [Stac].
+//! The [Stac] arena uses handles to point to objects in the tree, making the ergonomics slighly clumsier than a direct access tree (e.g. one based on [std::cell::RefCell], as described [here](https://www.nikbrendler.com/posts/rust-leetcode-primer-trees/)).
 //! However, the arena tree doesn't require us to do any "interior mutability" workarounds, making this implementation hopefully easier to audit and keep correct.
 //!
-//! `Stac`s can be created from an href.
-//! The `Stac::read` method returns both the `Stac` arena, and a handle to the read object:
+//! A [Stac] can be created from an href.
+//! The [Stac::read] method returns both the [Stac] arena, and a handle to the object:
 //!
 //! ```
 //! use stac::Stac;
@@ -98,9 +96,9 @@
 //! assert_eq!(catalog.id(), "new-id");
 //! ```
 //!
-//! When objects are read into a `Stac`, their children are inserted into the tree as "unresolved" nodes.
-//! They are only fetched if asked for, e.g. via the `find_child` method on the handle.
-//! Note that the `Stac` object must be mutable to find children, becuase we are changing the tree by "resolving" those nodes:
+//! When objects are read into a [Stac], their children are inserted into the tree as "unresolved" nodes.
+//! They are only fetched if asked for, e.g. via [stac::Handle::find_child].
+//! Note that the [Stac] object must be mutable to find children, becuase we are changing the tree by "resolving" those nodes:
 //!
 //! ```
 //! # use stac::{Stac, Core};
@@ -111,7 +109,7 @@
 //!     .unwrap();
 //! ```
 //!
-//! For a more complete picture of the `Stac` object, see the [module-level documentation](stac).
+//! For a more complete picture of the [Stac] object, see the [module-level documentation](stac).
 //!
 //! # Full specification compliance
 //!
