@@ -1,7 +1,7 @@
 //! An arena-based tree implementation for STAC catalogs.
 
 use crate::{utils, Core, Error, Link, Object, Read, Reader};
-use std::collections::HashMap;
+use std::{collections::HashMap, vec::IntoIter};
 
 /// An arena-based tree for accessing STAC catalogs.
 #[derive(Debug)]
@@ -50,8 +50,13 @@ impl<R: Read> Stac<R> {
     /// let catalog = stac.get(handle).unwrap();
     /// ```
     pub fn get(&mut self, handle: Handle) -> Result<&Object, Error> {
-        if !self.nodes[handle.0].is_resolved() {
-            self.resolve(handle)?;
+        if !self
+            .nodes
+            .get(handle.0)
+            .ok_or(Error::InvalidHandle(handle))?
+            .is_resolved()
+        {
+            self.resolve_unchecked(handle)?;
         }
         Ok(self.nodes[handle.0]
             .object
@@ -69,8 +74,13 @@ impl<R: Read> Stac<R> {
     /// let catalog = stac.get_mut(handle).unwrap();
     /// ```
     pub fn get_mut(&mut self, handle: Handle) -> Result<&mut Object, Error> {
-        if !self.nodes[handle.0].is_resolved() {
-            self.resolve(handle)?;
+        if !self
+            .nodes
+            .get(handle.0)
+            .ok_or(Error::InvalidHandle(handle))?
+            .is_resolved()
+        {
+            self.resolve_unchecked(handle)?;
         }
         Ok(self.nodes[handle.0]
             .object
@@ -158,7 +168,7 @@ impl<R: Read> Stac<R> {
         handle
     }
 
-    fn resolve(&mut self, handle: Handle) -> Result<(), Error> {
+    fn resolve_unchecked(&mut self, handle: Handle) -> Result<(), Error> {
         let object = self.reader.read(
             self.nodes[handle.0]
                 .href
@@ -205,7 +215,7 @@ impl Handle {
         F: Fn(&Object) -> bool,
         R: Read,
     {
-        for handle in self.children(stac) {
+        for handle in self.children(stac)? {
             let child = stac.get(handle)?;
             if f(child) {
                 return Ok(Some(handle));
@@ -233,7 +243,7 @@ impl Handle {
         F: Fn(&Object) -> bool,
         R: Read,
     {
-        for handle in self.items(stac) {
+        for handle in self.items(stac)? {
             let item = stac.get(handle)?;
             if f(item) {
                 return Ok(Some(handle));
@@ -249,12 +259,15 @@ impl Handle {
     /// ```
     /// # use stac::{Stac, Core};
     /// let (mut stac, catalog) = Stac::read("data/catalog.json").unwrap();
-    /// for child in catalog.children(&stac) {
+    /// for child in catalog.children(&stac).unwrap() {
     ///     println!("{}", stac.get(child).unwrap().id());
     /// }
     /// ```
-    pub fn children<R: Read>(&self, stac: &Stac<R>) -> impl Iterator<Item = Handle> {
-        stac.nodes[self.0].children.clone().into_iter()
+    pub fn children<R: Read>(&self, stac: &Stac<R>) -> Result<IntoIter<Handle>, Error> {
+        stac.nodes
+            .get(self.0)
+            .ok_or(Error::InvalidHandle(*self))
+            .map(|node| node.children.clone().into_iter())
     }
 
     /// Returns an iterator over this object's items (as handles).
@@ -264,12 +277,15 @@ impl Handle {
     /// ```
     /// # use stac::{Stac, Core};
     /// let (mut stac, catalog) = Stac::read("data/catalog.json").unwrap();
-    /// for item in catalog.items(&stac) {
+    /// for item in catalog.items(&stac).unwrap() {
     ///     println!("{}", stac.get(item).unwrap().id());
     /// }
     /// ```
-    pub fn items<R: Read>(&self, stac: &Stac<R>) -> impl Iterator<Item = Handle> {
-        stac.nodes[self.0].items.clone().into_iter()
+    pub fn items<R: Read>(&self, stac: &Stac<R>) -> Result<IntoIter<Handle>, Error> {
+        stac.nodes
+            .get(self.0)
+            .ok_or(Error::InvalidHandle(*self))
+            .map(|node| node.items.clone().into_iter())
     }
 }
 
@@ -331,6 +347,9 @@ mod tests {
     fn prevent_duplicates() {
         let (mut stac, catalog) = Stac::read("data/catalog.json").unwrap();
         let item = stac.add_via_href("data/collectionless-item.json").unwrap();
-        assert_eq!(catalog.items(&stac).collect::<Vec<_>>(), vec![item]);
+        assert_eq!(
+            catalog.items(&stac).unwrap().collect::<Vec<_>>(),
+            vec![item]
+        );
     }
 }
