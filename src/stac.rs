@@ -228,6 +228,10 @@ impl<R: Read> Stac<R> {
         node.parent = links.parent;
         node.root = links.root;
     }
+
+    fn get_node(&self, handle: Handle) -> Result<&Node, Error> {
+        self.nodes.get(handle.0).ok_or(Error::InvalidHandle(handle))
+    }
 }
 
 impl Default for Stac<Reader> {
@@ -309,9 +313,7 @@ impl Handle {
     /// }
     /// ```
     pub fn children<R: Read>(&self, stac: &Stac<R>) -> Result<IntoIter<Handle>, Error> {
-        stac.nodes
-            .get(self.0)
-            .ok_or(Error::InvalidHandle(*self))
+        stac.get_node(*self)
             .map(|node| node.children.clone().into_iter())
     }
 
@@ -327,9 +329,7 @@ impl Handle {
     /// }
     /// ```
     pub fn items<R: Read>(&self, stac: &Stac<R>) -> Result<IntoIter<Handle>, Error> {
-        stac.nodes
-            .get(self.0)
-            .ok_or(Error::InvalidHandle(*self))
+        stac.get_node(*self)
             .map(|node| node.items.clone().into_iter())
     }
 
@@ -343,10 +343,7 @@ impl Handle {
     /// let catalog = item.parent(&mut stac).unwrap().unwrap();
     /// ```
     pub fn parent<R: Read>(&self, stac: &Stac<R>) -> Result<Option<Handle>, Error> {
-        stac.nodes
-            .get(self.0)
-            .ok_or(Error::InvalidHandle(*self))
-            .map(|node| node.parent)
+        stac.get_node(*self).map(|node| node.parent)
     }
 
     /// Returns the root of this object, if there is one.
@@ -359,10 +356,7 @@ impl Handle {
     /// let catalog = item.root(&mut stac).unwrap().unwrap();
     /// ```
     pub fn root<R: Read>(&self, stac: &Stac<R>) -> Result<Option<Handle>, Error> {
-        stac.nodes
-            .get(self.0)
-            .ok_or(Error::InvalidHandle(*self))
-            .map(|node| node.root)
+        stac.get_node(*self).map(|node| node.root)
     }
 }
 
