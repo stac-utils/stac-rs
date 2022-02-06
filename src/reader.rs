@@ -1,4 +1,4 @@
-use crate::{Error, Object};
+use crate::{Error, Href, Object};
 use serde_json::Value;
 use std::{fs::File, io::BufReader};
 
@@ -16,10 +16,26 @@ pub trait Read {
     /// let catalog = reader.read("data/catalog.json", None).unwrap();
     /// ```
     fn read(&self, href: &str, base: Option<&str>) -> Result<Object, Error> {
-        let href = crate::utils::absolute_href(href, base)?;
+        let href = Href::new(href, base)?;
+        self.read_href(href)
+    }
+
+    /// Reads a STAC object from an href, storing that href on the object for later reference.
+    ///
+    /// # Examples
+    ///
+    /// `Reader` implements `Read`:
+    ///
+    /// ```
+    /// use stac::{Read, Reader, Href};
+    /// let href = Href::new("data/catalog.json", None).unwrap();
+    /// let reader = Reader::default();
+    /// let catalog = reader.read_href(href).unwrap();
+    /// ```
+    fn read_href(&self, href: Href) -> Result<Object, Error> {
         let value = self.read_json(&href)?;
         let mut object = Object::from_value(value)?;
-        object.as_mut().href = Some(href.to_string());
+        object.as_mut().href = Some(href);
         Ok(object)
     }
 
@@ -32,11 +48,12 @@ pub trait Read {
     /// `Reader` implements `Read`:
     ///
     /// ```
-    /// use stac::{Read, Reader, Catalog};
+    /// use stac::{Read, Reader, Catalog, Href};
     /// let reader = Reader::default();
-    /// let value = reader.read_json("data/catalog.json").unwrap();
+    /// let href = Href::new("data/catalog.json", None).unwrap();
+    /// let value = reader.read_json(&href).unwrap();
     /// ```
-    fn read_json(&self, href: &str) -> Result<Value, Error>;
+    fn read_json(&self, href: &Href) -> Result<Value, Error>;
 }
 
 /// The default STAC reader.
@@ -44,10 +61,15 @@ pub trait Read {
 pub struct Reader {}
 
 impl Read for Reader {
-    fn read_json(&self, href: &str) -> Result<Value, Error> {
-        let file = File::open(&href)?;
-        let buf_reader = BufReader::new(file);
-        serde_json::from_reader(buf_reader).map_err(Error::from)
+    fn read_json(&self, href: &Href) -> Result<Value, Error> {
+        match href {
+            Href::Path(path) => {
+                let file = File::open(path)?;
+                let buf_reader = BufReader::new(file);
+                serde_json::from_reader(buf_reader).map_err(Error::from)
+            }
+            Href::Url(_) => unimplemented!(),
+        }
     }
 }
 
@@ -60,7 +82,7 @@ mod tests {
         let reader = Reader::default();
         let catalog = reader.read("data/catalog.json", None).unwrap();
         assert_eq!(
-            catalog.as_ref().href.as_deref().unwrap(),
+            catalog.as_ref().href.as_ref().unwrap().to_str(),
             std::fs::canonicalize("data/catalog.json")
                 .unwrap()
                 .to_str()

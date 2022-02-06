@@ -68,7 +68,7 @@
 //! - LC80300332018166LGN00
 //! ```
 
-use crate::{utils, Core, Error, Link, Object, Read, Reader};
+use crate::{Core, Error, Href, Link, Object, Read, Reader};
 use std::collections::HashMap;
 
 /// An arena-based tree for accessing STAC catalogs.
@@ -76,7 +76,7 @@ use std::collections::HashMap;
 pub struct Stac<R: Read> {
     reader: R,
     nodes: Vec<Node>,
-    hrefs: HashMap<String, Handle>,
+    hrefs: HashMap<Href, Handle>,
 }
 
 /// A pointer to a STAC object in a `Stac` tree.
@@ -90,7 +90,7 @@ struct Node {
     items: Vec<Handle>,
     parent: Option<Handle>,
     root: Option<Handle>,
-    href: Option<String>,
+    href: Option<Href>,
 }
 
 #[derive(Debug, Default)]
@@ -183,11 +183,11 @@ impl<R: Read> Stac<R> {
     /// let catalog = stac.add_via_href("data/catalog.json").unwrap();
     /// ```
     pub fn add_via_href(&mut self, href: &str) -> Result<Handle, Error> {
-        let href = utils::absolute_href(href, None)?;
+        let href = Href::new(href, None)?;
         if let Some(handle) = self.hrefs.get(&href) {
             Ok(*handle)
         } else {
-            let object = self.reader.read(&href, None)?;
+            let object = self.reader.read_href(href)?;
             self.add_object(object)
         }
     }
@@ -216,24 +216,24 @@ impl<R: Read> Stac<R> {
             if link.is_child() {
                 links
                     .children
-                    .push(self.add_link(link, object.as_ref().href.as_deref())?);
+                    .push(self.add_link(link, object.as_ref().href.as_ref())?);
             } else if link.is_item() {
                 links
                     .items
-                    .push(self.add_link(link, object.as_ref().href.as_deref())?);
+                    .push(self.add_link(link, object.as_ref().href.as_ref())?);
             } else if link.is_parent() {
                 // TODO what do do if there are multiple parents?
-                links.parent = Some(self.add_link(link, object.as_ref().href.as_deref())?);
+                links.parent = Some(self.add_link(link, object.as_ref().href.as_ref())?);
             } else if link.is_root() {
                 // TODO what do do if there are multiple roots?
-                links.root = Some(self.add_link(link, object.as_ref().href.as_deref())?);
+                links.root = Some(self.add_link(link, object.as_ref().href.as_ref())?);
             }
         }
         Ok(links)
     }
 
-    fn add_link(&mut self, link: &Link, base: Option<&str>) -> Result<Handle, Error> {
-        let href = utils::absolute_href(&link.href, base)?;
+    fn add_link(&mut self, link: &Link, base: Option<&Href>) -> Result<Handle, Error> {
+        let href = Href::new(&link.href, base.map(|href| href.to_str()))?;
         if let Some(handle) = self.hrefs.get(&href) {
             Ok(*handle)
         } else {
@@ -262,12 +262,12 @@ impl<R: Read> Stac<R> {
     }
 
     fn resolve_unchecked(&mut self, handle: Handle) -> Result<(), Error> {
-        let object = self.reader.read(
+        let object = self.reader.read_href(
             self.nodes[handle.0]
                 .href
-                .as_deref()
-                .ok_or(Error::UnresolvableNode)?,
-            None,
+                .as_ref()
+                .ok_or(Error::UnresolvableNode)?
+                .clone(),
         )?;
         let links = self.add_links(&object)?;
         self.update_node_unchecked(handle, object, links);

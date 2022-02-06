@@ -1,4 +1,4 @@
-use crate::{Link, STAC_VERSION};
+use crate::{Href, Link, STAC_VERSION};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
@@ -118,7 +118,7 @@ pub struct CoreStruct {
     additional_fields: Map<String, Value>,
 
     #[serde(skip)]
-    pub(crate) href: Option<String>,
+    pub(crate) href: Option<Href>,
 }
 
 impl CoreStruct {
