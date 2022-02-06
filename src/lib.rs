@@ -44,6 +44,28 @@
 //! assert_eq!(item.id(), "new-id");
 //! ```
 //!
+//! # Reading and writing
+//!
+//! Because STAC is often used for applications that require accessing remote data, this crate provides flexibility for downstream users to customize how they read and write data.
+//! The [Read] trait provides an interface to turn hrefs into STAC objects.
+//! The crate comes with a default [Reader] that uses the standard library for filesystem access and (if enabled) [reqwest](https://docs.rs/reqwest/latest/reqwest/) for network access:
+//!
+//! Because the type of STAC objects at an href cannot be known before reading, the [Read] trait returns an [Object], which is an enum wrapper around all three STAC object types.
+//! [Object] implements [Core], so you can access the common STAC attributes directly from the object.
+//!
+//! ```
+//! use stac::{Reader, Core, Read};
+//! let reader = Reader::default();
+//! let object = reader.read("data/catalog.json", None).unwrap();
+//! assert_eq!(object.id(), "examples")
+//! ```
+//!
+//! The crate provides a top-level [read] method for convenience:
+//!
+//! ```
+//! let catalog = stac::read("data/catalog.json").unwrap();
+//! ```
+//!
 //! # Tree traversal
 //!
 //! STAC resources are trees, where `Catalog`s and `Collection`s can contain other `Catalog`s and `Collection`s via `child` links and `Item`s via `item` links.
