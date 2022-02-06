@@ -1,6 +1,7 @@
 use crate::{Error, Href, Object};
 use serde_json::Value;
 use std::{fs::File, io::BufReader};
+use url::Url;
 
 /// A trait derived by all STAC readers.
 pub trait Read {
@@ -68,9 +69,21 @@ impl Read for Reader {
                 let buf_reader = BufReader::new(file);
                 serde_json::from_reader(buf_reader).map_err(Error::from)
             }
-            Href::Url(_) => unimplemented!(),
+            Href::Url(url) => read_json_from_url(url),
         }
     }
+}
+
+#[cfg(feature = "reqwest")]
+fn read_json_from_url(url: &Url) -> Result<Value, Error> {
+    reqwest::blocking::get(url.as_str())
+        .and_then(|response| response.json())
+        .map_err(Error::from)
+}
+
+#[cfg(not(feature = "reqwest"))]
+fn read_json_from_url(_: &Url) -> Result<Value, Error> {
+    Err(Error::ReqwestNotEnabled)
 }
 
 #[cfg(test)]
@@ -88,5 +101,23 @@ mod tests {
                 .to_str()
                 .unwrap()
         );
+    }
+
+    #[cfg(feature = "reqwest")]
+    #[test]
+    fn read_url() {
+        let reader = Reader::default();
+        let _ = reader
+            .read("https://planetarycomputer.microsoft.com/api/stac/v1", None)
+            .unwrap();
+    }
+
+    #[cfg(not(feature = "reqwest"))]
+    #[test]
+    fn read_url() {
+        let reader = Reader::default();
+        let _ = reader
+            .read("https://planetarycomputer.microsoft.com/api/stac/v1", None)
+            .unwrap_err();
     }
 }

@@ -25,6 +25,15 @@ pub enum Error {
     #[error("No \"type\" field in the JSON object, unable to parse as STAC object")]
     MissingType,
 
+    /// Reqwest is not enabled, so we cannot read URLs with the default reader.
+    #[error("Reqwest is not enabled, so we cannot read URLs with the default reader")]
+    ReqwestNotEnabled,
+
+    /// A reqwest error.
+    #[cfg(feature = "reqwest")]
+    #[error("reqwest error: {0}")]
+    Reqwest(#[from] reqwest::Error),
+
     /// A serde_json error.
     #[error("serde_json error: {0}")]
     SerdeJson(#[from] serde_json::Error),
