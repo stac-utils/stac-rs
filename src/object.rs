@@ -20,6 +20,21 @@ pub enum Object {
 }
 
 impl Object {
+    /// Returns a reference to this object as a Catalog, or none if it is not a catalog.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let catalog = stac::read("data/catalog.json").unwrap();
+    /// println!("Description: {}", catalog.as_catalog().unwrap().description());
+    /// ```
+    pub fn as_catalog(&self) -> Option<&Catalog> {
+        match self {
+            Object::Catalog(catalog) => Some(catalog),
+            _ => None,
+        }
+    }
+
     pub(crate) fn from_value(value: Value) -> Result<Object, Error> {
         if let Some(type_) = value.get(TYPE_FIELD) {
             if let Some(type_) = type_.as_str() {

@@ -1,4 +1,20 @@
 //! An arena-based tree implementation for STAC catalogs.
+//!
+//! # Reading existing catalogs
+//!
+//! This example uses a small example catalog adapted from the example Landsat collection in the GeoTrellis repository.
+//! It is modeled after [PySTAC's quickstart](https://pystac.readthedocs.io/en/stable/quickstart.html).
+//!
+//! Use `Stac::read` as a simple way to read a Catalog:
+//!
+//! ```
+//! use stac::{Stac, Core};
+//! let (mut stac, catalog) = Stac::read("docs/example-catalog/catalog.json").unwrap();
+//! let object = stac.get(catalog).unwrap();
+//! println!("ID: {}", object.id());
+//! println!("Title: {}", object.as_catalog().unwrap().title().unwrap());
+//! println!("Description: {}", object.as_catalog().unwrap().description());
+//! ```
 
 use crate::{utils, Core, Error, Link, Object, Read, Reader};
 use std::{collections::HashMap, vec::IntoIter};
