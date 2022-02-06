@@ -149,21 +149,21 @@ impl<R: Read> Stac<R> {
             if link.is_child() {
                 links
                     .children
-                    .push(self.add_link(link, object.as_ref().href.clone())?);
+                    .push(self.add_link(link, object.as_ref().href.as_deref())?);
             } else if link.is_item() {
                 links
                     .items
-                    .push(self.add_link(link, object.as_ref().href.clone())?);
+                    .push(self.add_link(link, object.as_ref().href.as_deref())?);
             } else if link.is_parent() {
                 // TODO what do do if there are multiple parents?
-                links.parent = Some(self.add_link(link, object.as_ref().href.clone())?);
+                links.parent = Some(self.add_link(link, object.as_ref().href.as_deref())?);
             }
         }
         Ok(links)
     }
 
-    fn add_link(&mut self, link: &Link, base: Option<String>) -> Result<Handle, Error> {
-        let href = utils::absolute_href(&link.href, base.as_deref())?;
+    fn add_link(&mut self, link: &Link, base: Option<&str>) -> Result<Handle, Error> {
+        let href = utils::absolute_href(&link.href, base)?;
         if let Some(handle) = self.hrefs.get(&href) {
             Ok(*handle)
         } else {
