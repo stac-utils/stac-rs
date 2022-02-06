@@ -158,8 +158,7 @@
     unused_import_braces,
     unused_lifetimes,
     unused_qualifications,
-    unused_results,
-    variant_size_differences
+    unused_results
 )]
 
 mod asset;
@@ -168,6 +167,7 @@ mod collection;
 mod core;
 mod error;
 mod extent;
+mod href;
 mod item;
 mod link;
 mod object;
@@ -175,7 +175,6 @@ mod properties;
 mod provider;
 mod reader;
 pub mod stac;
-pub mod utils;
 
 pub use {
     crate::core::Core,
@@ -185,6 +184,7 @@ pub use {
     collection::{Collection, COLLECTION_TYPE},
     error::Error,
     extent::{Extent, SpatialExtent, TemporalExtent},
+    href::Href,
     item::{Item, ITEM_TYPE},
     link::Link,
     object::Object,
