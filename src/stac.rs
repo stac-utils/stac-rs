@@ -69,7 +69,7 @@
 //! ```
 
 use crate::{utils, Core, Error, Link, Object, Read, Reader};
-use std::{collections::HashMap, vec::IntoIter};
+use std::collections::HashMap;
 
 /// An arena-based tree for accessing STAC catalogs.
 #[derive(Debug)]
@@ -372,9 +372,8 @@ impl Handle {
     ///     println!("{}", stac.get(child).unwrap().id());
     /// }
     /// ```
-    pub fn children<R: Read>(&self, stac: &Stac<R>) -> Result<IntoIter<Handle>, Error> {
-        stac.get_node(*self)
-            .map(|node| node.children.clone().into_iter())
+    pub fn children<R: Read>(&self, stac: &Stac<R>) -> Result<Vec<Handle>, Error> {
+        stac.get_node(*self).map(|node| node.children.clone())
     }
 
     /// Returns an iterator over this object's items (as handles).
@@ -388,9 +387,8 @@ impl Handle {
     ///     println!("{}", stac.get(item).unwrap().id());
     /// }
     /// ```
-    pub fn items<R: Read>(&self, stac: &Stac<R>) -> Result<IntoIter<Handle>, Error> {
-        stac.get_node(*self)
-            .map(|node| node.items.clone().into_iter())
+    pub fn items<R: Read>(&self, stac: &Stac<R>) -> Result<Vec<Handle>, Error> {
+        stac.get_node(*self).map(|node| node.items.clone())
     }
 
     /// Returns the parent of this object, if there is one.
@@ -478,10 +476,7 @@ mod tests {
     fn prevent_duplicates() {
         let (mut stac, catalog) = Stac::read("data/catalog.json").unwrap();
         let item = stac.add_via_href("data/collectionless-item.json").unwrap();
-        assert_eq!(
-            catalog.items(&stac).unwrap().collect::<Vec<_>>(),
-            vec![item]
-        );
+        assert_eq!(catalog.items(&stac).unwrap(), vec![item]);
     }
 
     #[test]
@@ -489,7 +484,7 @@ mod tests {
         let (mut stac, item) = Stac::read("data/collectionless-item.json").unwrap();
         let parent = item.parent(&stac).unwrap().unwrap();
         assert_eq!(stac.get(parent).unwrap().id(), "examples");
-        assert_eq!(parent.items(&stac).unwrap().collect::<Vec<_>>(), vec![item]);
+        assert_eq!(parent.items(&stac).unwrap(), vec![item]);
     }
 
     #[test]
@@ -502,9 +497,6 @@ mod tests {
             .find_child(&mut stac, |child| child.id() == "extensions-collection")
             .unwrap()
             .unwrap();
-        assert_eq!(
-            collection.items(&stac).unwrap().collect::<Vec<_>>(),
-            vec![item]
-        );
+        assert_eq!(collection.items(&stac).unwrap(), vec![item]);
     }
 }
