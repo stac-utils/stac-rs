@@ -20,7 +20,15 @@ struct Node {
     object: Option<Object>,
     children: Vec<Handle>,
     items: Vec<Handle>,
+    parent: Option<Handle>,
     href: Option<String>,
+}
+
+#[derive(Debug, Default)]
+struct Links {
+    children: Vec<Handle>,
+    items: Vec<Handle>,
+    parent: Option<Handle>,
 }
 
 impl Stac<Reader> {
@@ -125,35 +133,49 @@ impl<R: Read> Stac<R> {
     }
 
     fn add_object(&mut self, object: Object) -> Result<Handle, Error> {
-        let (children, items) = self.add_links(&object)?;
+        let links = self.add_links(&object)?;
         Ok(self.add_node(Node {
             href: object.as_ref().href.clone(),
             object: Some(object),
-            children,
-            items,
+            children: links.children,
+            items: links.items,
+            parent: links.parent,
         }))
     }
 
-    fn add_links(&mut self, object: &Object) -> Result<(Vec<Handle>, Vec<Handle>), Error> {
-        let mut children = Vec::new();
-        let mut items = Vec::new();
+    fn add_links(&mut self, object: &Object) -> Result<Links, Error> {
+        let mut links = Links::default();
         for link in object.links() {
             if link.is_child() {
-                children.push(self.add_link(link, object.as_ref().href.clone())?);
+                links
+                    .children
+                    .push(self.add_link(link, object.as_ref().href.clone())?);
             } else if link.is_item() {
-                items.push(self.add_link(link, object.as_ref().href.clone())?);
+                links
+                    .items
+                    .push(self.add_link(link, object.as_ref().href.clone())?);
+            } else if link.is_parent() {
+                // TODO what do do if there are multiple parents?
+                links.parent = Some(self.add_link(link, object.as_ref().href.clone())?);
             }
         }
-        Ok((children, items))
+        Ok(links)
     }
 
     fn add_link(&mut self, link: &Link, base: Option<String>) -> Result<Handle, Error> {
-        Ok(self.add_node(Node {
-            object: None,
-            children: Vec::new(),
-            items: Vec::new(),
-            href: Some(utils::absolute_href(&link.href, base.as_deref())?),
-        }))
+        let href = utils::absolute_href(&link.href, base.as_deref())?;
+        if let Some(handle) = self.hrefs.get(&href) {
+            Ok(*handle)
+        } else {
+            Ok(self.add_node(Node {
+                object: None,
+                children: Vec::new(),
+                items: Vec::new(),
+                // TODO should we set the parent here?
+                parent: None,
+                href: Some(href),
+            }))
+        }
     }
 
     fn add_node(&mut self, node: Node) -> Handle {
@@ -176,11 +198,13 @@ impl<R: Read> Stac<R> {
                 .ok_or(Error::UnresolvableNode)?,
             None,
         )?;
-        let (children, items) = self.add_links(&object)?;
+        let links = self.add_links(&object)?;
         let node = &mut self.nodes[handle.0];
         node.object = Some(object);
-        node.children = children;
-        node.items = items;
+        node.children = links.children;
+        node.items = links.items;
+        node.parent = links.parent;
+        // TODO don't forget to set root here
         Ok(())
     }
 }
@@ -287,6 +311,22 @@ impl Handle {
             .ok_or(Error::InvalidHandle(*self))
             .map(|node| node.items.clone().into_iter())
     }
+
+    /// Returns the parent of this object, if there is one.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac::{Stac};
+    /// let (mut stac, item) = Stac::read("data/collectionless-item.json").unwrap();
+    /// let catalog = item.parent(&mut stac).unwrap().unwrap();
+    /// ```
+    pub fn parent<R: Read>(&self, stac: &Stac<R>) -> Result<Option<Handle>, Error> {
+        stac.nodes
+            .get(self.0)
+            .ok_or(Error::InvalidHandle(*self))
+            .map(|node| node.parent)
+    }
 }
 
 impl Node {
@@ -351,5 +391,13 @@ mod tests {
             catalog.items(&stac).unwrap().collect::<Vec<_>>(),
             vec![item]
         );
+    }
+
+    #[test]
+    fn parent() {
+        let (mut stac, item) = Stac::read("data/collectionless-item.json").unwrap();
+        let parent = item.parent(&stac).unwrap().unwrap();
+        assert_eq!(stac.get(parent).unwrap().id(), "examples");
+        assert_eq!(parent.items(&stac).unwrap().collect::<Vec<_>>(), vec![item]);
     }
 }
