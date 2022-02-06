@@ -4,6 +4,7 @@ use serde_json::{Map, Value};
 const CHILD_REL: &str = "child";
 const ITEM_REL: &str = "item";
 const PARENT_REL: &str = "parent";
+const ROOT_REL: &str = "root";
 
 /// This object describes a relationship with another entity.
 ///
@@ -101,6 +102,21 @@ impl Link {
     /// ```
     pub fn is_parent(&self) -> bool {
         self.rel == PARENT_REL
+    }
+
+    /// Returns true if this link's rel is "root".
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac::Link;
+    /// let link = Link::new("an-href", "root");
+    /// assert!(link.is_root());
+    /// let link = Link::new("an-href", "not-a-root");
+    /// assert!(!link.is_root());
+    /// ```
+    pub fn is_root(&self) -> bool {
+        self.rel == ROOT_REL
     }
 }
 

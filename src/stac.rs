@@ -21,6 +21,7 @@ struct Node {
     children: Vec<Handle>,
     items: Vec<Handle>,
     parent: Option<Handle>,
+    root: Option<Handle>,
     href: Option<String>,
 }
 
@@ -29,6 +30,7 @@ struct Links {
     children: Vec<Handle>,
     items: Vec<Handle>,
     parent: Option<Handle>,
+    root: Option<Handle>,
 }
 
 impl Stac<Reader> {
@@ -134,13 +136,24 @@ impl<R: Read> Stac<R> {
 
     fn add_object(&mut self, object: Object) -> Result<Handle, Error> {
         let links = self.add_links(&object)?;
-        Ok(self.add_node(Node {
-            href: object.as_ref().href.clone(),
-            object: Some(object),
-            children: links.children,
-            items: links.items,
-            parent: links.parent,
-        }))
+        if let Some(handle) = object
+            .as_ref()
+            .href
+            .as_deref()
+            .and_then(|href| self.hrefs.get(href).cloned())
+        {
+            self.update_node_unchecked(handle, object, links);
+            Ok(handle)
+        } else {
+            Ok(self.add_node(Node {
+                href: object.as_ref().href.clone(),
+                object: Some(object),
+                children: links.children,
+                items: links.items,
+                parent: links.parent,
+                root: links.root,
+            }))
+        }
     }
 
     fn add_links(&mut self, object: &Object) -> Result<Links, Error> {
@@ -157,6 +170,9 @@ impl<R: Read> Stac<R> {
             } else if link.is_parent() {
                 // TODO what do do if there are multiple parents?
                 links.parent = Some(self.add_link(link, object.as_ref().href.as_deref())?);
+            } else if link.is_root() {
+                // TODO what do do if there are multiple roots?
+                links.root = Some(self.add_link(link, object.as_ref().href.as_deref())?);
             }
         }
         Ok(links)
@@ -173,6 +189,7 @@ impl<R: Read> Stac<R> {
                 items: Vec::new(),
                 // TODO should we set the parent here?
                 parent: None,
+                root: None,
                 href: Some(href),
             }))
         }
@@ -199,13 +216,17 @@ impl<R: Read> Stac<R> {
             None,
         )?;
         let links = self.add_links(&object)?;
+        self.update_node_unchecked(handle, object, links);
+        Ok(())
+    }
+
+    fn update_node_unchecked(&mut self, handle: Handle, object: Object, links: Links) {
         let node = &mut self.nodes[handle.0];
         node.object = Some(object);
         node.children = links.children;
         node.items = links.items;
         node.parent = links.parent;
-        // TODO don't forget to set root here
-        Ok(())
+        node.root = links.root;
     }
 }
 
@@ -327,6 +348,22 @@ impl Handle {
             .ok_or(Error::InvalidHandle(*self))
             .map(|node| node.parent)
     }
+
+    /// Returns the root of this object, if there is one.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac::{Stac};
+    /// let (mut stac, item) = Stac::read("data/collectionless-item.json").unwrap();
+    /// let catalog = item.root(&mut stac).unwrap().unwrap();
+    /// ```
+    pub fn root<R: Read>(&self, stac: &Stac<R>) -> Result<Option<Handle>, Error> {
+        stac.nodes
+            .get(self.0)
+            .ok_or(Error::InvalidHandle(*self))
+            .map(|node| node.root)
+    }
 }
 
 impl Node {
@@ -399,5 +436,21 @@ mod tests {
         let parent = item.parent(&stac).unwrap().unwrap();
         assert_eq!(stac.get(parent).unwrap().id(), "examples");
         assert_eq!(parent.items(&stac).unwrap().collect::<Vec<_>>(), vec![item]);
+    }
+
+    #[test]
+    fn root() {
+        let (mut stac, item) =
+            Stac::read("data/extensions-collection/proj-example/proj-example.json").unwrap();
+        let root = item.root(&stac).unwrap().unwrap();
+        assert_eq!(stac.get(root).unwrap().id(), "examples");
+        let collection = root
+            .find_child(&mut stac, |child| child.id() == "extensions-collection")
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            collection.items(&stac).unwrap().collect::<Vec<_>>(),
+            vec![item]
+        );
     }
 }
