@@ -60,12 +60,7 @@ impl<R: Read> Stac<R> {
     /// let catalog = stac.get(handle).unwrap();
     /// ```
     pub fn get(&mut self, handle: Handle) -> Result<&Object, Error> {
-        if !self
-            .nodes
-            .get(handle.0)
-            .ok_or(Error::InvalidHandle(handle))?
-            .is_resolved()
-        {
+        if !self.get_node(handle)?.is_resolved() {
             self.resolve_unchecked(handle)?;
         }
         Ok(self.nodes[handle.0]
@@ -84,12 +79,7 @@ impl<R: Read> Stac<R> {
     /// let catalog = stac.get_mut(handle).unwrap();
     /// ```
     pub fn get_mut(&mut self, handle: Handle) -> Result<&mut Object, Error> {
-        if !self
-            .nodes
-            .get(handle.0)
-            .ok_or(Error::InvalidHandle(handle))?
-            .is_resolved()
-        {
+        if !self.get_node_mut(handle)?.is_resolved() {
             self.resolve_unchecked(handle)?;
         }
         Ok(self.nodes[handle.0]
@@ -227,6 +217,12 @@ impl<R: Read> Stac<R> {
 
     fn get_node(&self, handle: Handle) -> Result<&Node, Error> {
         self.nodes.get(handle.0).ok_or(Error::InvalidHandle(handle))
+    }
+
+    fn get_node_mut(&mut self, handle: Handle) -> Result<&mut Node, Error> {
+        self.nodes
+            .get_mut(handle.0)
+            .ok_or(Error::InvalidHandle(handle))
     }
 }
 
