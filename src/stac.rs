@@ -15,6 +15,58 @@
 //! println!("Title: {}", object.as_catalog().unwrap().title().unwrap());
 //! println!("Description: {}", object.as_catalog().unwrap().description());
 //! ```
+//!
+//! ```text
+//! ID: landsat-stac-collection-catalog
+//! Title: STAC for Landsat data
+//! Description: STAC for Landsat data
+//! ```
+//!
+//! # Crawling children
+//!
+//! A `Stac` handle can be used to fetch the handles of all children of a catalog (or collection):
+//!
+//! ```
+//! # use stac::{Stac, Core};
+//! # let (mut stac, catalog) = Stac::read("docs/example-catalog/catalog.json").unwrap();
+//! println!("Collection ids:");
+//! for child in catalog.children(&stac).unwrap() {
+//!     println!("- {}", stac.get(child).unwrap().id());
+//! }
+//! ```
+//! ```text
+//! Collection ids:
+//! - landsat-8-l1
+//! ```
+//!
+//! To fetch a specific child, use the `find_child` method:
+//!
+//! ```
+//! # use stac::{Stac, Core};
+//! # let (mut stac, catalog) = Stac::read("docs/example-catalog/catalog.json").unwrap();
+//! let collection = catalog.find_child(&mut stac, |child| child.id() == "landsat-8-l1").unwrap().unwrap();
+//! ```
+//!
+//! Note that the `Stac` object is a lazily-evaluated cache, so objects are not read into the `Stac` until asked for, and they are persisted inside the `Stac` so they are only read once.
+//!
+//! # Crawling items
+//!
+//! To get the handles for all items in a collection or catalog, use the `items()` method:
+//!
+//! ```
+//! # use stac::{Stac, Core};
+//! # let (mut stac, catalog) = Stac::read("docs/example-catalog/catalog.json").unwrap();
+//! let collection = catalog.find_child(&mut stac, |child| child.id() == "landsat-8-l1").unwrap().unwrap();
+//! for item in collection.items(&stac).unwrap() {
+//!     println!("- {}", stac.get(item).unwrap().id());
+//! }
+//! ```
+//! ```text
+//! - LC80140332018166LGN00
+//! - LC80150322018141LGN00
+//! - LC80150332018189LGN00
+//! - LC80300332018166LGN00
+//! ```
 
 use crate::{utils, Core, Error, Link, Object, Read, Reader};
 use std::{collections::HashMap, vec::IntoIter};
