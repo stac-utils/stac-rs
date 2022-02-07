@@ -16,7 +16,8 @@ pub trait Read {
     /// let reader = Reader::default();
     /// let catalog = reader.read("data/catalog.json", None).unwrap();
     /// ```
-    fn read(&self, href: &str, base: Option<&str>) -> Result<Object, Error> {
+    #[allow(single_use_lifetimes)] // https://github.com/rust-lang/rust/issues/60554
+    fn read<'a, T: Into<Option<&'a str>>>(&self, href: &str, base: T) -> Result<Object, Error> {
         let href = Href::new(href, base)?;
         self.read_href(href)
     }
