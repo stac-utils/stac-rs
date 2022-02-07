@@ -25,9 +25,14 @@ impl Href {
     /// use stac::Href;
     /// let href = Href::new("data", None).unwrap();
     /// assert!(href.to_str().starts_with("/"));
-    /// assert_eq!(Href::new("a/path", Some("http://example.com")).unwrap().to_str(), "http://example.com/a/path");
+    /// assert_eq!(
+    ///     Href::new("a/path", "http://example.com").unwrap().to_str(),
+    ///     "http://example.com/a/path"
+    /// );
     /// ```
-    pub fn new(href: &str, base: Option<&str>) -> Result<Href, Error> {
+    #[allow(single_use_lifetimes)] // https://github.com/rust-lang/rust/issues/60554
+    pub fn new<'a, T: Into<Option<&'a str>>>(href: &str, base: T) -> Result<Href, Error> {
+        let base = base.into();
         if let Ok(url) = Url::parse(href) {
             return Ok(Href::Url(url));
         }
@@ -62,7 +67,9 @@ impl Href {
     /// ```
     /// use stac::Href;
     /// let href = Href::new("data/catalog.json", None).unwrap();
-    /// println!("{}", href.to_str());
+    /// assert!(href.as_path().is_some());
+    /// let href = Href::new("./catalog.json", "http://example.com/stac").unwrap();
+    /// assert!(href.as_path().is_none());
     /// ```
     pub fn to_str(&self) -> &str {
         match self {
@@ -80,7 +87,7 @@ mod tests {
     fn catalog_base() {
         let href = Href::new(
             "./extensions-collection/collection.json",
-            Some("data/catalog.json"),
+            "data/catalog.json",
         )
         .unwrap();
         assert!(href
