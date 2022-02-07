@@ -96,11 +96,8 @@ mod tests {
         let reader = Reader::default();
         let catalog = reader.read("data/catalog.json", None).unwrap();
         assert_eq!(
-            catalog.as_ref().href.as_ref().unwrap().to_str(),
-            std::fs::canonicalize("data/catalog.json")
-                .unwrap()
-                .to_str()
-                .unwrap()
+            catalog.as_ref().href.as_ref().unwrap().as_path().unwrap(),
+            std::fs::canonicalize("data/catalog.json").unwrap()
         );
     }
 
