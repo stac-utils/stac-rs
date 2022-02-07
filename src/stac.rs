@@ -233,7 +233,7 @@ impl<R: Read> Stac<R> {
     }
 
     fn add_link(&mut self, link: &Link, base: Option<&Href>) -> Result<Handle, Error> {
-        let href = Href::new(&link.href, base.map(|href| href.to_str()))?;
+        let href = Href::new(&link.href, base.map(|href| href.to_string()).as_deref())?;
         if let Some(handle) = self.hrefs.get(&href) {
             Ok(*handle)
         } else {
