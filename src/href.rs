@@ -1,7 +1,10 @@
 use crate::Error;
 use log::warn;
 use path_slash::PathBufExt;
-use std::path::{Path, PathBuf};
+use std::{
+    fmt,
+    path::{Path, PathBuf},
+};
 use url::Url;
 
 /// A wrapper around a parsed href.
@@ -19,7 +22,7 @@ impl Href {
     ///
     /// If neither the `href` nor `base` are absolute, the href will be resolved to
     /// absolute by using the local filesystem.
-    /// 
+    ///
     /// Note that the href should _always_ be UNIX-style, i.e. with `/` separators.
     ///
     /// # Examples
@@ -82,20 +85,13 @@ impl Href {
             Href::Url(_) => None,
         }
     }
+}
 
-    /// Returns a reference to this href as a `/`-separated &str.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use stac::Href;
-    /// let href = Href::new("data/catalog.json", None).unwrap();
-    /// println!("{}", href.to_string());
-    /// ```
-    pub fn to_string(&self) -> String {
+impl fmt::Display for Href {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Href::Path(path) => path.to_slash_lossy(),
-            Href::Url(url) => url.to_string(),
+            Href::Path(path) => write!(f, "{}", path.to_slash_lossy()),
+            Href::Url(url) => write!(f, "{}", url),
         }
     }
 }
