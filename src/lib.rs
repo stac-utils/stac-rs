@@ -55,7 +55,7 @@
 //! ```
 //! use stac::{Reader, Core, Read};
 //! let reader = Reader::default();
-//! let object = reader.read("data/catalog.json", None).unwrap();
+//! let object = reader.read("data/catalog.json").unwrap();
 //! assert_eq!(object.id(), "examples")
 //! ```
 //!
@@ -203,9 +203,13 @@ pub const STAC_VERSION: &str = "1.0.0";
 /// ```
 /// let catalog = stac::read("data/catalog.json").unwrap();
 /// ```
-pub fn read(href: &str) -> Result<Object, Error> {
+pub fn read<T, E>(href: T) -> Result<Object, Error>
+where
+    T: TryInto<Href, Error = E>,
+    Error: From<E>,
+{
     let reader = Reader::default();
-    reader.read(href, None)
+    reader.read(href)
 }
 
 #[cfg(test)]

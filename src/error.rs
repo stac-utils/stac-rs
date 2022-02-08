@@ -9,6 +9,10 @@ pub enum Error {
     #[error("std::io error: {0}")]
     Io(#[from] std::io::Error),
 
+    /// Infallible error.
+    #[error("std::conver::Infallible: {0}")]
+    Infallible(#[from] std::convert::Infallible),
+
     /// An invalid handle for a `Stac`
     #[error("invalid handle: {0:?}")]
     InvalidHandle(Handle),
