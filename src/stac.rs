@@ -183,11 +183,11 @@ impl<R: Read> Stac<R> {
     /// let catalog = stac.add_via_href("data/catalog.json").unwrap();
     /// ```
     pub fn add_via_href(&mut self, href: &str) -> Result<Handle, Error> {
-        let href = Href::new(href, None)?;
+        let href = Href::new(href)?;
         if let Some(handle) = self.hrefs.get(&href) {
             Ok(*handle)
         } else {
-            let object = self.reader.read_href(href)?;
+            let object = self.reader.read(href)?;
             self.add_object(object)
         }
     }
@@ -233,7 +233,11 @@ impl<R: Read> Stac<R> {
     }
 
     fn add_link(&mut self, link: &Link, base: Option<&Href>) -> Result<Handle, Error> {
-        let href = Href::new(&link.href, base.map(|href| href.to_string()).as_deref())?;
+        let href = if let Some(base) = base {
+            base.join(&link.href)?
+        } else {
+            Href::new(&link.href)?
+        };
         if let Some(handle) = self.hrefs.get(&href) {
             Ok(*handle)
         } else {
@@ -262,7 +266,7 @@ impl<R: Read> Stac<R> {
     }
 
     fn resolve_unchecked(&mut self, handle: Handle) -> Result<(), Error> {
-        let object = self.reader.read_href(
+        let object = self.reader.read(
             self.nodes[handle.0]
                 .href
                 .as_ref()

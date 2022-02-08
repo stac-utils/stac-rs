@@ -5,7 +5,7 @@ use url::Url;
 
 /// A trait derived by all STAC readers.
 pub trait Read {
-    /// Reads a STAC object from an href and, optionally, a base (e.g. a parent object).
+    /// Reads a STAC object from an href.
     ///
     /// # Examples
     ///
@@ -14,27 +14,14 @@ pub trait Read {
     /// ```
     /// use stac::{Read, Reader, Catalog};
     /// let reader = Reader::default();
-    /// let catalog = reader.read("data/catalog.json", None).unwrap();
+    /// let catalog = reader.read("data/catalog.json").unwrap();
     /// ```
-    #[allow(single_use_lifetimes)] // https://github.com/rust-lang/rust/issues/60554
-    fn read<'a, T: Into<Option<&'a str>>>(&self, href: &str, base: T) -> Result<Object, Error> {
-        let href = Href::new(href, base)?;
-        self.read_href(href)
-    }
-
-    /// Reads a STAC object from an href, storing that href on the object for later reference.
-    ///
-    /// # Examples
-    ///
-    /// `Reader` implements `Read`:
-    ///
-    /// ```
-    /// use stac::{Read, Reader, Href};
-    /// let href = Href::new("data/catalog.json", None).unwrap();
-    /// let reader = Reader::default();
-    /// let catalog = reader.read_href(href).unwrap();
-    /// ```
-    fn read_href(&self, href: Href) -> Result<Object, Error> {
+    fn read<T, E>(&self, href: T) -> Result<Object, Error>
+    where
+        T: TryInto<Href, Error = E>,
+        Error: From<E>,
+    {
+        let href = href.try_into()?;
         let value = self.read_json(&href)?;
         let mut object = Object::from_value(value)?;
         object.as_mut().href = Some(href);
@@ -52,7 +39,7 @@ pub trait Read {
     /// ```
     /// use stac::{Read, Reader, Catalog, Href};
     /// let reader = Reader::default();
-    /// let href = Href::new("data/catalog.json", None).unwrap();
+    /// let href = Href::new("data/catalog.json").unwrap();
     /// let value = reader.read_json(&href).unwrap();
     /// ```
     fn read_json(&self, href: &Href) -> Result<Value, Error>;
@@ -64,13 +51,16 @@ pub struct Reader {}
 
 impl Read for Reader {
     fn read_json(&self, href: &Href) -> Result<Value, Error> {
-        match href {
-            Href::Path(path) => {
-                let file = File::open(path)?;
-                let buf_reader = BufReader::new(file);
-                serde_json::from_reader(buf_reader).map_err(Error::from)
-            }
-            Href::Url(url) => read_json_from_url(url),
+        if let Some(path) = href.to_path() {
+            let file = File::open(path)?;
+            let buf_reader = BufReader::new(file);
+            serde_json::from_reader(buf_reader).map_err(Error::from)
+        } else {
+            // FIXME this smells bad
+            read_json_from_url(
+                href.as_url()
+                    .expect("if the href is not a path it should be a url"),
+            )
         }
     }
 }
@@ -90,14 +80,15 @@ fn read_json_from_url(_: &Url) -> Result<Value, Error> {
 #[cfg(test)]
 mod tests {
     use super::{Read, Reader};
+    use std::path::Path;
 
     #[test]
     fn read_fs() {
         let reader = Reader::default();
-        let catalog = reader.read("data/catalog.json", None).unwrap();
+        let catalog = reader.read("data/catalog.json").unwrap();
         assert_eq!(
-            catalog.as_ref().href.as_ref().unwrap().as_path().unwrap(),
-            std::fs::canonicalize("data/catalog.json").unwrap()
+            catalog.as_ref().href.as_ref().unwrap().to_path().unwrap(),
+            Path::new("data/catalog.json"),
         );
     }
 
@@ -106,7 +97,7 @@ mod tests {
     fn read_url() {
         let reader = Reader::default();
         let _ = reader
-            .read("https://planetarycomputer.microsoft.com/api/stac/v1", None)
+            .read("https://planetarycomputer.microsoft.com/api/stac/v1")
             .unwrap();
     }
 
@@ -115,7 +106,7 @@ mod tests {
     fn read_url() {
         let reader = Reader::default();
         let _ = reader
-            .read("https://planetarycomputer.microsoft.com/api/stac/v1", None)
+            .read("https://planetarycomputer.microsoft.com/api/stac/v1")
             .unwrap_err();
     }
 }
