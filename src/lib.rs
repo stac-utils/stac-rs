@@ -32,31 +32,22 @@
 //! let collection = Catalog::new("id");
 //! ```
 //!
-//! Attributes of STAC objects are accessed via getter and setter methods.
-//! Since many attributes are shared between object types, their getters and setters are grouped into a [Core] trait that must be imported before use:
-//!
-//! ```
-//! use stac::{Item, Core};
-//! let mut item = Item::new("id");
-//! assert_eq!(item.id(), "id");
-//! item.set_id("new-id");
-//! assert_eq!(item.id(), "new-id");
-//! ```
-//!
 //! # Reading and writing
 //!
 //! Because STAC is often used for applications that require accessing remote data, this crate provides flexibility for downstream users to customize how they read and write data.
 //! The [Read] trait provides an interface to turn hrefs into STAC objects.
 //! The crate comes with a default [Reader] that uses the standard library for filesystem access and (if enabled) [reqwest](https://docs.rs/reqwest/latest/reqwest/) for network access:
 //!
-//! Because the type of STAC objects at an href cannot be known before reading, the [Read] trait returns an [Object], which is an enum wrapper around all three STAC object types.
-//! [Object] implements [Core], so you can access the common STAC attributes directly from the object.
+//! Because the type of STAC objects at an href cannot be known before reading, the [Read] trait returns an [Object], which is a wrapper around all three STAC object types.
 //!
 //! ```
-//! use stac::{Reader, Core, Read};
+//! use stac::{Reader, Read};
 //! let reader = Reader::default();
 //! let object = reader.read("data/catalog.json").unwrap();
-//! assert_eq!(object.id(), "examples")
+//! assert_eq!(object.id(), "examples");
+//! assert_eq!(object.href.as_ref().unwrap().as_str(), "data/catalog.json");
+//! let catalog = object.as_catalog().unwrap();
+//! println!("{}", catalog.description);
 //! ```
 //!
 //! The crate provides a top-level [read] method for convenience:
@@ -67,16 +58,16 @@
 //!
 //! # Tree traversal
 //!
-//! STAC resources are trees, where [Catalog]s and [Collection]s can contain other [Catalog]s and [Collection]s via `child` links and [Item]s via `item` links.
+//! STAC resources are trees, where [Catalogs](Catalog) and [Collections](Collection) can contain other Catalogs and Collections via `child` links and [Items](Item) via `item` links.
 //! STAC objects may (but don't have to) have pointers back to their parents and the tree root, also via links.
 //!
-//! Tree structures in Rust can be a little tricky to implement, because Rust's strict ownership and mutability rules make storing multiple references to one object tricky.
+//! Tree structures in Rust can be a little tricky to implement, because Rust's strict ownership and mutability rules make storing multiple references to one object hard.
 //! **stac-rs** provides an arena-based tree structure, inspired by [indextree](https://docs.rs/indextree/latest/indextree/), called [Stac].
 //! The [Stac] arena uses handles to point to objects in the tree, making the ergonomics slighly clumsier than a direct access tree (e.g. one based on [std::cell::RefCell], as described [here](https://www.nikbrendler.com/posts/rust-leetcode-primer-trees/)).
 //! However, the arena tree doesn't require us to do any "interior mutability" workarounds, making this implementation hopefully easier to audit and keep correct.
 //!
-//! A [Stac] can be created from an href.
-//! The [Stac::read] method returns both the [Stac] arena, and a handle to the object:
+//! A Stac can be created from an href.
+//! The [read](Stac::read) method returns both the arena and a handle to the object:
 //!
 //! ```
 //! use stac::Stac;
@@ -86,22 +77,22 @@
 //! This handle can be used to fetch references (mutable or immutable) to that object:
 //!
 //! ```
-//! use stac::{Stac, Core};
+//! use stac::Stac;
 //! let (mut stac, handle) = Stac::read("data/catalog.json").unwrap();
 //! let catalog = stac.get(handle).unwrap();
 //! assert_eq!(catalog.id(), "examples");
-//! let catalog = stac.get_mut(handle).unwrap();
-//! catalog.set_id("new-id");
+//! let catalog = stac.get_mut(handle).unwrap().as_mut_catalog().unwrap();
+//! catalog.id = String::from("new-id");
 //! let catalog = stac.get(handle).unwrap();
 //! assert_eq!(catalog.id(), "new-id");
 //! ```
 //!
-//! When objects are read into a [Stac], their children are inserted into the tree as "unresolved" nodes.
-//! They are only fetched if asked for, e.g. via [stac::Handle::find_child].
-//! Note that the [Stac] object must be mutable to find children, becuase we are changing the tree by "resolving" those nodes:
+//! When objects are read into a Stac, their children are inserted into the tree as "unresolved" nodes.
+//! They are only fetched if asked for, e.g. via [find_child](stac::Handle::find_child).
+//! Note that the Stac object must be mutable to find children, becuase we are changing the tree by "resolving" those nodes:
 //!
 //! ```
-//! # use stac::{Stac, Core};
+//! # use stac::Stac;
 //! let (mut stac, handle) = Stac::read("data/catalog.json").unwrap();
 //! let child = handle
 //!     .find_child(&mut stac, |child| child.id() == "sentinel-2")
@@ -109,7 +100,7 @@
 //!     .unwrap();
 //! ```
 //!
-//! For a more complete picture of the [Stac] object, see the [module-level documentation](stac).
+//! For a more complete picture of the Stac object, see the [module-level documentation](stac).
 //!
 //! # Full specification compliance
 //!
@@ -164,7 +155,6 @@
 mod asset;
 mod catalog;
 mod collection;
-mod core;
 mod error;
 mod extent;
 mod href;
@@ -177,7 +167,6 @@ mod reader;
 pub mod stac;
 
 pub use {
-    crate::core::Core,
     crate::stac::Stac,
     asset::Asset,
     catalog::{Catalog, CATALOG_TYPE},

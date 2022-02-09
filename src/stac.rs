@@ -8,12 +8,12 @@
 //! Use `Stac::read` as a simple way to read a Catalog:
 //!
 //! ```
-//! use stac::{Stac, Core};
+//! use stac::Stac;
 //! let (mut stac, catalog) = Stac::read("docs/example-catalog/catalog.json").unwrap();
 //! let object = stac.get(catalog).unwrap();
 //! println!("ID: {}", object.id());
-//! println!("Title: {}", object.as_catalog().unwrap().title().unwrap());
-//! println!("Description: {}", object.as_catalog().unwrap().description());
+//! println!("Title: {}", object.as_catalog().unwrap().title.as_ref().unwrap());
+//! println!("Description: {}", object.as_catalog().unwrap().description);
 //! ```
 //!
 //! ```text
@@ -27,7 +27,7 @@
 //! A `Stac` handle can be used to fetch the handles of all children of a catalog (or collection):
 //!
 //! ```
-//! # use stac::{Stac, Core};
+//! # use stac::Stac;
 //! # let (mut stac, catalog) = Stac::read("docs/example-catalog/catalog.json").unwrap();
 //! println!("Collection ids:");
 //! for child in catalog.children(&stac).unwrap() {
@@ -42,7 +42,7 @@
 //! To fetch a specific child, use the `find_child` method:
 //!
 //! ```
-//! # use stac::{Stac, Core};
+//! # use stac::Stac;
 //! # let (mut stac, catalog) = Stac::read("docs/example-catalog/catalog.json").unwrap();
 //! let collection = catalog.find_child(&mut stac, |child| child.id() == "landsat-8-l1").unwrap().unwrap();
 //! ```
@@ -54,7 +54,7 @@
 //! To get the handles for all items in a collection or catalog, use the `items()` method:
 //!
 //! ```
-//! # use stac::{Stac, Core};
+//! # use stac::Stac;
 //! # let (mut stac, catalog) = Stac::read("docs/example-catalog/catalog.json").unwrap();
 //! let collection = catalog.find_child(&mut stac, |child| child.id() == "landsat-8-l1").unwrap().unwrap();
 //! for item in collection.items(&stac).unwrap() {
@@ -68,7 +68,7 @@
 //! - LC80300332018166LGN00
 //! ```
 
-use crate::{Core, Error, Href, Link, Object, Read, Reader};
+use crate::{Error, Href, Link, Object, Read, Reader};
 use std::collections::HashMap;
 
 /// An arena-based tree for accessing STAC catalogs.
@@ -194,7 +194,7 @@ impl<R: Read> Stac<R> {
 
     fn add_object(&mut self, mut object: Object) -> Result<Handle, Error> {
         let links = self.add_links(&object)?;
-        let href = object.as_mut().href.take();
+        let href = object.href.take();
         if let Some(handle) = href.as_ref().and_then(|href| self.hrefs.get(href).cloned()) {
             self.update_node_unchecked(handle, object, links);
             Ok(handle)
@@ -216,17 +216,15 @@ impl<R: Read> Stac<R> {
             if link.is_child() {
                 links
                     .children
-                    .push(self.add_link(link, object.as_ref().href.as_ref())?);
+                    .push(self.add_link(link, object.href.as_ref())?);
             } else if link.is_item() {
-                links
-                    .items
-                    .push(self.add_link(link, object.as_ref().href.as_ref())?);
+                links.items.push(self.add_link(link, object.href.as_ref())?);
             } else if link.is_parent() {
                 // TODO what do do if there are multiple parents?
-                links.parent = Some(self.add_link(link, object.as_ref().href.as_ref())?);
+                links.parent = Some(self.add_link(link, object.href.as_ref())?);
             } else if link.is_root() {
                 // TODO what do do if there are multiple roots?
-                links.root = Some(self.add_link(link, object.as_ref().href.as_ref())?);
+                links.root = Some(self.add_link(link, object.href.as_ref())?);
             }
         }
         Ok(links)
@@ -314,7 +312,7 @@ impl Handle {
     /// # Examples
     ///
     /// ```
-    /// # use stac::{Stac, Core};
+    /// # use stac::Stac;
     /// let (mut stac, catalog) = Stac::read("data/catalog.json").unwrap();
     /// let collection = catalog
     ///     .find_child(&mut stac, |child| child.id() == "extensions-collection")
@@ -342,7 +340,7 @@ impl Handle {
     /// # Examples
     ///
     /// ```
-    /// # use stac::{Stac, Core};
+    /// # use stac::Stac;
     /// let (mut stac, catalog) = Stac::read("data/catalog.json").unwrap();
     /// let item = catalog
     ///     .find_item(&mut stac, |item| item.id() == "CS3-20160503_132131_08")
@@ -370,7 +368,7 @@ impl Handle {
     /// # Examples
     ///
     /// ```
-    /// # use stac::{Stac, Core};
+    /// # use stac::Stac;
     /// let (mut stac, catalog) = Stac::read("data/catalog.json").unwrap();
     /// for child in catalog.children(&stac).unwrap() {
     ///     println!("{}", stac.get(child).unwrap().id());
@@ -385,7 +383,7 @@ impl Handle {
     /// # Examples
     ///
     /// ```
-    /// # use stac::{Stac, Core};
+    /// # use stac::Stac;
     /// let (mut stac, catalog) = Stac::read("data/catalog.json").unwrap();
     /// for item in catalog.items(&stac).unwrap() {
     ///     println!("{}", stac.get(item).unwrap().id());
@@ -431,7 +429,6 @@ impl Node {
 #[cfg(test)]
 mod tests {
     use super::Stac;
-    use crate::Core;
 
     #[test]
     fn read() {
