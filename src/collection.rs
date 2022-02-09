@@ -1,7 +1,4 @@
-use crate::{
-    core::{Core, CoreStruct},
-    Asset, Extent, Provider,
-};
+use crate::{Asset, Extent, Link, Provider, STAC_VERSION};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::collections::HashMap;
@@ -23,29 +20,66 @@ pub const COLLECTION_TYPE: &str = "Collection";
 /// STAC Catalog.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Collection {
+    /// Must be set to `Collection` to be a valid Collection.
+    #[serde(rename = "type")]
+    pub type_: String,
+
+    /// The STAC version the Collection implements.
+    #[serde(rename = "stac_version")]
+    pub version: String,
+
+    /// A list of extension identifiers the Collection implements.
+    #[serde(rename = "stac_extensions")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub extensions: Option<Vec<String>>,
+
+    /// Identifier for the Collection that is unique across the provider.
+    pub id: String,
+
+    /// A short descriptive one-line title for the Collection.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub title: Option<String>,
+
+    /// Detailed multi-line description to fully explain the Collection.
+    ///
+    /// [CommonMark 0.29](http://commonmark.org/) syntax MAY be used for rich text representation.
+    pub description: String,
+
+    /// List of keywords describing the Collection.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub keywords: Option<Vec<String>>,
+
+    /// Collection's license(s), either a SPDX [License
+    /// identifier](https://spdx.org/licenses/), `various` if multiple licenses
+    /// apply or `proprietary` for all other cases.
+    pub license: String,
+
+    /// A list of providers, which may include all organizations capturing or
+    /// processing the data or the hosting provider.
+    ///
+    /// Providers should be listed in chronological order with the most recent
+    /// provider being the last element of the list.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub providers: Option<Vec<Provider>>,
+
+    /// Spatial and temporal extents.
+    pub extent: Extent,
+
+    /// A map of property summaries, either a set of values, a range of values
+    /// or a [JSON Schema](https://json-schema.org).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub summaries: Option<Map<String, Value>>,
+
+    /// A list of references to other documents.
+    pub links: Vec<Link>,
+
+    /// Dictionary of asset objects that can be downloaded, each with a unique key.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub assets: Option<HashMap<String, Asset>>,
+
+    /// Additional fields not part of the Collection specification.
     #[serde(flatten)]
-    core: CoreStruct,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    title: Option<String>,
-
-    description: String,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    keywords: Option<Vec<String>>,
-
-    license: String,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    providers: Option<Vec<Provider>>,
-
-    extent: Extent,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    summaries: Option<Map<String, Value>>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    assets: Option<HashMap<String, Asset>>,
+    pub additional_fields: Map<String, Value>,
 }
 
 impl Collection {
@@ -54,13 +88,16 @@ impl Collection {
     /// # Examples
     ///
     /// ```
-    /// use stac::{Collection, Core};
+    /// use stac::Collection;
     /// let collection = Collection::new("an-id");
-    /// assert_eq!(collection.id(), "an-id");
+    /// assert_eq!(collection.id, "an-id");
     /// ```
     pub fn new<S: ToString>(id: S) -> Collection {
         Collection {
-            core: CoreStruct::new(COLLECTION_TYPE, id),
+            type_: COLLECTION_TYPE.to_string(),
+            version: STAC_VERSION.to_string(),
+            extensions: None,
+            id: id.to_string(),
             title: None,
             description: String::new(),
             keywords: None,
@@ -68,136 +105,33 @@ impl Collection {
             providers: None,
             extent: Extent::default(),
             summaries: None,
+            links: Vec::new(),
             assets: None,
+            additional_fields: Map::new(),
         }
     }
-
-    /// Returns a reference to this Collection's title.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use stac::Collection;
-    /// let collection = Collection::new("an-id");
-    /// assert!(collection.title().is_none());
-    /// ```
-    pub fn title(&self) -> Option<&str> {
-        self.title.as_deref()
-    }
-
-    /// Returns a reference to this Collection's description.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use stac::Collection;
-    /// let collection = Collection::new("an-id");
-    /// assert_eq!(collection.description(), "");
-    /// ```
-    pub fn description(&self) -> &str {
-        &self.description
-    }
-
-    /// Returns a reference to this Collection's license.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use stac::Collection;
-    /// let collection = Collection::new("an-id");
-    /// assert_eq!(collection.license(), "");
-    /// ```
-    pub fn license(&self) -> &str {
-        &self.license
-    }
-
-    /// Returns a reference to this Collection's providers.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use stac::Collection;
-    /// let collection = Collection::new("an-id");
-    /// assert!(collection.providers().is_none());
-    /// ```
-    pub fn providers(&self) -> Option<&[Provider]> {
-        self.providers.as_deref()
-    }
-
-    /// Returns a reference to this Collection's extent.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use stac::{Collection, Extent};
-    /// let collection = Collection::new("an-id");
-    /// assert_eq!(collection.extent(), &Extent::default());
-    /// ```
-    pub fn extent(&self) -> &Extent {
-        &self.extent
-    }
-
-    /// Returns a reference to this Collection's summaries.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use stac::Collection;
-    /// let collection = Collection::new("an-id");
-    /// assert!(collection.summaries().is_none());
-    /// ```
-    pub fn summaries(&self) -> Option<&Map<String, Value>> {
-        self.summaries.as_ref()
-    }
-
-    /// Returns a reference to this Collection's assets.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use stac::Collection;
-    /// let collection = Collection::new("an-id");
-    /// assert!(collection.assets().is_none());
-    /// ```
-    pub fn assets(&self) -> Option<&HashMap<String, Asset>> {
-        self.assets.as_ref()
-    }
 }
-
-impl AsRef<CoreStruct> for Collection {
-    fn as_ref(&self) -> &CoreStruct {
-        &self.core
-    }
-}
-
-impl AsMut<CoreStruct> for Collection {
-    fn as_mut(&mut self) -> &mut CoreStruct {
-        &mut self.core
-    }
-}
-
-impl Core for Collection {}
 
 #[cfg(test)]
 mod tests {
     use super::Collection;
-    use crate::{Core, Extent, STAC_VERSION};
+    use crate::{Extent, STAC_VERSION};
 
     #[test]
     fn new() {
         let collection = Collection::new("an-id");
-        assert!(collection.title().is_none());
-        assert_eq!(collection.description(), "");
-        assert_eq!(collection.license(), "");
-        assert!(collection.providers().is_none());
-        assert_eq!(collection.extent(), &Extent::default());
-        assert!(collection.summaries().is_none());
-        assert!(collection.assets().is_none());
-        assert_eq!(collection.type_(), "Collection");
-        assert_eq!(collection.version(), STAC_VERSION);
-        assert!(collection.extensions().is_none());
-        assert_eq!(collection.id(), "an-id");
-        assert!(collection.links().is_empty());
+        assert!(collection.title.is_none());
+        assert_eq!(collection.description, "");
+        assert_eq!(collection.license, "");
+        assert!(collection.providers.is_none());
+        assert_eq!(collection.extent, Extent::default());
+        assert!(collection.summaries.is_none());
+        assert!(collection.assets.is_none());
+        assert_eq!(collection.type_, "Collection");
+        assert_eq!(collection.version, STAC_VERSION);
+        assert!(collection.extensions.is_none());
+        assert_eq!(collection.id, "an-id");
+        assert!(collection.links.is_empty());
     }
 
     #[test]

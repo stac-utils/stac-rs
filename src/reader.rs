@@ -24,7 +24,7 @@ pub trait Read {
         let href = href.try_into()?;
         let value = self.read_json(&href)?;
         let mut object = Object::from_value(value)?;
-        object.as_mut().href = Some(href);
+        object.href = Some(href);
         Ok(object)
     }
 
@@ -87,7 +87,7 @@ mod tests {
         let reader = Reader::default();
         let catalog = reader.read("data/catalog.json").unwrap();
         assert_eq!(
-            catalog.as_ref().href.as_ref().unwrap().to_path().unwrap(),
+            catalog.href.as_ref().unwrap().to_path().unwrap(),
             Path::new("data/catalog.json"),
         );
     }

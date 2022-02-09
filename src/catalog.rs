@@ -1,5 +1,6 @@
-use crate::core::{Core, CoreStruct};
+use crate::{Link, STAC_VERSION};
 use serde::{Deserialize, Serialize};
+use serde_json::{Map, Value};
 
 /// The type field for Catalogs.
 pub const CATALOG_TYPE: &str = "Catalog";
@@ -18,13 +19,37 @@ pub const CATALOG_TYPE: &str = "Catalog";
 /// to build a searchable index.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Catalog {
-    #[serde(flatten)]
-    core: CoreStruct,
+    /// Set to `Catalog` if this Catalog only implements the Catalog spec.
+    #[serde(rename = "type")]
+    pub type_: String,
 
+    /// The STAC version the Catalog implements.
+    #[serde(rename = "stac_version")]
+    pub version: String,
+
+    /// A list of extension identifiers the Catalog implements.
+    #[serde(rename = "stac_extensions")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    title: Option<String>,
+    pub extensions: Option<Vec<String>>,
 
-    description: String,
+    /// Identifier for the Catalog.
+    pub id: String,
+
+    /// A short descriptive one-line title for the Catalog.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub title: Option<String>,
+
+    /// Detailed multi-line description to fully explain the Catalog.
+    ///
+    /// [CommonMark 0.29](http://commonmark.org/) syntax MAY be used for rich text representation.
+    pub description: String,
+
+    /// A list of references to other documents.
+    pub links: Vec<Link>,
+
+    /// Additional fields not part of the Catalog specification.
+    #[serde(flatten)]
+    pub additional_fields: Map<String, Value>,
 }
 
 impl Catalog {
@@ -33,74 +58,39 @@ impl Catalog {
     /// # Examples
     ///
     /// ```
-    /// use stac::{Catalog, Core};
+    /// use stac::Catalog;
     /// let catalog = Catalog::new("an-id");
-    /// assert_eq!(catalog.id(), "an-id");
+    /// assert_eq!(catalog.id, "an-id");
     /// ```
     pub fn new<S: ToString>(id: S) -> Catalog {
         Catalog {
-            core: CoreStruct::new(CATALOG_TYPE, id),
+            type_: CATALOG_TYPE.to_string(),
+            version: STAC_VERSION.to_string(),
+            extensions: None,
+            id: id.to_string(),
             title: None,
             description: String::new(),
+            links: Vec::new(),
+            additional_fields: Map::new(),
         }
     }
-
-    /// Returns a reference to this Catalog's title.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use stac::Catalog;
-    /// let catalog = Catalog::new("an-id");
-    /// assert!(catalog.title().is_none());
-    /// ```
-    pub fn title(&self) -> Option<&str> {
-        self.title.as_deref()
-    }
-
-    /// Returns a reference to this Catalog's description.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use stac::Catalog;
-    /// let catalog = Catalog::new("an-id");
-    /// assert_eq!(catalog.description(), "");
-    /// ```
-    pub fn description(&self) -> &str {
-        &self.description
-    }
 }
-
-impl AsRef<CoreStruct> for Catalog {
-    fn as_ref(&self) -> &CoreStruct {
-        &self.core
-    }
-}
-
-impl AsMut<CoreStruct> for Catalog {
-    fn as_mut(&mut self) -> &mut CoreStruct {
-        &mut self.core
-    }
-}
-
-impl Core for Catalog {}
 
 #[cfg(test)]
 mod tests {
     use super::Catalog;
-    use crate::{Core, STAC_VERSION};
+    use crate::STAC_VERSION;
 
     #[test]
     fn new() {
         let catalog = Catalog::new("an-id");
-        assert!(catalog.title().is_none());
-        assert_eq!(catalog.description(), "");
-        assert_eq!(catalog.type_(), "Catalog");
-        assert_eq!(catalog.version(), STAC_VERSION);
-        assert!(catalog.extensions().is_none());
-        assert_eq!(catalog.id(), "an-id");
-        assert!(catalog.links().is_empty());
+        assert!(catalog.title.is_none());
+        assert_eq!(catalog.description, "");
+        assert_eq!(catalog.type_, "Catalog");
+        assert_eq!(catalog.version, STAC_VERSION);
+        assert!(catalog.extensions.is_none());
+        assert_eq!(catalog.id, "an-id");
+        assert!(catalog.links.is_empty());
     }
 
     #[test]
