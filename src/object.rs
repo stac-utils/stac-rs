@@ -56,6 +56,33 @@ impl Object {
 
     // TODO add as_* and as_mut_* methods
 
+    /// Returns true if this object is an [Item].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let item = stac::read("data/simple-item.json").unwrap();
+    /// assert!(item.is_item());
+    /// ```
+    pub fn is_item(&self) -> bool {
+        matches!(self.inner, Inner::Item(_))
+    }
+
+    /// Returns this object's inner [Item], or `None` if it is not an item.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let item = stac::read("data/simple-item.json").unwrap();
+    /// let item = item.into_item().unwrap();
+    /// ```
+    pub fn into_item(self) -> Option<Item> {
+        match self.inner {
+            Inner::Item(item) => Some(item),
+            _ => None,
+        }
+    }
+
     /// Create a STAC Object from a JSON value.
     ///
     /// # Examples
