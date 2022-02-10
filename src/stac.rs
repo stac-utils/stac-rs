@@ -69,7 +69,7 @@
 //! ```
 
 use crate::{Error, Href, Link, Object, Read, Reader};
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 
 /// An arena-based tree for accessing STAC catalogs.
 #[derive(Debug)]
@@ -82,6 +82,13 @@ pub struct Stac<R: Read> {
 /// A pointer to a STAC object in a `Stac` tree.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Handle(usize);
+
+/// An iterator over a Stac's objects.
+#[derive(Debug)]
+pub struct Objects<R: Read> {
+    handles: VecDeque<Handle>,
+    stac: Stac<R>,
+}
 
 #[derive(Debug)]
 struct Node {
@@ -189,6 +196,29 @@ impl<R: Read> Stac<R> {
         } else {
             let object = self.reader.read(href)?;
             self.add_object(object)
+        }
+    }
+
+    /// Converts this Stac into an iterator over all objects, starting at the provided handle.
+    ///
+    /// Objects above the handle in the tree will not be included.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::Stac;
+    /// let (stac, catalog) = Stac::read("data/catalog.json").unwrap();
+    /// for result in stac.into_objects(catalog) {
+    ///     let object = result.unwrap();
+    ///     println!("{}", object.id());
+    /// }
+    /// ```
+    pub fn into_objects(self, handle: Handle) -> Objects<R> {
+        let mut handles = VecDeque::new();
+        handles.push_front(handle);
+        Objects {
+            stac: self,
+            handles,
         }
     }
 
@@ -426,6 +456,28 @@ impl Node {
     }
 }
 
+impl<R: Read> Iterator for Objects<R> {
+    type Item = Result<Object, Error>;
+
+    fn next(&mut self) -> Option<Result<Object, Error>> {
+        if let Some(handle) = self.handles.pop_front() {
+            if let Err(err) = self.stac.resolve_unchecked(handle) {
+                return Some(Err(err));
+            }
+            match self.stac.get_node_mut(handle) {
+                Ok(node) => {
+                    self.handles.extend(&node.children);
+                    self.handles.extend(&node.items);
+                    Some(Ok(node.object.take().expect("the node should be resolved")))
+                }
+                Err(err) => Some(Err(err)),
+            }
+        } else {
+            None
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::Stac;
@@ -499,5 +551,15 @@ mod tests {
             .unwrap()
             .unwrap();
         assert_eq!(collection.items(&stac).unwrap(), vec![item]);
+    }
+
+    #[test]
+    fn into_objects() {
+        let (stac, catalog) = Stac::read("data/catalog.json").unwrap();
+        let objects = stac
+            .into_objects(catalog)
+            .collect::<Result<Vec<_>, _>>()
+            .unwrap();
+        assert_eq!(objects.len(), 6);
     }
 }
