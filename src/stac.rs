@@ -68,7 +68,7 @@
 //! - LC80300332018166LGN00
 //! ```
 
-use crate::{Error, Href, Link, Object, Read, Reader};
+use crate::{Error, Href, Item, Link, Object, Read, Reader};
 use std::collections::{HashMap, VecDeque};
 
 /// An arena-based tree for accessing STAC catalogs.
@@ -89,6 +89,10 @@ pub struct Objects<R: Read> {
     handles: VecDeque<Handle>,
     stac: Stac<R>,
 }
+
+/// An iterator over a Stac's items.
+#[derive(Debug)]
+pub struct Items<R: Read>(Objects<R>);
 
 #[derive(Debug)]
 struct Node {
@@ -220,6 +224,24 @@ impl<R: Read> Stac<R> {
             stac: self,
             handles,
         }
+    }
+
+    /// Converts this Stac into an iterator over all items, starting at the provided handle.
+    ///
+    /// Items above the handle in the tree will not be included.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::Stac;
+    /// let (stac, catalog) = Stac::read("data/catalog.json").unwrap();
+    /// for result in stac.into_items(catalog) {
+    ///     let item = result.unwrap();
+    ///     println!("{}", item.id);
+    /// }
+    /// ```
+    pub fn into_items(self, handle: Handle) -> Items<R> {
+        Items(self.into_objects(handle))
     }
 
     fn add_object(&mut self, mut object: Object) -> Result<Handle, Error> {
@@ -478,6 +500,26 @@ impl<R: Read> Iterator for Objects<R> {
     }
 }
 
+impl<R: Read> Iterator for Items<R> {
+    type Item = Result<Item, Error>;
+
+    fn next(&mut self) -> Option<Result<Item, Error>> {
+        match self.0.next() {
+            Some(result) => match result {
+                Ok(object) => {
+                    if object.is_item() {
+                        Some(Ok(object.into_item().expect("the object is an item")))
+                    } else {
+                        self.next()
+                    }
+                }
+                Err(err) => Some(Err(err)),
+            },
+            None => None,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::Stac;
@@ -561,5 +603,15 @@ mod tests {
             .collect::<Result<Vec<_>, _>>()
             .unwrap();
         assert_eq!(objects.len(), 6);
+    }
+
+    #[test]
+    fn into_items() {
+        let (stac, catalog) = Stac::read("data/catalog.json").unwrap();
+        let items = stac
+            .into_items(catalog)
+            .collect::<Result<Vec<_>, _>>()
+            .unwrap();
+        assert_eq!(items.len(), 2);
     }
 }
