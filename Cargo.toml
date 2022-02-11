@@ -9,12 +9,13 @@ geojson = "0.22"
 reqwest = { version = "0.11", optional = true, features = ["json", "blocking"] }
 path-slash = "0.1"
 serde = { version = "1", features = ["derive"] }
-serde_json = "1"
+serde_json = { version = "1", features = ["preserve_order"] }
 thiserror = "1"
 url = "2"
 
 [dev-dependencies]
 assert-json-diff = "2"
+tempfile = "3"
 
 [features]
 default = ["reqwest"]

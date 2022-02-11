@@ -1,14 +1,12 @@
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
-/// An Asset is an object that contains a URI to data associated with the Item that can be downloaded or streamed.
-///
-/// It is allowed to add additional fields.
+/// An Asset is an object that contains a URI to data associated with the [Item](crate::Item) that can be downloaded or streamed.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Asset {
     /// URI to the asset object.
     ///
-    /// Relative and absolute URI are both allowed.
+    /// Relative and absolute URIs are both allowed.
     pub href: String,
 
     /// The displayed title for clients and users.
@@ -17,18 +15,18 @@ pub struct Asset {
 
     /// A description of the Asset providing additional details, such as how it was processed or created.
     ///
-    /// CommonMark 0.29 syntax MAY be used for rich text representation.
+    /// [CommonMark 0.29](http://commonmark.org/) syntax MAY be used for rich text representation.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
 
-    /// Media type of the asset.
+    /// [Media type](crate::media_type) of the asset.
     ///
-    /// See the common media types in the best practice doc for commonly used asset types.
+    /// See the [common media types](https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#common-media-types-in-stac) in the best practice doc for commonly used asset types.
     #[serde(rename = "type")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub type_: Option<String>,
 
-    /// The semantic roles of the asset, similar to the use of rel in links.
+    /// The semantic roles of the asset, similar to the use of rel in [Links](crate::Link).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub roles: Option<Vec<String>>,
 
@@ -39,6 +37,10 @@ pub struct Asset {
 
 impl Asset {
     /// Creates a new asset with the provided href.
+    ///
+    /// Note that the path separator for the href should always be `/`. If you
+    /// need to convert a filesystem path to an href, use
+    /// [Href::as_str](crate::Href::as_str).
     ///
     /// # Examples
     ///

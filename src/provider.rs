@@ -1,12 +1,12 @@
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
-/// The object provides information about a provider.
+/// This object provides information about a provider.
 ///
 /// A provider is any of the organizations that captures or processes the
-/// content of the Collection and therefore influences the data offered by this
-/// Collection. May also include information about the final storage provider
-/// hosting the data.
+/// content of the [Collection](crate::Collection) and therefore influences the
+/// data offered by this `Collection`. May also include information about the
+/// final storage provider hosting the data.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Provider {
     /// The name of the organization or the individual.
@@ -16,13 +16,13 @@ pub struct Provider {
     /// processing details for processors and producers, hosting details for
     /// hosts or basic contact information.
     ///
-    /// CommonMark 0.29 syntax MAY be used for rich text representation.
+    /// [CommonMark 0.29](http://commonmark.org/) syntax MAY be used for rich text representation.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
 
     /// Roles of the provider.
     ///
-    /// Any of licensor, producer, processor or host.
+    /// Any of `"licensor"`, `"producer"`, `"processor"`, or `"host"`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub roles: Option<Vec<String>>,
 

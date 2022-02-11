@@ -1,52 +1,61 @@
 use crate::stac::Handle;
 use serde_json::Value;
 use thiserror::Error;
+use url::Url;
 
-/// Error enum for the stac crate.
+/// Error enum for crate-specific errors.
 #[derive(Error, Debug)]
 pub enum Error {
-    /// std::io::Error.
+    /// Returned when trying to write urls from the default writer.
+    #[error("cannot write url: {0}")]
+    CannotWriteUrl(Url),
+
+    /// [std::io::Error]
     #[error("std::io error: {0}")]
     Io(#[from] std::io::Error),
 
-    /// Infallible error.
+    /// [std::convert::Infallible]
     #[error("std::conver::Infallible: {0}")]
     Infallible(#[from] std::convert::Infallible),
 
-    /// An invalid handle for a `Stac`
+    /// Returned when trying to access data in a [Stac](crate::Stac) with an invalid [Handle].
     #[error("invalid handle: {0:?}")]
     InvalidHandle(Handle),
 
-    /// Invalid type field (not a string).
-    #[error("Invalid \"type\" field: {0}")]
+    /// Returned when the `type` field of a STAC object is not a [String].
+    #[error("invalid \"type\" field: {0}")]
     InvalidTypeField(Value),
 
-    /// Invalid type value.
-    #[error("Invalid \"type\" value: {0}")]
+    /// Returned when the `type` field of a STAC object does not equal `"Feature"`, `"Catalog"`, or `"Collection"`.
+    #[error("invalid \"type\" value: {0}")]
     InvalidTypeValue(String),
 
-    /// No "type" field in the JSON object, unable to parse as STAC object.
-    #[error("No \"type\" field in the JSON object, unable to parse as STAC object")]
+    /// Returned when there is not a `type` field on a STAC object
+    #[error("no \"type\" field in the JSON object")]
     MissingType,
 
-    /// Reqwest is not enabled, so we cannot read URLs with the default reader.
-    #[error("Reqwest is not enabled, so we cannot read URLs with the default reader")]
+    /// Returned when trying to write an [Object](crate::Object) that does not have an href.
+    #[error("object has no href, cannot write")]
+    MissingHref,
+
+    /// Returned when trying to read from a url but the `reqwest` feature is not enabled.
+    #[error("reqwest is not enabled")]
     ReqwestNotEnabled,
 
-    /// A reqwest error.
+    /// [reqwest::Error]
     #[cfg(feature = "reqwest")]
     #[error("reqwest error: {0}")]
     Reqwest(#[from] reqwest::Error),
 
-    /// A serde_json error.
+    /// [serde_json::Error]
     #[error("serde_json error: {0}")]
     SerdeJson(#[from] serde_json::Error),
 
-    /// Unresolvable node.
+    /// Reeturned when the node cannot be resolved.
     #[error("the node is unresolved and does not have an href")]
     UnresolvableNode,
 
-    /// A url parse error.
+    /// [url::ParseError]
     #[error("url parse error: {0}")]
     Url(#[from] url::ParseError),
 }

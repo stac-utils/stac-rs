@@ -1,12 +1,12 @@
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
-/// The object describes the spatio-temporal extents of the Collection.
+/// The object describes the spatio-temporal extents of the [Collection](crate::Collection).
 #[derive(Debug, Default, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Extent {
-    /// Potential spatial extents covered by the Collection.
+    /// Spatial extents covered by the `Collection`.
     pub spatial: SpatialExtent,
-    /// Potential temporal extents covered by the Collection.
+    /// Temporal extents covered by the `Collection`.
     pub temporal: TemporalExtent,
 
     /// Additional fields on the extent.
