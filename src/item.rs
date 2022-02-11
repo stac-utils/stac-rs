@@ -4,34 +4,33 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::collections::HashMap;
 
-/// The type field for Items.
+/// The type field for [Items](Item).
 pub const ITEM_TYPE: &str = "Feature";
 
-/// An Item is a GeoJSON Feature augmented with foreign members relevant to a
+/// An `Item` is a GeoJSON Feature augmented with foreign members relevant to a
 /// STAC object.
 ///
-/// These include fields that identify the time range and assets of the Item. An
-/// Item is the core object in a STAC Catalog, containing the core metadata that
+/// These include fields that identify the time range and assets of the `Item`. An
+/// `Item` is the core object in a STAC catalog, containing the core metadata that
 /// enables any client to search or crawl online catalogs of spatial 'assets'
 /// (e.g., satellite imagery, derived data, DEMs).
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Item {
-    /// Type of the GeoJSON Object. MUST be set to `Feature`.
-    #[serde(rename = "type")]
-    pub type_: String,
+    /// Type of the GeoJSON Object. MUST be set to `"Feature"`.
+    pub r#type: String,
 
-    /// The STAC version the Item implements.
+    /// The STAC version the `Item` implements.
     #[serde(rename = "stac_version")]
     pub version: String,
 
-    /// A list of extension the Item implements.
+    /// A list of extensions the `Item` implements.
     #[serde(rename = "stac_extensions")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub extensions: Option<Vec<String>>,
 
     /// Provider identifier.
     ///
-    /// The ID should be unique within the [Collection](crate::Collection) that contains the Item.
+    /// The ID should be unique within the [Collection](crate::Collection) that contains the `Item`.
     pub id: String,
 
     /// Defines the full footprint of the asset represented by this item,
@@ -44,29 +43,28 @@ pub struct Item {
     /// 84](http://www.opengis.net/def/crs/OGC/1.3/CRS84).
     pub geometry: Option<Geometry>,
 
-    /// Bounding Box of the asset represented by this Item, formatted according
+    /// Bounding Box of the asset represented by this `Item`, formatted according
     /// to [RFC 7946, section 5](https://tools.ietf.org/html/rfc7946#section-5).
     ///
     /// REQUIRED if `geometry` is not `null`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub bbox: Option<Vec<f64>>,
 
-    /// A dictionary of additional metadata for the Item.
+    /// A dictionary of additional metadata for the `Item`.
     pub properties: Properties,
 
     /// List of link objects to resources and related URLs.
-    ///
-    /// A link with the `rel` set to `self` is strongly recommended
     pub links: Vec<Link>,
 
     /// Dictionary of asset objects that can be downloaded, each with a unique key.
     pub assets: HashMap<String, Asset>,
 
-    /// The `id` of the STAC Collection this Item references to.
+    /// The `id` of the STAC [Collection](crate::Collection) this `Item`
+    /// references to.
     ///
     /// This field is *required* if such a relation type is present and is *not
     /// allowed* otherwise. This field provides an easy way for a user to search
-    /// for any Items that belong in a specified Collection. Must be a non-empty
+    /// for any `Item`s that belong in a specified `Collection`. Must be a non-empty
     /// string.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub collection: Option<String>,
@@ -79,7 +77,8 @@ pub struct Item {
 impl Item {
     /// Creates a new `Item` with the given `id`.
     ///
-    /// The item properties' `datetime` field is set to the creation time.
+    /// The item properties' `datetime` field is set to the object creation
+    /// time.
     ///
     /// # Examples
     ///
@@ -90,7 +89,7 @@ impl Item {
     /// ```
     pub fn new<S: ToString>(id: S) -> Item {
         Item {
-            type_: ITEM_TYPE.to_string(),
+            r#type: ITEM_TYPE.to_string(),
             version: STAC_VERSION.to_string(),
             extensions: None,
             id: id.to_string(),
@@ -117,7 +116,7 @@ mod tests {
         assert!(item.properties.datetime.is_some());
         assert!(item.assets.is_empty());
         assert!(item.collection.is_none());
-        assert_eq!(item.type_, "Feature");
+        assert_eq!(item.r#type, "Feature");
         assert_eq!(item.version, STAC_VERSION);
         assert!(item.extensions.is_none());
         assert_eq!(item.id, "an-id");

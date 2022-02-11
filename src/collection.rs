@@ -3,58 +3,57 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::collections::HashMap;
 
-/// The type field for Collections.
+/// The type field for [Collections](Collection).
 pub const COLLECTION_TYPE: &str = "Collection";
 
-/// The STAC Collection Specification defines a set of common fields to describe
-/// a group of Items that share properties and metadata.
+/// The STAC `Collection` Specification defines a set of common fields to describe
+/// a group of [Items](crate::Item) that share properties and metadata.
 ///
-/// The Collection Specification shares all fields with the STAC Catalog
-/// Specification (with different allowed values for type and stac_extensions)
-/// and adds fields to describe the whole dataset and the included set of Items.
-/// Collections can have both parent Catalogs and Collections and child Items,
-/// Catalogs and Collections.
+/// The `Collection` Specification shares all fields with the STAC
+/// [Catalog](crate::Catalog) Specification (with different allowed values for
+/// `type` and `extensions`) and adds fields to describe the whole dataset and
+/// the included set of `Item`s.  `Collection`s can have both parent `Catalogs` and
+/// `Collection`s and child `Item`s, `Catalog`s and `Collection`s.
 ///
-/// A STAC Collection is represented in JSON format. Any JSON object that
-/// contains all the required fields is a valid STAC Collection and also a valid
-/// STAC Catalog.
+/// A STAC `Collection` is represented in JSON format. Any JSON object that
+/// contains all the required fields is a valid STAC `Collection` and also a valid
+/// STAC `Catalog`.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Collection {
-    /// Must be set to `Collection` to be a valid Collection.
-    #[serde(rename = "type")]
-    pub type_: String,
+    /// Must be set to `"Collection"` to be a valid `Collection`.
+    pub r#type: String,
 
-    /// The STAC version the Collection implements.
+    /// The STAC version the `Collection` implements.
     #[serde(rename = "stac_version")]
     pub version: String,
 
-    /// A list of extension identifiers the Collection implements.
+    /// A list of extension identifiers the `Collection` implements.
     #[serde(rename = "stac_extensions")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub extensions: Option<Vec<String>>,
 
-    /// Identifier for the Collection that is unique across the provider.
+    /// Identifier for the `Collection` that is unique across the provider.
     pub id: String,
 
-    /// A short descriptive one-line title for the Collection.
+    /// A short descriptive one-line title for the `Collection`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
 
-    /// Detailed multi-line description to fully explain the Collection.
+    /// Detailed multi-line description to fully explain the `Collection`.
     ///
     /// [CommonMark 0.29](http://commonmark.org/) syntax MAY be used for rich text representation.
     pub description: String,
 
-    /// List of keywords describing the Collection.
+    /// List of keywords describing the `Collection`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub keywords: Option<Vec<String>>,
 
-    /// Collection's license(s), either a SPDX [License
-    /// identifier](https://spdx.org/licenses/), `various` if multiple licenses
-    /// apply or `proprietary` for all other cases.
+    /// `Collection`'s license(s), either a SPDX [License
+    /// identifier](https://spdx.org/licenses/), `"various"` if multiple licenses
+    /// apply or `"proprietary"` for all other cases.
     pub license: String,
 
-    /// A list of providers, which may include all organizations capturing or
+    /// A list of [providers](Provider), which may include all organizations capturing or
     /// processing the data or the hosting provider.
     ///
     /// Providers should be listed in chronological order with the most recent
@@ -77,7 +76,7 @@ pub struct Collection {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub assets: Option<HashMap<String, Asset>>,
 
-    /// Additional fields not part of the Collection specification.
+    /// Additional fields not part of the `Collection` specification.
     #[serde(flatten)]
     pub additional_fields: Map<String, Value>,
 }
@@ -94,7 +93,7 @@ impl Collection {
     /// ```
     pub fn new<S: ToString>(id: S) -> Collection {
         Collection {
-            type_: COLLECTION_TYPE.to_string(),
+            r#type: COLLECTION_TYPE.to_string(),
             version: STAC_VERSION.to_string(),
             extensions: None,
             id: id.to_string(),
@@ -127,7 +126,7 @@ mod tests {
         assert_eq!(collection.extent, Extent::default());
         assert!(collection.summaries.is_none());
         assert!(collection.assets.is_none());
-        assert_eq!(collection.type_, "Collection");
+        assert_eq!(collection.r#type, "Collection");
         assert_eq!(collection.version, STAC_VERSION);
         assert!(collection.extensions.is_none());
         assert_eq!(collection.id, "an-id");

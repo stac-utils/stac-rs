@@ -5,7 +5,7 @@
 //!
 //! The goal is for all providers of spatiotemporal assets (Imagery, SAR, Point Clouds, Data Cubes, Full Motion Video, etc) to expose their data as SpatioTemporal Asset Catalogs (STAC), so that new code doesn't need to be written whenever a new data set or API is released.
 //!
-//! This is a Rust implementation of the specification, with associated utilties.
+//! This is a Rust implementation of the specification, with associated utilities.
 //! Similar projects in other languages include:
 //!
 //! - Python: [PySTAC](https://pystac.readthedocs.io/en/1.0/)
@@ -21,9 +21,8 @@
 //! - [Catalog](https://github.com/radiantearth/stac-spec/blob/master/catalog-spec/catalog-spec.md) represents a logical group of other Catalog, Collection, and Item objects.
 //! - [Collection](https://github.com/radiantearth/stac-spec/blob/master/collection-spec/collection-spec.md) shares all fields with the Catalog (with different allowed values for `type` and `stac_extensions`) and adds fields to describe the whole dataset and the included set of Items.
 //!
-//! All three structures are provided as [serde](https://serde.rs/) (de)serializable structures with public attributes.
-//! Because `id` is always required, these structures do not implement [Default].
-//! Each provides a `new` method that takes an `id` and fills the rest with sensible defaults.
+//! All three are provided as [serde](https://serde.rs/) (de)serializable structures with public attributes.
+//! Because `id` is always required, these structures do not implement [Default], but instead provides a `new` method that takes an `id` and fills the rest of the object's attributes with sensible defaults.
 //!
 //! ```
 //! use stac::{Item, Catalog, Collection};
@@ -34,39 +33,56 @@
 //!
 //! # Reading and writing
 //!
-//! Because STAC is often used for applications that require accessing remote data, this crate provides flexibility for downstream users to customize how they read and write data.
-//! The [Read] trait provides an interface to turn hrefs into STAC objects.
-//! The crate comes with a default [Reader] that uses the standard library for filesystem access and (if enabled) [reqwest](https://docs.rs/reqwest/latest/reqwest/) for network access:
-//!
-//! Because the type of STAC objects at an href cannot be known before reading, the [Read] trait returns an [Object], which is a wrapper around all three STAC object types.
+//! Because STAC is used to access and write data on local and remote filesystems, this crate provides flexibility for downstream users to customize their input and output operations.
+//! The [Read] trait provides an interface that turns [Hrefs](Href) into STAC objects.
+//! The provided [Reader] uses the standard library for filesystem access and [reqwest](https://docs.rs/reqwest/latest/reqwest/) for network access, if enabled by the `reqwest` feature, which is enabled by default:
 //!
 //! ```
 //! use stac::{Reader, Read};
+//! let catalog = Reader::default().read("data/catalog.json").unwrap();
+//! ```
+//!
+//! Because the type of a STAC object cannot be known before reading, the [Read] trait returns an [Object], which is a wrapper around all three STAC object types.
+//! This object contains the deserialized STAC object, as well as the href from which the object was read:
+//!
+//! ```
+//! # use stac::{Reader, Read};
 //! let reader = Reader::default();
 //! let object = reader.read("data/catalog.json").unwrap();
 //! assert_eq!(object.id(), "examples");
-//! assert_eq!(object.href.as_ref().unwrap().as_str(), "data/catalog.json");
 //! let catalog = object.as_catalog().unwrap();
-//! println!("{}", catalog.description);
+//! assert_eq!(catalog.title.as_ref().unwrap(), "Example Catalog");
+//! assert_eq!(object.href.as_ref().unwrap().as_str(), "data/catalog.json");
 //! ```
 //!
-//! The crate provides a top-level [read] method for convenience:
+//! There is a top-level [read()] method for convenience:
 //!
 //! ```
 //! let catalog = stac::read("data/catalog.json").unwrap();
 //! ```
 //!
-//! # Tree traversal
+//! The [Write] trait describes how to write any [Object] to an href.
+//! The built-in [Writer] only knows how to write to the local filesystem -- writing to a url is an error:
 //!
-//! STAC resources are trees, where [Catalogs](Catalog) and [Collections](Collection) can contain other Catalogs and Collections via `child` links and [Items](Item) via `item` links.
-//! STAC objects may (but don't have to) have pointers back to their parents and the tree root, also via links.
+//! ```no_run
+//! use stac::{Item, Object, Writer, Write};
+//! let item = Item::new("an-id");
+//! let object = Object::new(item, "item.json").unwrap();
+//! let writer = Writer::default();
+//! writer.write(object).unwrap();
 //!
-//! Tree structures in Rust can be a little tricky to implement, because Rust's strict ownership and mutability rules make storing multiple references to one object hard.
-//! **stac-rs** provides an arena-based tree structure, inspired by [indextree](https://docs.rs/indextree/latest/indextree/), called [Stac].
-//! The [Stac] arena uses handles to point to objects in the tree, making the ergonomics slighly clumsier than a direct access tree (e.g. one based on [std::cell::RefCell], as described [here](https://www.nikbrendler.com/posts/rust-leetcode-primer-trees/)).
-//! However, the arena tree doesn't require us to do any "interior mutability" workarounds, making this implementation hopefully easier to audit and keep correct.
+//! let item = Item::new("an-id");
+//! let object = Object::new(item, "http://example.com/item.json").unwrap();
+//! writer.write(object).unwrap_err();
+//! ```
 //!
-//! A Stac can be created from an href.
+//! # STAC catalogs are trees
+//!
+//! Because of Rust's strict mutability and ownership rules, tree structures require more verbose ergonomics than in other languages (e.g. Python in PySTAC).
+//! The [Stac] structure is an arena-based tree inspired by [indextree](https://docs.rs/indextree/latest/indextree/).
+//! The `Stac` arena uses handles to point to objects in the tree, providing an interface for interacting with a STAC catalog without relying on inner mutability.
+//!
+//! `Stac` can be created from an href.
 //! The [read](Stac::read) method returns both the arena and a handle to the object:
 //!
 //! ```
@@ -74,33 +90,46 @@
 //! let (stac, handle) = Stac::read("data/catalog.json").unwrap();
 //! ```
 //!
-//! This handle can be used to fetch references (mutable or immutable) to that object:
-//!
-//! ```
-//! use stac::Stac;
-//! let (mut stac, handle) = Stac::read("data/catalog.json").unwrap();
-//! let catalog = stac.get(handle).unwrap();
-//! assert_eq!(catalog.id(), "examples");
-//! let catalog = stac.get_mut(handle).unwrap().as_mut_catalog().unwrap();
-//! catalog.id = String::from("new-id");
-//! let catalog = stac.get(handle).unwrap();
-//! assert_eq!(catalog.id(), "new-id");
-//! ```
-//!
-//! When objects are read into a Stac, their children are inserted into the tree as "unresolved" nodes.
-//! They are only fetched if asked for, e.g. via [find_child](stac::Handle::find_child).
-//! Note that the Stac object must be mutable to find children, becuase we are changing the tree by "resolving" those nodes:
+//! A `Stac` is a lazy cache, meaning that it doesn't read objects until needed, and keeps read objects in a cache keyed by their hrefs.
+//! Objects are read on-demand, e.g. via the [get](Stac::get) method:
 //!
 //! ```
 //! # use stac::Stac;
 //! let (mut stac, handle) = Stac::read("data/catalog.json").unwrap();
-//! let child = handle
-//!     .find_child(&mut stac, |child| child.id() == "sentinel-2")
-//!     .unwrap()
-//!     .unwrap();
+//! let child_handle = stac.children(handle).unwrap().next().unwrap();
+//! let child = stac.get(child_handle).unwrap();
 //! ```
 //!
-//! For a more complete picture of the Stac object, see the [module-level documentation](stac).
+//! ## Rendering
+//!
+//! While STAC catalogs are trees, their organization via links is arbitrary.
+//! 'Rendering' a STAC catalog is the process of creating hrefs and links to define its layout.
+//! [Render::render] converts a [Stac] to an iterable of [Objects](Object).
+//! The [BestPracticesRenderer] renders objects per the best practices as defined by the [STAC specification](https://github.com/radiantearth/stac-spec/blob/master/best-practices.md):
+//!
+//! ```
+//! use stac::{Stac, Render, BestPracticesRenderer, Error};
+//! let (mut stac, _) = Stac::read("data/catalog.json").unwrap();
+//! let renderer = BestPracticesRenderer::new("the/root/directory").unwrap();
+//! let objects = renderer.render(&mut stac).unwrap().collect::<Result<Vec<_>, Error>>().unwrap();
+//! assert_eq!(objects.len(), 6);
+//! assert_eq!(
+//!     objects[0].href.as_ref().unwrap().as_str(),
+//!     "the/root/directory/catalog.json"
+//! );
+//! ```
+//!
+//! ## Writing
+//!
+//! Stac trees have a [write](Stac::write) method:
+//!
+//! ```no_run
+//! use stac::{Stac, Render, BestPracticesRenderer, Writer};
+//! let (mut stac, _) = Stac::read("data/catalog.json").unwrap();
+//! let renderer = BestPracticesRenderer::new("the/root/directory").unwrap();
+//! let writer = Writer::default();
+//! stac.write(&renderer, &writer).unwrap();
+//! ```
 //!
 //! # Full specification compliance
 //!
@@ -160,42 +189,46 @@ mod extent;
 mod href;
 mod item;
 mod link;
+pub mod media_type;
 mod object;
 mod properties;
 mod provider;
-mod reader;
-pub mod stac;
+mod read;
+mod render;
+mod stac;
+mod write;
 
 pub use {
-    crate::stac::Stac,
+    crate::stac::{Handle, Handles, Items, Objects, Stac},
     asset::Asset,
     catalog::{Catalog, CATALOG_TYPE},
     collection::{Collection, COLLECTION_TYPE},
     error::Error,
     extent::{Extent, SpatialExtent, TemporalExtent},
-    href::Href,
+    href::{Href, PathBufHref},
     item::{Item, ITEM_TYPE},
     link::Link,
-    object::Object,
+    object::{Object, Value},
     properties::Properties,
     provider::Provider,
-    reader::{Read, Reader},
+    read::{Read, Reader},
+    render::{BestPracticesRenderer, Render},
+    write::{Write, Writer},
 };
 
 /// The default STAC version supported by this library.
 pub const STAC_VERSION: &str = "1.0.0";
 
-/// Reads a STAC object from an HREF.
+/// Reads a STAC object from an href.
 ///
 /// # Examples
 ///
 /// ```
 /// let catalog = stac::read("data/catalog.json").unwrap();
 /// ```
-pub fn read<T, E>(href: T) -> Result<Object, Error>
+pub fn read<T>(href: T) -> Result<Object, Error>
 where
-    T: TryInto<Href, Error = E>,
-    Error: From<E>,
+    T: Into<PathBufHref>,
 {
     let reader = Reader::default();
     reader.read(href)

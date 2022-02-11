@@ -1,3 +1,4 @@
+use crate::media_type;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
@@ -5,13 +6,15 @@ const CHILD_REL: &str = "child";
 const ITEM_REL: &str = "item";
 const PARENT_REL: &str = "parent";
 const ROOT_REL: &str = "root";
+const SELF_REL: &str = "self";
 
 /// This object describes a relationship with another entity.
 ///
 /// Data providers are advised to be liberal with the links section, to describe
-/// things like the Catalog an Item is in, related Items, parent or child Items
-/// (modeled in different ways, like an 'acquisition' or derived data). It is
-/// allowed to add additional fields such as a title and type.
+/// things like the [Catalog](crate::Catalog) an [Item](crate::Item) is in,
+/// related `Item`s, parent or child `Item`s (modeled in different ways, like an
+/// 'acquisition' or derived data). It is allowed to add additional fields such
+/// as a title and type.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Link {
     /// The actual link in the format of an URL.
@@ -21,13 +24,15 @@ pub struct Link {
 
     /// Relationship between the current document and the linked document.
     ///
-    /// See chapter "Relation types" for more information.
+    /// See the chapter on ["Relation
+    /// types"](https://github.com/radiantearth/stac-spec/blob/master/item-spec/item-spec.md#relation-types)
+    /// in the STAC spec for more information.
     pub rel: String,
 
-    /// Media type of the referenced entity.
+    /// [Media type](crate::media_type) of the referenced entity.
     #[serde(rename = "type")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub type_: Option<String>,
+    pub r#type: Option<String>,
 
     /// A human readable title to be used in rendered displays of the link.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -53,13 +58,79 @@ impl Link {
         Link {
             href: href.to_string(),
             rel: rel.to_string(),
-            type_: None,
+            r#type: None,
             title: None,
             additional_fields: Map::new(),
         }
     }
 
-    /// Returns true if this link's rel is "item".
+    fn new_json<S0: ToString, S1: ToString>(href: S0, rel: S1) -> Link {
+        Link {
+            href: href.to_string(),
+            rel: rel.to_string(),
+            r#type: Some(media_type::JSON.to_string()),
+            title: None,
+            additional_fields: Map::new(),
+        }
+    }
+
+    /// Creates a new root link with JSON media type.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac::{Link, media_type};
+    /// let root = Link::root("an-href");
+    /// assert!(root.is_root());
+    /// assert_eq!(root.r#type.as_ref().unwrap(), media_type::JSON);
+    /// ```
+    pub fn root<S: ToString>(href: S) -> Link {
+        Link::new_json(href, ROOT_REL)
+    }
+
+    /// Creates a new child link with JSON media type.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac::{Link, media_type};
+    /// let root = Link::child("an-href");
+    /// assert!(root.is_child());
+    /// assert_eq!(root.r#type.as_ref().unwrap(), media_type::JSON);
+    /// ```
+    pub fn child<S: ToString>(href: S) -> Link {
+        Link::new_json(href, CHILD_REL)
+    }
+
+    /// Creates a new item link with JSON media type.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac::{Link, media_type};
+    /// let root = Link::item("an-href");
+    /// assert!(root.is_item());
+    /// assert_eq!(root.r#type.as_ref().unwrap(), media_type::JSON);
+    /// ```
+    pub fn item<S: ToString>(href: S) -> Link {
+        Link::new_json(href, ITEM_REL)
+    }
+
+    /// Creates a new parent link with JSON media type.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac::{Link, media_type};
+    /// let root = Link::parent("an-href");
+    /// assert!(root.is_parent());
+    /// assert_eq!(root.r#type.as_ref().unwrap(), media_type::JSON);
+    /// ```
+    pub fn parent<S: ToString>(href: S) -> Link {
+        Link::new_json(href, PARENT_REL)
+    }
+
+    /// Returns true if this link's rel is `"item"`.
     ///
     /// # Examples
     ///
@@ -74,7 +145,7 @@ impl Link {
         self.rel == ITEM_REL
     }
 
-    /// Returns true if this link's rel is "child".
+    /// Returns true if this link's rel is `"child"`.
     ///
     /// # Examples
     ///
@@ -89,7 +160,7 @@ impl Link {
         self.rel == CHILD_REL
     }
 
-    /// Returns true if this link's rel is "parent".
+    /// Returns true if this link's rel is `"parent"`.
     ///
     /// # Examples
     ///
@@ -104,7 +175,7 @@ impl Link {
         self.rel == PARENT_REL
     }
 
-    /// Returns true if this link's rel is "root".
+    /// Returns true if this link's rel is `"root"`.
     ///
     /// # Examples
     ///
@@ -118,6 +189,38 @@ impl Link {
     pub fn is_root(&self) -> bool {
         self.rel == ROOT_REL
     }
+
+    /// Returns true if this link's rel is `"self"`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac::Link;
+    /// let link = Link::new("an-href", "self");
+    /// assert!(link.is_self());
+    /// let link = Link::new("an-href", "not-a-root");
+    /// assert!(!link.is_self());
+    /// ```
+    pub fn is_self(&self) -> bool {
+        self.rel == SELF_REL
+    }
+
+    /// Returns true if this link is structural (i.e. not child, parent, item,
+    /// root, or self).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac::Link;
+    /// let link = Link::new("an-href", "self");
+    /// assert!(link.is_structural());
+    /// let link = Link::new("an-href", "child");
+    /// assert!(link.is_structural());
+    /// let link = Link::new("an-href", "not-a-root");
+    /// assert!(!link.is_structural());
+    pub fn is_structural(&self) -> bool {
+        self.is_child() || self.is_item() || self.is_parent() || self.is_root() || self.is_self()
+    }
 }
 
 #[cfg(test)]
@@ -129,7 +232,7 @@ mod tests {
         let link = Link::new("an-href", "a-rel");
         assert_eq!(link.href, "an-href");
         assert_eq!(link.rel, "a-rel");
-        assert!(link.type_.is_none());
+        assert!(link.r#type.is_none());
         assert!(link.title.is_none());
     }
 
