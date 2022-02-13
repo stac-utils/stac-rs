@@ -68,7 +68,13 @@ impl Href {
     pub fn new<S: ToString>(href: S) -> Href {
         let href = href.to_string();
         match Url::parse(&href) {
-            Ok(url) => Href::Url(url),
+            Ok(url) => {
+                if url.cannot_be_a_base() {
+                    Href::Path(href)
+                } else {
+                    Href::Url(url)
+                }
+            }
             Err(_) => Href::Path(href),
         }
     }
