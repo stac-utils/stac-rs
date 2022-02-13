@@ -89,12 +89,12 @@ mod tests {
         let item = Item::new("an-item");
         let directory = tempfile::tempdir().unwrap();
         let href = directory.path().join("item.json");
-        let object = Object::new(item, href.to_string_lossy().into_owned()).unwrap();
+        let object = Object::new(item, href.clone()).unwrap();
 
         let writer = Writer::default();
         writer.write(object.clone()).unwrap();
 
-        let read_object = crate::read(&href.to_string_lossy().into_owned()).unwrap();
+        let read_object = crate::read(href).unwrap();
         assert_eq!(read_object, object);
     }
 
