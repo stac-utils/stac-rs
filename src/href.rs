@@ -359,6 +359,18 @@ impl From<PathBufHref> for Href {
     }
 }
 
+impl From<PathBuf> for PathBufHref {
+    fn from(path_buf: PathBuf) -> PathBufHref {
+        PathBufHref::Path(path_buf)
+    }
+}
+
+impl From<PathBuf> for Href {
+    fn from(path_buf: PathBuf) -> Href {
+        PathBufHref::Path(path_buf).into()
+    }
+}
+
 impl From<&str> for Href {
     fn from(s: &str) -> Href {
         Href::new(s)
