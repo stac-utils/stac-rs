@@ -1,4 +1,4 @@
-name: Rust
+name: CI
 
 on:
   push:
@@ -34,3 +34,26 @@ jobs:
         run: cargo build --verbose ${{ matrix.flags }}
       - name: Run tests
         run: cargo test --verbose ${{ matrix.flags }}
+
+  docs:
+    needs: build
+    if: ${{ github.event.pull_request.merged == true }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml') }}
+      - name: Build
+        run: cargo doc --verbose
+      - name: Publish
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./target/doc
