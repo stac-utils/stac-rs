@@ -37,7 +37,7 @@ jobs:
 
   docs:
     needs: build
-    if: ${{ github.event.pull_request.merged == true }}
+    if: ${{ github.event_name == 'push' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
