@@ -7,7 +7,7 @@ use crate::{Error, Handle, Handles, Href, Link, Object, Read, Stac};
 /// ```
 /// use stac::{Stac, Render, BestPracticesRenderer, Error};
 /// let (mut stac, _) = Stac::read("data/catalog.json").unwrap();
-/// let renderer = BestPracticesRenderer::new("a/root/directory").unwrap();
+/// let renderer = BestPracticesRenderer::new("a/root/directory");
 /// let objects = renderer.render(&mut stac).unwrap().collect::<Result<Vec<_>, Error>>().unwrap();
 /// assert_eq!(objects.len(), 6);
 /// let root = &objects[0];
@@ -28,7 +28,7 @@ pub trait Render {
     ///
     /// ```
     /// # use stac::{Render, BestPracticesRenderer, Stac};
-    /// let renderer = BestPracticesRenderer::new("data").unwrap();
+    /// let renderer = BestPracticesRenderer::new("data");
     /// let (mut stac, handle) = Stac::read("data/catalog.json").unwrap();
     /// let objects = renderer
     ///     .render(&mut stac)
@@ -57,7 +57,7 @@ pub trait Render {
     ///
     /// ```
     /// # use stac::{Render, BestPracticesRenderer, Stac};
-    /// let renderer = BestPracticesRenderer::new("data").unwrap();
+    /// let renderer = BestPracticesRenderer::new("data");
     /// let (mut stac, handle) = Stac::read("data/catalog.json").unwrap();
     /// let objects = renderer.render_one(&mut stac, handle).unwrap();
     /// ```
@@ -113,7 +113,7 @@ pub trait Render {
     ///
     /// ```
     /// # use stac::{Render, BestPracticesRenderer, Stac};
-    /// let renderer = BestPracticesRenderer::new("a/root/directory").unwrap();
+    /// let renderer = BestPracticesRenderer::new("a/root/directory");
     /// let (mut stac, handle) = Stac::read("data/catalog.json").unwrap();
     /// let root = stac.take(handle).unwrap();
     /// let href = renderer.href(&mut stac, handle, &root).unwrap();
@@ -132,7 +132,7 @@ pub trait Render {
     ///
     /// ```
     /// # use stac::{BestPracticesRenderer, Render};
-    /// let renderer = BestPracticesRenderer::new("a/root/directory").unwrap();
+    /// let renderer = BestPracticesRenderer::new("a/root/directory");
     /// assert!(!renderer.is_absolute());
     /// ```
     fn is_absolute(&self) -> bool;
@@ -146,7 +146,7 @@ pub trait Render {
     ///
     /// ```
     /// # use stac::{BestPracticesRenderer, Link, Render};
-    /// let renderer = BestPracticesRenderer::new("a/root/directory").unwrap();
+    /// let renderer = BestPracticesRenderer::new("a/root/directory");
     /// let link = renderer.link(
     ///     &stac::read("data/catalog.json").unwrap(),
     ///     &stac::read("data/simple-item.json").unwrap(),
@@ -220,17 +220,16 @@ impl BestPracticesRenderer {
     /// # use stac::BestPracticesRenderer;
     /// let renderer = BestPracticesRenderer::new("data");
     /// ```
-    pub fn new<T, E>(root: T) -> Result<BestPracticesRenderer, Error>
+    pub fn new<T>(root: T) -> BestPracticesRenderer
     where
-        T: TryInto<Href, Error = E>,
-        Error: From<E>,
+        T: Into<Href>,
     {
-        let mut root = root.try_into()?;
+        let mut root = root.into();
         root.ensure_ends_in_slash();
-        Ok(BestPracticesRenderer {
+        BestPracticesRenderer {
             root,
             is_absolute: false,
-        })
+        }
     }
 
     fn file_name(&self, object: &Object) -> String {
@@ -288,7 +287,7 @@ mod tests {
 
     #[test]
     fn render_one() {
-        let renderer = BestPracticesRenderer::new("data").unwrap();
+        let renderer = BestPracticesRenderer::new("data");
         let (mut stac, handle) = Stac::with_root(Catalog::new("an-id")).unwrap();
         let object = renderer.render_one(&mut stac, handle).unwrap();
         assert_eq!(object.href.as_ref().unwrap().as_str(), "data/catalog.json");

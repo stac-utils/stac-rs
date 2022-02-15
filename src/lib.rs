@@ -110,7 +110,7 @@
 //! ```
 //! use stac::{Stac, Render, BestPracticesRenderer, Error};
 //! let (mut stac, _) = Stac::read("data/catalog.json").unwrap();
-//! let renderer = BestPracticesRenderer::new("the/root/directory").unwrap();
+//! let renderer = BestPracticesRenderer::new("the/root/directory");
 //! let objects = renderer.render(&mut stac).unwrap().collect::<Result<Vec<_>, Error>>().unwrap();
 //! assert_eq!(objects.len(), 6);
 //! assert_eq!(
@@ -126,7 +126,7 @@
 //! ```no_run
 //! use stac::{Stac, Render, BestPracticesRenderer, Writer};
 //! let (mut stac, _) = Stac::read("data/catalog.json").unwrap();
-//! let renderer = BestPracticesRenderer::new("the/root/directory").unwrap();
+//! let renderer = BestPracticesRenderer::new("the/root/directory");
 //! let writer = Writer::default();
 //! stac.write(&renderer, &writer).unwrap();
 //! ```

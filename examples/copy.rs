@@ -15,6 +15,6 @@ fn main() {
     let outdir = &args[2];
 
     let (mut stac, _) = Stac::read(infile).unwrap();
-    let renderer = BestPracticesRenderer::new(outdir).unwrap();
+    let renderer = BestPracticesRenderer::new(outdir);
     stac.write(&renderer, &Writer::default()).unwrap();
 }
