@@ -12,6 +12,10 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 - Doctesting for README.md
 
+### Changed
+
+- Simplified `Render`'s href creation
+
 ### Fixed
 
 - Type signature for `BestPracticesRenderer::new` to `From<HRef>` (was `TryFrom<Href>`)
