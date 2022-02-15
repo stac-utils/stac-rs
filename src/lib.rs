@@ -121,7 +121,7 @@
 //!
 //! ## Writing
 //!
-//! Stac trees have a [write](Stac::write) method:
+//! Stac trees have a [write](Stac::write) method that renders and writes all in one:
 //!
 //! ```no_run
 //! use stac::{Stac, Render, BestPracticesRenderer, Writer};
