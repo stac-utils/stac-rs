@@ -35,29 +35,6 @@ jobs:
       - name: Run tests
         run: cargo test --verbose ${{ matrix.flags }}
 
-  docs:
-    needs: build
-    if: ${{ github.event_name == 'push' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/cache@v2
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml') }}
-      - name: Build
-        run: cargo doc --verbose
-      - name: Publish
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./target/doc
-
   release-dry-run:
     needs: build
     if: startsWith(github.head_ref, 'release/')
