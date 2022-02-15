@@ -66,15 +66,14 @@ pub trait Render {
         let mut object = stac.take(handle)?;
         if is_root {
             object.remove_structural_links();
-            let href = self.href(stac, handle, &object)?;
+            let href = self.root_href(&object)?;
             stac.node_mut(handle).href = Some(href.clone());
             object.href = Some(href);
         }
         for child in stac.node(handle).children.clone() {
             stac.ensure_resolved(child)?;
             let href = self.href(
-                stac,
-                child,
+                object.href.as_ref().expect("parents should have hrefs"),
                 stac.node(child).object.as_ref().expect("node is resolved"),
             )?;
             let node = stac.node_mut(child);
@@ -105,22 +104,36 @@ pub trait Render {
         Ok(object)
     }
 
-    /// Gets the href for the given handle and object.
+    /// Gets the root from the root object.
     ///
     /// # Examples
     ///
     /// [BestPracticesRenderer] implements `Render`:
     ///
     /// ```
-    /// # use stac::{Render, BestPracticesRenderer, Stac};
+    /// # use stac::{Render, BestPracticesRenderer, Stac, Item};
     /// let renderer = BestPracticesRenderer::new("a/root/directory");
     /// let (mut stac, handle) = Stac::read("data/catalog.json").unwrap();
-    /// let root = stac.take(handle).unwrap();
-    /// let href = renderer.href(&mut stac, handle, &root).unwrap();
+    /// let href = renderer.root_href(stac.get(handle).unwrap()).unwrap();
     /// assert_eq!(href.as_str(), "a/root/directory/catalog.json");
     /// ```
-    fn href<R: Read>(&self, stac: &Stac<R>, handle: Handle, object: &Object)
-        -> Result<Href, Error>;
+    fn root_href(&self, root: &Object) -> Result<Href, Error>;
+
+    /// Gets the href from a parent's href to a child.
+    ///
+    /// # Examples
+    ///
+    /// [BestPracticesRenderer] implements `Render`:
+    ///
+    /// ```
+    /// # use stac::{Render, BestPracticesRenderer, Href, Stac, Item};
+    /// let renderer = BestPracticesRenderer::new("data");
+    /// let (mut stac, handle) = Stac::read("data/catalog.json").unwrap();
+    /// let item = Item::new("an-id").into();
+    /// let href = renderer.href(&Href::new("data/catalog.json"), &item).unwrap();
+    /// assert_eq!(href.as_str(), "data/an-id/an-id.json");
+    /// ```
+    fn href(&self, parent: &Href, child: &Object) -> Result<Href, Error>;
 
     /// Returns true if this renderer should create absolute hrefs.
     ///
@@ -244,26 +257,14 @@ impl BestPracticesRenderer {
 }
 
 impl Render for BestPracticesRenderer {
-    fn href<R: Read>(
-        &self,
-        stac: &Stac<R>,
-        handle: Handle,
-        object: &Object,
-    ) -> Result<Href, Error> {
-        let file_name = self.file_name(object);
-        if handle == stac.root() {
-            self.root.join(&file_name)
-        } else {
-            let parent = stac
-                .node(handle)
-                .parent
-                .expect("rendering nodes should have a parent");
-            stac.node(parent)
-                .href
-                .as_ref()
-                .expect("parent nodes should have an href when rendering")
-                .join(&format!("{}/{}", object.id(), file_name))
-        }
+    fn root_href(&self, root: &Object) -> Result<Href, Error> {
+        let file_name = self.file_name(root);
+        self.root.join(&file_name)
+    }
+
+    fn href(&self, parent: &Href, child: &Object) -> Result<Href, Error> {
+        let file_name = self.file_name(child);
+        parent.join(&format!("{}/{}", child.id(), file_name))
     }
 
     fn is_absolute(&self) -> bool {
