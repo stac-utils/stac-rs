@@ -18,7 +18,7 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
-- Type signature for `BestPracticesRenderer::new` to `From<HRef>` (was `TryFrom<Href>`)
+- Type signature for `BestPracticesRenderer::new` to `From<Href>` (was `TryFrom<Href>`)
 
 ## [0.0.2] - 2022-02-14
 
@@ -33,8 +33,6 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 ## [0.0.1] - 2022-02-14
 
 Initial release.
-
-## Compare
 
 [unreleased]: https://github.com/gadomski/stac-rs/compare/v0.0.2...HEAD
 [0.0.2]: https://github.com/gadomski/stac-rs/compare/v0.0.1...v0.0.2
