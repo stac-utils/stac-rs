@@ -22,5 +22,6 @@ Initial release.
 
 ## Compare
 
-[unreleased]: https://github.com/gadomski/stac-rs/compare/v0.0.1...HEAD
+[unreleased]: https://github.com/gadomski/stac-rs/compare/v0.0.2...HEAD
+[0.0.2]: https://github.com/gadomski/stac-rs/compare/v0.0.1...v0.0.2
 [0.0.1]: https://github.com/gadomski/stac-rs/releases/tag/v0.0.1
