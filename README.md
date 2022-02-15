@@ -1,8 +1,8 @@
 # stac-rs
 
-![GitHub Workflow Status](https://img.shields.io/github/workflow/status/gadomski/stac-rs/CI?style=for-the-badge)
-![docs.rs](https://img.shields.io/docsrs/stac?style=for-the-badge)
-![Crates.io](https://img.shields.io/crates/v/stac?style=for-the-badge) \
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/gadomski/stac-rs/CI?style=for-the-badge)](https://github.com/gadomski/stac-rs/actions/workflows/ci.yml)
+[![docs.rs](https://img.shields.io/docsrs/stac?style=for-the-badge)](https://docs.rs/stac/latest/stac/)
+[![Crates.io](https://img.shields.io/crates/v/stac?style=for-the-badge)](https://crates.io/crates/stac) \
 ![Crates.io](https://img.shields.io/crates/l/stac?style=for-the-badge)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?style=for-the-badge)](./CODE_OF_CONDUCT) 
 
