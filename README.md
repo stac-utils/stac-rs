@@ -1,12 +1,14 @@
 # stac-rs
 
-[![CI](https://github.com/gadomski/stac-rs/actions/workflows/ci.yml/badge.svg)](https://github.com/gadomski/stac-rs/actions/workflows/ci.yml)
-[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](./CODE_OF_CONDUCT) 
+![GitHub Workflow Status](https://img.shields.io/github/workflow/status/gadomski/stac-rs/CI?style=for-the-badge)
+![docs.rs](https://img.shields.io/docsrs/stac?style=for-the-badge)
+![Crates.io](https://img.shields.io/crates/v/stac?style=for-the-badge) \
+![Crates.io](https://img.shields.io/crates/l/stac?style=for-the-badge)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?style=for-the-badge)](./CODE_OF_CONDUCT) 
 
 Rust implementation of the [SpatioTemporal Asset Catalog (STAC)](https://stacspec.org/) specification.
-Not yet published to crates.io.
 
-## Quickstart
+## Examples
 
 Read STAC objects:
 
@@ -15,28 +17,23 @@ let object = stac::read("data/catalog.json").unwrap();
 println!("{}", object.id());
 ```
 
-Read STAC catalogs as trees:
-
-```rust
-use stac::Stac;
-let (stac, _) = Stac::read("data/catalog.json").unwrap();
-```
-
 Write STAC catalogs using the `BestPracticesRenderer`:
 
 ```rust
-use stac::{BestPracticesRenderer, Render, Writer, Write};
+use stac::{Stac, BestPracticesRenderer, Render, Writer, Write};
+let (stac, _) = Stac::read("data/catalog.json").unwrap();
 let renderer = BestPracticesRenderer::new("a/new/root/directory").unwrap();
 let writer = Writer::default();
 stac.write(&renderer, &writer).unwrap();
 ```
 
-For a more complete walkthrough, see [the documentation](https://www.gadom.ski/stac-rs/stac/index.html).
+For more, see the [documentation](https://docs.rs/stac/latest/stac/).
 
-## Examples
+## Executables
 
-There is a brief example at [examples/copy.rs](./examples/copy.rs) that demonstrates a simple read-write operation.
-You can use it from the command line:
+As of now, there is no command line interface.
+There is an example at [examples/copy.rs](./examples/copy.rs) that demonstrates a simple read-write operation.
+To run it from the command line:
 
 ```shell
 cargo run --examples copy data/catalog.json tmp
@@ -44,23 +41,10 @@ cargo run --examples copy data/catalog.json tmp
 
 ## Development
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for information about contributing to
-this project.
-
-### Releasing
-
-To create a new release:
-
-1. Create a new branch that starts with `release/`, e.g. `release/v0.1.0`
-2. Update the version in [Cargo.toml](./Cargo.toml)
-3. Update [CHANGELOG.md](./CHANGELOG.md)
-4. Open a pull request
-5. If the pull request succeeds (it should run a special `cargo publish --dry-run` action to check publish-ability), merge
-6. Create an annotated tag pointing to the release, including the information from the changelog section corresponding to your release
-7. Push your tag to Github
-8. Publish your crate
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for information about contributing to this project.
+See [RELEASING.md](./RELEASING.md) for instructions on releasing a new version.
 
 ## License
 
-**stac-rs** is dual-licenced under both the MIT license and the Apache license (Version 2.0).
+**stac-rs** is dual-licensed under both the MIT license and the Apache license (Version 2.0).
 See [LICENSE-APACHE](./LICENSE-APACHE) and [LICENSE-MIT](./LICENSE-MIT) for details.
