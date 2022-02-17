@@ -314,6 +314,31 @@ impl Href {
         }
     }
 
+    /// Rebases a href from one root to another.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac::Href;
+    /// let old_root_catalog = Href::new("path/to/a/catalog.json");
+    /// let new_root = Href::new("a/new/base/");
+    /// let mut item = Href::new("path/to/a/item/item.json");
+    /// item.rebase(&old_root_catalog, &new_root).unwrap();
+    /// assert_eq!(item.as_str(), "a/new/base/item/item.json");
+    /// ```
+    pub fn rebase(&mut self, from: &Href, to: &Href) -> Result<(), Error> {
+        *self = match self {
+            Href::Url(_) => return Ok(()),
+            Href::Path(path) => {
+                if is_absolute(path) {
+                    return Ok(());
+                }
+                to.join(make_relative(from.as_str(), path))?
+            }
+        };
+        Ok(())
+    }
+
     fn is_absolute_path(&self) -> bool {
         match self {
             Href::Path(path) => is_absolute(path),
@@ -627,5 +652,14 @@ mod tests {
             "http://example.com/data/catalog.json"
         );
         assert_eq!(base.make_relative(&base).as_str(), "./catalog.json");
+    }
+
+    #[test]
+    fn rebase() {
+        let old_root_catalog = Href::new("path/to/a/catalog.json");
+        let new_root = Href::new("a/new/base/");
+        let mut item = Href::new("path/to/a/item/item.json");
+        item.rebase(&old_root_catalog, &new_root).unwrap();
+        assert_eq!(item.as_str(), "a/new/base/item/item.json");
     }
 }
