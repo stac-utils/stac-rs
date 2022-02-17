@@ -30,6 +30,8 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml') }}${{ matrix.flags }}
+      - name: Format
+        run: cargo fmt --verbose
       - name: Build
         run: cargo build --verbose ${{ matrix.flags }}
       - name: Run tests
