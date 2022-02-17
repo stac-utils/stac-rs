@@ -16,6 +16,7 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 ### Changed
 
 - Simplified `Render`'s href creation
+- CI workflows
 
 ### Fixed
 
