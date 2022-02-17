@@ -29,26 +29,8 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml') }}
+          key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml') }}${{ matrix.flags }}
       - name: Build
         run: cargo build --verbose ${{ matrix.flags }}
       - name: Run tests
         run: cargo test --verbose ${{ matrix.flags }}
-
-  release-dry-run:
-    needs: build
-    if: startsWith(github.head_ref, 'release/')
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/cache@v2
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml') }}
-      - name: Publish (dry run)
-        run: cargo publish --verbose --dry-run

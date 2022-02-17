@@ -1,0 +1,31 @@
+name: Release (dry run)
+
+on:
+  push:
+    branches:
+      - "release/**"
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  release-dry-run:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml') }}
+      - name: Build
+        run: cargo build --verbose --release
+      - name: Run tests
+        run: cargo build --verbose --release
+      - name: Publish (dry run)
+        run: cargo publish --verbose --dry-run
