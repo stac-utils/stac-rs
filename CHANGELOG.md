@@ -13,6 +13,7 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 - Doctesting for README.md
 - `Href::rebase`
 - `Object` and `HrefObject`
+- Architecture diagram
 
 ### Changed
 
