@@ -420,6 +420,12 @@ impl From<&str> for PathBufHref {
     }
 }
 
+impl From<&Href> for PathBufHref {
+    fn from(href: &Href) -> PathBufHref {
+        PathBufHref::new(href.as_str())
+    }
+}
+
 impl From<&String> for PathBufHref {
     fn from(s: &String) -> PathBufHref {
         PathBufHref::new(s)

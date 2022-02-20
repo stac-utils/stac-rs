@@ -42,17 +42,16 @@
 //! let catalog = Reader::default().read("data/catalog.json").unwrap();
 //! ```
 //!
-//! Because the type of a STAC object cannot be known before reading, the [Read] trait returns an [Object], which is a wrapper around all three STAC object types.
-//! This object contains the deserialized STAC object, as well as the href from which the object was read:
+//! Because the type of a STAC object cannot be known before reading, the [Read] trait returns an [HrefObject], which is a wrapper around all three STAC object types and the object's [Href].
 //!
 //! ```
 //! # use stac::{Reader, Read};
 //! let reader = Reader::default();
 //! let object = reader.read("data/catalog.json").unwrap();
-//! assert_eq!(object.id(), "examples");
-//! let catalog = object.as_catalog().unwrap();
+//! assert_eq!(object.object.id(), "examples");
+//! let catalog = object.object.as_catalog().unwrap();
 //! assert_eq!(catalog.title.as_ref().unwrap(), "Example Catalog");
-//! assert_eq!(object.href.as_ref().unwrap().as_str(), "data/catalog.json");
+//! assert_eq!(object.href.as_str(), "data/catalog.json");
 //! ```
 //!
 //! There is a top-level [read()] method for convenience:
@@ -65,14 +64,14 @@
 //! The built-in [Writer] only knows how to write to the local filesystem -- writing to a url is an error:
 //!
 //! ```no_run
-//! use stac::{Item, Object, Writer, Write};
+//! use stac::{Item, HrefObject, Writer, Write};
 //! let item = Item::new("an-id");
-//! let object = Object::new(item, "item.json").unwrap();
+//! let object = HrefObject::new(item, "item.json");
 //! let writer = Writer::default();
 //! writer.write(object).unwrap();
 //!
 //! let item = Item::new("an-id");
-//! let object = Object::new(item, "http://example.com/item.json").unwrap();
+//! let object = HrefObject::new(item, "http://example.com/item.json");
 //! writer.write(object).unwrap_err();
 //! ```
 //!
@@ -91,13 +90,16 @@
 //! ```
 //!
 //! A `Stac` is a lazy cache, meaning that it doesn't read objects until needed, and keeps read objects in a cache keyed by their hrefs.
-//! Objects are read on-demand, e.g. via the [get](Stac::get) method:
+//! Objects are read on-demand, e.g. via the [object](Stac::object) method:
 //!
 //! ```
 //! # use stac::Stac;
-//! let (mut stac, handle) = Stac::read("data/catalog.json").unwrap();
-//! let child_handle = stac.children(handle).unwrap().next().unwrap();
-//! let child = stac.get(child_handle).unwrap();
+//! let (mut stac, root) = Stac::read("data/catalog.json").unwrap();
+//! let handle = stac
+//!     .find_child(root, |object| object.id() == "extensions-collection")
+//!     .unwrap()
+//!     .unwrap();
+//! let child = stac.object(handle).unwrap();
 //! ```
 //!
 //! ## Layouts
@@ -179,7 +181,7 @@ mod stac;
 mod write;
 
 pub use {
-    crate::stac::{Handle, Handles, Items, Objects, Stac},
+    crate::stac::{Handle, Stac},
     asset::Asset,
     catalog::{Catalog, CATALOG_TYPE},
     collection::{Collection, COLLECTION_TYPE},
@@ -188,7 +190,7 @@ pub use {
     href::{Href, PathBufHref},
     item::{Item, ITEM_TYPE},
     link::Link,
-    object::{Object, Value},
+    object::{HrefObject, Object, ObjectHrefTuple},
     properties::Properties,
     provider::Provider,
     read::{Read, Reader},
@@ -205,7 +207,7 @@ pub const STAC_VERSION: &str = "1.0.0";
 /// ```
 /// let catalog = stac::read("data/catalog.json").unwrap();
 /// ```
-pub fn read<T>(href: T) -> Result<Object, Error>
+pub fn read<T>(href: T) -> Result<HrefObject, Error>
 where
     T: Into<PathBufHref>,
 {
