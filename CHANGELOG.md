@@ -22,6 +22,10 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 - Type signature for `BestPracticesRenderer::new` to `From<Href>` (was `TryFrom<Href>`)
 
+### Removed
+
+- `stac::render`
+
 ## [0.0.2] - 2022-02-14
 
 ### Added
