@@ -17,6 +17,7 @@ let object = stac::read("data/catalog.json").unwrap();
 ```
 
 For more, see the [documentation](https://docs.rs/stac/latest/stac/).
+There is also [an architecture diagram](./ARCHITECTURE.md).
 
 ## Executables
 
