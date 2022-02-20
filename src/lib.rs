@@ -100,36 +100,17 @@
 //! let child = stac.get(child_handle).unwrap();
 //! ```
 //!
+//! ## Layouts
+//!
+//! TODO
+//!
 //! ## Rendering
 //!
-//! While STAC catalogs are trees, their organization via links is arbitrary.
-//! 'Rendering' a STAC catalog is the process of creating hrefs and links to define its layout.
-//! [Render::render] converts a [Stac] to an iterable of [Objects](Object).
-//! The [BestPracticesRenderer] renders objects per the best practices as defined by the [STAC specification](https://github.com/radiantearth/stac-spec/blob/master/best-practices.md):
-//!
-//! ```
-//! use stac::{Stac, Render, BestPracticesRenderer, Error};
-//! let (mut stac, _) = Stac::read("data/catalog.json").unwrap();
-//! let renderer = BestPracticesRenderer::new("the/root/directory");
-//! let objects = renderer.render(&mut stac).unwrap().collect::<Result<Vec<_>, Error>>().unwrap();
-//! assert_eq!(objects.len(), 6);
-//! assert_eq!(
-//!     objects[0].href.as_ref().unwrap().as_str(),
-//!     "the/root/directory/catalog.json"
-//! );
-//! ```
+//! TODO
 //!
 //! ## Writing
 //!
-//! Stac trees have a [write](Stac::write) method that renders and writes all in one:
-//!
-//! ```no_run
-//! use stac::{Stac, Render, BestPracticesRenderer, Writer};
-//! let (mut stac, _) = Stac::read("data/catalog.json").unwrap();
-//! let renderer = BestPracticesRenderer::new("the/root/directory");
-//! let writer = Writer::default();
-//! stac.write(&renderer, &writer).unwrap();
-//! ```
+//! TODO
 //!
 //! # Full specification compliance
 //!
@@ -194,7 +175,6 @@ mod object;
 mod properties;
 mod provider;
 mod read;
-mod render;
 mod stac;
 mod write;
 
@@ -212,7 +192,6 @@ pub use {
     properties::Properties,
     provider::Provider,
     read::{Read, Reader},
-    render::{BestPracticesRenderer, Render},
     write::{Write, Writer},
 };
 

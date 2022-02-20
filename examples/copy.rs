@@ -1,6 +1,6 @@
 //! Copies a STAC catalog from one location to the other.
 
-use stac::{BestPracticesRenderer, Stac, Writer};
+use stac::Stac;
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -12,9 +12,8 @@ fn main() {
         );
     }
     let infile = &args[1];
-    let outdir = &args[2];
+    let _ = &args[2];
 
-    let (mut stac, _) = Stac::read(infile).unwrap();
-    let renderer = BestPracticesRenderer::new(outdir);
-    stac.write(&renderer, &Writer::default()).unwrap();
+    let (_, _) = Stac::read(infile).unwrap();
+    // TODO
 }
