@@ -14,7 +14,6 @@ Read STAC objects:
 
 ```rust
 let object = stac::read("data/catalog.json").unwrap();
-println!("{}", object.id());
 ```
 
 For more, see the [documentation](https://docs.rs/stac/latest/stac/).

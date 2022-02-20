@@ -1,4 +1,4 @@
-use crate::{Error, Object, PathBufHref};
+use crate::{Error, HrefObject, Object, PathBufHref};
 use serde_json::Value;
 use std::{fs::File, io::BufReader};
 use url::Url;
@@ -26,15 +26,14 @@ pub trait Read {
     /// let reader = Reader::default();
     /// let catalog = reader.read("data/catalog.json").unwrap();
     /// ```
-    fn read<T>(&self, href: T) -> Result<Object, Error>
+    fn read<T>(&self, href: T) -> Result<HrefObject, Error>
     where
         T: Into<PathBufHref>,
     {
         let href = href.into();
         let value = self.read_json(href.clone())?;
-        let mut object = Object::from_value(value)?;
-        object.href = Some(href.into());
-        Ok(object)
+        let object = Object::from_value(value)?;
+        Ok(HrefObject::new(object, href))
     }
 
     /// Reads JSON data from an href.
@@ -102,7 +101,7 @@ mod tests {
     fn read_fs() {
         let reader = Reader::default();
         let catalog = reader.read("data/catalog.json").unwrap();
-        assert_eq!(catalog.href.as_ref().unwrap().as_str(), "data/catalog.json",);
+        assert_eq!(catalog.href.as_str(), "data/catalog.json");
     }
 
     #[cfg(feature = "reqwest")]

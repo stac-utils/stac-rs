@@ -1,28 +1,24 @@
-use crate::{Error, Object, PathBufHref};
+use crate::{Error, HrefObject, PathBufHref};
 use serde_json::Value;
 use std::{fs::File, io::BufWriter};
 
 /// A trait to describe things that can write STAC objects.
 pub trait Write {
-    /// Writes an [Object], consuming it.
+    /// Writes a [HrefObject], consuming it.
     ///
     /// # Examples
     ///
     /// [Writer] implements [Write]:
     ///
     /// ```no_run
-    /// use stac::{Writer, Item, Write, Object};
-    /// let object = Object::new(Item::new("an-id"), "item.json").unwrap();
+    /// use stac::{Writer, Item, Write, HrefObject};
+    /// let object = HrefObject::new(Item::new("an-id"), "item.json");
     /// let writer = Writer::default();
     /// writer.write(object).unwrap();
     /// ```
-    fn write(&self, mut object: Object) -> Result<(), Error> {
-        if let Some(href) = object.href.take() {
-            let value = object.into_value()?;
-            self.write_value(value, href)
-        } else {
-            Err(Error::MissingHref)
-        }
+    fn write(&self, object: HrefObject) -> Result<(), Error> {
+        let value = object.object.into_value()?;
+        self.write_value(value, object.href)
     }
 
     /// Writes a [serde_json::Value] to an href.
@@ -82,31 +78,19 @@ impl Default for Writer {
 #[cfg(test)]
 mod tests {
     use super::{Write, Writer};
-    use crate::{Item, Object};
+    use crate::{HrefObject, Item};
 
     #[test]
     fn write() {
         let item = Item::new("an-item");
         let directory = tempfile::tempdir().unwrap();
         let href = directory.path().join("item.json");
-        let object = Object::new(item, href.clone()).unwrap();
+        let object = HrefObject::new(item, href.clone());
 
         let writer = Writer::default();
         writer.write(object.clone()).unwrap();
 
         let read_object = crate::read(href).unwrap();
         assert_eq!(read_object, object);
-    }
-
-    #[test]
-    fn write_no_href() {
-        let item = Item::new("an-item");
-        let object = Object {
-            href: None,
-            inner: item.into(),
-        };
-
-        let writer = Writer::default();
-        let _ = writer.write(object).unwrap_err();
     }
 }

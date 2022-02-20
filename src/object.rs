@@ -2,30 +2,13 @@ use crate::{
     Catalog, Collection, Error, Href, Item, Link, CATALOG_TYPE, COLLECTION_TYPE, ITEM_TYPE,
 };
 
+/// A type used to pass either an [Object] or an [HrefObject] into functions.
+pub type ObjectHrefTuple = (Object, Option<Href>);
 const TYPE_FIELD: &str = "type";
 
 /// A wrapper around any of the three main STAC entities: [Item], [Catalog], and [Collection].
-///
-/// Holds both the inner STAC object structure, e.g. an [Item], and an optional
-/// [Href] to where the object was read from or should be written to.  Objects
-/// can be created by reading JSON, because the actual type of the STAC object
-/// cannot be known before reading:
-///
-/// ```
-/// let object = stac::read("data/catalog.json").unwrap();
-/// ```
 #[derive(Debug, PartialEq, Clone)]
-pub struct Object {
-    /// An href to where the object was read from or will be written to.
-    pub href: Option<Href>,
-
-    /// The actual STAC object.
-    pub inner: Value,
-}
-
-/// Any STAC object, represented as an enum.
-#[derive(Debug, PartialEq, Clone)]
-pub enum Value {
+pub enum Object {
     /// An [Item].
     Item(Item),
 
@@ -36,30 +19,18 @@ pub enum Value {
     Collection(Collection),
 }
 
-impl Object {
-    /// Creates a new object with an href.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use stac::{Object, Item, Href};
-    /// let item = Item::new("an-id");
-    /// let object = Object::new(item, "an-href").unwrap();
-    /// assert_eq!(object.href.as_ref().unwrap().as_str(), "an-href");
-    /// assert!(object.is_item());
-    /// ```
-    pub fn new<O, T>(object: O, href: T) -> Result<Object, Error>
-    where
-        O: Into<Value>,
-        T: Into<Href>,
-    {
-        Ok(Object {
-            href: Some(href.into()),
-            inner: object.into(),
-        })
-    }
+/// An [Object] and an [Href], together.
+#[derive(Debug, PartialEq, Clone)]
+pub struct HrefObject {
+    /// An href to where the object was read from or will be written to.
+    pub href: Href,
 
-    /// Create a STAC Object from a JSON value.
+    /// The actual STAC object.
+    pub object: Object,
+}
+
+impl Object {
+    /// Creates a STAC Object from a JSON value.
     ///
     /// # Examples
     ///
@@ -74,18 +45,9 @@ impl Object {
         if let Some(type_) = value.get(TYPE_FIELD) {
             if let Some(type_) = type_.as_str() {
                 match type_ {
-                    ITEM_TYPE => Ok(Object {
-                        inner: Value::Item(serde_json::from_value(value)?),
-                        href: None,
-                    }),
-                    CATALOG_TYPE => Ok(Object {
-                        inner: Value::Catalog(serde_json::from_value(value)?),
-                        href: None,
-                    }),
-                    COLLECTION_TYPE => Ok(Object {
-                        inner: Value::Collection(serde_json::from_value(value)?),
-                        href: None,
-                    }),
+                    ITEM_TYPE => Ok(Object::Item(serde_json::from_value(value)?)),
+                    CATALOG_TYPE => Ok(Object::Catalog(serde_json::from_value(value)?)),
+                    COLLECTION_TYPE => Ok(Object::Collection(serde_json::from_value(value)?)),
                     _ => Err(Error::InvalidTypeValue(type_.to_string())),
                 }
             } else {
@@ -97,127 +59,64 @@ impl Object {
     }
 
     /// Returns true if this object is a [Catalog].
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let catalog = stac::read("data/catalog.json").unwrap();
-    /// assert!(catalog.is_catalog());
-    /// ```
     pub fn is_catalog(&self) -> bool {
-        matches!(self.inner, Value::Catalog(_))
+        matches!(self, Object::Catalog(_))
     }
 
     /// Returns a reference to this object as a [Catalog], or None if it is not a catalog.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let catalog = stac::read("data/catalog.json").unwrap();
-    /// println!("Description: {}", catalog.as_catalog().unwrap().description);
-    /// ```
     pub fn as_catalog(&self) -> Option<&Catalog> {
-        match &self.inner {
-            Value::Catalog(catalog) => Some(catalog),
+        match &self {
+            Object::Catalog(catalog) => Some(catalog),
             _ => None,
         }
     }
 
     /// Returns a mutable reference to this object as a [Catalog], or None if it is not a Catalog.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let mut catalog = stac::read("data/catalog.json").unwrap();
-    /// catalog.as_mut_catalog().unwrap().description = "a new description".to_string();
-    /// ```
     pub fn as_mut_catalog(&mut self) -> Option<&mut Catalog> {
-        match &mut self.inner {
-            Value::Catalog(catalog) => Some(catalog),
+        match self {
+            Object::Catalog(catalog) => Some(catalog),
             _ => None,
         }
     }
 
     /// Returns true if this object is a [Collection].
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let collection = stac::read("data/collection.json").unwrap();
-    /// assert!(collection.is_collection());
-    /// ```
     pub fn is_collection(&self) -> bool {
-        matches!(self.inner, Value::Collection(_))
+        matches!(self, Object::Collection(_))
     }
 
     /// Returns a reference to this object as a [Collection], or None if it is not a collection.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let collection = stac::read("data/collection.json").unwrap();
-    /// println!("Description: {}", collection.as_collection().unwrap().description);
-    /// ```
     pub fn as_collection(&self) -> Option<&Collection> {
-        match &self.inner {
-            Value::Collection(collection) => Some(collection),
+        match &self {
+            Object::Collection(collection) => Some(collection),
             _ => None,
         }
     }
 
     /// Returns a reference to this object as a [Collection], or None if it is not a collection.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let mut collection = stac::read("data/collection.json").unwrap();
-    /// collection.as_mut_collection().unwrap().description = "a new description".to_string();
-    /// ```
     pub fn as_mut_collection(&mut self) -> Option<&mut Collection> {
-        match &mut self.inner {
-            Value::Collection(collection) => Some(collection),
+        match self {
+            Object::Collection(collection) => Some(collection),
             _ => None,
         }
     }
 
     /// Returns true if this object is an [Item].
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let item = stac::read("data/simple-item.json").unwrap();
-    /// assert!(item.is_item());
-    /// ```
     pub fn is_item(&self) -> bool {
-        matches!(self.inner, Value::Item(_))
+        matches!(self, Object::Item(_))
     }
 
     /// Returns a reference to this object as an [Item], or None if it is not an item.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let item = stac::read("data/simple-item.json").unwrap();
-    /// println!("Collection: {}", item.as_item().unwrap().collection.as_ref().unwrap());
-    /// ```
     pub fn as_item(&self) -> Option<&Item> {
-        match &self.inner {
-            Value::Item(item) => Some(item),
+        match &self {
+            Object::Item(item) => Some(item),
             _ => None,
         }
     }
 
     /// Returns a mutable reference to this object as an [Item], or None if it is not an item.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let mut item = stac::read("data/simple-item.json").unwrap();
-    /// item.as_mut_item().unwrap().collection = Some("a-new-collection".to_string());
-    /// ```
     pub fn as_mut_item(&mut self) -> Option<&mut Item> {
-        match &mut self.inner {
-            Value::Item(item) => Some(item),
+        match self {
+            Object::Item(item) => Some(item),
             _ => None,
         }
     }
@@ -227,14 +126,15 @@ impl Object {
     /// # Examples
     ///
     /// ```
-    /// let object = stac::read("data/catalog.json").unwrap();
-    /// assert_eq!(object.id(), "examples");
+    /// # use stac::{Catalog, Object};
+    /// let mut catalog = Catalog::new("id");
+    /// assert_eq!(Object::from(catalog).id(), "id");
     /// ```
     pub fn id(&self) -> &str {
-        match &self.inner {
-            Value::Item(item) => &item.id,
-            Value::Catalog(catalog) => &catalog.id,
-            Value::Collection(collection) => &collection.id,
+        match &self {
+            Object::Item(item) => &item.id,
+            Object::Catalog(catalog) => &catalog.id,
+            Object::Collection(collection) => &collection.id,
         }
     }
 
@@ -246,17 +146,19 @@ impl Object {
     /// # Examples
     ///
     /// ```
-    /// let catalog = stac::read("data/catalog.json").unwrap();
-    /// assert_eq!(catalog.title().unwrap(), "Example Catalog");
+    /// # use stac::{Catalog, Object};
+    /// let mut catalog = Catalog::new("id");
+    /// catalog.title = Some("Example Catalog".to_string());
+    /// assert_eq!(Object::from(catalog).title().unwrap(), "Example Catalog");
     /// ```
     pub fn title(&self) -> Option<&str> {
-        match &self.inner {
-            Value::Item(item) => item
+        match &self {
+            Object::Item(item) => item
                 .additional_fields
                 .get("title")
                 .and_then(|value| value.as_str()),
-            Value::Catalog(catalog) => catalog.title.as_deref(),
-            Value::Collection(collection) => collection.title.as_deref(),
+            Object::Catalog(catalog) => catalog.title.as_deref(),
+            Object::Collection(collection) => collection.title.as_deref(),
         }
     }
 
@@ -265,16 +167,21 @@ impl Object {
     /// # Examples
     ///
     /// ```
-    /// let object = stac::read("data/catalog.json").unwrap();
-    /// let links = object.links();
+    /// let href_object = stac::read("data/catalog.json").unwrap();
+    /// let links = href_object.object.links();
     /// assert_eq!(links.len(), 6);
     /// ```
     pub fn links(&self) -> &[Link] {
-        match &self.inner {
-            Value::Item(item) => &item.links,
-            Value::Catalog(catalog) => &catalog.links,
-            Value::Collection(collection) => &collection.links,
+        match &self {
+            Object::Item(item) => &item.links,
+            Object::Catalog(catalog) => &catalog.links,
+            Object::Collection(collection) => &collection.links,
         }
+    }
+
+    /// Gets the root link if there is one.
+    pub fn root_link(&self) -> Option<&Link> {
+        self.links().iter().find(|link| link.is_root())
     }
 
     /// Adds a link to this object.
@@ -282,126 +189,107 @@ impl Object {
     /// # Examples
     ///
     /// ```
-    /// # use stac::Link;
+    /// # use stac::{Link, Object, Item};
     /// let link = Link::new("an-href", "a-rel");
-    /// let mut object = stac::read("data/catalog.json").unwrap();
+    /// let mut object = Object::from(Item::new("an-id"));
     /// object.add_link(link);
     /// ```
     pub fn add_link(&mut self, link: Link) {
-        match &mut self.inner {
-            Value::Item(item) => item.links.push(link),
-            Value::Catalog(catalog) => catalog.links.push(link),
-            Value::Collection(collection) => collection.links.push(link),
+        match self {
+            Object::Item(item) => item.links.push(link),
+            Object::Catalog(catalog) => catalog.links.push(link),
+            Object::Collection(collection) => collection.links.push(link),
         }
     }
 
     /// Converts this object into a [serde_json::Value].
     ///
-    /// The href gets dropped.
+    /// TODO can we use serde::serialize w/ untagged?
     ///
     /// # Examples
     ///
     /// ```
-    /// let object = stac::read("data/catalog.json").unwrap();
+    /// # use stac::{Object, Item};
+    /// let object = Object::from(Item::new("an-id"));
     /// let value = object.into_value().unwrap();
     /// ```
     pub fn into_value(self) -> Result<serde_json::Value, Error> {
-        match self.inner {
-            Value::Item(item) => serde_json::to_value(item).map_err(Error::from),
-            Value::Catalog(catalog) => serde_json::to_value(catalog).map_err(Error::from),
-            Value::Collection(collection) => serde_json::to_value(collection).map_err(Error::from),
-        }
-    }
-
-    /// Returns this object's inner [Item], or `None` if it is not an item.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let item = stac::read("data/simple-item.json").unwrap();
-    /// let item = item.into_item().unwrap();
-    /// ```
-    pub fn into_item(self) -> Option<Item> {
-        match self.inner {
-            Value::Item(item) => Some(item),
-            _ => None,
-        }
-    }
-
-    /// Returns this object's inner [Catalog], or `None` if it is not a catalog.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let catalog = stac::read("data/catalog.json").unwrap();
-    /// let catalog = catalog.into_catalog().unwrap();
-    /// ```
-    pub fn into_catalog(self) -> Option<Catalog> {
-        match self.inner {
-            Value::Catalog(catalog) => Some(catalog),
-            _ => None,
-        }
-    }
-
-    /// Returns this object's inner [Collection], or `None` if it is not a collection.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let collection = stac::read("data/collection.json").unwrap();
-    /// let collection = collection.into_collection().unwrap();
-    /// ```
-    pub fn into_collection(self) -> Option<Collection> {
-        match self.inner {
-            Value::Collection(collection) => Some(collection),
-            _ => None,
-        }
-    }
-
-    /// Removes all [structural links](Link::is_structural) from this object.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use stac::Link;
-    /// let mut catalog = stac::read("data/catalog.json").unwrap();
-    /// catalog.add_link(Link::new("an-href", "not-structural"));
-    /// catalog.remove_structural_links();
-    /// assert_eq!(catalog.links().len(), 1);
-    /// ```
-    pub fn remove_structural_links(&mut self) {
-        let f = |link: &Link| !link.is_structural();
-        match &mut self.inner {
-            Value::Item(item) => item.links.retain(f),
-            Value::Catalog(catalog) => catalog.links.retain(f),
-            Value::Collection(collection) => collection.links.retain(f),
+        match self {
+            Object::Item(item) => serde_json::to_value(item).map_err(Error::from),
+            Object::Catalog(catalog) => serde_json::to_value(catalog).map_err(Error::from),
+            Object::Collection(collection) => serde_json::to_value(collection).map_err(Error::from),
         }
     }
 }
 
-impl From<Catalog> for Value {
-    fn from(catalog: Catalog) -> Value {
-        Value::Catalog(catalog)
-    }
-}
-
-impl From<Collection> for Value {
-    fn from(collection: Collection) -> Value {
-        Value::Collection(collection)
-    }
-}
-
-impl From<Item> for Value {
-    fn from(item: Item) -> Value {
-        Value::Item(item)
-    }
-}
-
-impl<T: Into<Value>> From<T> for Object {
-    fn from(object: T) -> Object {
-        Object {
-            href: None,
-            inner: object.into(),
+impl HrefObject {
+    /// Creates a new object with an href.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac::{HrefObject, Item, Href};
+    /// let item = Item::new("an-id");
+    /// let object = HrefObject::new(item, "an-href");
+    /// assert_eq!(object.href.as_str(), "an-href");
+    /// assert!(object.object.is_item());
+    /// ```
+    pub fn new<O, H>(object: O, href: H) -> HrefObject
+    where
+        O: Into<Object>,
+        H: Into<Href>,
+    {
+        HrefObject {
+            href: href.into(),
+            object: object.into(),
         }
+    }
+}
+
+impl From<Catalog> for Object {
+    fn from(catalog: Catalog) -> Object {
+        Object::Catalog(catalog)
+    }
+}
+
+impl From<Collection> for Object {
+    fn from(collection: Collection) -> Object {
+        Object::Collection(collection)
+    }
+}
+
+impl From<Item> for Object {
+    fn from(item: Item) -> Object {
+        Object::Item(item)
+    }
+}
+
+impl From<Object> for ObjectHrefTuple {
+    fn from(object: Object) -> ObjectHrefTuple {
+        (object, None)
+    }
+}
+
+impl From<HrefObject> for ObjectHrefTuple {
+    fn from(href_object: HrefObject) -> ObjectHrefTuple {
+        (href_object.object, Some(href_object.href))
+    }
+}
+
+impl From<Item> for ObjectHrefTuple {
+    fn from(item: Item) -> ObjectHrefTuple {
+        (Object::Item(item), None)
+    }
+}
+
+impl From<Collection> for ObjectHrefTuple {
+    fn from(collection: Collection) -> ObjectHrefTuple {
+        (Object::Collection(collection), None)
+    }
+}
+
+impl From<Catalog> for ObjectHrefTuple {
+    fn from(catalog: Catalog) -> ObjectHrefTuple {
+        (Object::Catalog(catalog), None)
     }
 }
