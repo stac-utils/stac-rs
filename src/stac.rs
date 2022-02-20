@@ -1,4 +1,4 @@
-use crate::{Error, Href, Item, Link, Object, PathBufHref, Read, Reader, Render, Write};
+use crate::{Error, Href, Item, Link, Object, PathBufHref, Read, Reader};
 use std::collections::{HashMap, HashSet, VecDeque};
 
 const ROOT_HANDLE: Handle = Handle(0);
@@ -285,19 +285,6 @@ impl<R: Read> Stac<R> {
             .children
             .iter()
             .cloned())
-    }
-
-    /// Writes this stac.
-    pub fn write<T, W>(&mut self, renderer: &T, writer: &W) -> Result<(), Error>
-    where
-        T: Render,
-        W: Write,
-    {
-        for result in renderer.render(self)? {
-            let object = result?;
-            writer.write(object)?;
-        }
-        Ok(())
     }
 
     /// Iterate over this stac's handles.

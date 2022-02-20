@@ -17,16 +17,6 @@ let object = stac::read("data/catalog.json").unwrap();
 println!("{}", object.id());
 ```
 
-Write STAC catalogs using the `BestPracticesRenderer`:
-
-```rust,no_run
-use stac::{Stac, BestPracticesRenderer, Render, Writer, Write};
-let (mut stac, _) = Stac::read("data/catalog.json").unwrap();
-let renderer = BestPracticesRenderer::new("a/new/root/directory");
-let writer = Writer::default();
-stac.write(&renderer, &writer).unwrap();
-```
-
 For more, see the [documentation](https://docs.rs/stac/latest/stac/).
 
 ## Executables
