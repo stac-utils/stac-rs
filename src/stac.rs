@@ -186,6 +186,24 @@ impl<R: Read> Stac<R> {
         Ok(handle)
     }
 
+    /// Adds an object to the [Stac] as a child of the provided handle.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac::{Item, Catalog, Stac};
+    /// let (mut stac, root) = Stac::new(Catalog::new("a-catalog")).unwrap();
+    /// let handle = stac.add_child(root, Item::new("an-item")).unwrap();
+    /// ```
+    pub fn add_child<O>(&mut self, parent: Handle, object: O) -> Result<Handle, Error>
+    where
+        O: Into<ObjectHrefTuple>,
+    {
+        let child_handle = self.add_object(object)?;
+        self.add_child_handle(parent, child_handle);
+        Ok(child_handle)
+    }
+
     /// Finds a child object with a filter function.
     ///
     /// # Examples
@@ -210,6 +228,11 @@ impl<R: Read> Stac<R> {
             }
         }
         Ok(None)
+    }
+
+    fn add_child_handle(&mut self, parent: Handle, child: Handle) {
+        self.node_mut(child).parent = Some(parent);
+        let _ = self.node_mut(parent).children.insert(child);
     }
 
     fn add_node(&mut self) -> Handle {
@@ -238,7 +261,6 @@ impl<R: Read> Stac<R> {
         O: Into<ObjectHrefTuple>,
     {
         let (object, href) = object.into();
-        let mut children = HashSet::new();
         for link in object
             .links()
             .iter()
@@ -256,8 +278,7 @@ impl<R: Read> Stac<R> {
                 self.set_href(child_handle, child_href);
                 child_handle
             };
-            self.node_mut(child_handle).parent = Some(handle);
-            let _ = children.insert(child_handle);
+            self.add_child_handle(handle, child_handle);
         }
         if let Some(href) = href {
             self.set_href(handle, href);
@@ -266,7 +287,6 @@ impl<R: Read> Stac<R> {
         }
         let node = self.node_mut(handle);
         node.object = Some(object);
-        node.children = children;
         Ok(())
     }
 
@@ -287,7 +307,7 @@ impl<R: Read> Stac<R> {
 #[cfg(test)]
 mod tests {
     use super::Stac;
-    use crate::{Catalog, HrefObject, Link};
+    use crate::{Catalog, HrefObject, Item, Link};
 
     #[test]
     fn new() {
@@ -310,6 +330,14 @@ mod tests {
             ))
             .unwrap();
         assert_eq!(stac.parent(handle).unwrap(), root_handle);
+    }
+
+    #[test]
+    fn add_child() {
+        let (mut stac, root) = Stac::new(Catalog::new("an-id")).unwrap();
+        let item = Item::new("an-id");
+        let handle = stac.add_child(root, item).unwrap();
+        assert_eq!(stac.parent(handle).unwrap(), root);
     }
 
     #[test]
