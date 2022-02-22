@@ -90,7 +90,7 @@
 //! ```
 //!
 //! A `Stac` is a lazy cache, meaning that it doesn't read objects until needed, and keeps read objects in a cache keyed by their hrefs.
-//! Objects are read on-demand, e.g. via the [object](Stac::object) method:
+//! Objects are read on-demand, e.g. via the [get](Stac::get) method:
 //!
 //! ```
 //! # use stac::Stac;
@@ -99,7 +99,7 @@
 //!     .find_child(root, |object| object.id() == "extensions-collection")
 //!     .unwrap()
 //!     .unwrap();
-//! let child = stac.object(handle).unwrap();
+//! let child = stac.get(handle).unwrap();
 //! ```
 //!
 //! ## Layouts

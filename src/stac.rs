@@ -136,9 +136,9 @@ impl<R: Read> Stac<R> {
     /// ```
     /// # use stac::Stac;
     /// let (mut stac, root) = Stac::read("data/catalog.json").unwrap();
-    /// assert_eq!(stac.object(root).unwrap().id(), "examples");
+    /// assert_eq!(stac.get(root).unwrap().id(), "examples");
     /// ```
-    pub fn object(&mut self, handle: Handle) -> Result<&Object, Error> {
+    pub fn get(&mut self, handle: Handle) -> Result<&Object, Error> {
         self.ensure_resolved(handle)?;
         Ok(self
             .node(handle)
@@ -222,7 +222,7 @@ impl<R: Read> Stac<R> {
         F: Fn(&Object) -> bool,
     {
         for child in self.node(parent).children.clone() {
-            let object = self.object(child)?;
+            let object = self.get(child)?;
             if filter(object) {
                 return Ok(Some(child));
             }
@@ -312,7 +312,7 @@ mod tests {
     #[test]
     fn new() {
         let (mut stac, handle) = Stac::new(Catalog::new("an-id")).unwrap();
-        assert_eq!(stac.object(handle).unwrap().id(), "an-id");
+        assert_eq!(stac.get(handle).unwrap().id(), "an-id");
     }
 
     #[test]
@@ -347,20 +347,20 @@ mod tests {
             .find_child(root, |object| object.id() == "extensions-collection")
             .unwrap()
             .unwrap();
-        assert_eq!(stac.object(child).unwrap().id(), "extensions-collection");
+        assert_eq!(stac.get(child).unwrap().id(), "extensions-collection");
     }
 
     #[test]
     fn read() {
         let (mut stac, handle) = Stac::read("data/catalog.json").unwrap();
-        let catalog = stac.object(handle).unwrap();
+        let catalog = stac.get(handle).unwrap();
         assert_eq!(catalog.id(), "examples");
     }
 
     #[test]
     fn read_non_root() {
         let (mut stac, handle) = Stac::read("data/extensions-collection/collection.json").unwrap();
-        assert_eq!(stac.object(handle).unwrap().id(), "extensions-collection");
-        assert_eq!(stac.object(stac.root()).unwrap().id(), "examples");
+        assert_eq!(stac.get(handle).unwrap().id(), "extensions-collection");
+        assert_eq!(stac.get(stac.root()).unwrap().id(), "examples");
     }
 }
