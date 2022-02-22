@@ -15,6 +15,7 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 - `Object` and `HrefObject`
 - Architecture diagram
 - `Stac.add_child`
+- Benchmarks
 
 ### Changed
 
