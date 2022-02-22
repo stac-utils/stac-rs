@@ -1,5 +1,6 @@
 use crate::{Error, Href, Object, ObjectHrefTuple, PathBufHref, Read, Reader};
-use std::collections::{HashMap, HashSet};
+use indexmap::IndexSet;
+use std::collections::{HashMap, VecDeque};
 
 const ROOT_HANDLE: Handle = Handle(0);
 
@@ -11,6 +12,7 @@ const ROOT_HANDLE: Handle = Handle(0);
 pub struct Stac<R: Read> {
     reader: R,
     nodes: Vec<Node>,
+    free_nodes: Vec<Handle>,
     hrefs: HashMap<Href, Handle>,
 }
 
@@ -18,10 +20,22 @@ pub struct Stac<R: Read> {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Handle(pub usize);
 
+/// An iterator over a [Stac's](Stac) handles.
+#[derive(Debug)]
+pub struct Walk<'a, R: Read, F, T>
+where
+    F: Fn(&mut Stac<R>, Handle) -> Result<T, Error>,
+{
+    handles: VecDeque<Handle>,
+    stac: &'a mut Stac<R>,
+    f: F,
+    depth_first: bool,
+}
+
 #[derive(Debug, Default)]
 struct Node {
     object: Option<Object>,
-    children: HashSet<Handle>,
+    children: IndexSet<Handle>,
     parent: Option<Handle>,
     href: Option<Href>,
 }
@@ -108,6 +122,7 @@ impl<R: Read> Stac<R> {
         let mut stac = Stac {
             reader,
             nodes: vec![node],
+            free_nodes: Vec::new(),
             hrefs: HashMap::new(),
         };
         stac.set_object(handle, object)?;
@@ -230,18 +245,64 @@ impl<R: Read> Stac<R> {
         Ok(None)
     }
 
+    /// Walks a [Stac].
+    pub fn walk<F, T>(&mut self, handle: Handle, f: F) -> Walk<'_, R, F, T>
+    where
+        F: Fn(&mut Stac<R>, Handle) -> Result<T, Error>,
+    {
+        let mut handles = VecDeque::new();
+        handles.push_front(handle);
+        Walk {
+            handles,
+            stac: self,
+            f,
+            depth_first: false,
+        }
+    }
+
+    /// Returns all child handles as a ref.
+    pub fn children(&self, handle: Handle) -> &IndexSet<Handle> {
+        &self.node(handle).children
+    }
+
+    /// Removes a node.
+    pub fn remove(&mut self, handle: Handle) -> (Option<Object>, Option<Href>) {
+        let children = std::mem::take(&mut self.node_mut(handle).children);
+        for child in children {
+            self.disconnect(handle, child);
+        }
+        let href = if let Some(href) = self.node_mut(handle).href.take() {
+            let _ = self.hrefs.remove(&href);
+            Some(href)
+        } else {
+            None
+        };
+        self.free_nodes.push(handle);
+        (self.node_mut(handle).object.take(), href)
+    }
+
     fn add_child_handle(&mut self, parent: Handle, child: Handle) {
         self.node_mut(child).parent = Some(parent);
         let _ = self.node_mut(parent).children.insert(child);
     }
 
-    fn add_node(&mut self) -> Handle {
-        let handle = Handle(self.nodes.len());
-        self.nodes.push(Node::default());
-        handle
+    fn disconnect(&mut self, parent: Handle, child: Handle) {
+        self.node_mut(child).parent = None;
+        let _ = self.node_mut(parent).children.shift_remove(&child);
     }
 
-    fn ensure_resolved(&mut self, handle: Handle) -> Result<(), Error> {
+    fn add_node(&mut self) -> Handle {
+        if let Some(handle) = self.free_nodes.pop() {
+            handle
+        } else {
+            let handle = Handle(self.nodes.len());
+            self.nodes.push(Node::default());
+            handle
+        }
+    }
+
+    /// Make sure that the given handle is resolved.
+    pub fn ensure_resolved(&mut self, handle: Handle) -> Result<(), Error> {
         if self.node(handle).object.is_none() {
             self.resolve(handle)?;
         }
@@ -304,6 +365,42 @@ impl<R: Read> Stac<R> {
     }
 }
 
+impl<'a, R: Read, F, T> Walk<'a, R, F, T>
+where
+    F: Fn(&mut Stac<R>, Handle) -> Result<T, Error>,
+{
+    /// Walk depth-first instead of breadth first.
+    pub fn depth_first(mut self) -> Walk<'a, R, F, T> {
+        self.depth_first = true;
+        self
+    }
+}
+
+impl<R: Read, F, T> Iterator for Walk<'_, R, F, T>
+where
+    F: Fn(&mut Stac<R>, Handle) -> Result<T, Error>,
+{
+    type Item = Result<T, Error>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.handles.pop_front().map(|handle| {
+            self.stac
+                .ensure_resolved(handle)
+                .and_then(|()| (self.f)(self.stac, handle))
+                .map(|value| {
+                    if self.depth_first {
+                        for &child in self.stac.children(handle).iter().rev() {
+                            self.handles.push_front(child);
+                        }
+                    } else {
+                        self.handles.extend(self.stac.children(handle));
+                    }
+                    value
+                })
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::Stac;
@@ -362,5 +459,59 @@ mod tests {
         let (mut stac, handle) = Stac::read("data/extensions-collection/collection.json").unwrap();
         assert_eq!(stac.get(handle).unwrap().id(), "extensions-collection");
         assert_eq!(stac.get(stac.root()).unwrap().id(), "examples");
+    }
+
+    #[test]
+    fn walk() {
+        let (mut stac, handle) = Stac::read("data/catalog.json").unwrap();
+        let ids = stac
+            .walk(handle, |stac, handle| {
+                stac.get(handle).map(|object| object.id().to_string())
+            })
+            .collect::<Result<Vec<_>, _>>()
+            .unwrap();
+        assert_eq!(
+            ids,
+            vec![
+                "examples",
+                "extensions-collection",
+                "sentinel-2",
+                "sentinel-2",
+                "CS3-20160503_132131_08",
+                "proj-example",
+            ]
+        )
+    }
+
+    #[test]
+    fn walk_depth_first() {
+        let (mut stac, handle) = Stac::read("data/catalog.json").unwrap();
+        let ids = stac
+            .walk(handle, |stac, handle| {
+                stac.get(handle).map(|object| object.id().to_string())
+            })
+            .depth_first()
+            .collect::<Result<Vec<_>, _>>()
+            .unwrap();
+        assert_eq!(
+            ids,
+            vec![
+                "examples",
+                "extensions-collection",
+                "proj-example",
+                "sentinel-2",
+                "sentinel-2",
+                "CS3-20160503_132131_08",
+            ]
+        )
+    }
+
+    #[test]
+    fn walk_remove() {
+        let (mut stac, handle) = Stac::read("data/catalog.json").unwrap();
+        let count = stac
+            .walk(handle, |stac, handle| Ok(stac.remove(handle)))
+            .count();
+        assert_eq!(count, 1)
     }
 }
