@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+
+set -e
+
+rm -rf target/criterion
+cargo criterion --history-id $(git describe)
+cp -r target/criterion/reports benches

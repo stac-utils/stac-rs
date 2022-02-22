@@ -22,7 +22,12 @@ url = "2"
 
 [dev-dependencies]
 assert-json-diff = "2"
+criterion = "0.3"
 tempfile = "3"
 
 [features]
 default = ["reqwest"]
+
+[[bench]]
+name = "read"
+harness = false

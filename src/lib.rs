@@ -217,6 +217,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use criterion as _;
+
     macro_rules! roundtrip {
         ($function:ident, $filename:expr, $object:ident) => {
             #[test]
