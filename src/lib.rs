@@ -181,7 +181,7 @@ mod stac;
 mod write;
 
 pub use {
-    crate::stac::{Handle, Stac},
+    crate::stac::{Handle, Stac, Walk},
     asset::Asset,
     catalog::{Catalog, CATALOG_TYPE},
     collection::{Collection, COLLECTION_TYPE},
