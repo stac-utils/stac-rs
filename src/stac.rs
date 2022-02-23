@@ -301,8 +301,7 @@ impl<R: Read> Stac<R> {
         }
     }
 
-    /// Make sure that the given handle is resolved.
-    pub fn ensure_resolved(&mut self, handle: Handle) -> Result<(), Error> {
+    fn ensure_resolved(&mut self, handle: Handle) -> Result<(), Error> {
         if self.node(handle).object.is_none() {
             self.resolve(handle)?;
         }
