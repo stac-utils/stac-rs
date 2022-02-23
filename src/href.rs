@@ -339,6 +339,11 @@ impl Href {
         Ok(())
     }
 
+    /// Returns this href's file name.
+    pub fn file_name(&self) -> &str {
+        extract_path_filename(self.as_str()).1
+    }
+
     fn is_absolute_path(&self) -> bool {
         match self {
             Href::Path(path) => is_absolute(path),
