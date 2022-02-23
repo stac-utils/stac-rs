@@ -214,9 +214,9 @@ impl<R: Read> Stac<R> {
     where
         O: Into<ObjectHrefTuple>,
     {
-        let child_handle = self.add_object(object)?;
-        self.add_child_handle(parent, child_handle);
-        Ok(child_handle)
+        let child = self.add_object(object)?;
+        self.connect(parent, child);
+        Ok(child)
     }
 
     /// Finds a child object with a filter function.
@@ -281,7 +281,7 @@ impl<R: Read> Stac<R> {
         (self.node_mut(handle).object.take(), href)
     }
 
-    fn add_child_handle(&mut self, parent: Handle, child: Handle) {
+    fn connect(&mut self, parent: Handle, child: Handle) {
         self.node_mut(child).parent = Some(parent);
         let _ = self.node_mut(parent).children.insert(child);
     }
@@ -332,14 +332,14 @@ impl<R: Read> Stac<R> {
             } else {
                 link.href.clone().into()
             };
-            let child_handle = if let Some(child_handle) = self.hrefs.get(&child_href) {
-                *child_handle
+            let child = if let Some(child) = self.hrefs.get(&child_href) {
+                *child
             } else {
-                let child_handle = self.add_node();
-                self.set_href(child_handle, child_href);
-                child_handle
+                let child = self.add_node();
+                self.set_href(child, child_href);
+                child
             };
-            self.add_child_handle(handle, child_handle);
+            self.connect(handle, child);
         }
         if let Some(href) = href {
             self.set_href(handle, href);
