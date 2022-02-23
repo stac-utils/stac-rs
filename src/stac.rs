@@ -286,6 +286,11 @@ impl<R: Read> Stac<R> {
         (object, href)
     }
 
+    /// Returns the href for a handle.
+    pub fn href(&self, handle: Handle) -> Option<&Href> {
+        self.node(handle).href.as_ref()
+    }
+
     fn connect(&mut self, parent: Handle, child: Handle) {
         self.node_mut(child).parent = Some(parent);
         let _ = self.node_mut(parent).children.insert(child);
