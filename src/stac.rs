@@ -18,7 +18,7 @@ pub struct Stac<R: Read> {
 
 /// A pointer to a STAC object in a [Stac] tree.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct Handle(pub usize);
+pub struct Handle(usize);
 
 /// An iterator over a [Stac's](Stac) handles.
 #[derive(Debug)]
