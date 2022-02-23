@@ -516,4 +516,16 @@ mod tests {
             .count();
         assert_eq!(count, 1)
     }
+
+    #[test]
+    fn remove_returns_same_object() {
+        let (mut stac, root) = Stac::new(Catalog::new("root")).unwrap();
+        let mut child = Catalog::new("child");
+        child.links.push(Link::root("../catalog.json"));
+        child.links.push(Link::parent("../catalog.json"));
+        child.links.push(Link::child("./subcatalog/catlog.json"));
+        child.links.push(Link::item("./42/42.json"));
+        let handle = stac.add_child(root, child.clone()).unwrap();
+        assert_eq!(*stac.remove(handle).0.unwrap().as_catalog().unwrap(), child);
+    }
 }
