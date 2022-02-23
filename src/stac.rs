@@ -37,6 +37,7 @@ struct Node {
     object: Option<Object>,
     children: IndexSet<Handle>,
     parent: Option<Handle>,
+    root: Option<Handle>,
     href: Option<Href>,
 }
 
@@ -281,7 +282,8 @@ impl<R: Read> Stac<R> {
             None
         };
         self.free_nodes.push(handle);
-        (self.node_mut(handle).object.take(), href)
+        let object = self.node_mut(handle).object.take();
+        (object, href)
     }
 
     fn connect(&mut self, parent: Handle, child: Handle) {
@@ -324,24 +326,31 @@ impl<R: Read> Stac<R> {
         O: Into<ObjectHrefTuple>,
     {
         let (object, href) = object.into();
-        for link in object
-            .links()
-            .iter()
-            .filter(|link| link.is_child() || link.is_item())
-        {
-            let child_href = if let Some(href) = href.as_ref() {
+        for link in object.links() {
+            if !link.is_structural() {
+                continue;
+            }
+            let other_href = if let Some(href) = href.as_ref() {
                 href.join(&link.href)?
             } else {
                 link.href.clone().into()
             };
-            let child = if let Some(child) = self.hrefs.get(&child_href) {
-                *child
+            let other = if let Some(other) = self.hrefs.get(&other_href) {
+                *other
             } else {
-                let child = self.add_node();
-                self.set_href(child, child_href);
-                child
+                let other = self.add_node();
+                self.set_href(other, other_href);
+                other
             };
-            self.connect(handle, child);
+            if link.is_child() || link.is_item() {
+                self.connect(handle, other);
+            } else if link.is_parent() {
+                // TODO what to do if there is already a parent?
+                self.connect(other, handle);
+            } else if link.is_root() {
+                // TODO what to do if the root is different?
+                self.node_mut(handle).root = Some(other);
+            }
         }
         if let Some(href) = href {
             self.set_href(handle, href);
