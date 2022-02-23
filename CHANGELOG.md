@@ -16,11 +16,16 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 - Architecture diagram
 - `Stac.add_child`
 - Benchmarks
+- `Walk`
+- `Stac::remove`
 
 ### Changed
 
 - Simplified `Render`'s href creation
 - CI workflows
+- `Stac::add_object` is now `add`
+- `Stac::add_child_handle` is now `connect`
+- `Stac::object` is now `get`
 
 ### Fixed
 
