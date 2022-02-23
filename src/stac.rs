@@ -271,6 +271,9 @@ impl<R: Read> Stac<R> {
         for child in children {
             self.disconnect(handle, child);
         }
+        if let Some(parent) = self.node_mut(handle).parent.take() {
+            self.disconnect(parent, handle);
+        }
         let href = if let Some(href) = self.node_mut(handle).href.take() {
             let _ = self.hrefs.remove(&href);
             Some(href)
