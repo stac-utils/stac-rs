@@ -106,7 +106,7 @@ impl<R: Read> Stac<R> {
             {
                 let root = reader.read(root_href)?;
                 let (mut stac, _) = Stac::rooted(root, reader)?;
-                let handle = stac.add_object(object)?;
+                let handle = stac.add(object)?;
                 return Ok((stac, handle));
             }
         }
@@ -187,9 +187,9 @@ impl<R: Read> Stac<R> {
     /// ```
     /// # use stac::{Catalog, Stac};
     /// let (mut stac, root) = Stac::new(Catalog::new("a-catalog")).unwrap();
-    /// let handle = stac.add_object(Catalog::new("unattached-catalog")).unwrap();
+    /// let handle = stac.add(Catalog::new("unattached-catalog")).unwrap();
     /// ```
-    pub fn add_object<O>(&mut self, object: O) -> Result<Handle, Error>
+    pub fn add<O>(&mut self, object: O) -> Result<Handle, Error>
     where
         O: Into<ObjectHrefTuple>,
     {
@@ -214,7 +214,7 @@ impl<R: Read> Stac<R> {
     where
         O: Into<ObjectHrefTuple>,
     {
-        let child = self.add_object(object)?;
+        let child = self.add(object)?;
         self.connect(parent, child);
         Ok(child)
     }
@@ -421,7 +421,7 @@ mod tests {
         let (mut stac, root_handle) =
             Stac::new(HrefObject::new(catalog, "a/path/catalog.json")).unwrap();
         let handle = stac
-            .add_object(HrefObject::new(
+            .add(HrefObject::new(
                 Catalog::new("child-catalog"),
                 "a/path/subcatalog/catalog.json",
             ))
