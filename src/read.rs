@@ -36,6 +36,27 @@ pub trait Read {
         Ok(HrefObject::new(object, href))
     }
 
+    /// Reads an object from an [Href](crate::Href) as the actual structure.
+    ///
+    /// # Examples
+    ///
+    /// [Reader] implements `Read`:
+    ///
+    /// ```
+    /// use stac::{Read, Reader, Catalog};
+    /// let reader = Reader::default();
+    /// let catalog: Catalog = reader.read_struct("data/catalog.json").unwrap();
+    /// ```
+    fn read_struct<H, O>(&self, href: H) -> Result<O, Error>
+    where
+        H: Into<PathBufHref>,
+        O: TryFrom<Object, Error = Error>,
+    {
+        let value = self.read_json(href.into())?;
+        let object = Object::from_value(value)?;
+        object.try_into()
+    }
+
     /// Reads JSON data from an href.
     ///
     /// # Examples

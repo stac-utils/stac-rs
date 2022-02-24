@@ -120,6 +120,14 @@ impl Object {
             _ => None,
         }
     }
+    /// Returns this object's type field.
+    pub fn r#type(&self) -> &str {
+        match &self {
+            Object::Item(item) => &item.r#type,
+            Object::Catalog(catalog) => &catalog.r#type,
+            Object::Collection(collection) => &collection.r#type,
+        }
+    }
 
     /// Returns a reference to this object's id.
     ///
@@ -291,5 +299,47 @@ impl From<Collection> for ObjectHrefTuple {
 impl From<Catalog> for ObjectHrefTuple {
     fn from(catalog: Catalog) -> ObjectHrefTuple {
         (Object::Catalog(catalog), None)
+    }
+}
+
+impl TryFrom<Object> for Catalog {
+    type Error = Error;
+
+    fn try_from(object: Object) -> Result<Catalog, Error> {
+        match object {
+            Object::Catalog(catalog) => Ok(catalog),
+            _ => Err(Error::TypeMismatch {
+                expected: CATALOG_TYPE.to_string(),
+                actual: object.r#type().to_string(),
+            }),
+        }
+    }
+}
+
+impl TryFrom<Object> for Collection {
+    type Error = Error;
+
+    fn try_from(object: Object) -> Result<Collection, Error> {
+        match object {
+            Object::Collection(collection) => Ok(collection),
+            _ => Err(Error::TypeMismatch {
+                expected: COLLECTION_TYPE.to_string(),
+                actual: object.r#type().to_string(),
+            }),
+        }
+    }
+}
+
+impl TryFrom<Object> for Item {
+    type Error = Error;
+
+    fn try_from(object: Object) -> Result<Item, Error> {
+        match object {
+            Object::Item(item) => Ok(item),
+            _ => Err(Error::TypeMismatch {
+                expected: ITEM_TYPE.to_string(),
+                actual: object.r#type().to_string(),
+            }),
+        }
     }
 }
