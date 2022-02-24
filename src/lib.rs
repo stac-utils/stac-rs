@@ -96,7 +96,7 @@
 //! # use stac::Stac;
 //! let (mut stac, root) = Stac::read("data/catalog.json").unwrap();
 //! let handle = stac
-//!     .find_child(root, |object| object.id() == "extensions-collection")
+//!     .find(root, |object| object.id() == "extensions-collection")
 //!     .unwrap()
 //!     .unwrap();
 //! let child = stac.get(handle).unwrap();

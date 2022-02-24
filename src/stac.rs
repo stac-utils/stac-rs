@@ -172,7 +172,7 @@ impl<R: Read> Stac<R> {
     /// let (mut stac, root) = Stac::read("data/catalog.json").unwrap();
     /// assert_eq!(stac.parent(root), None);
     /// let child = stac
-    ///     .find_child(root, |object| object.id() == "extensions-collection")
+    ///     .find(root, |object| object.id() == "extensions-collection")
     ///     .unwrap()
     ///     .unwrap();
     /// assert_eq!(stac.parent(child).unwrap(), root);
@@ -229,21 +229,25 @@ impl<R: Read> Stac<R> {
     /// let (mut stac, root) = Stac::read("data/catalog.json").unwrap();
     /// assert_eq!(stac.parent(root), None);
     /// let child = stac
-    ///     .find_child(root, |object| object.id() == "extensions-collection")
+    ///     .find(root, |object| object.id() == "extensions-collection")
     ///     .unwrap()
     ///     .unwrap();
     /// ```
-    pub fn find_child<F>(&mut self, parent: Handle, filter: F) -> Result<Option<Handle>, Error>
+    pub fn find<F>(&mut self, handle: Handle, filter: F) -> Option<Result<Handle, Error>>
     where
         F: Fn(&Object) -> bool,
     {
-        for child in self.node(parent).children.clone() {
-            let object = self.get(child)?;
-            if filter(object) {
-                return Ok(Some(child));
-            }
-        }
-        Ok(None)
+        self.walk(handle, |stac, handle| {
+            let object = stac.get(handle)?;
+            Ok((filter(object), handle))
+        }).filter_map(|result| match result {
+            Ok((keep, handle)) => if keep {
+                Some(Ok(handle))
+            } else {
+                None
+            },
+            Err(err) => Some(Err(err))
+        }).next()
     }
 
     /// Walks a [Stac].
@@ -484,7 +488,7 @@ mod tests {
     fn find_child() {
         let (mut stac, root) = Stac::read("data/catalog.json").unwrap();
         let child = stac
-            .find_child(root, |object| object.id() == "extensions-collection")
+            .find(root, |object| object.id() == "extensions-collection")
             .unwrap()
             .unwrap();
         assert_eq!(stac.get(child).unwrap().id(), "extensions-collection");
