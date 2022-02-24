@@ -291,6 +291,33 @@ impl<R: Read> Stac<R> {
         self.node(handle).href.as_ref()
     }
 
+    /// Returns the handles for all collections in this Stac.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// # use stac::Stac;
+    /// let (mut stac, _) = Stac::read("data/catalog.json").unwrap();
+    /// let collections = stac.collections().unwrap();
+    /// assert_eq!(collections.len(), 3);
+    /// ```
+    pub fn collections(&mut self) -> Result<Vec<Handle>, Error> {
+        self.walk(self.root(), |stac, handle| {
+            let object = stac.get(handle)?;
+            Ok((handle, object.is_collection()))
+        }).filter_map(|result| 
+            match result {
+                Ok((handle, is_collection)) => if is_collection {
+                    Some(Ok(handle))
+                } else {
+                    None
+                },
+                Err(err) => Some(Err(err))
+            }
+        ).collect::<Result<Vec<_>, Error>>()
+    }
+        
+
     fn connect(&mut self, parent: Handle, child: Handle) {
         self.node_mut(child).parent = Some(parent);
         let _ = self.node_mut(parent).children.insert(child);
