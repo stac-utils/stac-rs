@@ -42,16 +42,16 @@
 //! let catalog = Reader::default().read("data/catalog.json").unwrap();
 //! ```
 //!
-//! Because the type of a STAC object cannot be known before reading, the [Read] trait returns an [HrefObject], which is a wrapper around all three STAC object types and the object's [Href].
+//! Because the type of a STAC object cannot be known before reading, the [Read] trait returns an [HrefObject], which is a wrapper around all three STAC object types and the [Href] from which the [Object] was read:
 //!
 //! ```
 //! # use stac::{Reader, Read};
 //! let reader = Reader::default();
-//! let object = reader.read("data/catalog.json").unwrap();
-//! assert_eq!(object.object.id(), "examples");
-//! let catalog = object.object.as_catalog().unwrap();
+//! let read_object = reader.read("data/catalog.json").unwrap();
+//! assert_eq!(read_object.object.id(), "examples");
+//! let catalog = read_object.object.as_catalog().unwrap();
 //! assert_eq!(catalog.title.as_ref().unwrap(), "Example Catalog");
-//! assert_eq!(object.href.as_str(), "data/catalog.json");
+//! assert_eq!(read_object.href.as_str(), "data/catalog.json");
 //! ```
 //!
 //! There is a top-level [read()] method for convenience:
