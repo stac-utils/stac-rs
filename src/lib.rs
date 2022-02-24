@@ -215,6 +215,51 @@ where
     reader.read(href)
 }
 
+/// Reads a [Catalog] from an [Href].
+///
+/// # Examples
+///
+/// ```
+/// let catalog = stac::read_catalog("data/catalog.json").unwrap();
+/// ```
+pub fn read_catalog<H>(href: H) -> Result<Catalog, Error>
+where
+    H: Into<PathBufHref>,
+{
+    let reader = Reader::default();
+    reader.read_struct(href)
+}
+
+/// Reads a [Collection] from an [Href].
+///
+/// # Examples
+///
+/// ```
+/// let collection = stac::read_collection("data/collection.json").unwrap();
+/// ```
+pub fn read_collection<H>(href: H) -> Result<Collection, Error>
+where
+    H: Into<PathBufHref>,
+{
+    let reader = Reader::default();
+    reader.read_struct(href)
+}
+
+/// Reads an [Item] from an [Href].
+///
+/// # Examples
+///
+/// ```
+/// let item = stac::read_item("data/simple-item.json").unwrap();
+/// ```
+pub fn read_item<H>(href: H) -> Result<Item, Error>
+where
+    H: Into<PathBufHref>,
+{
+    let reader = Reader::default();
+    reader.read_struct(href)
+}
+
 #[cfg(test)]
 mod tests {
     use criterion as _;

@@ -51,6 +51,15 @@ pub enum Error {
     #[error("serde_json error: {0}")]
     SerdeJson(#[from] serde_json::Error),
 
+    /// Mismatch between expected and actual type fields.
+    #[error("type mismatch: expected={expected}, actual={actual}")]
+    TypeMismatch {
+        /// The expected type field.
+        expected: String,
+        /// The actual type field.
+        actual: String,
+    },
+
     /// Reeturned when the node cannot be resolved.
     #[error("the node is unresolved and does not have an href")]
     UnresolvableNode,
