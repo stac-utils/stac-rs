@@ -91,22 +91,25 @@ impl Href {
 
     /// Joins this href to another href.
     ///
-    /// If the provided href is an absolute path or a url, just returns.
-    /// Otherwise, build a new path/url with the provided href.  If the base url
-    /// ends in a `/` it is unmodified, otherwise the last segment is treated as
-    /// a file name and dropped.
+    /// If the passed href is an absolute path or a url, this method just
+    /// returns the passed href as is.  Otherwise, it builds a new path or url
+    /// by joining this href and the provided href.  If `self` ends in a `/` it
+    /// is unmodified, otherwise the last segment is treated as a file name and
+    /// dropped.
     ///
     /// # Examples
     ///
     /// ```
     /// # use stac::Href;
     /// let base = Href::new("data/catalog.json");
-    /// let item = base.join("./collection/collection.json").unwrap();
-    /// assert_eq!(item.as_str(), "data/collection/collection.json");
+    /// let item = base.join("./item/item.json").unwrap();
+    /// assert_eq!(item.as_str(), "data/item/item.json");
+    /// let absolute_item = base.join("http://example.com/data/item.json").unwrap();
+    /// assert_eq!(absolute_item.as_str(), "http://example.com/data/item.json");
     ///
     /// let base = Href::new("data/");
-    /// let item = base.join("./collection/collection.json").unwrap();
-    /// assert_eq!(item.as_str(), "data/collection/collection.json");
+    /// let item = base.join("./item/item.json").unwrap();
+    /// assert_eq!(item.as_str(), "data/item/item.json");
     /// ```
     pub fn join<T>(&self, href: T) -> Result<Href, Error>
     where
