@@ -18,12 +18,15 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 - `Href::file_name`
 - `Stac::collections`
 - More `Href` documentation
+- Options to customize the `Walk` strategy
+- `Stac::set_href`
 
 ## Changed
 
 - Made `Handle`s innards private
 - Generalized `Stac::find_child` to `Stac::find`
 - Made `PathBufHref::new` public
+- Cannot remove the root of a `Stac`
 
 ## Fixed
 
