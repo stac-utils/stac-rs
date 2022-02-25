@@ -116,7 +116,7 @@ impl Href {
         T: Into<Href>,
     {
         let href = href.into();
-        if href.is_url() || href.is_absolute_path() {
+        if href.is_absolute() {
             return Ok(href);
         }
         match self {
@@ -213,7 +213,10 @@ impl Href {
     /// assert!(!Href::new("a/relative/path").is_absolute());
     /// ```
     pub fn is_absolute(&self) -> bool {
-        self.is_absolute_path() || self.is_url()
+        match self {
+            Href::Url(_) => true,
+            Href::Path(path) => is_absolute(path),
+        }
     }
 
     /// Converts this href into an absolute one.
@@ -298,7 +301,9 @@ impl Href {
         }
     }
 
-    /// Rebases a href from one root to another.
+    /// Rebases a relative href from one root to another.
+    ///
+    /// If `self` is a url or absolute, this is a noop.
     ///
     /// # Examples
     ///
@@ -311,28 +316,26 @@ impl Href {
     /// assert_eq!(item.as_str(), "a/new/base/item/item.json");
     /// ```
     pub fn rebase(&mut self, from: &Href, to: &Href) -> Result<(), Error> {
-        *self = match self {
-            Href::Url(_) => return Ok(()),
-            Href::Path(path) => {
-                if is_absolute(path) {
-                    return Ok(());
-                }
-                to.join(make_relative(from.as_str(), path))?
+        if let Href::Path(path) = self {
+            if is_absolute(path) {
+                return Ok(());
             }
-        };
+            *self = to.join(make_relative(from.as_str(), path))?;
+        }
         Ok(())
     }
 
     /// Returns this href's file name.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac::Href;
+    /// let href = Href::new("a/path/item.json");
+    /// assert_eq!(href.file_name(), "item.json");
+    /// ```
     pub fn file_name(&self) -> &str {
         extract_path_filename(self.as_str()).1
-    }
-
-    fn is_absolute_path(&self) -> bool {
-        match self {
-            Href::Path(path) => is_absolute(path),
-            _ => false,
-        }
     }
 
     fn into_string(self) -> String {
@@ -660,7 +663,7 @@ mod tests {
     }
 
     #[test]
-    fn rebase() {
+    fn rebase_path_relative() {
         let old_root_catalog = Href::new("path/to/a/catalog.json");
         let new_root = Href::new("a/new/base/");
         let mut item = Href::new("path/to/a/item/item.json");
