@@ -134,7 +134,7 @@ impl Href {
         }
     }
 
-    /// Returns true if this href is a url.
+    /// Returns `true` if this href is a url.
     ///
     /// # Examples
     ///
@@ -169,7 +169,7 @@ impl Href {
         }
     }
 
-    /// Returns true if this href is a path.
+    /// Returns `true` if this href is a path.
     ///
     /// # Examples
     ///
@@ -184,7 +184,7 @@ impl Href {
         matches!(self, Href::Path(_))
     }
 
-    /// Returns a reference to this href as a str.
+    /// Returns this href as a [&str].
     ///
     /// # Examples
     ///
@@ -200,9 +200,9 @@ impl Href {
         }
     }
 
-    /// Returns true if this is an absolute href.
+    /// Returns `true` if this is an absolute href.
     ///
-    /// Urls are always absolute.
+    /// [Href::Urls](Href::Url) are always absolute.
     ///
     /// # Examples
     ///
@@ -216,66 +216,31 @@ impl Href {
         self.is_absolute_path() || self.is_url()
     }
 
-    /// Ensures that this href ends in a slash.
+    /// Converts this href into an absolute one.
+    ///
+    /// For [Href::Url], this is a noop.  For [Href::Path], this will return an
+    /// error if [std::fs::canonicalize] fails.
     ///
     /// # Examples
     ///
     /// ```
     /// # use stac::Href;
     /// let mut href = Href::new("http://example.com/data");
-    /// href.ensure_ends_in_slash();
-    /// assert_eq!(href.as_str(), "http://example.com/data/");
-    /// href.ensure_ends_in_slash();
-    /// assert_eq!(href.as_str(), "http://example.com/data/");
+    /// href.make_absolute().unwrap();
+    /// assert_eq!(href.as_str(), "http://example.com/data");
     ///
-    ///
-    /// let mut href = Href::new("data");
-    /// href.ensure_ends_in_slash();
-    /// assert_eq!(href.as_str(), "data/");
-    /// href.ensure_ends_in_slash();
-    /// assert_eq!(href.as_str(), "data/");
-    /// ```
-    pub fn ensure_ends_in_slash(&mut self) {
-        match self {
-            Href::Url(url) => {
-                if !url.path().ends_with('/') {
-                    let _ = url
-                        .path_segments_mut()
-                        .expect("the url should have a path")
-                        .push("");
-                }
-            }
-            Href::Path(path) => {
-                if !path.ends_with('/') {
-                    path.push('/');
-                }
-            }
-        }
-    }
-
-    /// Converts this href into an absolute one.
-    ///
-    /// Will return an error if [std::fs::canonicalize] fails.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use stac::Href;
-    /// let href = Href::new("http://example.com/data");
-    /// assert_eq!(href.make_absolute().unwrap().as_str(), "http://example.com/data");
-    ///
-    /// let href = Href::new("data/catalog.json").make_absolute().unwrap();
+    /// let mut href = Href::new("data/catalog.json");
+    /// href.make_absolute().unwrap();
     /// let err = Href::new("not/a/real/path").make_absolute().unwrap_err();
     ///
-    pub fn make_absolute(self) -> Result<Href, Error> {
-        let href = PathBufHref::from(self);
-        match href {
-            PathBufHref::Url(_) => Ok(href.into()),
-            PathBufHref::Path(path) => {
+    pub fn make_absolute(&mut self) -> Result<(), Error> {
+        if let Href::Path(path) = self {
+            if let PathBufHref::Path(path) = PathBufHref::from(path.as_str()) {
                 let path = std::fs::canonicalize(path)?;
-                Ok(PathBufHref::Path(path).into())
+                *self = PathBufHref::Path(path).into();
             }
         }
+        Ok(())
     }
 
     /// Converts the provided link into a relative one.
@@ -622,23 +587,6 @@ mod tests {
     fn url_to_string() {
         let href = Href::new("http://example.com/catalog.json");
         assert_eq!(href.as_str(), "http://example.com/catalog.json");
-    }
-
-    #[test]
-    fn ensure_path_ends_in_slash() {
-        let mut href = Href::new("data");
-        href.ensure_ends_in_slash();
-        assert_eq!(href.as_str(), "data/");
-    }
-
-    #[test]
-    fn ensure_url_ends_in_slash() {
-        let mut href = Href::new("http://example.com");
-        href.ensure_ends_in_slash();
-        assert_eq!(href.as_str(), "http://example.com/");
-        let mut href = Href::new("http://example.com/data");
-        href.ensure_ends_in_slash();
-        assert_eq!(href.as_str(), "http://example.com/data/");
     }
 
     #[test]
