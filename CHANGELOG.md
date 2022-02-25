@@ -13,6 +13,21 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 - Top-level convenience functions for reading all three object types directly to structures
 - `Read::read_struct`
 - `Error::TypeMismatch`
+- Links to parent and root in `Stac` when adding a new object
+- `Stac::href`
+- `Href::file_name`
+- `Stac::collections`
+- More `Href` documentation
+
+## Changed
+
+- Made `Handle`s innards private
+- Generalized `Stac::find_child` to `Stac::find`
+- Made `PathBufHref::new` public
+
+## Fixed
+
+- Relative href generation
 
 ## [0.0.3] - 2022-02-22
 
