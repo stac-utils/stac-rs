@@ -347,7 +347,30 @@ impl Href {
 }
 
 impl PathBufHref {
-    fn new<T: ToString>(href: T) -> PathBufHref {
+    /// Creates a new href with system-specific delimiters.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::{PathBufHref, Href};
+    ///
+    /// #[cfg(target_os = "windows")]
+    /// {
+    ///     use stac::PathBufHref;
+    ///     let path_buf_href = PathBufHref::new(r"a\path\to\an\item.json");
+    ///     let href = Href::from(path_buf_href);
+    ///     assert_eq!(href.as_str(), "a/path/to/an/item.json");
+    /// }
+    ///
+    /// #[cfg(not(target_os = "windows"))]
+    /// {
+    ///     use stac::PathBufHref;
+    ///     let path_buf_href = PathBufHref::new("a/path/to/an/item.json");
+    ///     let href = Href::from(path_buf_href);
+    ///     assert_eq!(href.as_str(), "a/path/to/an/item.json");
+    /// }
+    /// ```
+    pub fn new<T: ToString>(href: T) -> PathBufHref {
         Href::new(href).into()
     }
 }
