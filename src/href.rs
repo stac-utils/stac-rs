@@ -3,19 +3,28 @@ use path_slash::PathBufExt;
 use std::path::PathBuf;
 use url::Url;
 
-/// A parsed href.
+/// An href can be an absolute url, an absolute path, or a relative path.
 ///
-/// Hrefs are used throughout the STAC specification to link between objects and
-/// to assets. They are defined in the specification as URIs, meaning they
-/// should always be `/`-delimited paths. The `Href` enum provides a
-/// platform-independent way to store and manipulate the paths.
+/// Hrefs are used throughout the STAC specification to link between objects, to
+/// assets, and to outside resources. They are defined in the specification as
+/// URIs, meaning they should always be `/`-delimited paths. This `Href` enum
+/// provides a platform-independent way to store and manipulate the paths.
 ///
-/// `Href`s are always created from `/`-delimited strings:
+/// `Href`s are always created from `/`-delimited strings. If you might be
+/// working with a `\` delimited string (e.g. on Windows), use [PathBufHref].
 ///
 /// ```
 /// use stac::Href;
 /// let path_href = Href::new("a/path/to/an/item.json");
 /// let url_href = Href::new("http://example.com/item.json");
+///
+/// #[cfg(target_os = "windows")]
+/// {
+///     use stac::PathBufHref;
+///     let path_buf_href = PathBufHref::new(r"a\path\to\an\item.json");
+///     let href = Href::from(path_buf_href);
+///     assert_eq!(href.as_str(), "a/path/to/an/item.json");
+/// }
 /// ```
 #[derive(Debug, PartialEq, Clone, Eq, Hash)]
 pub enum Href {
