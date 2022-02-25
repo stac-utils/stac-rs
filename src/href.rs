@@ -243,9 +243,13 @@ impl Href {
         Ok(())
     }
 
-    /// Converts the provided link into a relative one.
+    /// Converts the provided href into a relative href, relative to `self`.
     ///
-    /// Adds an `"./"` to the front of "downward" hrefs.
+    /// - Adds an `"./"` to the front of "downward" hrefs.
+    /// - If both paths don't share a common base, they are assumed to be in the
+    /// same parent directory.
+    /// - If both paths are absolute and they do not share a common base,
+    /// returns `None`.
     ///
     /// # Examples
     ///
@@ -254,35 +258,42 @@ impl Href {
     /// let catalog = Href::new("data/catalog.json");
     /// let collection = Href::new("data/collection/collection.json");
     /// assert_eq!(
-    ///     catalog.make_relative(&collection).as_str(),
+    ///     catalog.make_relative(collection.clone()).unwrap().as_str(),
     ///     "./collection/collection.json"
     /// );
     /// assert_eq!(
-    ///     collection.make_relative(&catalog).as_str(),
+    ///     collection.make_relative(catalog).unwrap().as_str(),
     ///     "../catalog.json"
     /// );
-    pub fn make_relative(&self, href: &Href) -> Href {
+    pub fn make_relative(&self, href: Href) -> Option<Href> {
         match self {
             Href::Url(base) => match href {
-                Href::Url(url) => {
-                    if let Some(path) = base.make_relative(url) {
-                        if path.is_empty() {
-                            let (_, file_name) = extract_path_filename(url.path());
-                            Href::Path(format!("./{}", file_name))
-                        } else {
-                            Href::Path(path)
-                        }
+                Href::Url(url) => base.make_relative(&url).map(|path| {
+                    if path.is_empty() {
+                        let (_, file_name) = extract_path_filename(url.path());
+                        Href::Path(format!("./{}", file_name))
                     } else {
-                        // TODO test and implement
-                        unimplemented!()
+                        Href::Path(path)
+                    }
+                }),
+                // We skip the leading slash on the path to get make relative to go.
+                Href::Path(path) => {
+                    if is_absolute(&path) {
+                        None
+                    } else {
+                        Some(Href::Path(make_relative(&base.path()[1..], &path)))
                     }
                 }
-                // We skip the leading slash on the path to get make relative to go.
-                Href::Path(path) => Href::Path(make_relative(&base.path()[1..], path)),
             },
             Href::Path(base) => match href {
-                Href::Url(url) => Href::Url(url.clone()),
-                Href::Path(path) => Href::Path(make_relative(base, path)),
+                Href::Url(url) => Some(Href::Url(url)),
+                Href::Path(path) => {
+                    if is_absolute(base) && is_absolute(&path) {
+                        None
+                    } else {
+                        Some(Href::Path(make_relative(base, &path)))
+                    }
+                }
             },
         }
     }
@@ -594,16 +605,41 @@ mod tests {
         let base = Href::new("data/catalog.json");
         let target = Href::new("data/extensions-collection/collection.json");
         assert_eq!(
-            base.make_relative(&target).as_str(),
+            base.make_relative(target.clone()).unwrap().as_str(),
             "./extensions-collection/collection.json"
         );
-        assert_eq!(target.make_relative(&base).as_str(), "../catalog.json");
-        assert_eq!(base.make_relative(&base).as_str(), "./catalog.json");
         assert_eq!(
-            base.make_relative(&Href::new("http://example.com/item.json"))
+            target.make_relative(base.clone()).unwrap().as_str(),
+            "../catalog.json"
+        );
+        assert_eq!(
+            base.make_relative(base.clone()).unwrap().as_str(),
+            "./catalog.json"
+        );
+        assert_eq!(
+            base.make_relative(Href::new("http://example.com/item.json"))
+                .unwrap()
                 .as_str(),
             "http://example.com/item.json"
         );
+    }
+
+    #[test]
+    fn make_path_relative_no_common_base() {
+        let base = Href::new("data/catalog.json");
+        let target = Href::new("other/extensions-collection/collection.json");
+        assert_eq!(
+            base.make_relative(target.clone()).unwrap().as_str(),
+            "../other/extensions-collection/collection.json"
+        );
+
+        let base = Href::new("/data/catalog.json");
+        let target = Href::new("/other/extensions-collection/collection.json");
+        assert!(base.make_relative(target.clone()).is_none());
+
+        let base = Href::new("http://example.com/catalog.json");
+        let target = Href::new("http://example.org/item/item.json");
+        assert!(base.make_relative(target.clone()).is_none());
     }
 
     #[test]
@@ -611,14 +647,16 @@ mod tests {
         let base = Href::new("http://example.com/data/catalog.json");
         let target = Href::new("data/extensions-collection/collection.json");
         assert_eq!(
-            base.make_relative(&target).as_str(),
+            base.make_relative(target.clone()).unwrap().as_str(),
             "./extensions-collection/collection.json"
         );
         assert_eq!(
-            target.make_relative(&base).as_str(),
-            "http://example.com/data/catalog.json"
+            base.make_relative(base.clone()).unwrap().as_str(),
+            "./catalog.json"
         );
-        assert_eq!(base.make_relative(&base).as_str(), "./catalog.json");
+
+        let target = Href::new("/data/extensions-collection/collection.json");
+        assert!(base.make_relative(target).is_none());
     }
 
     #[test]
