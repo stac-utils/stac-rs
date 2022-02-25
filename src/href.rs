@@ -63,6 +63,8 @@ pub enum PathBufHref {
 impl Href {
     /// Creates an href.
     ///
+    /// Does not do any `\` conversion. If you need to handle possibly-`\`-delimited paths, use [PathBufHref].
+    ///
     /// # Examples
     ///
     /// ```
@@ -76,15 +78,14 @@ impl Href {
     /// ```
     pub fn new<S: ToString>(href: S) -> Href {
         let href = href.to_string();
-        match Url::parse(&href) {
-            Ok(url) => {
-                if url.cannot_be_a_base() {
-                    Href::Path(href)
-                } else {
-                    Href::Url(url)
-                }
+        if let Ok(url) = Url::parse(&href) {
+            if url.cannot_be_a_base() {
+                Href::Path(href)
+            } else {
+                Href::Url(url)
             }
-            Err(_) => Href::Path(href),
+        } else {
+            Href::Path(href)
         }
     }
 
