@@ -120,18 +120,13 @@ impl Href {
             return Ok(href);
         }
         match self {
-            Href::Url(base) => {
-                let href = base.join(href.as_str()).map(Href::from)?;
-                Ok(href)
-            }
+            Href::Url(base) => base.join(href.as_str()).map(Href::Url).map_err(Error::from),
             Href::Path(base) => {
-                // Inspired by/taken from the url crate
-                let last_slash_index = base.rfind('/').unwrap_or(0);
-                let (directory, _) = base.split_at(last_slash_index);
-                let path = if directory.is_empty() {
+                let (path, _) = extract_path_filename(base);
+                let path = if path.is_empty() {
                     href.into_string()
                 } else {
-                    format!("{}/{}", directory, href.as_str())
+                    format!("{}/{}", path, href.as_str())
                 };
                 let path = normalize_path(path);
                 Ok(Href::Path(path))
