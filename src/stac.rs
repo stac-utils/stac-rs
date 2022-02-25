@@ -344,15 +344,12 @@ impl<R: Read> Stac<R> {
 
     fn ensure_resolved(&mut self, handle: Handle) -> Result<(), Error> {
         if self.node(handle).object.is_none() {
-            self.resolve(handle)?;
-        }
-        Ok(())
-    }
-
-    fn resolve(&mut self, handle: Handle) -> Result<(), Error> {
-        if let Some(href) = self.node(handle).href.as_ref() {
-            let href_object = self.reader.read(href)?;
-            self.set_object(handle, href_object)?;
+            if let Some(href) = self.node(handle).href.as_ref() {
+                let href_object = self.reader.read(href)?;
+                self.set_object(handle, href_object)?;
+            } else {
+                panic!("should not be able to get a node w/o an object or an href")
+            }
         }
         Ok(())
     }
