@@ -6,6 +6,10 @@ use url::Url;
 /// Error enum for crate-specific errors.
 #[derive(Error, Debug)]
 pub enum Error {
+    /// Returned when you try to remove the root object from a [Stac](crate::Stac).
+    #[error("cannot remove root")]
+    CannotRemoveRoot,
+
     /// Returned when trying to write urls from the default writer.
     #[error("cannot write url: {0}")]
     CannotWriteUrl(Url),
