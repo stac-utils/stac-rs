@@ -338,6 +338,19 @@ impl Href {
         extract_path_filename(self.as_str()).1
     }
 
+    /// Returns this href's directory.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac::Href;
+    /// let href = Href::new("a/path/item.json");
+    /// assert_eq!(href.directory(), "a/path");
+    /// ```
+    pub fn directory(&self) -> &str {
+        extract_path_filename(self.as_str()).0
+    }
+
     fn into_string(self) -> String {
         match self {
             Href::Path(path) => path,
