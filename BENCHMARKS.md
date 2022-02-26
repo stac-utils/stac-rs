@@ -20,6 +20,32 @@ scripts/bench
 These results are from benchmarking runs on @gadomski's laptop.
 YMMV.
 
+### Layout
+
+These benchmarks test how long it takes to lay out a `Stac`, i.e. set each object's href and links.
+
+![layout items lines](./benches/reports/layout-items/lines.svg)
+
+#### 1 item
+
+![layout items 1](./benches/reports/layout-items/1/pdf.svg)
+
+#### 10 item
+
+![layout items 10](./benches/reports/layout-items/10/pdf.svg)
+
+#### 100 item
+
+![layout items 100](./benches/reports/layout-items/100/pdf.svg)
+
+#### 1000 item
+
+![layout items 1000](./benches/reports/layout-items/1000/pdf.svg)
+
+#### 10000 item
+
+![layout items 10000](./benches/reports/layout-items/10000/pdf.svg)
+
 ### Read
 
 These benchmarks test how long it takes to read a STAC JSON from the local filesystem into an `Object`.
