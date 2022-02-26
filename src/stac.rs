@@ -1,4 +1,4 @@
-use crate::{Error, Href, Object, ObjectHrefTuple, PathBufHref, Read, Reader};
+use crate::{Error, Href, Object, ObjectHrefTuple, PathBufHref, Read, Reader, Result};
 use indexmap::IndexSet;
 use std::collections::{HashMap, VecDeque};
 
@@ -49,7 +49,7 @@ pub struct Handle(usize);
 #[derive(Debug)]
 pub struct Walk<'a, R: Read, F, T>
 where
-    F: Fn(&mut Stac<R>, Handle) -> Result<T, Error>,
+    F: Fn(&mut Stac<R>, Handle) -> Result<T>,
 {
     handles: VecDeque<Handle>,
     stac: &'a mut Stac<R>,
@@ -87,7 +87,7 @@ impl Stac<Reader> {
     /// let catalog = Catalog::new("an-id");
     /// let (stac, handle) = Stac::new(catalog).unwrap();
     /// ```
-    pub fn new<O>(object: O) -> Result<(Stac<Reader>, Handle), Error>
+    pub fn new<O>(object: O) -> Result<(Stac<Reader>, Handle)>
     where
         O: Into<ObjectHrefTuple>,
     {
@@ -104,7 +104,7 @@ impl Stac<Reader> {
     /// use stac::Stac;
     /// let (stac, handle) = Stac::read("data/catalog.json").unwrap();
     /// ```
-    pub fn read<T>(href: T) -> Result<(Stac<Reader>, Handle), Error>
+    pub fn read<T>(href: T) -> Result<(Stac<Reader>, Handle)>
     where
         T: Into<PathBufHref>,
     {
@@ -126,7 +126,7 @@ impl<R: Read> Stac<R> {
     /// let catalog = stac::read("data/catalog.json").unwrap();
     /// let (stac, handle) = Stac::new_with_reader(catalog, Reader::default()).unwrap();
     /// ```
-    pub fn new_with_reader<O>(object: O, reader: R) -> Result<(Stac<R>, Handle), Error>
+    pub fn new_with_reader<O>(object: O, reader: R) -> Result<(Stac<R>, Handle)>
     where
         O: Into<ObjectHrefTuple>,
     {
@@ -151,7 +151,7 @@ impl<R: Read> Stac<R> {
         Stac::rooted((object, href), reader)
     }
 
-    fn rooted<O>(object: O, reader: R) -> Result<(Stac<R>, Handle), Error>
+    fn rooted<O>(object: O, reader: R) -> Result<(Stac<R>, Handle)>
     where
         O: Into<ObjectHrefTuple>,
     {
@@ -193,7 +193,7 @@ impl<R: Read> Stac<R> {
     /// let (mut stac, root) = Stac::read("data/catalog.json").unwrap();
     /// assert_eq!(stac.get(root).unwrap().id(), "examples");
     /// ```
-    pub fn get(&mut self, handle: Handle) -> Result<&Object, Error> {
+    pub fn get(&mut self, handle: Handle) -> Result<&Object> {
         self.ensure_resolved(handle)?;
         Ok(self
             .node(handle)
@@ -247,7 +247,7 @@ impl<R: Read> Stac<R> {
     /// let child = stac.add(href_object).unwrap();
     /// assert_eq!(stac.parent(child).unwrap(), root);
     /// ```
-    pub fn add<O>(&mut self, object: O) -> Result<Handle, Error>
+    pub fn add<O>(&mut self, object: O) -> Result<Handle>
     where
         O: Into<ObjectHrefTuple>,
     {
@@ -277,7 +277,7 @@ impl<R: Read> Stac<R> {
     /// let child = stac.add_child(root, second_item).unwrap();
     /// assert_eq!(stac.parent(child).unwrap(), root);
     /// ```
-    pub fn add_child<O>(&mut self, parent: Handle, object: O) -> Result<Handle, Error>
+    pub fn add_child<O>(&mut self, parent: Handle, object: O) -> Result<Handle>
     where
         O: Into<ObjectHrefTuple>,
     {
@@ -303,7 +303,7 @@ impl<R: Read> Stac<R> {
     /// assert_eq!(href.unwrap().as_str(), "data/extensions-collection/collection.json");
     /// assert!(matches!(stac.remove(root).unwrap_err(), Error::CannotRemoveRoot));
     /// ```
-    pub fn remove(&mut self, handle: Handle) -> Result<(Option<Object>, Option<Href>), Error> {
+    pub fn remove(&mut self, handle: Handle) -> Result<(Option<Object>, Option<Href>)> {
         if handle == self.root() {
             return Err(Error::CannotRemoveRoot);
         }
@@ -408,7 +408,7 @@ impl<R: Read> Stac<R> {
     /// ```
     pub fn walk<F, T>(&mut self, handle: Handle, f: F) -> Walk<'_, R, F, T>
     where
-        F: Fn(&mut Stac<R>, Handle) -> Result<T, Error>,
+        F: Fn(&mut Stac<R>, Handle) -> Result<T>,
     {
         let mut handles = VecDeque::new();
         handles.push_front(handle);
@@ -435,7 +435,7 @@ impl<R: Read> Stac<R> {
     ///     .unwrap();
     /// assert_eq!(stac.get(child).unwrap().id(), "extensions-collection");
     /// ```
-    pub fn find<F>(&mut self, handle: Handle, filter: F) -> Result<Option<Handle>, Error>
+    pub fn find<F>(&mut self, handle: Handle, filter: F) -> Result<Option<Handle>>
     where
         F: Fn(&Object) -> bool,
     {
@@ -477,7 +477,7 @@ impl<R: Read> Stac<R> {
         }
     }
 
-    fn ensure_resolved(&mut self, handle: Handle) -> Result<(), Error> {
+    fn ensure_resolved(&mut self, handle: Handle) -> Result<()> {
         if self.node(handle).object.is_none() {
             if let Some(href) = self.node(handle).href.as_ref() {
                 let href_object = self.reader.read(href)?;
@@ -489,7 +489,7 @@ impl<R: Read> Stac<R> {
         Ok(())
     }
 
-    fn set_object<O>(&mut self, handle: Handle, object: O) -> Result<(), Error>
+    fn set_object<O>(&mut self, handle: Handle, object: O) -> Result<()>
     where
         O: Into<ObjectHrefTuple>,
     {
@@ -549,7 +549,7 @@ impl<R: Read> Stac<R> {
 
 impl<'a, R: Read, F, T> Walk<'a, R, F, T>
 where
-    F: Fn(&mut Stac<R>, Handle) -> Result<T, Error>,
+    F: Fn(&mut Stac<R>, Handle) -> Result<T>,
 {
     /// Walk depth-first instead of breadth first.
     ///
@@ -617,9 +617,9 @@ where
 
 impl<R: Read, F, T> Iterator for Walk<'_, R, F, T>
 where
-    F: Fn(&mut Stac<R>, Handle) -> Result<T, Error>,
+    F: Fn(&mut Stac<R>, Handle) -> Result<T>,
 {
-    type Item = Result<T, Error>;
+    type Item = Result<T>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(handle) = self.handles.pop_front() {

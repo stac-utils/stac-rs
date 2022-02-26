@@ -1,4 +1,4 @@
-use crate::Error;
+use crate::{Error, Result};
 use path_slash::PathBufExt;
 use std::path::PathBuf;
 use url::Url;
@@ -111,7 +111,7 @@ impl Href {
     /// let item = base.join("./item/item.json").unwrap();
     /// assert_eq!(item.as_str(), "data/item/item.json");
     /// ```
-    pub fn join<T>(&self, href: T) -> Result<Href, Error>
+    pub fn join<T>(&self, href: T) -> Result<Href>
     where
         T: Into<Href>,
     {
@@ -236,7 +236,7 @@ impl Href {
     /// href.make_absolute().unwrap();
     /// let err = Href::new("not/a/real/path").make_absolute().unwrap_err();
     ///
-    pub fn make_absolute(&mut self) -> Result<(), Error> {
+    pub fn make_absolute(&mut self) -> Result<()> {
         if let Href::Path(path) = self {
             if let PathBufHref::Path(path) = PathBufHref::from(path.as_str()) {
                 let path = std::fs::canonicalize(path)?;
@@ -315,7 +315,7 @@ impl Href {
     /// item.rebase(&old_root_catalog, &new_root).unwrap();
     /// assert_eq!(item.as_str(), "a/new/base/item/item.json");
     /// ```
-    pub fn rebase(&mut self, from: &Href, to: &Href) -> Result<(), Error> {
+    pub fn rebase(&mut self, from: &Href, to: &Href) -> Result<()> {
         if let Href::Path(path) = self {
             if is_absolute(path) {
                 return Ok(());
