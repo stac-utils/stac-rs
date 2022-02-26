@@ -1,6 +1,5 @@
 use crate::{
-    Error, Href, HrefObject, Link, Object, ObjectHrefTuple, PathBufHref, Read, Reader, Result,
-    Write,
+    Error, Href, Layout, Link, Object, ObjectHrefTuple, PathBufHref, Read, Reader, Result, Write,
 };
 use indexmap::IndexSet;
 use std::collections::{HashMap, VecDeque};
@@ -515,22 +514,22 @@ impl<R: Read> Stac<R> {
         Ok(())
     }
 
-    fn render(&mut self) -> impl Iterator<Item = Result<HrefObject>> + '_ {
-        self.walk(self.root(), |stac, handle| {
-            stac.ensure_resolved(handle)?;
-            let node = stac.node_mut(handle);
-            let href = node.href.take().ok_or(Error::MissingHref)?;
-            let object = node.object.take().expect("resolved");
-            Ok(HrefObject { href, object })
-        })
+    /// Takes the href.
+    pub fn take_href(&mut self, handle: Handle) -> Option<Href> {
+        self.node_mut(handle).href.take()
+    }
+
+    /// Takes the object.
+    pub fn take(&mut self, handle: Handle) -> Option<Object> {
+        self.node_mut(handle).object.take()
     }
 
     /// Writes this [Stac], consuming it.
-    pub fn write<W>(mut self, writer: W) -> Result<()>
+    pub fn write<W>(mut self, layout: &Layout, writer: W) -> Result<()>
     where
         W: Write,
     {
-        for result in self.render() {
+        for result in layout.render(&mut self) {
             let href_object = result?;
             writer.write(href_object)?;
         }
