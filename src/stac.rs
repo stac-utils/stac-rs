@@ -1,4 +1,4 @@
-use crate::{Error, Href, Object, ObjectHrefTuple, PathBufHref, Read, Reader, Result};
+use crate::{Error, Href, Link, Object, ObjectHrefTuple, PathBufHref, Read, Reader, Result};
 use indexmap::IndexSet;
 use std::collections::{HashMap, VecDeque};
 
@@ -457,6 +457,41 @@ impl<R: Read> Stac<R> {
         .transpose()
     }
 
+    /// Adds a [Link] to an [Object].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac::{Stac, Catalog, Link};
+    /// let (mut stac, root) = Stac::new(Catalog::new("an-id")).unwrap();
+    /// stac.add_link(root, Link::new("an-href", "a-rel")).unwrap();
+    /// ```
+    pub fn add_link(&mut self, handle: Handle, link: Link) -> Result<()> {
+        self.ensure_resolved(handle)?;
+        self.node_mut(handle)
+            .object
+            .as_mut()
+            .expect("resolved")
+            .add_link(link);
+        Ok(())
+    }
+
+    /// Returns a vector of this object's children.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac::Stac;
+    /// let (stac, root) = Stac::read("data/catalog.json").unwrap();
+    /// let children = stac.children(root);
+    /// ```
+    pub fn children(&self, handle: Handle) -> Vec<Handle> {
+        self.node(handle).children.iter().cloned().collect()
+    }
+
+    // TODO add get by href
+
+    // TODO make sure to disconnect old parent
     fn connect(&mut self, parent: Handle, child: Handle) {
         self.node_mut(child).parent = Some(parent);
         let _ = self.node_mut(parent).children.insert(child);
