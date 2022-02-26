@@ -187,9 +187,40 @@ impl Object {
         }
     }
 
-    /// Gets the root link if there is one.
+    /// Returns the root link if there is one.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let object = stac::read("data/catalog.json").unwrap().object;
+    /// let root_link = object.root_link().unwrap();
+    /// ```
     pub fn root_link(&self) -> Option<&Link> {
         self.links().iter().find(|link| link.is_root())
+    }
+
+    /// Returns the parent link if there is one.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let object = stac::read("data/catalog.json").unwrap().object;
+    /// assert!(object.parent_link().is_none());
+    /// ```
+    pub fn parent_link(&self) -> Option<&Link> {
+        self.links().iter().find(|link| link.is_parent())
+    }
+
+    /// Iterates over the child links.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let object = stac::read("data/catalog.json").unwrap().object;
+    /// let child_links: Vec<_> = object.child_links().collect();
+    /// ```
+    pub fn child_links(&self) -> impl Iterator<Item = &Link> {
+        self.links().iter().filter(|link| link.is_child())
     }
 
     /// Adds a link to this object.
