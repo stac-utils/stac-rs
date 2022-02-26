@@ -5,3 +5,8 @@ set -e
 rm -rf target/criterion
 cargo criterion --history-id $(git describe)
 cp -r target/criterion/reports benches
+
+for file in $(find benches/reports -iname '*.svg'); do
+    sed -i.bak 's/svg width/svg style="background-color: white;" width/' $file
+    rm $file.bak
+done
