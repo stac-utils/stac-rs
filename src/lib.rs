@@ -200,6 +200,9 @@ pub use {
 /// The default STAC version supported by this library.
 pub const STAC_VERSION: &str = "1.0.0";
 
+/// Custom [Result](std::result::Result) type for this crate.
+pub type Result<T> = std::result::Result<T, Error>;
+
 /// Reads a STAC object from an href.
 ///
 /// # Examples
@@ -207,7 +210,7 @@ pub const STAC_VERSION: &str = "1.0.0";
 /// ```
 /// let catalog = stac::read("data/catalog.json").unwrap();
 /// ```
-pub fn read<T>(href: T) -> Result<HrefObject, Error>
+pub fn read<T>(href: T) -> Result<HrefObject>
 where
     T: Into<PathBufHref>,
 {
@@ -222,7 +225,7 @@ where
 /// ```
 /// let catalog = stac::read_catalog("data/catalog.json").unwrap();
 /// ```
-pub fn read_catalog<H>(href: H) -> Result<Catalog, Error>
+pub fn read_catalog<H>(href: H) -> Result<Catalog>
 where
     H: Into<PathBufHref>,
 {
@@ -237,7 +240,7 @@ where
 /// ```
 /// let collection = stac::read_collection("data/collection.json").unwrap();
 /// ```
-pub fn read_collection<H>(href: H) -> Result<Collection, Error>
+pub fn read_collection<H>(href: H) -> Result<Collection>
 where
     H: Into<PathBufHref>,
 {
@@ -252,7 +255,7 @@ where
 /// ```
 /// let item = stac::read_item("data/simple-item.json").unwrap();
 /// ```
-pub fn read_item<H>(href: H) -> Result<Item, Error>
+pub fn read_item<H>(href: H) -> Result<Item>
 where
     H: Into<PathBufHref>,
 {

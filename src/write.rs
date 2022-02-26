@@ -1,4 +1,4 @@
-use crate::{Error, HrefObject, PathBufHref};
+use crate::{Error, HrefObject, PathBufHref, Result};
 use serde_json::Value;
 use std::{fs::File, io::BufWriter};
 
@@ -16,7 +16,7 @@ pub trait Write {
     /// let writer = Writer::default();
     /// writer.write(object).unwrap();
     /// ```
-    fn write(&self, object: HrefObject) -> Result<(), Error> {
+    fn write(&self, object: HrefObject) -> Result<()> {
         let value = object.object.into_value()?;
         self.write_value(value, object.href)
     }
@@ -34,7 +34,7 @@ pub trait Write {
     /// let writer = Writer::default();
     /// writer.write_value(data, "baz.json").unwrap();
     /// ```
-    fn write_value<T>(&self, value: Value, href: T) -> Result<(), Error>
+    fn write_value<T>(&self, value: Value, href: T) -> Result<()>
     where
         T: Into<PathBufHref>;
 }
@@ -47,7 +47,7 @@ pub struct Writer {
 }
 
 impl Write for Writer {
-    fn write_value<T>(&self, value: Value, href: T) -> Result<(), Error>
+    fn write_value<T>(&self, value: Value, href: T) -> Result<()>
     where
         T: Into<PathBufHref>,
     {

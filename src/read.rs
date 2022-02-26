@@ -1,4 +1,4 @@
-use crate::{Error, HrefObject, Object, PathBufHref};
+use crate::{Error, HrefObject, Object, PathBufHref, Result};
 use serde_json::Value;
 use std::{fs::File, io::BufReader};
 use url::Url;
@@ -26,7 +26,7 @@ pub trait Read {
     /// let reader = Reader::default();
     /// let catalog = reader.read("data/catalog.json").unwrap();
     /// ```
-    fn read<T>(&self, href: T) -> Result<HrefObject, Error>
+    fn read<T>(&self, href: T) -> Result<HrefObject>
     where
         T: Into<PathBufHref>,
     {
@@ -47,7 +47,7 @@ pub trait Read {
     /// let reader = Reader::default();
     /// let catalog: Catalog = reader.read_struct("data/catalog.json").unwrap();
     /// ```
-    fn read_struct<H, O>(&self, href: H) -> Result<O, Error>
+    fn read_struct<H, O>(&self, href: H) -> Result<O>
     where
         H: Into<PathBufHref>,
         O: TryFrom<Object, Error = Error>,
@@ -69,7 +69,7 @@ pub trait Read {
     /// let value = reader.read_json("data/catalog.json").unwrap();
     /// assert_eq!(value.get("type").unwrap().as_str().unwrap(), "Catalog");
     /// ```
-    fn read_json<T: Into<PathBufHref>>(&self, href: T) -> Result<Value, Error>;
+    fn read_json<T: Into<PathBufHref>>(&self, href: T) -> Result<Value>;
 }
 
 /// A basic reader for STAC objects.
@@ -90,7 +90,7 @@ pub trait Read {
 pub struct Reader();
 
 impl Read for Reader {
-    fn read_json<T: Into<PathBufHref>>(&self, href: T) -> Result<Value, Error> {
+    fn read_json<T: Into<PathBufHref>>(&self, href: T) -> Result<Value> {
         match href.into() {
             PathBufHref::Path(path) => {
                 let file = File::open(path)?;
@@ -103,14 +103,14 @@ impl Read for Reader {
 }
 
 #[cfg(feature = "reqwest")]
-fn read_json_from_url(url: &Url) -> Result<Value, Error> {
+fn read_json_from_url(url: &Url) -> Result<Value> {
     reqwest::blocking::get(url.as_str())
         .and_then(|response| response.json())
         .map_err(Error::from)
 }
 
 #[cfg(not(feature = "reqwest"))]
-fn read_json_from_url(_: &Url) -> Result<Value, Error> {
+fn read_json_from_url(_: &Url) -> Result<Value> {
     Err(Error::ReqwestNotEnabled)
 }
 

@@ -1,5 +1,5 @@
 use crate::{
-    Catalog, Collection, Error, Href, Item, Link, CATALOG_TYPE, COLLECTION_TYPE, ITEM_TYPE,
+    Catalog, Collection, Error, Href, Item, Link, Result, CATALOG_TYPE, COLLECTION_TYPE, ITEM_TYPE,
 };
 
 /// A type used to pass either an [Object] or an [HrefObject] into functions.
@@ -41,7 +41,7 @@ impl Object {
     /// let value: serde_json::Value = serde_json::from_reader(reader).unwrap();
     /// let object = Object::from_value(value).unwrap();
     /// ```
-    pub fn from_value(value: serde_json::Value) -> Result<Object, Error> {
+    pub fn from_value(value: serde_json::Value) -> Result<Object> {
         if let Some(type_) = value.get(TYPE_FIELD) {
             if let Some(type_) = type_.as_str() {
                 match type_ {
@@ -221,7 +221,7 @@ impl Object {
     /// let object = Object::from(Item::new("an-id"));
     /// let value = object.into_value().unwrap();
     /// ```
-    pub fn into_value(self) -> Result<serde_json::Value, Error> {
+    pub fn into_value(self) -> Result<serde_json::Value> {
         match self {
             Object::Item(item) => serde_json::to_value(item).map_err(Error::from),
             Object::Catalog(catalog) => serde_json::to_value(catalog).map_err(Error::from),
@@ -305,7 +305,7 @@ impl From<Catalog> for ObjectHrefTuple {
 impl TryFrom<Object> for Catalog {
     type Error = Error;
 
-    fn try_from(object: Object) -> Result<Catalog, Error> {
+    fn try_from(object: Object) -> Result<Catalog> {
         match object {
             Object::Catalog(catalog) => Ok(catalog),
             _ => Err(Error::TypeMismatch {
@@ -319,7 +319,7 @@ impl TryFrom<Object> for Catalog {
 impl TryFrom<Object> for Collection {
     type Error = Error;
 
-    fn try_from(object: Object) -> Result<Collection, Error> {
+    fn try_from(object: Object) -> Result<Collection> {
         match object {
             Object::Collection(collection) => Ok(collection),
             _ => Err(Error::TypeMismatch {
@@ -333,7 +333,7 @@ impl TryFrom<Object> for Collection {
 impl TryFrom<Object> for Item {
     type Error = Error;
 
-    fn try_from(object: Object) -> Result<Item, Error> {
+    fn try_from(object: Object) -> Result<Item> {
         match object {
             Object::Item(item) => Ok(item),
             _ => Err(Error::TypeMismatch {
