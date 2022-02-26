@@ -23,7 +23,7 @@ YMMV.
 ### Read
 
 These benchmarks test how long it takes to read a STAC JSON from the local filesystem into an `Object`.
-It's not suprising there is some variability, since they require filesystem access.
+It's not surprising there is some variability, since they require filesystem access.
 
 #### Read item
 
