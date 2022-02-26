@@ -20,6 +20,7 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 - More `Href` documentation
 - Options to customize the `Walk` strategy
 - `Stac::set_href`
+- Coverage
 
 ## Changed
 
