@@ -515,22 +515,7 @@ impl<R: Read> Stac<R> {
         Ok(())
     }
 
-    /// Renders this [Stac] into an iterable of [HrefObjects](HrefObject).
-    ///
-    /// Returns an error if any objects don't have an [Href]. Moves all objects
-    /// and hrefs out of the [Stac], leaving it in an unusable state.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use stac::{Stac, Catalog, Result};
-    /// let (mut stac, root) = Stac::new(Catalog::new("root")).unwrap();
-    /// stac.set_href(root, "a/directory/catalog.json");
-    /// let objects = stac.render().collect::<Result<Vec<_>>>().unwrap();
-    /// assert_eq!(objects.len(), 1);
-    /// assert_eq!(objects[0].href.as_str(), "a/directory/catalog.json");
-    /// ```
-    pub fn render(&mut self) -> impl Iterator<Item = Result<HrefObject>> + '_ {
+    fn render(&mut self) -> impl Iterator<Item = Result<HrefObject>> + '_ {
         self.walk(self.root(), |stac, handle| {
             stac.ensure_resolved(handle)?;
             let node = stac.node_mut(handle);
