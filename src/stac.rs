@@ -286,6 +286,29 @@ impl<R: Read> Stac<R> {
         Ok(child)
     }
 
+    /// Connects a parent and a child.
+    ///
+    /// This will disconnect the child from its current parent, if there is one.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac::{Stac, Catalog};
+    /// let (mut stac, root) = Stac::new(Catalog::new("root")).unwrap();
+    /// let disconnected = stac.add(Catalog::new("lonely")).unwrap();
+    /// stac.connect(root, disconnected);
+    /// assert_eq!(stac.parent(disconnected).unwrap(), root);
+    /// ```
+    pub fn connect(&mut self, parent: Handle, child: Handle) {
+        if let Some(parent) = self.node(child).parent {
+            if !self.node_mut(parent).children.remove(&child) {
+                panic!("the child thought it had a parent but the parent didn't know about it");
+            }
+        }
+        self.node_mut(child).parent = Some(parent);
+        let _ = self.node_mut(parent).children.insert(child);
+    }
+
     /// Removes an [Object] from the [Stac].
     ///
     /// Unlinks all parents and children. Note that this will leave the children
@@ -490,12 +513,6 @@ impl<R: Read> Stac<R> {
     }
 
     // TODO add get by href
-
-    // TODO make sure to disconnect old parent
-    fn connect(&mut self, parent: Handle, child: Handle) {
-        self.node_mut(child).parent = Some(parent);
-        let _ = self.node_mut(parent).children.insert(child);
-    }
 
     fn disconnect(&mut self, parent: Handle, child: Handle) {
         self.node_mut(child).parent = None;
@@ -845,5 +862,14 @@ mod tests {
                 .unwrap(),
             child
         );
+    }
+
+    #[test]
+    fn disconnect_old_parent() {
+        let (mut stac, root) = Stac::new(Catalog::new("root")).unwrap();
+        let child1 = stac.add_child(root, Catalog::new("child1")).unwrap();
+        let child2 = stac.add_child(root, Catalog::new("child2")).unwrap();
+        stac.connect(child1, child2);
+        assert_eq!(stac.children(root).len(), 1);
     }
 }
