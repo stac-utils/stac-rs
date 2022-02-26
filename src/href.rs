@@ -445,6 +445,15 @@ impl From<String> for Href {
     }
 }
 
+impl From<Href> for String {
+    fn from(href: Href) -> String {
+        match href {
+            Href::Url(url) => url.to_string(),
+            Href::Path(path) => path,
+        }
+    }
+}
+
 impl From<&str> for PathBufHref {
     fn from(s: &str) -> PathBufHref {
         PathBufHref::new(s)
