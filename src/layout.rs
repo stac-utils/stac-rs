@@ -84,8 +84,8 @@ impl Layout {
     where
         R: Read,
     {
-        // TODO remove structural links
         if handle == stac.root() {
+            stac.remove_structural_links(handle)?;
             self.set_href(stac, handle)?;
         }
         let root_link = self.create_link(stac, handle, stac.root(), Link::root)?;
@@ -95,6 +95,7 @@ impl Layout {
             stac.add_link(handle, parent_link)?;
         }
         for child in stac.children(handle) {
+            stac.remove_structural_links(child)?;
             self.set_href(stac, child)?;
             let child_link = self.create_link(stac, handle, child, Link::child)?;
             stac.add_link(handle, child_link)?;
@@ -156,7 +157,7 @@ impl Layout {
 #[cfg(test)]
 mod tests {
     use super::Layout;
-    use crate::{Catalog, Collection, Item, Stac};
+    use crate::{Catalog, Collection, Item, Link, Stac};
 
     #[test]
     fn layout_best_practices() {
@@ -215,7 +216,19 @@ mod tests {
         assert_eq!(item.child_links().count(), 0);
     }
 
-    // TODO test that linking removes previous structura
+    #[test]
+    fn remove_previous_structural() {
+        let mut catalog = Catalog::new("root");
+        catalog.links.push(Link::child("data/simple-item.json"));
+        let (mut stac, root) = Stac::new(catalog).unwrap();
+        let children = stac.children(root);
+        assert_eq!(children.len(), 1);
+        let _ = stac.remove(children[0]);
+        let layout = Layout::new("stac/v0");
+        layout.layout(&mut stac).unwrap();
+        let root = stac.get(root).unwrap();
+        assert_eq!(root.child_links().count(), 0);
+    }
 
     #[test]
     fn render_spec() {
