@@ -89,6 +89,7 @@ struct Node {
     children: IndexSet<Handle>,
     parent: Option<Handle>,
     href: Option<Href>,
+    next_href: Option<Href>,
     is_from_item_link: bool,
 }
 
@@ -430,14 +431,39 @@ impl<R: Read> Stac<R> {
         if let Some(other) = self.hrefs.insert(href.clone(), handle) {
             let _ = self.node_mut(other).href.take();
         }
-        if let Some(href) = self.node_mut(handle).href.replace(href) {
-            assert_eq!(
-                self.hrefs
-                    .remove(&href)
-                    .expect("there should be an entry in hrefs"),
-                handle
-            );
-        }
+        let _ = self.node_mut(handle).href.replace(href);
+    }
+
+    /// Gets the `next_href` for the object.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac::Stac;
+    /// let (mut stac, root) = Stac::read("data/catalog.json").unwrap();
+    /// assert!(stac.next_href(root).is_none());
+    /// stac.set_next_href(root, "a/new/href/catalog.json");
+    /// assert_eq!(stac.next_href(root).unwrap().as_str(), "a/new/href/catalog.json");
+    /// ```
+    pub fn next_href(&self, handle: Handle) -> Option<&Href> {
+        self.node(handle).next_href.as_ref()
+    }
+
+    /// Sets the `next_href` for the object.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac::{Stac, Catalog};
+    /// let (mut stac, root) = Stac::new(Catalog::new("root")).unwrap();
+    /// stac.set_next_href(root, "a/new/href/catalog.json");
+    /// assert_eq!(stac.next_href(root).unwrap().as_str(), "a/new/href/catalog.json");
+    /// ```
+    pub fn set_next_href<H>(&mut self, handle: Handle, href: H)
+    where
+        H: Into<Href>,
+    {
+        self.node_mut(handle).next_href = Some(href.into());
     }
 
     /// Returns a [Walk] iterator, which visits all objects in a [Stac] (by default).
@@ -541,11 +567,6 @@ impl<R: Read> Stac<R> {
             .expect("resolved")
             .add_link(link);
         Ok(())
-    }
-
-    /// Takes the href.
-    pub fn take_href(&mut self, handle: Handle) -> Option<Href> {
-        self.node_mut(handle).href.take()
     }
 
     /// Takes the object.

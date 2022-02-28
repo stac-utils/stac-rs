@@ -113,6 +113,7 @@
 //! The structure of a STAC catalog is defined by its [Links](Link).
 //! The process of translating a [Stac] tree into a set of `child`, `item`, `parent`, and `root` links is handled by the [Layout] structure.
 //! By default, a `Layout` uses the [best practices](https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#catalog-layout) provided by the STAC specification.
+//! The source `href` is not modified, if it exists; instead, each object has a `next_href` attribute that indicates where it will eventually be written to.
 //!
 //! ```
 //! use stac::{Stac, Layout, Catalog, Collection, Item};
@@ -120,17 +121,17 @@
 //! let collection = stac.add_child(root, Collection::new("the-collection")).unwrap();
 //! let item = stac.add_child(collection, Item::new("an-item")).unwrap();
 //! let layout = Layout::new("my/stac/v0");
-//! layout.layout(&mut stac).collect::<Result<Vec<_>, _>>().unwrap();
+//! layout.layout(&mut stac).unwrap();
 //! assert_eq!(
-//!     stac.href(root).unwrap().as_str(),
+//!     stac.next_href(root).unwrap().as_str(),
 //!     "my/stac/v0/catalog.json"
 //! );
 //! assert_eq!(
-//!     stac.href(collection).unwrap().as_str(),
+//!     stac.next_href(collection).unwrap().as_str(),
 //!     "my/stac/v0/the-collection/collection.json"
 //! );
 //! assert_eq!(
-//!     stac.href(item).unwrap().as_str(),
+//!     stac.next_href(item).unwrap().as_str(),
 //!     "my/stac/v0/the-collection/an-item/an-item.json"
 //! );
 //! ```
