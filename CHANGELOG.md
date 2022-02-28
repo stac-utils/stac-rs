@@ -22,6 +22,13 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 - `Stac::set_href`
 - Coverage
 - Crate-specific `Result`
+- `Href::directory`
+- `impl From<Href> for String`
+- `Object::parent_link` and `Object::child_links`
+- `Stac::add_link` and `Stac::children`
+- `Layout`
+- `next_href` for `Stac` for rendering
+- Pull request template
 
 ## Changed
 
@@ -29,6 +36,9 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 - Generalized `Stac::find_child` to `Stac::find`
 - Made `PathBufHref::new` public
 - Cannot remove the root of a `Stac`
+- `Href::make_relative` returns an absolute href if it can't be made relative
+- Benchmark plots now have white backgrounds
+- Reqwest test is ignored by default to speed up unit tests
 
 ## Fixed
 
