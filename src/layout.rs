@@ -28,15 +28,12 @@ impl Layout {
     }
 
     /// Renders a [Stac].
-    pub fn render<'l, 's, R>(
-        &'l self,
-        stac: &'s mut Stac<R>,
-    ) -> impl Iterator<Item = Result<HrefObject>> + 's
+    pub fn render<'a, R>(&'a self, stac: Stac<R>) -> impl Iterator<Item = Result<HrefObject>> + 'a
     where
-        R: Read,
-        'l: 's,
+        R: Read + 'a,
     {
-        stac.walk(stac.root(), |stac, handle| {
+        let root = stac.root();
+        stac.into_walk(root, |stac, handle| {
             self.layout_one(stac, handle)?;
             let href = stac.take_href(handle).expect("href set during layout");
             let object = stac.take(handle).expect("resolved during layout");

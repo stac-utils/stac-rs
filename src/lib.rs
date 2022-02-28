@@ -141,7 +141,7 @@
 //! This can be done via an iterator, so an entire STAC catalog does not have to be loaded into the `Stac` all at once:
 //!
 //! ```no_run
-//! use stac::{Stac, Layout, Writer};
+//! use stac::{Stac, Layout, Writer, Write};
 //! let (stac, _) = Stac::read("data/catalog.json").unwrap();
 //! let layout = Layout::new("my/stac/v0");
 //! let writer = Writer::default();
