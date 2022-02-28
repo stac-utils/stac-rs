@@ -1,6 +1,11 @@
 use crate::{Error, Handle, Href, HrefObject, Link, Object, Read, Result, Stac};
 
 /// Lay out a [Stac].
+///
+/// The layout process consists of a couple steps:
+///
+/// 1. Setting the `next_href` on all [Objects](Object) in the [Stac].
+/// 2. Creating "structural" links (`parent`, `child`, `item`, and `root`) between all `Objects`.
 #[derive(Debug)]
 pub struct Layout {
     root: Href,
@@ -8,6 +13,13 @@ pub struct Layout {
 
 impl Layout {
     /// Creates a new `Layout`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::Layout;
+    /// let layout = Layout::new("the/new/root");
+    /// ```
     pub fn new<H>(root: H) -> Layout
     where
         H: Into<Href>,
@@ -16,18 +28,42 @@ impl Layout {
     }
 
     /// Lays out a [Stac].
-    pub fn layout<'l, 's, R>(
-        &'l self,
-        stac: &'s mut Stac<R>,
-    ) -> impl Iterator<Item = Result<()>> + 's
+    ///
+    /// Note that this function will load the entire STAC catalog into memory.
+    /// If you want to walk over the laid-out objects iteratively, use [render](Layout::render).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::{Stac, Layout};
+    /// let (mut stac, root) = Stac::read("data/catalog.json").unwrap();
+    /// let layout = Layout::new("a/new/root");
+    /// layout.layout(&mut stac).unwrap();
+    /// assert_eq!(stac.next_href(root).unwrap().as_str(), "a/new/root/catalog.json");
+    /// ```
+    pub fn layout<R>(&self, stac: &mut Stac<R>) -> Result<()>
     where
         R: Read,
-        'l: 's,
     {
-        stac.walk(stac.root(), |stac, handle| self.layout_one(stac, handle))
+        for result in stac.walk(stac.root(), |stac, handle| self.layout_one(stac, handle)) {
+            let _ = result?;
+        }
+        Ok(())
     }
 
-    /// Renders a [Stac].
+    /// Renders a [Stac], consuming it.
+    ///
+    /// This returns an iterator over the laid-out [HrefObjects](HrefObject) in a [Stac].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::{Stac, Layout};
+    /// let (mut stac, _) = Stac::read("data/catalog.json").unwrap();
+    /// let layout = Layout::new("a/new/root");
+    /// let href_objects = layout.render(stac).collect::<Result<Vec<_>, _>>().unwrap();
+    /// assert_eq!(href_objects.len(), 6);
+    /// ```
     pub fn render<'a, R>(&'a self, stac: Stac<R>) -> impl Iterator<Item = Result<HrefObject>> + 'a
     where
         R: Read + 'a,
@@ -35,7 +71,10 @@ impl Layout {
         let root = stac.root();
         stac.into_walk(root, |stac, handle| {
             self.layout_one(stac, handle)?;
-            let href = stac.take_href(handle).expect("href set during layout");
+            let href = stac
+                .next_href(handle)
+                .expect("href set during layout")
+                .clone();
             let object = stac.take(handle).expect("resolved during layout");
             Ok(HrefObject { href, object })
         })
@@ -77,8 +116,11 @@ impl Layout {
         R: Read,
     {
         let mut href = if let Some(parent) = stac.parent(handle) {
-            let mut directory =
-                String::from(stac.href(parent).ok_or(Error::MissingHref)?.directory());
+            let mut directory = String::from(
+                stac.next_href(parent)
+                    .ok_or(Error::MissingHref)?
+                    .directory(),
+            );
             directory.push('/');
             directory.push_str(stac.get(handle)?.id());
             directory
@@ -92,7 +134,7 @@ impl Layout {
             Object::Collection(_) => href.push_str("collection"),
         }
         href.push_str(".json");
-        stac.set_href(handle, href);
+        stac.set_next_href(handle, href);
         Ok(())
     }
 
@@ -101,8 +143,8 @@ impl Layout {
         R: Read,
         F: Fn(String) -> Link,
     {
-        let from_href = stac.href(from).ok_or(Error::MissingHref)?;
-        let to_href = stac.href(to).ok_or(Error::MissingHref)?;
+        let from_href = stac.next_href(from).ok_or(Error::MissingHref)?;
+        let to_href = stac.next_href(to).ok_or(Error::MissingHref)?;
         // TODO allow for absolute hrefs
         let href = from_href.make_relative(to_href.clone());
         let mut link = f(href.into());
@@ -114,7 +156,7 @@ impl Layout {
 #[cfg(test)]
 mod tests {
     use super::Layout;
-    use crate::{Catalog, Collection, Item, Result, Stac};
+    use crate::{Catalog, Collection, Item, Stac};
 
     #[test]
     fn layout_best_practices() {
@@ -125,12 +167,12 @@ mod tests {
             .unwrap();
         let item = stac.add_child(collection, Item::new("an-item")).unwrap();
         let layout = Layout::new("stac/root");
-        let _ = layout
-            .layout(&mut stac)
-            .collect::<Result<Vec<()>>>()
-            .unwrap();
+        let _ = layout.layout(&mut stac).unwrap();
 
-        assert_eq!(stac.href(root).unwrap().as_str(), "stac/root/catalog.json");
+        assert_eq!(
+            stac.next_href(root).unwrap().as_str(),
+            "stac/root/catalog.json"
+        );
         let root = stac.get(root).unwrap();
         assert_eq!(root.root_link().as_ref().unwrap().href, "./catalog.json");
         assert!(root.parent_link().is_none());
@@ -140,7 +182,7 @@ mod tests {
         assert_eq!(child_link.href, "./child-collection/collection.json");
 
         assert_eq!(
-            stac.href(collection).unwrap().as_str(),
+            stac.next_href(collection).unwrap().as_str(),
             "stac/root/child-collection/collection.json"
         );
         let collection = stac.get(collection).unwrap();
@@ -158,7 +200,7 @@ mod tests {
         assert_eq!(child_link.href, "./an-item/an-item.json");
 
         assert_eq!(
-            stac.href(item).unwrap().as_str(),
+            stac.next_href(item).unwrap().as_str(),
             "stac/root/child-collection/an-item/an-item.json"
         );
         let item = stac.get(item).unwrap();
@@ -174,4 +216,12 @@ mod tests {
     }
 
     // TODO test that linking removes previous structura
+
+    #[test]
+    fn render_spec() {
+        let (stac, _) = Stac::read("data/catalog.json").unwrap();
+        let layout = Layout::new("a/new/root");
+        let href_objects = layout.render(stac).collect::<Result<Vec<_>, _>>().unwrap();
+        assert_eq!(href_objects.len(), 6);
+    }
 }
