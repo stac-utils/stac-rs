@@ -33,7 +33,6 @@ cargo run --examples copy data/catalog.json tmp
 ## Development
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for information about contributing to this project.
-See [RELEASING.md](./RELEASING.md) for instructions on releasing a new version.
 
 ## License
 

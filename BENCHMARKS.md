@@ -15,10 +15,23 @@ Then, run the script:
 scripts/bench
 ```
 
+To compare your current branch with the last release, use `scripts/bench_compare`.
+
 ## Results
 
 These results are from benchmarking runs on @gadomski's laptop.
 YMMV.
+
+```text
+test layout-items/1 ... bench:        3347 ns/iter (+/- 213)
+test layout-items/10 ... bench:       23518 ns/iter (+/- 2097)
+test layout-items/100 ... bench:      226172 ns/iter (+/- 13243)
+test layout-items/1000 ... bench:     2381382 ns/iter (+/- 324508)
+test layout-items/10000 ... bench:    27671788 ns/iter (+/- 1060171)
+test read-item ... bench:             49634 ns/iter (+/- 5360)
+test read-collection ... bench:       70900 ns/iter (+/- 6810)
+test read-catalog ... bench:          36784 ns/iter (+/- 4045)
+```
 
 ### Layout
 
