@@ -127,6 +127,7 @@ mod tests {
 
     #[cfg(feature = "reqwest")]
     #[test]
+    #[ignore]
     fn read_url() {
         let reader = Reader::default();
         let _ = reader
