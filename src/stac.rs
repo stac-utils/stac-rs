@@ -56,6 +56,22 @@ where
     handles: VecDeque<Handle>,
     stac: &'a mut Stac<R>,
     f: F,
+    options: WalkOptions,
+}
+
+#[derive(Debug)]
+pub(crate) struct OwnedWalk<R: Read, F, T>
+where
+    F: Fn(&mut Stac<R>, Handle) -> Result<T>,
+{
+    handles: VecDeque<Handle>,
+    stac: Stac<R>,
+    f: F,
+    options: WalkOptions,
+}
+
+#[derive(Debug)]
+struct WalkOptions {
     depth_first: bool,
     strategy: WalkStrategy,
 }
@@ -454,8 +470,21 @@ impl<R: Read> Stac<R> {
             handles,
             stac: self,
             f,
-            depth_first: false,
-            strategy: WalkStrategy::All,
+            options: WalkOptions::default(),
+        }
+    }
+
+    pub(crate) fn into_walk<F, T>(self, handle: Handle, f: F) -> OwnedWalk<R, F, T>
+    where
+        F: Fn(&mut Stac<R>, Handle) -> Result<T>,
+    {
+        let mut handles = VecDeque::new();
+        handles.push_front(handle);
+        OwnedWalk {
+            handles,
+            stac: self,
+            f,
+            options: WalkOptions::default(),
         }
     }
 
@@ -525,11 +554,11 @@ impl<R: Read> Stac<R> {
     }
 
     /// Writes this [Stac], consuming it.
-    pub fn write<W>(mut self, layout: &Layout, writer: W) -> Result<()>
+    pub fn write<W>(self, layout: &Layout, writer: W) -> Result<()>
     where
         W: Write,
     {
-        for result in layout.render(&mut self) {
+        for result in layout.render(self) {
             let href_object = result?;
             writer.write(href_object)?;
         }
@@ -644,7 +673,7 @@ where
     /// }
     /// ```
     pub fn depth_first(mut self) -> Walk<'a, R, F, T> {
-        self.depth_first = true;
+        self.options.depth_first = true;
         self
     }
 
@@ -665,7 +694,7 @@ where
     /// assert_eq!(ids.len(), 4);
     /// ```
     pub fn skip_items(mut self) -> Walk<'a, R, F, T> {
-        self.strategy = WalkStrategy::SkipItems;
+        self.options.strategy = WalkStrategy::SkipItems;
         self
     }
 
@@ -686,7 +715,7 @@ where
     /// assert_eq!(ids.len(), 2);
     /// ```
     pub fn items_only(mut self) -> Walk<'a, R, F, T> {
-        self.strategy = WalkStrategy::ItemsOnly;
+        self.options.strategy = WalkStrategy::ItemsOnly;
         self
     }
 }
@@ -698,49 +727,82 @@ where
     type Item = Result<T>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if let Some(handle) = self.handles.pop_front() {
-            if let Err(err) = self.stac.ensure_resolved(handle) {
-                self.handles.clear();
-                Some(Err(err))
-            } else {
-                match (self.f)(self.stac, handle) {
-                    Ok(value) => {
-                        let mut children = VecDeque::new();
-                        for &child in &self.stac.node(handle).children {
-                            if !(matches!(self.strategy, WalkStrategy::SkipItems)
-                                && self.stac.is_item(child))
-                            {
-                                if self.depth_first {
-                                    children.push_front(child);
-                                } else {
-                                    children.push_back(child);
-                                }
-                            }
-                        }
-                        if self.depth_first {
-                            for child in children {
-                                self.handles.push_front(child);
-                            }
-                        } else {
-                            self.handles.extend(children)
-                        }
-                        if !(matches!(self.strategy, WalkStrategy::ItemsOnly)
-                            && !self.stac.is_item(handle))
+        walk(&mut self.handles, &mut self.stac, &self.f, &self.options)
+    }
+}
+
+impl<R: Read, F, T> Iterator for OwnedWalk<R, F, T>
+where
+    F: Fn(&mut Stac<R>, Handle) -> Result<T>,
+{
+    type Item = Result<T>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        walk(&mut self.handles, &mut self.stac, &self.f, &self.options)
+    }
+}
+
+impl Default for WalkOptions {
+    fn default() -> WalkOptions {
+        WalkOptions {
+            depth_first: false,
+            strategy: WalkStrategy::All,
+        }
+    }
+}
+
+fn walk<R, F, T>(
+    handles: &mut VecDeque<Handle>,
+    stac: &mut Stac<R>,
+    f: F,
+    options: &WalkOptions,
+) -> Option<Result<T>>
+where
+    R: Read,
+    F: Fn(&mut Stac<R>, Handle) -> Result<T>,
+{
+    if let Some(handle) = handles.pop_front() {
+        if let Err(err) = stac.ensure_resolved(handle) {
+            handles.clear();
+            Some(Err(err))
+        } else {
+            match (f)(stac, handle) {
+                Ok(value) => {
+                    let mut children = VecDeque::new();
+                    for &child in &stac.node(handle).children {
+                        if !(matches!(options.strategy, WalkStrategy::SkipItems)
+                            && stac.is_item(child))
                         {
-                            Some(Ok(value))
-                        } else {
-                            self.next()
+                            if options.depth_first {
+                                children.push_front(child);
+                            } else {
+                                children.push_back(child);
+                            }
                         }
                     }
-                    Err(err) => {
-                        self.handles.clear();
-                        Some(Err(err))
+                    if options.depth_first {
+                        for child in children {
+                            handles.push_front(child);
+                        }
+                    } else {
+                        handles.extend(children)
+                    }
+                    if !(matches!(options.strategy, WalkStrategy::ItemsOnly)
+                        && !stac.is_item(handle))
+                    {
+                        Some(Ok(value))
+                    } else {
+                        walk(handles, stac, f, options)
                     }
                 }
+                Err(err) => {
+                    handles.clear();
+                    Some(Err(err))
+                }
             }
-        } else {
-            None
         }
+    } else {
+        None
     }
 }
 
