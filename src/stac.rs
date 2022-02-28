@@ -569,13 +569,32 @@ impl<R: Read> Stac<R> {
         Ok(())
     }
 
-    /// Takes the object.
+    /// Takes the object out of the [Stac].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac::{Stac, Catalog};
+    /// let catalog = Catalog::new("root");
+    /// let (mut stac, root) = Stac::new(catalog.clone()).unwrap();
+    /// assert_eq!(stac.take(root).unwrap().as_catalog().unwrap(), &catalog);
+    /// ```
     pub fn take(&mut self, handle: Handle) -> Option<Object> {
         self.node_mut(handle).object.take()
     }
 
     /// Writes this [Stac], consuming it.
-    pub fn write<W>(self, layout: &Layout, writer: W) -> Result<()>
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use stac::{Stac, Layout, Catalog, Writer, Write};
+    /// let (stac, _) = Stac::new(Catalog::new("root")).unwrap();
+    /// let layout = Layout::new("stac/v0");
+    /// let writer = Writer::default();
+    /// stac.write(&layout, &writer).unwrap();
+    /// ```
+    pub fn write<W>(self, layout: &Layout, writer: &W) -> Result<()>
     where
         W: Write,
     {
@@ -618,7 +637,7 @@ impl<R: Read> Stac<R> {
                 let href_object = self.reader.read(href)?;
                 self.set_object(handle, href_object)?;
             } else {
-                panic!("should not be able to get a node w/o an object or an href")
+                return Err(Error::UnresolvableNode);
             }
         }
         Ok(())

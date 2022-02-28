@@ -1,7 +1,7 @@
 use criterion::{
     criterion_group, criterion_main, AxisScale, BenchmarkId, Criterion, PlotConfiguration,
 };
-use stac::{Catalog, Item, Layout, Result, Stac};
+use stac::{Catalog, Item, Layout, Stac};
 
 fn layout_items(c: &mut Criterion) {
     let plot_config = PlotConfiguration::default().summary_scale(AxisScale::Logarithmic);
@@ -16,10 +16,7 @@ fn layout_items(c: &mut Criterion) {
             }
             let layout = Layout::new("root");
             b.iter(|| {
-                let _ = layout
-                    .layout(&mut stac)
-                    .collect::<Result<Vec<()>>>()
-                    .unwrap();
+                let _ = layout.layout(&mut stac).unwrap();
             })
         });
     }
