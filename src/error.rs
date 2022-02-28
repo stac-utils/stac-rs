@@ -64,6 +64,10 @@ pub enum Error {
         actual: String,
     },
 
+    /// Returned if a node doesn't have an href or an object.
+    #[error("unresolvable node")]
+    UnresolvableNode,
+
     /// [url::ParseError]
     #[error("url parse error: {0}")]
     Url(#[from] url::ParseError),

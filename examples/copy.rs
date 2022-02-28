@@ -1,6 +1,6 @@
 //! Copies a STAC catalog from one location to the other.
 
-use stac::Stac;
+use stac::{Layout, Stac, Writer};
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -12,8 +12,10 @@ fn main() {
         );
     }
     let infile = &args[1];
-    let _ = &args[2];
+    let outdir = &args[2];
 
-    let (_, _) = Stac::read(infile).unwrap();
-    // TODO
+    let (stac, _) = Stac::read(infile).unwrap();
+    let layout = Layout::new(outdir);
+    let writer = Writer::default();
+    stac.write(&layout, &writer).unwrap();
 }
