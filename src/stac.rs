@@ -586,7 +586,16 @@ impl<R: Read> Stac<R> {
         Ok(())
     }
 
-    // TODO add get by href
+    pub(crate) fn remove_structural_links(&mut self, handle: Handle) -> Result<()> {
+        self.ensure_resolved(handle)?;
+        self.node_mut(handle)
+            .object
+            .as_mut()
+            .expect("resolved")
+            .links_mut()
+            .retain(|link| !link.is_structural());
+        Ok(())
+    }
 
     fn disconnect(&mut self, parent: Handle, child: Handle) {
         self.node_mut(child).parent = None;

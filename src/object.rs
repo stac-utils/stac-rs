@@ -259,6 +259,14 @@ impl Object {
             Object::Collection(collection) => serde_json::to_value(collection).map_err(Error::from),
         }
     }
+
+    pub(crate) fn links_mut(&mut self) -> &mut Vec<Link> {
+        match self {
+            Object::Item(item) => &mut item.links,
+            Object::Catalog(catalog) => &mut catalog.links,
+            Object::Collection(collection) => &mut collection.links,
+        }
+    }
 }
 
 impl HrefObject {
