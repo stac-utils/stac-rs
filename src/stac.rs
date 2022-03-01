@@ -1,5 +1,6 @@
 use crate::{
-    Error, Href, Layout, Link, Object, ObjectHrefTuple, PathBufHref, Read, Reader, Result, Write,
+    Error, Href, Layout, Link, NextHref, Object, ObjectHrefTuple, PathBufHref, Read, Reader,
+    Result, Write,
 };
 use indexmap::IndexSet;
 use std::collections::{HashMap, VecDeque};
@@ -436,6 +437,8 @@ impl<R: Read> Stac<R> {
 
     /// Gets the `next_href` for the object.
     ///
+    /// The `next_href` is used when rendering the [Stac] into an iterable of [HrefObjects](crate::HrefObject).
+    ///
     /// # Examples
     ///
     /// ```
@@ -450,6 +453,8 @@ impl<R: Read> Stac<R> {
     }
 
     /// Sets the `next_href` for the object.
+    ///
+    /// The `next_href` is used when rendering the [Stac] into an iterable of [HrefObjects](crate::HrefObject).
     ///
     /// # Examples
     ///
@@ -594,8 +599,9 @@ impl<R: Read> Stac<R> {
     /// let writer = Writer::default();
     /// stac.write(&layout, &writer).unwrap();
     /// ```
-    pub fn write<W>(self, layout: &Layout, writer: &W) -> Result<()>
+    pub fn write<N, W>(self, layout: &Layout<N>, writer: &W) -> Result<()>
     where
+        N: NextHref,
         W: Write,
     {
         for result in layout.render(self) {

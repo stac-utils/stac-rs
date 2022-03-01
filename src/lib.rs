@@ -230,7 +230,7 @@ pub use {
     extent::{Extent, SpatialExtent, TemporalExtent},
     href::{Href, PathBufHref},
     item::{Item, ITEM_TYPE},
-    layout::Layout,
+    layout::{BestPractices, Layout, NextHref, Rebase},
     link::Link,
     object::{HrefObject, Object, ObjectHrefTuple},
     properties::Properties,
