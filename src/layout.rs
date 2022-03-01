@@ -1,3 +1,5 @@
+use std::marker::PhantomData;
+
 use crate::{Error, Handle, Href, HrefObject, Link, Object, Read, Result, Stac};
 
 /// Lay out a [Stac].
@@ -7,12 +9,80 @@ use crate::{Error, Handle, Href, HrefObject, Link, Object, Read, Result, Stac};
 /// 1. Setting the `next_href` on all [Objects](Object) in the [Stac].
 /// 2. Creating "structural" links (`parent`, `child`, `item`, and `root`) between all `Objects`.
 #[derive(Debug)]
-pub struct Layout {
+pub struct Layout<N: NextHref> {
     root: Href,
+    phantom: PhantomData<N>,
 }
 
-impl Layout {
+/// Returns the `next_href` for an [Object] in a [Stac].
+///
+/// You can implement your own layout structure by implementing `NextHref`.
+///
+/// # Examples
+///
+/// [Rebase] implements `NextHref`:
+///
+/// ```
+/// use stac::{Layout, Rebase};
+/// let layout = Layout::new("a/new/root").with_next_href(Rebase);
+/// ```
+pub trait NextHref {
+    /// Returns the next [Href] for an [Object] in a [Stac].
+    ///
+    /// The `next_href` is used when rendering `Objects` to `HrefObjects`.
+    ///
+    /// # Examples
+    ///
+    /// [BestPractices] implements [NextHref]:
+    ///
+    /// ```
+    /// use stac::{Href, Catalog, Item, Stac, BestPractices, NextHref};
+    /// let (mut stac, root) = Stac::new(Catalog::new("root")).unwrap();
+    /// let item = stac.add_child(root, Item::new("an-item")).unwrap();
+    /// let root_href = Href::new("new/root/");
+    /// let href = BestPractices::next_href(&root_href, &mut stac, root).unwrap();
+    /// assert_eq!(href.as_str(), "new/root/catalog.json");
+    /// stac.set_next_href(root, href);
+    /// let href = BestPractices::next_href(&root_href, &mut stac, item).unwrap();
+    /// assert_eq!(href.as_str(), "new/root/an-item/an-item.json");
+    /// ```
+    fn next_href<R>(root: &Href, stac: &mut Stac<R>, handle: Handle) -> Result<Href>
+    where
+        R: Read;
+}
+
+/// Returns [Hrefs](Href) according to the STAC [best practices](https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#catalog-layout).
+///
+/// # Examples
+///
+/// ```
+/// use stac::{Stac, Catalog, Href, BestPractices, NextHref};
+/// let (mut stac, root) = Stac::new(Catalog::new("root")).unwrap();
+/// let root_href = Href::new("a/new/root/");
+/// let href = BestPractices::next_href(&root_href, &mut stac, root).unwrap();
+/// assert_eq!(href.as_str(), "a/new/root/catalog.json");
+/// ```
+#[derive(Debug)]
+pub struct BestPractices;
+
+/// Returns a next [Hrefs](Href) that moves objects from one root directory to another.
+///
+/// # Examples
+///
+/// ```
+/// use stac::{Stac, Catalog, Href, Rebase, HrefObject, NextHref};
+/// let (mut stac, root) = Stac::new(HrefObject::new(Catalog::new("root"), "old/path/catalog.json")).unwrap();
+/// let root_href = Href::new("a/new/root/");
+/// let href = Rebase::next_href(&root_href, &mut stac, root).unwrap();
+/// assert_eq!(href.as_str(), "a/new/root/catalog.json");
+/// ```
+#[derive(Debug)]
+pub struct Rebase;
+
+impl Layout<BestPractices> {
     /// Creates a new `Layout`.
+    ///
+    /// The root should be a directory, not a file name.
     ///
     /// # Examples
     ///
@@ -20,11 +90,36 @@ impl Layout {
     /// use stac::Layout;
     /// let layout = Layout::new("the/new/root");
     /// ```
-    pub fn new<H>(root: H) -> Layout
+    pub fn new<H>(root: H) -> Layout<BestPractices>
     where
         H: Into<Href>,
     {
-        Self { root: root.into() }
+        let mut root = root.into();
+        root.ensure_ends_in_slash();
+        Self {
+            root: root.into(),
+            phantom: PhantomData,
+        }
+    }
+}
+
+impl<N: NextHref> Layout<N> {
+    /// Changes how [Hrefs](Href) are set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::{Layout, Rebase};
+    /// let layout = Layout::new("a/new/root").with_next_href(Rebase);
+    /// ```
+    pub fn with_next_href<T>(self, _: T) -> Layout<T>
+    where
+        T: NextHref,
+    {
+        Layout {
+            root: self.root,
+            phantom: PhantomData,
+        }
     }
 
     /// Lays out a [Stac].
@@ -86,7 +181,7 @@ impl Layout {
     {
         if handle == stac.root() {
             stac.remove_structural_links(handle)?;
-            self.set_href(stac, handle)?;
+            self.set_next_href(stac, handle)?;
         }
         let root_link = self.create_link(stac, handle, stac.root(), Link::root)?;
         stac.add_link(handle, root_link)?;
@@ -96,7 +191,7 @@ impl Layout {
         }
         for child in stac.children(handle) {
             stac.remove_structural_links(child)?;
-            self.set_href(stac, child)?;
+            self.set_next_href(stac, child)?;
             let child_link = self.create_link(stac, handle, child, Link::child)?;
             stac.add_link(handle, child_link)?;
         }
@@ -104,37 +199,11 @@ impl Layout {
         Ok(())
     }
 
-    fn set_href<R>(&self, stac: &mut Stac<R>, handle: Handle) -> Result<()>
+    fn set_next_href<R>(&self, stac: &mut Stac<R>, handle: Handle) -> Result<()>
     where
         R: Read,
     {
-        // TODO add rebase option
-        self.best_practices(stac, handle)
-    }
-
-    fn best_practices<R>(&self, stac: &mut Stac<R>, handle: Handle) -> Result<()>
-    where
-        R: Read,
-    {
-        let mut href = if let Some(parent) = stac.parent(handle) {
-            let mut directory = String::from(
-                stac.next_href(parent)
-                    .ok_or(Error::MissingHref)?
-                    .directory(),
-            );
-            directory.push('/');
-            directory.push_str(stac.get(handle)?.id());
-            directory
-        } else {
-            String::from(self.root.as_str())
-        };
-        href.push('/');
-        match stac.get(handle)? {
-            Object::Item(item) => href.push_str(&item.id),
-            Object::Catalog(_) => href.push_str("catalog"),
-            Object::Collection(_) => href.push_str("collection"),
-        }
-        href.push_str(".json");
+        let href = <N as NextHref>::next_href(&self.root, stac, handle)?;
         stac.set_next_href(handle, href);
         Ok(())
     }
@@ -154,10 +223,55 @@ impl Layout {
     }
 }
 
+impl NextHref for BestPractices {
+    fn next_href<R>(root: &Href, stac: &mut Stac<R>, handle: Handle) -> Result<Href>
+    where
+        R: Read,
+    {
+        let mut href = if let Some(parent) = stac.parent(handle) {
+            let mut directory = String::from(
+                stac.next_href(parent)
+                    .ok_or(Error::MissingHref)?
+                    .directory(),
+            );
+            directory.push('/');
+            directory.push_str(stac.get(handle)?.id());
+            directory.push('/');
+            directory
+        } else {
+            String::from(root.as_str())
+        };
+        match stac.get(handle)? {
+            Object::Item(item) => href.push_str(&item.id),
+            Object::Catalog(_) => href.push_str("catalog"),
+            Object::Collection(_) => href.push_str("collection"),
+        }
+        href.push_str(".json");
+        Ok(Href::new(href))
+    }
+}
+
+impl NextHref for Rebase {
+    fn next_href<R>(root: &Href, stac: &mut Stac<R>, handle: Handle) -> Result<Href>
+    where
+        R: Read,
+    {
+        if handle == stac.root() {
+            let file_name = stac.href(handle).ok_or(Error::MissingHref)?.file_name();
+            root.join(file_name)
+        } else {
+            let mut href = stac.href(handle).ok_or(Error::MissingHref)?.clone();
+            let root_href = stac.href(stac.root()).ok_or(Error::MissingHref)?;
+            href.rebase(root_href, root)?;
+            Ok(href)
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::Layout;
-    use crate::{Catalog, Collection, Item, Link, Stac};
+    use super::{Layout, Rebase};
+    use crate::{Catalog, Collection, HrefObject, Item, Link, Stac};
 
     #[test]
     fn layout_best_practices() {
@@ -236,5 +350,30 @@ mod tests {
         let layout = Layout::new("a/new/root");
         let href_objects = layout.render(stac).collect::<Result<Vec<_>, _>>().unwrap();
         assert_eq!(href_objects.len(), 6);
+    }
+
+    #[test]
+    fn rebase() {
+        let catalog = HrefObject::new(Catalog::new("root"), "old/path/catalog.json");
+        let (mut stac, root) = Stac::new(catalog).unwrap();
+        let item = stac
+            .add_child(
+                root,
+                HrefObject::new(
+                    Item::new("an-item"),
+                    "old/path/many/sub/dirs/weird-item-name.json",
+                ),
+            )
+            .unwrap();
+        let layout = Layout::new("the/new/root").with_next_href(Rebase);
+        layout.layout(&mut stac).unwrap();
+        assert_eq!(
+            stac.next_href(root).unwrap().as_str(),
+            "the/new/root/catalog.json"
+        );
+        assert_eq!(
+            stac.next_href(item).unwrap().as_str(),
+            "the/new/root/many/sub/dirs/weird-item-name.json"
+        );
     }
 }

@@ -354,6 +354,17 @@ impl Href {
         extract_path_filename(self.as_str()).0
     }
 
+    pub(crate) fn ensure_ends_in_slash(&mut self) {
+        match self {
+            Href::Url(url) => {
+                if let Ok(mut path_segments) = url.path_segments_mut() {
+                    let _ = path_segments.push("/");
+                }
+            }
+            Href::Path(path) => path.push('/'),
+        }
+    }
+
     fn into_string(self) -> String {
         match self {
             Href::Path(path) => path,
