@@ -1,6 +1,6 @@
 use crate::{
-    Error, Href, Layout, Link, NextHref, Object, ObjectHrefTuple, PathBufHref, Read, Reader,
-    Result, Write,
+    Error, Href, Layout, Link, Object, ObjectHrefTuple, PathBufHref, Read, Reader, Result,
+    Strategy, Write,
 };
 use indexmap::IndexSet;
 use std::collections::{HashMap, VecDeque};
@@ -52,7 +52,7 @@ pub struct Handle(usize);
 #[derive(Debug)]
 pub struct Walk<'a, R: Read, F, T>
 where
-    F: Fn(&mut Stac<R>, Handle) -> Result<T>,
+    F: FnMut(&mut Stac<R>, Handle) -> Result<T>,
 {
     handles: VecDeque<Handle>,
     stac: &'a mut Stac<R>,
@@ -63,7 +63,7 @@ where
 #[derive(Debug)]
 pub(crate) struct OwnedWalk<R: Read, F, T>
 where
-    F: Fn(&mut Stac<R>, Handle) -> Result<T>,
+    F: FnMut(&mut Stac<R>, Handle) -> Result<T>,
 {
     handles: VecDeque<Handle>,
     stac: Stac<R>,
@@ -90,7 +90,6 @@ struct Node {
     children: IndexSet<Handle>,
     parent: Option<Handle>,
     href: Option<Href>,
-    next_href: Option<Href>,
     is_from_item_link: bool,
 }
 
@@ -398,9 +397,6 @@ impl<R: Read> Stac<R> {
 
     /// Sets the [Href] of an [Object].
     ///
-    /// If the `href` was already assigned to another object in the `Stac`, that
-    /// object's href will be cleared.
-    ///
     /// # Examples
     ///
     /// ```
@@ -410,65 +406,13 @@ impl<R: Read> Stac<R> {
     /// stac.set_href(root, "path/to/the/root.catalog");
     /// assert_eq!(stac.href(root).unwrap().as_str(), "path/to/the/root.catalog");
     /// ```
-    ///
-    /// Clearing another object's href:
-    ///
-    /// ```
-    /// # use stac::{Catalog, Stac};
-    /// let (mut stac, root) = Stac::new(Catalog::new("root")).unwrap();
-    /// let child1 = stac.add_child(root, Catalog::new("child1")).unwrap();
-    /// stac.set_href(child1, "a/catalog.json");
-    /// assert_eq!(stac.href(child1).unwrap().as_str(), "a/catalog.json");
-    /// let child2 = stac.add_child(root, Catalog::new("child2")).unwrap();
-    /// stac.set_href(child2, "a/catalog.json");
-    /// assert_eq!(stac.href(child2).unwrap().as_str(), "a/catalog.json");
-    /// assert!(stac.href(child1).is_none());
-    /// ```
     pub fn set_href<H>(&mut self, handle: Handle, href: H)
     where
         H: Into<Href>,
     {
         let href = href.into();
-        if let Some(other) = self.hrefs.insert(href.clone(), handle) {
-            let _ = self.node_mut(other).href.take();
-        }
+        let _ = self.hrefs.insert(href.clone(), handle);
         let _ = self.node_mut(handle).href.replace(href);
-    }
-
-    /// Gets the `next_href` for the object.
-    ///
-    /// The `next_href` is used when rendering the [Stac] into an iterable of [HrefObjects](crate::HrefObject).
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use stac::Stac;
-    /// let (mut stac, root) = Stac::read("data/catalog.json").unwrap();
-    /// assert!(stac.next_href(root).is_none());
-    /// stac.set_next_href(root, "a/new/href/catalog.json");
-    /// assert_eq!(stac.next_href(root).unwrap().as_str(), "a/new/href/catalog.json");
-    /// ```
-    pub fn next_href(&self, handle: Handle) -> Option<&Href> {
-        self.node(handle).next_href.as_ref()
-    }
-
-    /// Sets the `next_href` for the object.
-    ///
-    /// The `next_href` is used when rendering the [Stac] into an iterable of [HrefObjects](crate::HrefObject).
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use stac::{Stac, Catalog};
-    /// let (mut stac, root) = Stac::new(Catalog::new("root")).unwrap();
-    /// stac.set_next_href(root, "a/new/href/catalog.json");
-    /// assert_eq!(stac.next_href(root).unwrap().as_str(), "a/new/href/catalog.json");
-    /// ```
-    pub fn set_next_href<H>(&mut self, handle: Handle, href: H)
-    where
-        H: Into<Href>,
-    {
-        self.node_mut(handle).next_href = Some(href.into());
     }
 
     /// Returns a [Walk] iterator, which visits all objects in a [Stac] (by default).
@@ -493,7 +437,7 @@ impl<R: Read> Stac<R> {
     /// ```
     pub fn walk<F, T>(&mut self, handle: Handle, f: F) -> Walk<'_, R, F, T>
     where
-        F: Fn(&mut Stac<R>, Handle) -> Result<T>,
+        F: FnMut(&mut Stac<R>, Handle) -> Result<T>,
     {
         let mut handles = VecDeque::new();
         handles.push_front(handle);
@@ -507,7 +451,7 @@ impl<R: Read> Stac<R> {
 
     pub(crate) fn into_walk<F, T>(self, handle: Handle, f: F) -> OwnedWalk<R, F, T>
     where
-        F: Fn(&mut Stac<R>, Handle) -> Result<T>,
+        F: FnMut(&mut Stac<R>, Handle) -> Result<T>,
     {
         let mut handles = VecDeque::new();
         handles.push_front(handle);
@@ -533,9 +477,9 @@ impl<R: Read> Stac<R> {
     ///     .unwrap();
     /// assert_eq!(stac.get(child).unwrap().id(), "extensions-collection");
     /// ```
-    pub fn find<F>(&mut self, handle: Handle, filter: F) -> Result<Option<Handle>>
+    pub fn find<F>(&mut self, handle: Handle, mut filter: F) -> Result<Option<Handle>>
     where
-        F: Fn(&Object) -> bool,
+        F: FnMut(&Object) -> bool,
     {
         self.walk(handle, |stac, handle| {
             let object = stac.get(handle)?;
@@ -588,6 +532,11 @@ impl<R: Read> Stac<R> {
         self.node_mut(handle).object.take()
     }
 
+    /// Takes the [Href] from the [Object].
+    pub fn take_href(&mut self, handle: Handle) -> Option<Href> {
+        self.node_mut(handle).href.take()
+    }
+
     /// Writes this [Stac], consuming it.
     ///
     /// # Examples
@@ -595,13 +544,13 @@ impl<R: Read> Stac<R> {
     /// ```no_run
     /// use stac::{Stac, Layout, Catalog, Writer, Write};
     /// let (stac, _) = Stac::new(Catalog::new("root")).unwrap();
-    /// let layout = Layout::new("stac/v0");
+    /// let mut layout = Layout::new("stac/v0");
     /// let writer = Writer::default();
-    /// stac.write(&layout, &writer).unwrap();
+    /// stac.write(&mut layout, &writer).unwrap();
     /// ```
-    pub fn write<N, W>(self, layout: &Layout<N>, writer: &W) -> Result<()>
+    pub fn write<S, W>(self, layout: &mut Layout<S>, writer: &W) -> Result<()>
     where
-        N: NextHref,
+        S: Strategy,
         W: Write,
     {
         for result in layout.render(self) {
@@ -709,7 +658,7 @@ impl<R: Read> Stac<R> {
 
 impl<'a, R: Read, F, T> Walk<'a, R, F, T>
 where
-    F: Fn(&mut Stac<R>, Handle) -> Result<T>,
+    F: FnMut(&mut Stac<R>, Handle) -> Result<T>,
 {
     /// Walk depth-first instead of breadth first.
     ///
@@ -777,23 +726,33 @@ where
 
 impl<R: Read, F, T> Iterator for Walk<'_, R, F, T>
 where
-    F: Fn(&mut Stac<R>, Handle) -> Result<T>,
+    F: FnMut(&mut Stac<R>, Handle) -> Result<T>,
 {
     type Item = Result<T>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        walk(&mut self.handles, &mut self.stac, &self.f, &self.options)
+        walk(
+            &mut self.handles,
+            &mut self.stac,
+            &mut self.f,
+            &self.options,
+        )
     }
 }
 
 impl<R: Read, F, T> Iterator for OwnedWalk<R, F, T>
 where
-    F: Fn(&mut Stac<R>, Handle) -> Result<T>,
+    F: FnMut(&mut Stac<R>, Handle) -> Result<T>,
 {
     type Item = Result<T>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        walk(&mut self.handles, &mut self.stac, &self.f, &self.options)
+        walk(
+            &mut self.handles,
+            &mut self.stac,
+            &mut self.f,
+            &self.options,
+        )
     }
 }
 
@@ -809,12 +768,12 @@ impl Default for WalkOptions {
 fn walk<R, F, T>(
     handles: &mut VecDeque<Handle>,
     stac: &mut Stac<R>,
-    f: F,
+    mut f: F,
     options: &WalkOptions,
 ) -> Option<Result<T>>
 where
     R: Read,
-    F: Fn(&mut Stac<R>, Handle) -> Result<T>,
+    F: FnMut(&mut Stac<R>, Handle) -> Result<T>,
 {
     if let Some(handle) = handles.pop_front() {
         if let Err(err) = stac.ensure_resolved(handle) {

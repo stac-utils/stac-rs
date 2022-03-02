@@ -120,18 +120,18 @@
 //! let (mut stac, root) = Stac::new(Catalog::new("root")).unwrap();
 //! let collection = stac.add_child(root, Collection::new("the-collection")).unwrap();
 //! let item = stac.add_child(collection, Item::new("an-item")).unwrap();
-//! let layout = Layout::new("my/stac/v0");
+//! let mut layout = Layout::new("my/stac/v0");
 //! layout.layout(&mut stac).unwrap();
 //! assert_eq!(
-//!     stac.next_href(root).unwrap().as_str(),
+//!     stac.href(root).unwrap().as_str(),
 //!     "my/stac/v0/catalog.json"
 //! );
 //! assert_eq!(
-//!     stac.next_href(collection).unwrap().as_str(),
+//!     stac.href(collection).unwrap().as_str(),
 //!     "my/stac/v0/the-collection/collection.json"
 //! );
 //! assert_eq!(
-//!     stac.next_href(item).unwrap().as_str(),
+//!     stac.href(item).unwrap().as_str(),
 //!     "my/stac/v0/the-collection/an-item/an-item.json"
 //! );
 //! ```
@@ -144,7 +144,7 @@
 //! ```no_run
 //! use stac::{Stac, Layout, Writer, Write};
 //! let (stac, _) = Stac::read("data/catalog.json").unwrap();
-//! let layout = Layout::new("my/stac/v0");
+//! let mut layout = Layout::new("my/stac/v0");
 //! let writer = Writer::default();
 //! for result in layout.render(stac) {
 //!     let href_object = result.unwrap();
@@ -230,7 +230,7 @@ pub use {
     extent::{Extent, SpatialExtent, TemporalExtent},
     href::{Href, PathBufHref},
     item::{Item, ITEM_TYPE},
-    layout::{BestPractices, Layout, NextHref, Rebase},
+    layout::{BestPractices, Layout, Rebase, Strategy},
     link::Link,
     object::{HrefObject, Object, ObjectHrefTuple},
     properties::Properties,

@@ -27,7 +27,6 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 - `Object::parent_link` and `Object::child_links`
 - `Stac::add_link` and `Stac::children`
 - `Layout`
-- `next_href` for `Stac` for rendering
 - Pull request template
 
 ## Changed

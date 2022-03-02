@@ -14,7 +14,7 @@ fn layout_items(c: &mut Criterion) {
                 stac.add_child(root, Item::new(format!("item-{}", i)))
                     .unwrap();
             }
-            let layout = Layout::new("root");
+            let mut layout = Layout::new("root");
             b.iter(|| {
                 let _ = layout.layout(&mut stac).unwrap();
             })

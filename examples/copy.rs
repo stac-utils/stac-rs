@@ -15,7 +15,7 @@ fn main() {
     let outdir = &args[2];
 
     let (stac, _) = Stac::read(infile).unwrap();
-    let layout = Layout::new(outdir);
+    let mut layout = Layout::new(outdir);
     let writer = Writer::default();
-    stac.write(&layout, &writer).unwrap();
+    stac.write(&mut layout, &writer).unwrap();
 }
