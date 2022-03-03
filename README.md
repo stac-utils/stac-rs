@@ -9,7 +9,7 @@
 
 Rust implementation of the [SpatioTemporal Asset Catalog (STAC)](https://stacspec.org/) specification.
 
-## Examples
+## API
 
 Read STAC objects:
 
@@ -17,13 +17,17 @@ Read STAC objects:
 let object = stac::read("data/catalog.json").unwrap();
 ```
 
-For more, see the [documentation](https://docs.rs/stac/latest/stac/).
-There is also [an architecture diagram](./ARCHITECTURE.md).
+For more, see the [documentation](https://docs.rs/stac/latest/stac/) and the [architecture diagram](./ARCHITECTURE.md).
 
-## Executables
+## Command-line interface
 
-As of now, there is no command line interface.
-There is an example at [examples/copy.rs](./examples/copy.rs) that demonstrates a simple read-write operation.
+`404: Not Found`
+
+But there is a [tracking issue](https://github.com/gadomski/stac-rs/issues/28).
+
+## Examples
+
+There is one example at [examples/copy.rs](./examples/copy.rs) that demonstrates a simple read-write operation.
 To run it from the command line:
 
 ```shell
