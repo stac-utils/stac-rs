@@ -14,6 +14,7 @@ These should be taken from the CHANGELOG, but any leading `### Heading` should b
 
 - [ ] Branch is formatted `release/vX.Y.Z`
 - [ ] Version is updated in Cargo.toml
+- [ ] Version is updated in README.md examples
 - [ ] Benchmarks are updated
   - [ ] Run `scripts/bench` and commit the resultant plots/html files
   - [ ] Copy the timing output to BENCHMARKS.md
