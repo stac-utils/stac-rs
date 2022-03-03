@@ -81,7 +81,8 @@ jobs:
           RUSTDOCFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
       - id: coverage
         uses: actions-rs/grcov@v0.1
-      - uses: coverallsapp/github-action@master
+      - uses: codecov/codecov-action@v2
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: ${{ steps.coverage.outputs.report }}
+          files: ./lcov.info
+          fail_ci_if_error: true
+          verbose: true
