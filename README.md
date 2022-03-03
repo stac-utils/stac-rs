@@ -9,15 +9,31 @@
 
 Rust implementation of the [SpatioTemporal Asset Catalog (STAC)](https://stacspec.org/) specification.
 
-## API
+## Using the library
 
-Read STAC objects:
+We are [**stac**](https://crates.io/crates/stac) on crates.io.
+To use the library in your project:
 
-```rust
-let object = stac::read("data/catalog.json").unwrap();
+```toml
+[dependencies]
+stac = "0.0.3"
 ```
 
-For more, see the [documentation](https://docs.rs/stac/latest/stac/) and the [architecture diagram](./ARCHITECTURE.md).
+### Features
+
+There is one opt-out feature:  `reqwest`.
+If you'd like to use the library without `reqwest`:
+
+```toml
+[dependencies]
+stac = { version = "0.0.3", features = []}
+```
+
+If `reqwest` is not enabled, `Reader::read` will throw an error if you try to read a url.
+
+## API
+
+Please see the [documentation](https://docs.rs/stac/latest/stac/) for usage examples, and the [architecture diagram](./ARCHITECTURE.md) for a visual of the relationships between the key structures and traits.
 
 ## Command-line interface
 
