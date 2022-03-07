@@ -1,3 +1,21 @@
+//! Lay out [Stacs](Stac).
+//!
+//! Laying out a `Stac` involves two operations:
+//!
+//! 1. Setting the href of every object in the `Stac`, and
+//! 2. Creating links between objects in the `Stac`.
+//!
+//! There are various [Strategies](Strategy) that you can use to lay out `Stacs`; the [BestPractices] strategy is the default.
+//!
+//! # Examples
+//!
+//! ```
+//! use stac::{Catalog, Stac, Layout};
+//! let (mut stac, root) = Stac::new(Catalog::new("root")).unwrap();
+//! let mut layout = Layout::new("the/root/directory");
+//! layout.layout(&mut stac).unwrap();
+//! assert_eq!(stac.href(root).unwrap().as_str(), "the/root/directory/catalog.json");
+//! ```
 use crate::{Error, Handle, Href, HrefObject, Link, Object, Read, Result, Stac};
 
 /// Lay out a [Stac].
@@ -21,7 +39,7 @@ pub struct Layout<S: Strategy> {
 /// [Rebase] implements `Strategy`:
 ///
 /// ```
-/// use stac::{Layout, Rebase};
+/// use stac::layout::{Layout, Rebase};
 /// let layout = Layout::new("a/new/root").with_strategy(Rebase::default());
 /// ```
 pub trait Strategy {
@@ -34,7 +52,7 @@ pub trait Strategy {
     /// [BestPractices] implements [Strategy]:
     ///
     /// ```
-    /// use stac::{Href, Catalog, Item, Stac, BestPractices, Strategy};
+    /// use stac::{Href, Catalog, Item, Stac, layout::{BestPractices, Strategy}};
     /// let (mut stac, root) = Stac::new(Catalog::new("root")).unwrap();
     /// let item = stac.add_child(root, Item::new("an-item")).unwrap();
     /// let root_href = Href::new("new/root/");
@@ -54,7 +72,7 @@ pub trait Strategy {
 /// # Examples
 ///
 /// ```
-/// use stac::{Stac, Catalog, Href, BestPractices, Strategy};
+/// use stac::{Stac, Catalog, Href, layout::{BestPractices, Strategy}};
 /// let (mut stac, root) = Stac::new(Catalog::new("root")).unwrap();
 /// let root_href = Href::new("a/new/root/");
 /// let mut best_practices = BestPractices;
@@ -69,7 +87,7 @@ pub struct BestPractices;
 /// # Examples
 ///
 /// ```
-/// use stac::{Stac, Catalog, Href, Rebase, HrefObject, Strategy};
+/// use stac::{Stac, Catalog, Href, HrefObject, layout::{Rebase, Strategy}};
 /// let (mut stac, root) = Stac::new(HrefObject::new(Catalog::new("root"), "old/path/catalog.json")).unwrap();
 /// let root_href = Href::new("a/new/root/");
 /// let mut rebase = Rebase::default();
@@ -111,7 +129,7 @@ impl<S: Strategy> Layout<S> {
     /// # Examples
     ///
     /// ```
-    /// use stac::{Layout, Rebase};
+    /// use stac::layout::{Layout, Rebase};
     /// let layout = Layout::new("a/new/root").with_strategy(Rebase::default());
     /// ```
     pub fn with_strategy<T>(self, strategy: T) -> Layout<T>
