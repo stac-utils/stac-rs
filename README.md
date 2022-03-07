@@ -29,11 +29,11 @@ If you'd like to use the library without `reqwest`:
 stac = { version = "0.0.3", features = []}
 ```
 
-If `reqwest` is not enabled, `Reader::read` will throw an error if you try to read a url.
+If `reqwest` is not enabled, `Reader::read` will throw an error if you try to read from a url.
 
 ## API
 
-Please see the [documentation](https://docs.rs/stac/latest/stac/) for usage examples, and the [architecture diagram](./ARCHITECTURE.md) for a visual of the relationships between the key structures and traits.
+Please see the [documentation](https://docs.rs/stac/latest/stac/) for usage examples, and the [architecture diagram](./ARCHITECTURE.md) for a visual diagram of the key structures and traits.
 
 ## Command-line interface
 
