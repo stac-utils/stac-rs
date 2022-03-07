@@ -26,7 +26,7 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 - `impl From<Href> for String`
 - `Object::parent_link` and `Object::child_links`
 - `Stac::add_link` and `Stac::children`
-- `Layout`
+- `stac::layout`
 - Pull request template
 
 ## Changed
@@ -38,6 +38,7 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 - `Href::make_relative` returns an absolute href if it can't be made relative
 - Benchmark plots now have white backgrounds
 - Reqwest test is ignored by default to speed up unit tests
+- Use `impl` in function arguments instead of generic types
 
 ## Fixed
 
