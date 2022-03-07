@@ -91,7 +91,7 @@ impl Collection {
     /// let collection = Collection::new("an-id");
     /// assert_eq!(collection.id, "an-id");
     /// ```
-    pub fn new<S: ToString>(id: S) -> Collection {
+    pub fn new(id: impl ToString) -> Collection {
         Collection {
             r#type: COLLECTION_TYPE.to_string(),
             version: STAC_VERSION.to_string(),

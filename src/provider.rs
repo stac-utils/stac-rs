@@ -45,7 +45,7 @@ impl Provider {
     /// let provider = Provider::new("a-name");
     /// assert_eq!(provider.name, "a-name");
     /// ```
-    pub fn new<S: ToString>(name: S) -> Provider {
+    pub fn new(name: impl ToString) -> Provider {
         Provider {
             name: name.to_string(),
             description: None,

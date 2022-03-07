@@ -110,10 +110,7 @@ impl Layout<BestPractices> {
     /// use stac::Layout;
     /// let layout = Layout::new("the/new/root");
     /// ```
-    pub fn new<H>(root: H) -> Layout<BestPractices>
-    where
-        H: Into<Href>,
-    {
+    pub fn new(root: impl Into<Href>) -> Layout<BestPractices> {
         let mut root = root.into();
         root.ensure_ends_in_slash();
         Self {
@@ -235,16 +232,15 @@ impl<S: Strategy> Layout<S> {
         self.strategy.set_href(&self.root, stac, handle)
     }
 
-    fn create_link<R, F>(
+    fn create_link<R>(
         &self,
         stac: &mut Stac<R>,
         from: Handle,
         to: Handle,
-        mut f: F,
+        mut f: impl FnMut(String) -> Link,
     ) -> Result<Link>
     where
         R: Read,
-        F: FnMut(String) -> Link,
     {
         let from_href = stac.href(from).ok_or(Error::MissingHref)?;
         let to_href = stac.href(to).ok_or(Error::MissingHref)?;
