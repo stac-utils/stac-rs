@@ -87,7 +87,7 @@ impl Item {
     /// let item = Item::new("an-id");
     /// assert_eq!(item.id, "an-id");
     /// ```
-    pub fn new<S: ToString>(id: S) -> Item {
+    pub fn new(id: impl ToString) -> Item {
         Item {
             r#type: ITEM_TYPE.to_string(),
             version: STAC_VERSION.to_string(),

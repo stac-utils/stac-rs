@@ -54,7 +54,7 @@ impl Link {
     /// assert_eq!(link.href, "an-href");
     /// assert_eq!(link.rel, "a-rel");
     /// ```
-    pub fn new<S0: ToString, S1: ToString>(href: S0, rel: S1) -> Link {
+    pub fn new(href: impl ToString, rel: impl ToString) -> Link {
         Link {
             href: href.to_string(),
             rel: rel.to_string(),
@@ -64,7 +64,7 @@ impl Link {
         }
     }
 
-    fn new_json<S0: ToString, S1: ToString>(href: S0, rel: S1) -> Link {
+    fn new_json(href: impl ToString, rel: impl ToString) -> Link {
         Link {
             href: href.to_string(),
             rel: rel.to_string(),
@@ -84,7 +84,7 @@ impl Link {
     /// assert!(root.is_root());
     /// assert_eq!(root.r#type.as_ref().unwrap(), media_type::JSON);
     /// ```
-    pub fn root<S: ToString>(href: S) -> Link {
+    pub fn root(href: impl ToString) -> Link {
         Link::new_json(href, ROOT_REL)
     }
 
@@ -98,7 +98,7 @@ impl Link {
     /// assert!(root.is_child());
     /// assert_eq!(root.r#type.as_ref().unwrap(), media_type::JSON);
     /// ```
-    pub fn child<S: ToString>(href: S) -> Link {
+    pub fn child(href: impl ToString) -> Link {
         Link::new_json(href, CHILD_REL)
     }
 
@@ -112,7 +112,7 @@ impl Link {
     /// assert!(root.is_item());
     /// assert_eq!(root.r#type.as_ref().unwrap(), media_type::JSON);
     /// ```
-    pub fn item<S: ToString>(href: S) -> Link {
+    pub fn item(href: impl ToString) -> Link {
         Link::new_json(href, ITEM_REL)
     }
 
@@ -126,7 +126,7 @@ impl Link {
     /// assert!(root.is_parent());
     /// assert_eq!(root.r#type.as_ref().unwrap(), media_type::JSON);
     /// ```
-    pub fn parent<S: ToString>(href: S) -> Link {
+    pub fn parent(href: impl ToString) -> Link {
         Link::new_json(href, PARENT_REL)
     }
 

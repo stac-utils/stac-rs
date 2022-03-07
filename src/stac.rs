@@ -110,10 +110,7 @@ impl Stac<Reader> {
     /// let catalog = Catalog::new("an-id");
     /// let (stac, handle) = Stac::new(catalog).unwrap();
     /// ```
-    pub fn new<O>(object: O) -> Result<(Stac<Reader>, Handle)>
-    where
-        O: Into<ObjectHrefTuple>,
-    {
+    pub fn new(object: impl Into<ObjectHrefTuple>) -> Result<(Stac<Reader>, Handle)> {
         Stac::new_with_reader(object, Reader::default())
     }
 
@@ -127,10 +124,7 @@ impl Stac<Reader> {
     /// use stac::Stac;
     /// let (stac, handle) = Stac::read("data/catalog.json").unwrap();
     /// ```
-    pub fn read<T>(href: T) -> Result<(Stac<Reader>, Handle)>
-    where
-        T: Into<PathBufHref>,
-    {
+    pub fn read(href: impl Into<PathBufHref>) -> Result<(Stac<Reader>, Handle)> {
         let reader = Reader::default();
         let href_object = reader.read(href)?;
         Stac::new_with_reader(href_object, reader)
@@ -149,10 +143,10 @@ impl<R: Read> Stac<R> {
     /// let catalog = stac::read("data/catalog.json").unwrap();
     /// let (stac, handle) = Stac::new_with_reader(catalog, Reader::default()).unwrap();
     /// ```
-    pub fn new_with_reader<O>(object: O, reader: R) -> Result<(Stac<R>, Handle)>
-    where
-        O: Into<ObjectHrefTuple>,
-    {
+    pub fn new_with_reader(
+        object: impl Into<ObjectHrefTuple>,
+        reader: R,
+    ) -> Result<(Stac<R>, Handle)> {
         let (object, href) = object.into();
         if let Some(link) = object.root_link() {
             let root_href = if let Some(href) = href.as_ref() {
@@ -174,10 +168,7 @@ impl<R: Read> Stac<R> {
         Stac::rooted((object, href), reader)
     }
 
-    fn rooted<O>(object: O, reader: R) -> Result<(Stac<R>, Handle)>
-    where
-        O: Into<ObjectHrefTuple>,
-    {
+    fn rooted(object: impl Into<ObjectHrefTuple>, reader: R) -> Result<(Stac<R>, Handle)> {
         let handle = ROOT_HANDLE;
         let node = Node::default();
         let mut stac = Stac {
@@ -270,10 +261,7 @@ impl<R: Read> Stac<R> {
     /// let child = stac.add(href_object).unwrap();
     /// assert_eq!(stac.parent(child).unwrap(), root);
     /// ```
-    pub fn add<O>(&mut self, object: O) -> Result<Handle>
-    where
-        O: Into<ObjectHrefTuple>,
-    {
+    pub fn add(&mut self, object: impl Into<ObjectHrefTuple>) -> Result<Handle> {
         let (object, href) = object.into();
         let handle = href
             .as_ref()
@@ -300,10 +288,11 @@ impl<R: Read> Stac<R> {
     /// let child = stac.add_child(root, second_item).unwrap();
     /// assert_eq!(stac.parent(child).unwrap(), root);
     /// ```
-    pub fn add_child<O>(&mut self, parent: Handle, object: O) -> Result<Handle>
-    where
-        O: Into<ObjectHrefTuple>,
-    {
+    pub fn add_child(
+        &mut self,
+        parent: Handle,
+        object: impl Into<ObjectHrefTuple>,
+    ) -> Result<Handle> {
         let child = self.add(object)?;
         self.connect(parent, child);
         Ok(child)
@@ -410,10 +399,7 @@ impl<R: Read> Stac<R> {
     /// stac.set_href(root, "path/to/the/root.catalog");
     /// assert_eq!(stac.href(root).unwrap().as_str(), "path/to/the/root.catalog");
     /// ```
-    pub fn set_href<H>(&mut self, handle: Handle, href: H)
-    where
-        H: Into<Href>,
-    {
+    pub fn set_href(&mut self, handle: Handle, href: impl Into<Href>) {
         let href = href.into();
         let _ = self.hrefs.insert(href.clone(), handle);
         let _ = self.node_mut(handle).href.replace(href);
@@ -481,10 +467,11 @@ impl<R: Read> Stac<R> {
     ///     .unwrap();
     /// assert_eq!(stac.get(child).unwrap().id(), "extensions-collection");
     /// ```
-    pub fn find<F>(&mut self, handle: Handle, mut filter: F) -> Result<Option<Handle>>
-    where
-        F: FnMut(&Object) -> bool,
-    {
+    pub fn find(
+        &mut self,
+        handle: Handle,
+        mut filter: impl FnMut(&Object) -> bool,
+    ) -> Result<Option<Handle>> {
         self.walk(handle, |stac, handle| {
             let object = stac.get(handle)?;
             Ok((filter(object), handle))
@@ -552,10 +539,9 @@ impl<R: Read> Stac<R> {
     /// let writer = Writer::default();
     /// stac.write(&mut layout, &writer).unwrap();
     /// ```
-    pub fn write<S, W>(self, layout: &mut Layout<S>, writer: &W) -> Result<()>
+    pub fn write<S>(self, layout: &mut Layout<S>, writer: &impl Write) -> Result<()>
     where
         S: Strategy,
-        W: Write,
     {
         for result in layout.render(self) {
             let href_object = result?;
@@ -602,10 +588,7 @@ impl<R: Read> Stac<R> {
         Ok(())
     }
 
-    fn set_object<O>(&mut self, handle: Handle, object: O) -> Result<()>
-    where
-        O: Into<ObjectHrefTuple>,
-    {
+    fn set_object(&mut self, handle: Handle, object: impl Into<ObjectHrefTuple>) -> Result<()> {
         let (object, href) = object.into();
         for link in object.links() {
             if !link.is_structural() {
@@ -769,15 +752,14 @@ impl Default for WalkOptions {
     }
 }
 
-fn walk<R, F, T>(
+fn walk<R, T>(
     handles: &mut VecDeque<Handle>,
     stac: &mut Stac<R>,
-    mut f: F,
+    mut f: impl FnMut(&mut Stac<R>, Handle) -> Result<T>,
     options: &WalkOptions,
 ) -> Option<Result<T>>
 where
     R: Read,
-    F: FnMut(&mut Stac<R>, Handle) -> Result<T>,
 {
     if let Some(handle) = handles.pop_front() {
         if let Err(err) = stac.ensure_resolved(handle) {

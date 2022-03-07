@@ -61,7 +61,7 @@ impl Catalog {
     /// let catalog = Catalog::new("an-id");
     /// assert_eq!(catalog.id, "an-id");
     /// ```
-    pub fn new<S: ToString>(id: S) -> Catalog {
+    pub fn new(id: impl ToString) -> Catalog {
         Catalog {
             r#type: CATALOG_TYPE.to_string(),
             version: STAC_VERSION.to_string(),

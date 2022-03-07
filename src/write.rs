@@ -34,9 +34,7 @@ pub trait Write {
     /// let writer = Writer::default();
     /// writer.write_value(data, "baz.json").unwrap();
     /// ```
-    fn write_value<T>(&self, value: Value, href: T) -> Result<()>
-    where
-        T: Into<PathBufHref>;
+    fn write_value(&self, value: Value, href: impl Into<PathBufHref>) -> Result<()>;
 }
 
 /// The default writer that comes with **stac-rs**.
@@ -47,10 +45,7 @@ pub struct Writer {
 }
 
 impl Write for Writer {
-    fn write_value<T>(&self, value: Value, href: T) -> Result<()>
-    where
-        T: Into<PathBufHref>,
-    {
+    fn write_value(&self, value: Value, href: impl Into<PathBufHref>) -> Result<()> {
         match href.into() {
             PathBufHref::Path(path) => {
                 if let Some(parent) = path.parent() {

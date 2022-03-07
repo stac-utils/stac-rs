@@ -281,11 +281,7 @@ impl HrefObject {
     /// assert_eq!(object.href.as_str(), "an-href");
     /// assert!(object.object.is_item());
     /// ```
-    pub fn new<O, H>(object: O, href: H) -> HrefObject
-    where
-        O: Into<Object>,
-        H: Into<Href>,
-    {
+    pub fn new(object: impl Into<Object>, href: impl Into<Href>) -> HrefObject {
         HrefObject {
             href: href.into(),
             object: object.into(),

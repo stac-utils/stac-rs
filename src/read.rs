@@ -26,10 +26,7 @@ pub trait Read {
     /// let reader = Reader::default();
     /// let catalog = reader.read("data/catalog.json").unwrap();
     /// ```
-    fn read<T>(&self, href: T) -> Result<HrefObject>
-    where
-        T: Into<PathBufHref>,
-    {
+    fn read(&self, href: impl Into<PathBufHref>) -> Result<HrefObject> {
         let href = href.into();
         let value = self.read_json(href.clone())?;
         let object = Object::from_value(value)?;
@@ -47,9 +44,8 @@ pub trait Read {
     /// let reader = Reader::default();
     /// let catalog: Catalog = reader.read_struct("data/catalog.json").unwrap();
     /// ```
-    fn read_struct<H, O>(&self, href: H) -> Result<O>
+    fn read_struct<O>(&self, href: impl Into<PathBufHref>) -> Result<O>
     where
-        H: Into<PathBufHref>,
         O: TryFrom<Object, Error = Error>,
     {
         let value = self.read_json(href.into())?;
@@ -69,7 +65,7 @@ pub trait Read {
     /// let value = reader.read_json("data/catalog.json").unwrap();
     /// assert_eq!(value.get("type").unwrap().as_str().unwrap(), "Catalog");
     /// ```
-    fn read_json<T: Into<PathBufHref>>(&self, href: T) -> Result<Value>;
+    fn read_json(&self, href: impl Into<PathBufHref>) -> Result<Value>;
 }
 
 /// A basic reader for STAC objects.
@@ -90,7 +86,7 @@ pub trait Read {
 pub struct Reader();
 
 impl Read for Reader {
-    fn read_json<T: Into<PathBufHref>>(&self, href: T) -> Result<Value> {
+    fn read_json(&self, href: impl Into<PathBufHref>) -> Result<Value> {
         match href.into() {
             PathBufHref::Path(path) => {
                 let file = File::open(path)?;

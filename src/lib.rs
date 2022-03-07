@@ -252,10 +252,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 /// ```
 /// let catalog = stac::read("data/catalog.json").unwrap();
 /// ```
-pub fn read<T>(href: T) -> Result<HrefObject>
-where
-    T: Into<PathBufHref>,
-{
+pub fn read(href: impl Into<PathBufHref>) -> Result<HrefObject> {
     let reader = Reader::default();
     reader.read(href)
 }
@@ -267,12 +264,9 @@ where
 /// ```
 /// let catalog = stac::read_catalog("data/catalog.json").unwrap();
 /// ```
-pub fn read_catalog<H>(href: H) -> Result<Catalog>
-where
-    H: Into<PathBufHref>,
-{
+pub fn read_catalog(href: impl Into<PathBufHref>) -> Result<Catalog> {
     let reader = Reader::default();
-    reader.read_struct(href)
+    reader.read_struct(href.into())
 }
 
 /// Reads a [Collection] from an [Href].
@@ -282,12 +276,9 @@ where
 /// ```
 /// let collection = stac::read_collection("data/collection.json").unwrap();
 /// ```
-pub fn read_collection<H>(href: H) -> Result<Collection>
-where
-    H: Into<PathBufHref>,
-{
+pub fn read_collection(href: impl Into<PathBufHref>) -> Result<Collection> {
     let reader = Reader::default();
-    reader.read_struct(href)
+    reader.read_struct(href.into())
 }
 
 /// Reads an [Item] from an [Href].
@@ -297,12 +288,9 @@ where
 /// ```
 /// let item = stac::read_item("data/simple-item.json").unwrap();
 /// ```
-pub fn read_item<H>(href: H) -> Result<Item>
-where
-    H: Into<PathBufHref>,
-{
+pub fn read_item(href: impl Into<PathBufHref>) -> Result<Item> {
     let reader = Reader::default();
-    reader.read_struct(href)
+    reader.read_struct(href.into())
 }
 
 #[cfg(test)]

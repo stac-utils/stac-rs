@@ -49,7 +49,7 @@ impl Asset {
     /// let asset = Asset::new("an-href");
     /// assert_eq!(asset.href, "an-href");
     /// ```
-    pub fn new<S: ToString>(href: S) -> Asset {
+    pub fn new(href: impl ToString) -> Asset {
         Asset {
             href: href.to_string(),
             title: None,

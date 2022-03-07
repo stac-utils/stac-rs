@@ -76,7 +76,7 @@ impl Href {
     /// assert!(href.is_url());
     /// assert_eq!(href.as_str(), "http://example.com/data");
     /// ```
-    pub fn new<S: ToString>(href: S) -> Href {
+    pub fn new(href: impl ToString) -> Href {
         let href = href.to_string();
         if let Ok(url) = Url::parse(&href) {
             if url.cannot_be_a_base() {
@@ -111,10 +111,7 @@ impl Href {
     /// let item = base.join("./item/item.json").unwrap();
     /// assert_eq!(item.as_str(), "data/item/item.json");
     /// ```
-    pub fn join<T>(&self, href: T) -> Result<Href>
-    where
-        T: Into<Href>,
-    {
+    pub fn join(&self, href: impl Into<Href>) -> Result<Href> {
         let href = href.into();
         if href.is_absolute() {
             return Ok(href);
@@ -397,7 +394,7 @@ impl PathBufHref {
     ///     assert_eq!(href.as_str(), "a/path/to/an/item.json");
     /// }
     /// ```
-    pub fn new<T: ToString>(href: T) -> PathBufHref {
+    pub fn new(href: impl ToString) -> PathBufHref {
         Href::new(href).into()
     }
 }
