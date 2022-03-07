@@ -11,18 +11,13 @@ const ROOT_HANDLE: Handle = Handle(0);
 ///
 /// A `Stac` is generic over [Read], which allows `Stac`s to be configured to
 /// use custom readers if needed. Many methods of `Stac` work with an
-/// [ObjectHrefTuple], which is a tuple an [Object] and an optional [Href].
-/// Since [Object] and [HrefObject](crate::HrefObject) both implement [Into] for
-/// [ObjectHrefTuple], this enables `Stac` methods to take objects both with and
-/// without hrefs.
-///
-/// A [Stac] uses [Handles](Handle) to reference objects in the tree. A `Handle`
-/// is tied to its `Stac`; using a `Handle` on a `Stac` other than the one that
-/// produced it is undefined behavior.
+/// [ObjectHrefTuple], which is a tuple of an [Object] and an optional [Href].
+/// [Object] and [HrefObject](crate::HrefObject) both implement [Into] for
+/// [ObjectHrefTuple].
 ///
 /// A `root` link is only used when creating a new `Stac`: if the initial object
 /// has a `root` link, it is used to set the root of the `Stac`. After that, all
-/// `root` links are ignored.
+/// `root` links are ignored since the `root` is already set.
 ///
 /// # Examples
 ///
@@ -33,6 +28,15 @@ const ROOT_HANDLE: Handle = Handle(0);
 /// let (mut stac, root) = Stac::new(catalog).unwrap();
 /// let child = stac.add_child(root, item).unwrap();
 /// ```
+///
+/// # Panics
+///
+/// A [Stac] uses [Handles](Handle) to reference objects in the tree. A `Handle`
+/// is tied to its `Stac`; using a `Handle` on a `Stac` other than the one that
+/// produced it is undefined behavior which may or may not panic.
+///
+/// TODO this should probably always panic.
+///
 #[derive(Debug)]
 pub struct Stac<R: Read> {
     reader: R,
@@ -113,9 +117,9 @@ impl Stac<Reader> {
         Stac::new_with_reader(object, Reader::default())
     }
 
-    /// Reads an [HrefObject](crate::HrefObject) with [Reader]
+    /// Reads an [Href] with [Reader].
     ///
-    /// Returns a tuple of the `Stac` and the [Handle] to that object.
+    /// Returns a tuple of the `Stac` and the [Handle] to the read [Object].
     ///
     /// # Examples
     ///
