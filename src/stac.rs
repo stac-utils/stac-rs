@@ -1,6 +1,6 @@
 use crate::{
-    Error, Href, Layout, Link, Object, ObjectHrefTuple, PathBufHref, Read, Reader, Result,
-    Strategy, Write,
+    layout::Strategy, Error, Href, Layout, Link, Object, ObjectHrefTuple, PathBufHref, Read,
+    Reader, Result, Write,
 };
 use indexmap::IndexSet;
 use std::collections::{HashMap, VecDeque};

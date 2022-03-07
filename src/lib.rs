@@ -211,7 +211,7 @@ mod error;
 mod extent;
 mod href;
 mod item;
-mod layout;
+pub mod layout;
 mod link;
 pub mod media_type;
 mod object;
@@ -230,7 +230,7 @@ pub use {
     extent::{Extent, SpatialExtent, TemporalExtent},
     href::{Href, PathBufHref},
     item::{Item, ITEM_TYPE},
-    layout::{BestPractices, Layout, Rebase, Strategy},
+    layout::Layout,
     link::Link,
     object::{HrefObject, Object, ObjectHrefTuple},
     properties::Properties,
