@@ -18,10 +18,6 @@ pub enum Error {
     #[error("std::io error: {0}")]
     Io(#[from] std::io::Error),
 
-    /// [std::convert::Infallible]
-    #[error("std::conver::Infallible: {0}")]
-    Infallible(#[from] std::convert::Infallible),
-
     /// Returned when trying to access data in a [Stac](crate::Stac) with an invalid [Handle].
     #[error("invalid handle: {0:?}")]
     InvalidHandle(Handle),
