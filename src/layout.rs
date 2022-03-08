@@ -157,7 +157,10 @@ impl<S: Strategy> Layout<S> {
     where
         R: Read,
     {
-        for result in stac.walk(stac.root(), |stac, handle| self.layout_one(stac, handle)) {
+        for result in stac
+            .walk(stac.root())
+            .visit(|stac, handle| self.layout_one(stac, handle))
+        {
             let _ = result?;
         }
         Ok(())
@@ -184,7 +187,7 @@ impl<S: Strategy> Layout<S> {
         R: Read + 'a,
     {
         let root = stac.root();
-        stac.into_walk(root, |stac, handle| {
+        stac.into_walk(root).visit(|stac, handle| {
             self.layout_one(stac, handle)?;
             let (href, object) = if handle == stac.root() {
                 (
