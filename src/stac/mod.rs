@@ -1,9 +1,15 @@
+//! Arena-based tree.
+
+pub mod walk;
+
+pub use walk::{BorrowedWalk, OwnedWalk, Walk};
+
 use crate::{
     layout::Strategy, Error, Href, Layout, Link, Object, ObjectHrefTuple, PathBufHref, Read,
     Reader, Result, Write,
 };
 use indexmap::IndexSet;
-use std::collections::{HashMap, VecDeque};
+use std::collections::HashMap;
 
 const ROOT_HANDLE: Handle = Handle(0);
 
@@ -51,42 +57,6 @@ pub struct Stac<R: Read> {
 /// on a different `Stac` is undefined behavior.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Handle(usize);
-
-/// An iterator over a [Stac's](Stac) [Handles](Handle).
-#[derive(Debug)]
-pub struct Walk<'a, R: Read, F, T>
-where
-    F: FnMut(&mut Stac<R>, Handle) -> Result<T>,
-{
-    handles: VecDeque<Handle>,
-    stac: &'a mut Stac<R>,
-    visit: F,
-    options: WalkOptions,
-}
-
-#[derive(Debug)]
-pub(crate) struct OwnedWalk<R: Read, F, T>
-where
-    F: FnMut(&mut Stac<R>, Handle) -> Result<T>,
-{
-    handles: VecDeque<Handle>,
-    stac: Stac<R>,
-    visit: F,
-    options: WalkOptions,
-}
-
-#[derive(Debug)]
-struct WalkOptions {
-    depth_first: bool,
-    strategy: WalkStrategy,
-}
-
-#[derive(Debug)]
-enum WalkStrategy {
-    SkipItems,
-    ItemsOnly,
-    All,
-}
 
 #[derive(Debug, Default)]
 struct Node {
@@ -405,56 +375,6 @@ impl<R: Read> Stac<R> {
         let _ = self.node_mut(handle).href.replace(href);
     }
 
-    /// Returns a [Walk] iterator, which visits all objects in a [Stac] (by default).
-    ///
-    /// The `Walk` iterator contains a `visit` closure, which can be used to
-    /// extract values from the `Stac` or even modify it while walking. The
-    /// default `visit` is a no-op but you can set your own.
-    ///
-    /// # Examples
-    ///
-    /// Collect all object ids:
-    ///
-    /// ```
-    /// # use stac::{Stac, Handle};
-    /// let (mut stac, root) = Stac::read("data/catalog.json").unwrap();
-    /// let ids = stac
-    ///     .walk(root)
-    ///     .visit(|stac, handle| {
-    ///         stac.get(handle).map(|object| String::from(object.id()))
-    ///     })
-    ///     .collect::<Result<Vec<_>, _>>()
-    ///     .unwrap();
-    /// assert_eq!(ids.len(), 6);
-    /// ```
-    pub fn walk(
-        &mut self,
-        handle: Handle,
-    ) -> Walk<'_, R, impl FnMut(&mut Stac<R>, Handle) -> Result<()>, ()> {
-        let mut handles = VecDeque::new();
-        handles.push_front(handle);
-        Walk {
-            handles,
-            stac: self,
-            visit: |_, _| Ok(()),
-            options: WalkOptions::default(),
-        }
-    }
-
-    pub(crate) fn into_walk(
-        self,
-        handle: Handle,
-    ) -> OwnedWalk<R, impl FnMut(&mut Stac<R>, Handle) -> Result<()>, ()> {
-        let mut handles = VecDeque::new();
-        handles.push_front(handle);
-        OwnedWalk {
-            handles,
-            stac: self,
-            visit: |_, _| Ok(()),
-            options: WalkOptions::default(),
-        }
-    }
-
     /// Finds an [Object] in the tree using a filter function.
     ///
     /// # Examples
@@ -646,206 +566,6 @@ impl<R: Read> Stac<R> {
     }
 }
 
-impl<'a, R: Read, F, T> Walk<'a, R, F, T>
-where
-    F: FnMut(&mut Stac<R>, Handle) -> Result<T>,
-{
-    /// Returns a new `Walk` with the provided `visit` function.
-    pub fn visit<U>(
-        self,
-        visit: impl FnMut(&mut Stac<R>, Handle) -> Result<U>,
-    ) -> Walk<'a, R, impl FnMut(&mut Stac<R>, Handle) -> Result<U>, U> {
-        Walk {
-            handles: self.handles,
-            stac: self.stac,
-            visit,
-            options: self.options,
-        }
-    }
-
-    /// Walk depth-first instead of breadth first.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use stac::Stac;
-    /// let (mut stac, root) = Stac::read("data/catalog.json").unwrap();
-    /// let ids = stac
-    ///     .walk(root)
-    ///     .depth_first()
-    ///     .visit(|stac, handle| {
-    ///         stac.get(handle).map(|object| String::from(object.id()))
-    ///     });
-    /// for result in ids {
-    ///     let id = result.unwrap();
-    ///     println!("{}", id);
-    /// }
-    /// ```
-    pub fn depth_first(mut self) -> Walk<'a, R, F, T> {
-        self.options.depth_first = true;
-        self
-    }
-
-    /// Skip items while walking the tree.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use stac::Stac;
-    /// let (mut stac, root) = Stac::read("data/catalog.json").unwrap();
-    /// let ids = stac
-    ///     .walk(root)
-    ///     .skip_items()
-    ///     .visit(|stac, handle| {
-    ///         stac.get(handle).map(|object| String::from(object.id()))
-    ///     })
-    ///     .collect::<Result<Vec<_>, _>>()
-    ///     .unwrap();
-    /// assert_eq!(ids.len(), 4);
-    /// ```
-    pub fn skip_items(mut self) -> Walk<'a, R, F, T> {
-        self.options.strategy = WalkStrategy::SkipItems;
-        self
-    }
-
-    /// Only stop at items when walking the tree.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use stac::Stac;
-    /// let (mut stac, root) = Stac::read("data/catalog.json").unwrap();
-    /// let ids = stac
-    ///     .walk(root)
-    ///     .items_only()
-    ///     .visit(|stac, handle| {
-    ///         stac.get(handle).map(|object| String::from(object.id()))
-    ///     })
-    ///     .collect::<Result<Vec<_>, _>>()
-    ///     .unwrap();
-    /// assert_eq!(ids.len(), 2);
-    /// ```
-    pub fn items_only(mut self) -> Walk<'a, R, F, T> {
-        self.options.strategy = WalkStrategy::ItemsOnly;
-        self
-    }
-}
-
-impl<R: Read, F, T> OwnedWalk<R, F, T>
-where
-    F: FnMut(&mut Stac<R>, Handle) -> Result<T>,
-{
-    /// Returns a new `Walk` with the provided `visit` function.
-    ///
-    /// TODO we should share functionality between owned walk and walk, yes?
-    pub(crate) fn visit<U>(
-        self,
-        visit: impl FnMut(&mut Stac<R>, Handle) -> Result<U>,
-    ) -> OwnedWalk<R, impl FnMut(&mut Stac<R>, Handle) -> Result<U>, U> {
-        OwnedWalk {
-            handles: self.handles,
-            stac: self.stac,
-            visit,
-            options: self.options,
-        }
-    }
-}
-
-impl<R: Read, F, T> Iterator for Walk<'_, R, F, T>
-where
-    F: FnMut(&mut Stac<R>, Handle) -> Result<T>,
-{
-    type Item = Result<T>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        walk(
-            &mut self.handles,
-            &mut self.stac,
-            &mut self.visit,
-            &self.options,
-        )
-    }
-}
-
-impl<R: Read, F, T> Iterator for OwnedWalk<R, F, T>
-where
-    F: FnMut(&mut Stac<R>, Handle) -> Result<T>,
-{
-    type Item = Result<T>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        walk(
-            &mut self.handles,
-            &mut self.stac,
-            &mut self.visit,
-            &self.options,
-        )
-    }
-}
-
-impl Default for WalkOptions {
-    fn default() -> WalkOptions {
-        WalkOptions {
-            depth_first: false,
-            strategy: WalkStrategy::All,
-        }
-    }
-}
-
-fn walk<R, T>(
-    handles: &mut VecDeque<Handle>,
-    stac: &mut Stac<R>,
-    mut f: impl FnMut(&mut Stac<R>, Handle) -> Result<T>,
-    options: &WalkOptions,
-) -> Option<Result<T>>
-where
-    R: Read,
-{
-    if let Some(handle) = handles.pop_front() {
-        if let Err(err) = stac.ensure_resolved(handle) {
-            handles.clear();
-            Some(Err(err))
-        } else {
-            match (f)(stac, handle) {
-                Ok(value) => {
-                    let mut children = VecDeque::new();
-                    for &child in &stac.node(handle).children {
-                        if !(matches!(options.strategy, WalkStrategy::SkipItems)
-                            && stac.is_item(child))
-                        {
-                            if options.depth_first {
-                                children.push_front(child);
-                            } else {
-                                children.push_back(child);
-                            }
-                        }
-                    }
-                    if options.depth_first {
-                        for child in children {
-                            handles.push_front(child);
-                        }
-                    } else {
-                        handles.extend(children)
-                    }
-                    if !(matches!(options.strategy, WalkStrategy::ItemsOnly)
-                        && !stac.is_item(handle))
-                    {
-                        Some(Ok(value))
-                    } else {
-                        walk(handles, stac, f, options)
-                    }
-                }
-                Err(err) => {
-                    handles.clear();
-                    Some(Err(err))
-                }
-            }
-        }
-    } else {
-        None
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::Stac;
@@ -904,68 +624,6 @@ mod tests {
         let (mut stac, handle) = Stac::read("data/extensions-collection/collection.json").unwrap();
         assert_eq!(stac.get(handle).unwrap().id(), "extensions-collection");
         assert_eq!(stac.get(stac.root()).unwrap().id(), "examples");
-    }
-
-    #[test]
-    fn walk() {
-        let (mut stac, handle) = Stac::read("data/catalog.json").unwrap();
-        let ids = stac
-            .walk(handle)
-            .visit(|stac, handle| stac.get(handle).map(|object| object.id().to_string()))
-            .collect::<Result<Vec<_>, _>>()
-            .unwrap();
-        assert_eq!(
-            ids,
-            vec![
-                "examples",
-                "extensions-collection",
-                "sentinel-2",
-                "sentinel-2",
-                "CS3-20160503_132131_08",
-                "proj-example",
-            ]
-        )
-    }
-
-    #[test]
-    fn walk_depth_first() {
-        let (mut stac, handle) = Stac::read("data/catalog.json").unwrap();
-        let ids = stac
-            .walk(handle)
-            .visit(|stac, handle| stac.get(handle).map(|object| object.id().to_string()))
-            .depth_first()
-            .collect::<Result<Vec<_>, _>>()
-            .unwrap();
-        assert_eq!(
-            ids,
-            vec![
-                "examples",
-                "extensions-collection",
-                "proj-example",
-                "sentinel-2",
-                "sentinel-2",
-                "CS3-20160503_132131_08",
-            ]
-        )
-    }
-
-    #[test]
-    fn walk_remove() {
-        let (mut stac, root) = Stac::read("data/catalog.json").unwrap();
-        let count = stac
-            .walk(root)
-            .visit(|stac, handle| {
-                if handle != root {
-                    let _ = stac.remove(handle)?;
-                    Ok(())
-                } else {
-                    Ok(())
-                }
-            })
-            .count();
-        assert_eq!(count, 5);
-        assert!(stac.find(root, |o| o.is_collection()).unwrap().is_none());
-        assert!(stac.find(root, |o| o.is_item()).unwrap().is_none());
     }
 
     #[test]

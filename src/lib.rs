@@ -218,7 +218,7 @@ mod object;
 mod properties;
 mod provider;
 mod read;
-mod stac;
+pub mod stac;
 mod write;
 
 pub use {
