@@ -60,7 +60,7 @@ where
 {
     handles: VecDeque<Handle>,
     stac: &'a mut Stac<R>,
-    f: F,
+    visit: F,
     options: WalkOptions,
 }
 
@@ -71,7 +71,7 @@ where
 {
     handles: VecDeque<Handle>,
     stac: Stac<R>,
-    f: F,
+    visit: F,
     options: WalkOptions,
 }
 
@@ -407,8 +407,9 @@ impl<R: Read> Stac<R> {
 
     /// Returns a [Walk] iterator, which visits all objects in a [Stac] (by default).
     ///
-    /// The `Walk` iterator holds a closure, which can be used to extract values
-    /// from the `Stac` or even modify it while walking.
+    /// The `Walk` iterator contains a `visit` closure, which can be used to
+    /// extract values from the `Stac` or even modify it while walking. The
+    /// default `visit` is a no-op but you can set your own.
     ///
     /// # Examples
     ///
@@ -418,37 +419,38 @@ impl<R: Read> Stac<R> {
     /// # use stac::{Stac, Handle};
     /// let (mut stac, root) = Stac::read("data/catalog.json").unwrap();
     /// let ids = stac
-    ///     .walk(root, |stac, handle| {
+    ///     .walk(root)
+    ///     .visit(|stac, handle| {
     ///         stac.get(handle).map(|object| String::from(object.id()))
     ///     })
     ///     .collect::<Result<Vec<_>, _>>()
     ///     .unwrap();
     /// assert_eq!(ids.len(), 6);
     /// ```
-    pub fn walk<F, T>(&mut self, handle: Handle, f: F) -> Walk<'_, R, F, T>
-    where
-        F: FnMut(&mut Stac<R>, Handle) -> Result<T>,
-    {
+    pub fn walk(
+        &mut self,
+        handle: Handle,
+    ) -> Walk<'_, R, impl FnMut(&mut Stac<R>, Handle) -> Result<()>, ()> {
         let mut handles = VecDeque::new();
         handles.push_front(handle);
         Walk {
             handles,
             stac: self,
-            f,
+            visit: |_, _| Ok(()),
             options: WalkOptions::default(),
         }
     }
 
-    pub(crate) fn into_walk<F, T>(self, handle: Handle, f: F) -> OwnedWalk<R, F, T>
-    where
-        F: FnMut(&mut Stac<R>, Handle) -> Result<T>,
-    {
+    pub(crate) fn into_walk(
+        self,
+        handle: Handle,
+    ) -> OwnedWalk<R, impl FnMut(&mut Stac<R>, Handle) -> Result<()>, ()> {
         let mut handles = VecDeque::new();
         handles.push_front(handle);
         OwnedWalk {
             handles,
             stac: self,
-            f,
+            visit: |_, _| Ok(()),
             options: WalkOptions::default(),
         }
     }
@@ -472,22 +474,23 @@ impl<R: Read> Stac<R> {
         handle: Handle,
         mut filter: impl FnMut(&Object) -> bool,
     ) -> Result<Option<Handle>> {
-        self.walk(handle, |stac, handle| {
-            let object = stac.get(handle)?;
-            Ok((filter(object), handle))
-        })
-        .filter_map(|result| match result {
-            Ok((keep, handle)) => {
-                if keep {
-                    Some(Ok(handle))
-                } else {
-                    None
+        self.walk(handle)
+            .visit(|stac, handle| {
+                let object = stac.get(handle)?;
+                Ok((filter(object), handle))
+            })
+            .filter_map(|result| match result {
+                Ok((keep, handle)) => {
+                    if keep {
+                        Some(Ok(handle))
+                    } else {
+                        None
+                    }
                 }
-            }
-            Err(err) => Some(Err(err)),
-        })
-        .next()
-        .transpose()
+                Err(err) => Some(Err(err)),
+            })
+            .next()
+            .transpose()
     }
 
     /// Adds a [Link] to an [Object].
@@ -647,6 +650,19 @@ impl<'a, R: Read, F, T> Walk<'a, R, F, T>
 where
     F: FnMut(&mut Stac<R>, Handle) -> Result<T>,
 {
+    /// Returns a new `Walk` with the provided `visit` function.
+    pub fn visit<U>(
+        self,
+        visit: impl FnMut(&mut Stac<R>, Handle) -> Result<U>,
+    ) -> Walk<'a, R, impl FnMut(&mut Stac<R>, Handle) -> Result<U>, U> {
+        Walk {
+            handles: self.handles,
+            stac: self.stac,
+            visit,
+            options: self.options,
+        }
+    }
+
     /// Walk depth-first instead of breadth first.
     ///
     /// # Examples
@@ -655,10 +671,12 @@ where
     /// # use stac::Stac;
     /// let (mut stac, root) = Stac::read("data/catalog.json").unwrap();
     /// let ids = stac
-    ///     .walk(root, |stac, handle| {
+    ///     .walk(root)
+    ///     .depth_first()
+    ///     .visit(|stac, handle| {
     ///         stac.get(handle).map(|object| String::from(object.id()))
     ///     });
-    /// for result in ids.depth_first() {
+    /// for result in ids {
     ///     let id = result.unwrap();
     ///     println!("{}", id);
     /// }
@@ -676,10 +694,11 @@ where
     /// # use stac::Stac;
     /// let (mut stac, root) = Stac::read("data/catalog.json").unwrap();
     /// let ids = stac
-    ///     .walk(root, |stac, handle| {
+    ///     .walk(root)
+    ///     .skip_items()
+    ///     .visit(|stac, handle| {
     ///         stac.get(handle).map(|object| String::from(object.id()))
     ///     })
-    ///     .skip_items()
     ///     .collect::<Result<Vec<_>, _>>()
     ///     .unwrap();
     /// assert_eq!(ids.len(), 4);
@@ -697,10 +716,11 @@ where
     /// # use stac::Stac;
     /// let (mut stac, root) = Stac::read("data/catalog.json").unwrap();
     /// let ids = stac
-    ///     .walk(root, |stac, handle| {
+    ///     .walk(root)
+    ///     .items_only()
+    ///     .visit(|stac, handle| {
     ///         stac.get(handle).map(|object| String::from(object.id()))
     ///     })
-    ///     .items_only()
     ///     .collect::<Result<Vec<_>, _>>()
     ///     .unwrap();
     /// assert_eq!(ids.len(), 2);
@@ -708,6 +728,26 @@ where
     pub fn items_only(mut self) -> Walk<'a, R, F, T> {
         self.options.strategy = WalkStrategy::ItemsOnly;
         self
+    }
+}
+
+impl<R: Read, F, T> OwnedWalk<R, F, T>
+where
+    F: FnMut(&mut Stac<R>, Handle) -> Result<T>,
+{
+    /// Returns a new `Walk` with the provided `visit` function.
+    ///
+    /// TODO we should share functionality between owned walk and walk, yes?
+    pub(crate) fn visit<U>(
+        self,
+        visit: impl FnMut(&mut Stac<R>, Handle) -> Result<U>,
+    ) -> OwnedWalk<R, impl FnMut(&mut Stac<R>, Handle) -> Result<U>, U> {
+        OwnedWalk {
+            handles: self.handles,
+            stac: self.stac,
+            visit,
+            options: self.options,
+        }
     }
 }
 
@@ -721,7 +761,7 @@ where
         walk(
             &mut self.handles,
             &mut self.stac,
-            &mut self.f,
+            &mut self.visit,
             &self.options,
         )
     }
@@ -737,7 +777,7 @@ where
         walk(
             &mut self.handles,
             &mut self.stac,
-            &mut self.f,
+            &mut self.visit,
             &self.options,
         )
     }
@@ -870,9 +910,8 @@ mod tests {
     fn walk() {
         let (mut stac, handle) = Stac::read("data/catalog.json").unwrap();
         let ids = stac
-            .walk(handle, |stac, handle| {
-                stac.get(handle).map(|object| object.id().to_string())
-            })
+            .walk(handle)
+            .visit(|stac, handle| stac.get(handle).map(|object| object.id().to_string()))
             .collect::<Result<Vec<_>, _>>()
             .unwrap();
         assert_eq!(
@@ -892,9 +931,8 @@ mod tests {
     fn walk_depth_first() {
         let (mut stac, handle) = Stac::read("data/catalog.json").unwrap();
         let ids = stac
-            .walk(handle, |stac, handle| {
-                stac.get(handle).map(|object| object.id().to_string())
-            })
+            .walk(handle)
+            .visit(|stac, handle| stac.get(handle).map(|object| object.id().to_string()))
             .depth_first()
             .collect::<Result<Vec<_>, _>>()
             .unwrap();
@@ -915,7 +953,8 @@ mod tests {
     fn walk_remove() {
         let (mut stac, root) = Stac::read("data/catalog.json").unwrap();
         let count = stac
-            .walk(root, |stac, handle| {
+            .walk(root)
+            .visit(|stac, handle| {
                 if handle != root {
                     let _ = stac.remove(handle)?;
                     Ok(())
