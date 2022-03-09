@@ -124,13 +124,13 @@ impl<R: Read> Stac<R> {
     pub fn walk(
         &mut self,
         handle: Handle,
-    ) -> BorrowedWalk<'_, R, impl FnMut(&mut Stac<R>, Handle) -> Result<()>, ()> {
+    ) -> BorrowedWalk<'_, R, impl FnMut(&mut Stac<R>, Handle) -> Result<Handle>, Handle> {
         let mut handles = VecDeque::new();
         handles.push_front(handle);
         BorrowedWalk {
             handles,
             stac: self,
-            visit: |_, _| Ok(()),
+            visit: |_, handle| Ok(handle),
             options: Options::default(),
         }
     }
@@ -139,13 +139,13 @@ impl<R: Read> Stac<R> {
     pub fn into_walk(
         self,
         handle: Handle,
-    ) -> OwnedWalk<R, impl FnMut(&mut Stac<R>, Handle) -> Result<()>, ()> {
+    ) -> OwnedWalk<R, impl FnMut(&mut Stac<R>, Handle) -> Result<Handle>, Handle> {
         let mut handles = VecDeque::new();
         handles.push_front(handle);
         OwnedWalk {
             handles,
             stac: self,
-            visit: |_, _| Ok(()),
+            visit: |_, handle| Ok(handle),
             options: Options::default(),
         }
     }
