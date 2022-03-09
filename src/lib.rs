@@ -1,4 +1,4 @@
-//! Read and write [SpatioTemporal Asset Catalogs (STACs)](https://stacspec.org/) in Rust.
+//! Rust implementation of the [SpatioTemporal Asset Catalog (STAC)](https://stacspec.org/) specification.
 //!
 //! The SpatioTemporal Asset Catalog (STAC) specification provides a common language to describe a range of geospatial information, so it can more easily be indexed and discovered.
 //! A 'spatiotemporal asset' is any file that represents information about the earth captured in a certain space and time.
@@ -11,13 +11,13 @@
 //! - .NET: [DotNetStac](https://github.com/Terradue/DotNetStac)
 //! - PHP: [resto](https://github.com/jjrom/resto)
 //!
-//! # Basic data strutures
+//! # Basic data structures
 //!
-//! STAC is built on three data structures:
+//! STAC has three data structures:
 //!
-//! - [Item] is a [GeoJSON](http://geojson.org/) [Feature](https://tools.ietf.org/html/rfc7946#section-3.2) augmented with [foreign members](https://tools.ietf.org/html/rfc7946#section-6) relevant to a STAC object.
-//! - [Catalog] represents a logical group of other `Catalogs`, `Collections`, and `Items`.
-//! - [Collection] shares all fields with the `Catalog` (with different allowed values for `type` and `stac_extensions`) and adds fields to describe the whole dataset and the included set of `Items`.
+//! - [Item] is a [GeoJSON](http://geojson.org/) [Feature](https://tools.ietf.org/html/rfc7946#section-3.2) augmented with [foreign members](https://tools.ietf.org/html/rfc7946#section-6)
+//! - [Catalog] represents a logical group of other `Catalogs`, `Collections`, and `Items`
+//! - [Collection] shares all fields with the `Catalog` (with different allowed values for `type` and `stac_extensions`) and adds fields to describe the whole dataset and the included set of `Items`
 //!
 //! All three are provided as [serde](https://serde.rs/) (de)serializable structures with public attributes.
 //! Each structure provides a `new` method that takes an `id` and fills the rest of the object's attributes with sensible defaults:
@@ -31,7 +31,7 @@
 //!
 //! # Reading and writing
 //!
-//! The provided [Reader] uses the standard library for filesystem access:
+//! [Reader] uses the standard library for filesystem access:
 //!
 //! ```
 //! use stac::{Reader, Read};
@@ -45,19 +45,19 @@
 //! let catalog = Reader::default().read("http://example.com/stac/catalog.json").unwrap();
 //! ```
 //!
-//! Because the type of a STAC object cannot be known before reading, a read returns an [HrefObject], which is a [Href] and an [Object]:
+//! Because the type of a STAC object cannot be known before reading, reading returns an [HrefObject], which is an [Href] and an [Object]:
 //!
 //! ```
 //! # use stac::{Reader, Read};
 //! let reader = Reader::default();
-//! let read_object = reader.read("data/catalog.json").unwrap();
+//! let href_object = reader.read("data/catalog.json").unwrap();
 //!
-//! let object = read_object.object;
+//! let object = href_object.object;
 //! assert_eq!(object.id(), "examples");
 //! let catalog = object.as_catalog().unwrap();
 //! assert_eq!(catalog.title.as_ref().unwrap(), "Example Catalog");
 //!
-//! let href = read_object.href;
+//! let href = href_object.href;
 //! assert_eq!(href.as_str(), "data/catalog.json");
 //! ```
 //!
@@ -67,7 +67,7 @@
 //! let catalog = stac::read("data/catalog.json").unwrap();
 //! ```
 //!
-//! The built-in [Writer] only knows how to write to the local filesystem -- writing to a url is an error:
+//! [Writer] only knows how to write to the local filesystem -- writing to a url is an error:
 //!
 //! ```no_run
 //! use stac::{Item, HrefObject, Writer, Write};
@@ -81,83 +81,19 @@
 //! writer.write(object).unwrap_err();
 //! ```
 //!
-//! If you need more functionality than is provided by [Reader] and [Writer], your own structures can implement the [Read] or [Write] traits themselves.
+//! If you need more functionality than what is provided by [Reader] and [Writer], you can implement the [Read] or [Write] traits.
 //!
-//! # STAC catalogs are trees
+//! # STAC catalogs
 //!
-//! Because of Rust's strict mutability and ownership rules, tree structures require more verbose ergonomics than in other languages.
-//! Our [Stac] is an arena-based tree inspired by [indextree](https://docs.rs/indextree/latest/indextree/).
-//! The `Stac` arena uses handles to point to objects in the tree.
+//! Throughout the STAC spec, `catalog` (with a lower-case `c`) is used to refer to entire trees of STAC Catalogs, Collections, and Items.
+//! STAC catalogs (with a lower-case `c`) are supported via the [Stac] structure.
+//! See the [stac] module documentation for more information on how to read, create, modify, and write STAC catalogs.
 //!
-//! A `Stac` can be created from an href or an object.
-//! When you create a `Stac`, you get back the `Stac` and a [Handle] to that object:
+//! # Other features
 //!
-//! ```
-//! use stac::{Stac, Catalog};
-//! let (stac, handle) = Stac::read("data/catalog.json").unwrap();
-//! let (stac, handle) = Stac::new(Catalog::new("root")).unwrap();
-//! ```
-//!
-//! `Stac` is a lazy cache, meaning that it doesn't read objects until needed, and keeps read objects in a cache keyed by their hrefs.
-//! Objects are read on-demand, e.g. via the [get](Stac::get) method, and any future access returns the stored object, instead of reading it again:
-//!
-//! ```
-//! # use stac::Stac;
-//! let (mut stac, root) = Stac::read("data/catalog.json").unwrap();
-//! let children = stac.children(root); // <- none have the children have been read yet
-//! let child = stac.get(children[0]).unwrap(); // <- the first child is now read into the `Stac`
-//! let child = stac.get(children[0]).unwrap(); // <- does not do any additional reads
-//! ```
-//!
-//! ## Layout
-//!
-//! The structure of a STAC catalog is defined by its [Links](Link).
-//! The process of translating a [Stac] tree into a set of `child`, `item`, `parent`, and `root` links is handled by [Layout].
-//! By default, a `Layout` uses the [best practices](https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#catalog-layout) provided by the STAC specification:
-//!
-//! ```
-//! use stac::{Stac, Layout, Catalog, Collection, Item};
-//! let (mut stac, root) = Stac::new(Catalog::new("root")).unwrap();
-//! let collection = stac.add_child(root, Collection::new("the-collection")).unwrap();
-//! let item = stac.add_child(collection, Item::new("an-item")).unwrap();
-//! let mut layout = Layout::new("my/stac/v0");
-//! layout.layout(&mut stac).unwrap(); // <- sets each object's href and creates links
-//! assert_eq!(
-//!     stac.href(root).unwrap().as_str(),
-//!     "my/stac/v0/catalog.json"
-//! );
-//! assert_eq!(
-//!     stac.href(collection).unwrap().as_str(),
-//!     "my/stac/v0/the-collection/collection.json"
-//! );
-//! assert_eq!(
-//!     stac.href(item).unwrap().as_str(),
-//!     "my/stac/v0/the-collection/an-item/an-item.json"
-//! );
-//! ```
-//!
-//! ## Rendering and writing
-//!
-//! To avoid unnecessary copying, the [Layout::render] method moves the [Hrefs](Href) and [Objects](Object) out of a [Stac], e.g. for writing.
-//! This can be done via an iterator, which means you can read, layout, and write an entire STAC catalog without ever having to load it all into memory:
-//!
-//! ```no_run
-//! use stac::{Stac, Layout, Writer, Write};
-//! let (stac, _) = Stac::read("data/catalog.json").unwrap();
-//! let mut layout = Layout::new("my/stac/v0");
-//! let writer = Writer::default();
-//! for result in layout.render(stac) {
-//!     let href_object = result.unwrap();
-//!     writer.write(href_object).unwrap();
-//! }
-//! ```
-//!
-//! [Stac::write] is a convenience method that works just like this.
-//!
-//! # Roundtrip equality
-//!
-//! The source repository contains canonical examples copied the [stac-spec repository](https://github.com/radiantearth/stac-spec/tree/master/examples), and these examples are tested for round trip equality.
-//! For example:
+//! - The [Href] enum, and its sibling [PathBufHref], provide wrappers around remote and local hrefs and paths to ensure cross-platform compatibility.
+//! - The source repository contains canonical examples copied the [stac-spec repository](https://github.com/radiantearth/stac-spec/tree/master/examples), and these examples are tested for round trip equality.
+//!   For example:
 //!
 //! ```
 //! use std::fs::File;
