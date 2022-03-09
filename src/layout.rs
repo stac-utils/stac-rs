@@ -16,6 +16,29 @@
 //! layout.layout(&mut stac).unwrap();
 //! assert_eq!(stac.href(root).unwrap().as_str(), "the/root/directory/catalog.json");
 //! ```
+//!
+//! By default, a `Layout` uses the [best practices](https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#catalog-layout) provided by the STAC specification:
+//!
+//! ```
+//! use stac::{Stac, Layout, Catalog, Collection, Item};
+//! let (mut stac, root) = Stac::new(Catalog::new("root")).unwrap();
+//! let collection = stac.add_child(root, Collection::new("the-collection")).unwrap();
+//! let item = stac.add_child(collection, Item::new("an-item")).unwrap();
+//! let mut layout = Layout::new("my/stac/v0");
+//! layout.layout(&mut stac).unwrap(); // <- sets each object's href and creates links
+//! assert_eq!(
+//!     stac.href(root).unwrap().as_str(),
+//!     "my/stac/v0/catalog.json"
+//! );
+//! assert_eq!(
+//!     stac.href(collection).unwrap().as_str(),
+//!     "my/stac/v0/the-collection/collection.json"
+//! );
+//! assert_eq!(
+//!     stac.href(item).unwrap().as_str(),
+//!     "my/stac/v0/the-collection/an-item/an-item.json"
+//! );
+//! ```
 use crate::{Error, Handle, Href, HrefObject, Link, Object, Read, Result, Stac};
 
 /// Lay out a [Stac].

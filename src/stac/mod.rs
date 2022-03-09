@@ -1,14 +1,19 @@
+//! Arena-based tree for working with STAC catalogs.
+//!
 //! Because of Rust's strict mutability and ownership rules, tree structures require more verbose ergonomics than in other languages.
-//! Our [Stac] is an arena-based tree inspired by [indextree](https://docs.rs/indextree/latest/indextree/).
-//! The `Stac` arena uses handles to point to objects in the tree.
+//! [Stac] is an arena-based tree inspired by [indextree](https://docs.rs/indextree/latest/indextree/).
+//! The `Stac` arena uses [Handles](Handle) to point to objects in the tree.
+//!
+//! # Examples
 //!
 //! A `Stac` can be created from an href or an object.
 //! When you create a `Stac`, you get back the `Stac` and a [Handle] to that object:
 //!
 //! ```
 //! use stac::{Stac, Catalog};
-//! let (stac, handle) = Stac::read("data/catalog.json").unwrap();
-//! let (stac, handle) = Stac::new(Catalog::new("root")).unwrap();
+//! let (stac, root) = Stac::new(Catalog::new("root")).unwrap();
+//! // Stac::read uses `Reader` under the hood.
+//! let (stac, root) = Stac::read("data/catalog.json").unwrap();
 //! ```
 //!
 //! `Stac` is a lazy cache, meaning that it doesn't read objects until needed, and keeps read objects in a cache keyed by their hrefs.
@@ -18,54 +23,62 @@
 //! # use stac::Stac;
 //! let (mut stac, root) = Stac::read("data/catalog.json").unwrap();
 //! let children = stac.children(root); // <- none have the children have been read yet
-//! let child = stac.get(children[0]).unwrap(); // <- the first child is now read into the `Stac`
+//! let child = stac.get(children[0]).unwrap(); // <- the first child is read into the `Stac`
 //! let child = stac.get(children[0]).unwrap(); // <- does not do any additional reads
+//! ```
+//!
+//! Objects in a `Stac` may or may not have hrefs defined:
+//!
+//! ```
+//! # use stac::{Stac, Catalog};
+//! let (stac, root) = Stac::new(Catalog::new("root")).unwrap();
+//! assert!(stac.href(root).is_none());
+//! let (stac, root) = Stac::read("data/catalog.json").unwrap();
+//! assert_eq!(stac.href(root).unwrap().as_str(), "data/catalog.json");
+//! ```
+//!
+//! ## Walking
+//!
+//! Iterating over a STAC catalog is a useful for querying, modifying, or summarizing its contents.
+//! The [walk] documentation describes how to walk over the objects in a [Stac].
+//!
+//! ```
+//! # use stac::{Stac};
+//! let (mut stac, root) = Stac::read("data/catalog.json").unwrap();
+//! stac.walk(root)
+//!     .visit(|stac, handle| stac.get(handle).map(|object| {
+//!         println!("id: {}", object.id());
+//!     }))
+//!     .collect::<Result<Vec<_>, _>>()
+//!     .unwrap();
 //! ```
 //!
 //! ## Layout
 //!
 //! The structure of a STAC catalog is defined by its [Links](Link).
 //! The process of translating a [Stac] tree into a set of `child`, `item`, `parent`, and `root` links is handled by [Layout].
-//! By default, a `Layout` uses the [best practices](https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#catalog-layout) provided by the STAC specification:
+//! The [layout](crate::layout) documentation describes how `Layouts` modify `Stacs`.
 //!
 //! ```
-//! use stac::{Stac, Layout, Catalog, Collection, Item};
-//! let (mut stac, root) = Stac::new(Catalog::new("root")).unwrap();
-//! let collection = stac.add_child(root, Collection::new("the-collection")).unwrap();
-//! let item = stac.add_child(collection, Item::new("an-item")).unwrap();
-//! let mut layout = Layout::new("my/stac/v0");
-//! layout.layout(&mut stac).unwrap(); // <- sets each object's href and creates links
-//! assert_eq!(
-//!     stac.href(root).unwrap().as_str(),
-//!     "my/stac/v0/catalog.json"
-//! );
-//! assert_eq!(
-//!     stac.href(collection).unwrap().as_str(),
-//!     "my/stac/v0/the-collection/collection.json"
-//! );
-//! assert_eq!(
-//!     stac.href(item).unwrap().as_str(),
-//!     "my/stac/v0/the-collection/an-item/an-item.json"
-//! );
+//! use stac::{Stac, Layout};
+//! let (mut stac, root) = Stac::read("data/catalog.json").unwrap();
+//! let mut layout = Layout::new("a/new/root");
+//! layout.layout(&mut stac).unwrap();
+//! assert_eq!(stac.href(root).unwrap().as_str(), "a/new/root/catalog.json");
 //! ```
 //!
-//! ## Rendering and writing
+//! ## Writing
 //!
-//! To avoid unnecessary copying, the [Layout::render] method moves the [Hrefs](Href) and [Objects](Object) out of a [Stac], e.g. for writing.
-//! This can be done via an iterator, which means you can read, layout, and write an entire STAC catalog without ever having to load it all into memory:
+//! To avoid unnecessary copying, [Stac::write] consumes the `Stac` as it writes.
+//! Each object is written to its `href`:
 //!
 //! ```no_run
 //! use stac::{Stac, Layout, Writer, Write};
-//! let (stac, _) = Stac::read("data/catalog.json").unwrap();
+//! let (mut stac, _) = Stac::read("data/catalog.json").unwrap();
 //! let mut layout = Layout::new("my/stac/v0");
 //! let writer = Writer::default();
-//! for result in layout.render(stac) {
-//!     let href_object = result.unwrap();
-//!     writer.write(href_object).unwrap();
-//! }
+//! stac.write(&mut layout, &writer).unwrap();
 //! ```
-//!
-//! [Stac::write] is a convenience method that works just like this.
 
 pub mod walk;
 
