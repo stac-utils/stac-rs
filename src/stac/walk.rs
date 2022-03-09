@@ -1,4 +1,120 @@
-//! Walk [Stacs](Stac).
+//! Configurable iteration over the [Objects](crate::Object) in a [Stac].
+//!
+//! This module provides two structures, [BorrowedWalk] and [OwnedWalk], that iterate over every [Object](crate::Object) in a [Stac].
+//! As their names imply, `BorrowedWalk` holds a mutable reference to a `Stac`, while `OwnedWalk` consumes the `Stac`.
+//! They are created by the [Stac::walk] and [Stac::into_walk] methods, respectively:
+//!
+//! ```
+//! # use stac::{Stac, Catalog};
+//! let (mut stac, root) = Stac::new(Catalog::new("root")).unwrap();
+//!
+//! // Mutably borrows `stac`.
+//! let _ = stac.walk(root).collect::<Result<Vec<_>, _>>().unwrap();
+//!
+//! // Consumes `stac`.
+//! let _ = stac.into_walk(root).collect::<Result<Vec<_>, _>>().unwrap();
+//! ```
+//!
+//! # Examples
+//!
+//! By default, a walk iterates over `Result<Handle>`.
+//! This can be useful to, e.g., count the number of objects in a `Stac` tree.
+//! It has the side effect of resolving every object in the `Stac`.
+//!
+//! ```
+//! # use stac::{Stac, Catalog};
+//! let (mut stac, root) = Stac::read("data/catalog.json").unwrap();
+//! let handles = stac.walk(root).collect::<Result<Vec<_>, _>>().unwrap();
+//! assert_eq!(handles.len(), 6);
+//! ```
+//!
+//! This basic behavior isn't useful for modifying or querying the `Stac`, since you can't operate on the `Stac` while you are iterating over it.
+//! This example will not compile:
+//!
+//! ```compile_fail
+//! # use stac::{Stac, Catalog};
+//! # let (mut stac, root) = Stac::new(Catalog::new("root")).unwrap();
+//! for result in stac.walk(root) {
+//!     let handle = result.unwrap();
+//!     let object = stac.get(handle).unwrap(); // <- can't do this!
+//! }
+//! ```
+//!
+//! To do things during iteration, you need to use `visit`.
+//!
+//! ## Visit
+//!
+//! Both walk structures are generic over `F` and `T`, where `F: FnMut(&mut Stac<r>, Handle) -> Result<T>`.
+//! This `F` is a `visit` function that is called each iteration of the walk.
+//! You can set your own `visit` function to do things while you are visiting that member of the tree:
+//!
+//! ```
+//! # use stac::{Stac, Catalog};
+//! let (mut stac, root) = Stac::new(Catalog::new("root")).unwrap();
+//! let nothing = stac
+//!     .walk(root)
+//!     .visit(|stac, handle| stac.get(handle).map(|object| {
+//!         println!("id={}", object.id());
+//!     }))
+//!     .collect::<Result<Vec<()>, _>>()
+//!     .unwrap();
+//! ```
+//!
+//! You'll notice in the above example we didn't return anything from our `visit` function, and so the type of object returned by the walk iterator changed as well.
+//! This can be useful to collect attributes from a `Stac`:
+//!
+//! ```
+//! # use stac::{Stac, Catalog};
+//! let (mut stac, root) = Stac::new(Catalog::new("root")).unwrap();
+//! let ids = stac
+//!     .walk(root)
+//!     .visit(|stac, handle| stac.get(handle).map(|object| {
+//!         object.id().to_string()
+//!     }))
+//!     .collect::<Result<Vec<String>, _>>()
+//!     .unwrap();
+//! ```
+//!
+//! The `stac` argument to the `visit` function is a mutable reference, so you can modify the `Stac`.
+//! In fact, we already have in the above examples, because [Stac::get] requires a mutable reference because it might have to resolve the object by reading it.
+//! You can also modify the tree structure itself.
+//! The `visit` function is called _before_ adding the current object's children to the iteration queue, and so you can use the `visit` function to change the iterations itself.
+//! For example, let's add a single child item to the root:
+//!
+//! ```
+//! use stac::{Read, Item, Stac, Catalog, Handle, Result};
+//!
+//! fn add_item<R: Read>(stac: &mut Stac<R>, handle: Handle) -> Result<Handle> {
+//!     if stac.root() == handle {
+//!         stac.add_child(handle, Item::new("an-item"));
+//!     }
+//!     Ok(handle)
+//! }
+//!
+//! let (mut stac, root) = Stac::new(Catalog::new("root")).unwrap();
+//! let handles = stac
+//!     .walk(root)
+//!     .visit(add_item)
+//!     .collect::<Result<Vec<Handle>>>()
+//!     .unwrap();
+//! assert_eq!(handles.len(), 2);
+//! assert_eq!(handles[0], root);
+//! assert_eq!(handles[1], stac.children(root)[0])
+//! ```
+//!
+//! ## The `Walk` trait
+//!
+//! Both [BorrowedWalk] and [OwnedWalk] implement [Walk], which provides methods to modify walk itself.
+//! For example, you can traverse depth-first instead of the default breadth-first.
+//! Notice how the `Walk` trait needs to be brought into scope to use the method:
+//!
+//! ```
+//! use stac::{Stac, Catalog, Walk};
+//! let (mut stac, root) = Stac::read("data/catalog.json").unwrap();
+//! let handles = stac.walk(root).depth_first().collect::<Result<Vec<_>, _>>().unwrap();
+//! ```
+//!
+//! See the [Walk] trait documentation for more configuration options.
 
 use super::{Handle, Stac};
 use crate::{Read, Result};
