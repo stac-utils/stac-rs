@@ -89,6 +89,19 @@
 //! STAC catalogs (with a lower-case `c`) are supported via the [Stac] structure.
 //! See the [stac] module documentation for more information on how to read, create, modify, and write STAC catalogs.
 //!
+//! ```no_run
+//! use stac::{Layout, Stac, Catalog, Item, Writer};
+//! let (mut stac, root) = Stac::new(Catalog::new("root")).unwrap();
+//! let _ = stac.add_child(root, Item::new("child-item"));
+//! let mut layout = Layout::new("the/root/directory");
+//! let writer = Writer::default();
+//! // Writes the stac to
+//! // - `the/root/directory/catalog.json`
+//! // - `the/root/directory/child-item/child-item.json`
+//! // with the appropriate links between the objects.
+//! stac.write(&mut layout, &writer).unwrap();
+//! ```
+//!
 //! # Other features
 //!
 //! - The [Href] enum, and its sibling [PathBufHref], provide wrappers around remote and local hrefs and paths to ensure cross-platform compatibility.
