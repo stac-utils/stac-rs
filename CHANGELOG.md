@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic
 Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.0.4] - 2022-03-09
 
 ### Added
 
@@ -17,7 +17,6 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 - `Stac::href`
 - `Href::file_name`
 - `Stac::collections`
-- More `Href` documentation
 - Options to customize the `Walk` strategy
 - `Stac::set_href`
 - Coverage
@@ -28,8 +27,9 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 - `Stac::add_link` and `Stac::children`
 - `stac::layout`
 - Pull request template
+- Docs
 
-## Changed
+### Changed
 
 - Made `Handle`s innards private
 - Generalized `Stac::find_child` to `Stac::find`
@@ -42,7 +42,7 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 - The default walk iterator's Item is a `Result<Handle>`
 - Set a walk's visit function as its own operation, rather than during the constructor
 
-## Fixed
+### Fixed
 
 - Relative href generation
 
@@ -85,7 +85,8 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 Initial release.
 
-[unreleased]: https://github.com/gadomski/stac-rs/compare/v0.0.3...HEAD
+[unreleased]: https://github.com/gadomski/stac-rs/compare/v0.0.4...HEAD
+[0.0.4]: https://github.com/gadomski/stac-rs/compare/v0.0.3...v0.0.4
 [0.0.3]: https://github.com/gadomski/stac-rs/compare/v0.0.2...v0.0.3
 [0.0.2]: https://github.com/gadomski/stac-rs/compare/v0.0.1...v0.0.2
 [0.0.1]: https://github.com/gadomski/stac-rs/releases/tag/v0.0.1

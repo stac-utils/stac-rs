@@ -16,7 +16,7 @@ To use the library in your project:
 
 ```toml
 [dependencies]
-stac = "0.0.3"
+stac = "0.0.4"
 ```
 
 ### Features
@@ -26,7 +26,7 @@ If you'd like to use the library without `reqwest`:
 
 ```toml
 [dependencies]
-stac = { version = "0.0.3", features = []}
+stac = { version = "0.0.4", features = []}
 ```
 
 If `reqwest` is not enabled, `Reader::read` will throw an error if you try to read from a url.
