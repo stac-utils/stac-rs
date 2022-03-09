@@ -39,6 +39,8 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 - Benchmark plots now have white backgrounds
 - Reqwest test is ignored by default to speed up unit tests
 - Use `impl` in function arguments instead of generic types
+- The default walk iterator's Item is a `Result<Handle>`
+- Set a walk's visit function as its own operation, rather than during the constructor
 
 ## Fixed
 
