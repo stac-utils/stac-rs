@@ -22,9 +22,8 @@ pub struct Asset {
     /// [Media type](crate::media_type) of the asset.
     ///
     /// See the [common media types](https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#common-media-types-in-stac) in the best practice doc for commonly used asset types.
-    #[serde(rename = "type")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub type_: Option<String>,
+    pub r#type: Option<String>,
 
     /// The semantic roles of the asset, similar to the use of rel in [Links](crate::Link).
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -54,7 +53,7 @@ impl Asset {
             href: href.to_string(),
             title: None,
             description: None,
-            type_: None,
+            r#type: None,
             roles: None,
             additional_fields: Map::new(),
         }
@@ -71,7 +70,7 @@ mod tests {
         assert_eq!(asset.href, "an-href");
         assert!(asset.title.is_none());
         assert!(asset.description.is_none());
-        assert!(asset.type_.is_none());
+        assert!(asset.r#type.is_none());
         assert!(asset.roles.is_none());
     }
 
