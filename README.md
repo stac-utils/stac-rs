@@ -35,12 +35,6 @@ If `reqwest` is not enabled, `Reader::read` will throw an error if you try to re
 
 Please see the [documentation](https://docs.rs/stac/latest/stac/) for usage examples, and the [architecture diagram](./ARCHITECTURE.md) for a visual diagram of the key structures and traits.
 
-## Command-line interface
-
-`404: Not Found`
-
-But there is a [tracking issue](https://github.com/gadomski/stac-rs/issues/28).
-
 ## Examples
 
 There is one example at [examples/copy.rs](./examples/copy.rs) that demonstrates a simple read-write operation.
@@ -49,6 +43,16 @@ To run it from the command line:
 ```shell
 cargo run --examples copy data/catalog.json tmp
 ```
+
+## Incubator
+
+We have an [incubator repository](https://github.com/gadomski/stac-rs-incubator) that holds related projects that aren't ready to be released as their own repositories.
+These include (or are planned to include):
+
+- async support
+- command line interface
+- STAC-API client
+- STAC-API server
 
 ## Development
 
