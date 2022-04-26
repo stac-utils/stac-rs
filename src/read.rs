@@ -33,7 +33,7 @@ pub trait Read {
         Ok(HrefObject::new(object, href))
     }
 
-    /// Reads an object from an [Href](crate::Href) as the actual structure.
+    /// Reads an [Item](crate::Href), [Catalog](crate::Href), or [Collection](crate::Href) from an [Href](crate::Href).
     ///
     /// # Examples
     ///
@@ -42,9 +42,9 @@ pub trait Read {
     /// ```
     /// use stac::{Read, Reader, Catalog};
     /// let reader = Reader::default();
-    /// let catalog: Catalog = reader.read_struct("data/catalog.json").unwrap();
+    /// let catalog: Catalog = reader.read_object("data/catalog.json").unwrap();
     /// ```
-    fn read_struct<O>(&self, href: impl Into<PathBufHref>) -> Result<O>
+    fn read_object<O>(&self, href: impl Into<PathBufHref>) -> Result<O>
     where
         O: TryFrom<Object, Error = Error>,
     {

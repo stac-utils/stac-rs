@@ -215,7 +215,7 @@ pub fn read(href: impl Into<PathBufHref>) -> Result<HrefObject> {
 /// ```
 pub fn read_catalog(href: impl Into<PathBufHref>) -> Result<Catalog> {
     let reader = Reader::default();
-    reader.read_struct(href.into())
+    reader.read_object(href.into())
 }
 
 /// Reads a [Collection] from an [Href].
@@ -227,7 +227,7 @@ pub fn read_catalog(href: impl Into<PathBufHref>) -> Result<Catalog> {
 /// ```
 pub fn read_collection(href: impl Into<PathBufHref>) -> Result<Collection> {
     let reader = Reader::default();
-    reader.read_struct(href.into())
+    reader.read_object(href.into())
 }
 
 /// Reads an [Item] from an [Href].
@@ -239,7 +239,7 @@ pub fn read_collection(href: impl Into<PathBufHref>) -> Result<Collection> {
 /// ```
 pub fn read_item(href: impl Into<PathBufHref>) -> Result<Item> {
     let reader = Reader::default();
-    reader.read_struct(href.into())
+    reader.read_object(href.into())
 }
 
 #[cfg(test)]
