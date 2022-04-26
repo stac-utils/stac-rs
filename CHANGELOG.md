@@ -11,6 +11,7 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 ### Changed
 
 - `Asset.type_` is now `Asset.r#type`
+- Rename `Read::read_struct` to `Read::read_object`
 
 ## [0.0.4] - 2022-03-09
 
