@@ -73,9 +73,9 @@ pub trait Read {
 /// A basic reader for STAC objects.
 ///
 /// This reader uses the standard library to read from the filesystem. If the
-/// `reqwest` feature is enabled (it is by default), blocking
+/// `reqwest` feature is enabled, blocking
 /// [reqwest](https://docs.rs/reqwest/latest/reqwest/) calls are used to read
-/// from urls. In the future, async calls may be supported, but are not yet.
+/// from urls.
 ///
 /// # Examples
 ///

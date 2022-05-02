@@ -38,7 +38,7 @@
 //! let catalog = Reader::default().read("data/catalog.json").unwrap();
 //! ```
 //!
-//! If the [reqwest](https://docs.rs/reqwest/latest/reqwest/) feature is enabled (it is enabled by default), it is used for network access:
+//! If the [reqwest](https://docs.rs/reqwest/latest/reqwest/) feature is enabled, it is used for network access:
 //!
 //! ```no_run
 //! # use stac::{Reader, Read};

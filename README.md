@@ -5,7 +5,7 @@
 [![Crates.io](https://img.shields.io/crates/v/stac?style=for-the-badge)](https://crates.io/crates/stac)
 [![Codecov](https://img.shields.io/codecov/c/github/gadomski/stac-rs?style=for-the-badge)](https://app.codecov.io/gh/gadomski/stac-rs/)
 ![Crates.io](https://img.shields.io/crates/l/stac?style=for-the-badge)
-[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?style=for-the-badge)](./CODE_OF_CONDUCT) 
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?style=for-the-badge)](./CODE_OF_CONDUCT)
 
 Rust implementation of the [SpatioTemporal Asset Catalog (STAC)](https://stacspec.org/) specification.
 
@@ -21,12 +21,12 @@ stac = "0.0.4"
 
 ### Features
 
-There is one opt-out feature:  `reqwest`.
-If you'd like to use the library without `reqwest`:
+There is one opt-in feature:  `reqwest`.
+If you'd like to use the library with `reqwest` for blocking remote reads:
 
 ```toml
 [dependencies]
-stac = { version = "0.0.4", features = []}
+stac = { version = "0.0.4", features = ["reqwest"]}
 ```
 
 If `reqwest` is not enabled, `Reader::read` will throw an error if you try to read from a url.
