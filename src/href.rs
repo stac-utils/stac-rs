@@ -1,6 +1,10 @@
 use crate::{Error, Result};
 use path_slash::{PathBufExt, PathExt};
-use std::path::{Path, PathBuf};
+use std::{
+    convert::Infallible,
+    path::{Path, PathBuf},
+    str::FromStr,
+};
 use url::Url;
 
 /// An href can be an absolute url, an absolute path, or a relative path.
@@ -400,6 +404,14 @@ impl From<Href> for String {
             Href::Url(url) => url.to_string(),
             Href::Path(path) => path,
         }
+    }
+}
+
+impl FromStr for Href {
+    type Err = Infallible;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        Ok(Href::new(s))
     }
 }
 
