@@ -85,8 +85,8 @@ pub mod walk;
 pub use walk::{BorrowedWalk, OwnedWalk, Walk};
 
 use crate::{
-    layout::Strategy, Error, Href, Layout, Link, Object, ObjectHrefTuple, PathBufHref, Read,
-    Reader, Result, Write,
+    layout::Strategy, Error, Href, Layout, Link, Object, ObjectHrefTuple, Read, Reader, Result,
+    Write,
 };
 use indexmap::IndexSet;
 use std::collections::HashMap;
@@ -108,9 +108,9 @@ const ROOT_HANDLE: Handle = Handle(0);
 /// # Examples
 ///
 /// ```
-/// use stac::{Stac, Catalog};
+/// use stac::{Stac, Catalog, Href};
 /// let catalog = Catalog::new("root");
-/// let item = stac::read_item("data/simple-item.json").unwrap();
+/// let item = stac::read_item(&Href::new("data/simple-item.json")).unwrap();
 /// let (mut stac, root) = Stac::new(catalog).unwrap();
 /// let child = stac.add_child(root, item).unwrap();
 /// ```
@@ -174,7 +174,7 @@ impl Stac<Reader> {
     /// use stac::Stac;
     /// let (stac, handle) = Stac::read("data/catalog.json").unwrap();
     /// ```
-    pub fn read(href: impl Into<PathBufHref>) -> Result<(Stac<Reader>, Handle)> {
+    pub fn read(href: impl Into<Href>) -> Result<(Stac<Reader>, Handle)> {
         let reader = Reader::default();
         let href_object = reader.read(href)?;
         Stac::new_with_reader(href_object, reader)
@@ -581,7 +581,7 @@ impl<R: Read> Stac<R> {
 
     fn ensure_resolved(&mut self, handle: Handle) -> Result<()> {
         if self.node(handle).object.is_none() {
-            if let Some(href) = self.node(handle).href.as_ref() {
+            if let Some(href) = self.node_mut(handle).href.take() {
                 let href_object = self.reader.read(href)?;
                 self.set_object(handle, href_object)?;
             } else {

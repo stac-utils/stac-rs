@@ -1,6 +1,11 @@
-use crate::{Error, HrefObject, Object, PathBufHref, Result};
+use crate::{Error, Href, HrefObject, Object, Result};
+use path_slash::PathBufExt;
 use serde_json::Value;
-use std::{fs::File, io::BufReader};
+use std::{
+    fs::File,
+    io::BufReader,
+    path::{Path, PathBuf},
+};
 use url::Url;
 
 /// Read STAC objects from hrefs.
@@ -26,7 +31,7 @@ pub trait Read {
     /// let reader = Reader::default();
     /// let catalog = reader.read("data/catalog.json").unwrap();
     /// ```
-    fn read(&self, href: impl Into<PathBufHref>) -> Result<HrefObject> {
+    fn read(&self, href: impl Into<Href>) -> Result<HrefObject> {
         let href = href.into();
         let value = self.read_json(&href)?;
         let object = Object::from_value(value)?;
@@ -40,16 +45,15 @@ pub trait Read {
     /// [Reader] implements `Read`:
     ///
     /// ```
-    /// use stac::{Read, Reader, Catalog};
+    /// use stac::{Read, Reader, Catalog, Href};
     /// let reader = Reader::default();
-    /// let catalog: Catalog = reader.read_object("data/catalog.json").unwrap();
+    /// let catalog: Catalog = reader.read_object(&Href::new("data/catalog.json")).unwrap();
     /// ```
-    fn read_object<O>(&self, href: impl Into<PathBufHref>) -> Result<O>
+    fn read_object<O>(&self, href: &Href) -> Result<O>
     where
         O: TryFrom<Object, Error = Error>,
     {
-        let href = href.into();
-        let value = self.read_json(&href)?;
+        let value = self.read_json(href)?;
         let object = Object::from_value(value)?;
         object.try_into()
     }
@@ -67,7 +71,18 @@ pub trait Read {
     /// let value = reader.read_json(&href.into()).unwrap();
     /// assert_eq!(value.get("type").unwrap().as_str().unwrap(), "Catalog");
     /// ```
-    fn read_json(&self, href: &PathBufHref) -> Result<Value>;
+    fn read_json(&self, href: &Href) -> Result<Value> {
+        match href {
+            Href::Url(url) => self.read_json_from_url(url),
+            Href::Path(path) => self.read_json_from_path(PathBuf::from_slash(path)),
+        }
+    }
+
+    /// Reads JSON data from a [Url].
+    fn read_json_from_url(&self, url: &Url) -> Result<Value>;
+
+    /// Reads JSON data from a [Path].
+    fn read_json_from_path(&self, path: impl AsRef<Path>) -> Result<Value>;
 }
 
 /// A basic reader for STAC objects.
@@ -88,28 +103,23 @@ pub trait Read {
 pub struct Reader();
 
 impl Read for Reader {
-    fn read_json(&self, href: &PathBufHref) -> Result<Value> {
-        match href {
-            PathBufHref::Path(path) => {
-                let file = File::open(path)?;
-                let buf_reader = BufReader::new(file);
-                serde_json::from_reader(buf_reader).map_err(Error::from)
-            }
-            PathBufHref::Url(url) => read_json_from_url(&url),
-        }
+    #[cfg(feature = "reqwest")]
+    fn read_json_from_url(&self, url: &Url) -> Result<Value> {
+        reqwest::blocking::get(url.as_str())
+            .and_then(|response| response.json())
+            .map_err(Error::from)
     }
-}
 
-#[cfg(feature = "reqwest")]
-fn read_json_from_url(url: &Url) -> Result<Value> {
-    reqwest::blocking::get(url.as_str())
-        .and_then(|response| response.json())
-        .map_err(Error::from)
-}
+    #[cfg(not(feature = "reqwest"))]
+    fn read_json_from_url(&self, _: &Url) -> Result<Value> {
+        Err(Error::ReqwestNotEnabled)
+    }
 
-#[cfg(not(feature = "reqwest"))]
-fn read_json_from_url(_: &Url) -> Result<Value> {
-    Err(Error::ReqwestNotEnabled)
+    fn read_json_from_path(&self, path: impl AsRef<Path>) -> Result<Value> {
+        let file = File::open(path)?;
+        let reader = BufReader::new(file);
+        serde_json::from_reader(reader).map_err(Error::from)
+    }
 }
 
 #[cfg(test)]
