@@ -4,7 +4,7 @@ llvm: true
 filter: covered
 output-type: lcov
 output-path: ./lcov.info
-prefix-dir: /home/user/build/
+prefix-dir: /home/user/build/src
 ignore:
   - "/*"
   - "../*"
