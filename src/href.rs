@@ -2,6 +2,7 @@ use crate::{Error, Result};
 use path_slash::{PathBufExt, PathExt};
 use std::{
     convert::Infallible,
+    fmt::{Display, Formatter},
     path::{Path, PathBuf},
     str::FromStr,
 };
@@ -412,6 +413,12 @@ impl FromStr for Href {
 
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         Ok(Href::new(s))
+    }
+}
+
+impl Display for Href {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.as_str())
     }
 }
 
