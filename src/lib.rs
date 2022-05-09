@@ -104,7 +104,7 @@
 //!
 //! # Other features
 //!
-//! - The [Href] enum, and its sibling [PathBufHref], provide wrappers around remote and local hrefs and paths to ensure cross-platform compatibility.
+//! - The [Href] enum provides a wrapper around remote and local hrefs and paths to ensure cross-platform compatibility.
 //! - The source repository contains canonical examples copied the [stac-spec repository](https://github.com/radiantearth/stac-spec/tree/master/examples), and these examples are tested for round trip equality.
 //!   For example:
 //!
@@ -177,7 +177,7 @@ pub use {
     collection::{Collection, COLLECTION_TYPE},
     error::Error,
     extent::{Extent, SpatialExtent, TemporalExtent},
-    href::{Href, PathBufHref},
+    href::Href,
     item::{Item, ITEM_TYPE},
     layout::Layout,
     link::Link,
@@ -201,7 +201,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 /// ```
 /// let catalog = stac::read("data/catalog.json").unwrap();
 /// ```
-pub fn read(href: impl Into<PathBufHref>) -> Result<HrefObject> {
+pub fn read(href: impl Into<Href>) -> Result<HrefObject> {
     let reader = Reader::default();
     reader.read(href)
 }
@@ -211,11 +211,12 @@ pub fn read(href: impl Into<PathBufHref>) -> Result<HrefObject> {
 /// # Examples
 ///
 /// ```
-/// let catalog = stac::read_catalog("data/catalog.json").unwrap();
+/// use stac::Href;
+/// let catalog = stac::read_catalog(&Href::new("data/catalog.json")).unwrap();
 /// ```
-pub fn read_catalog(href: impl Into<PathBufHref>) -> Result<Catalog> {
+pub fn read_catalog(href: &Href) -> Result<Catalog> {
     let reader = Reader::default();
-    reader.read_object(href.into())
+    reader.read_object(href)
 }
 
 /// Reads a [Collection] from an [Href].
@@ -223,11 +224,12 @@ pub fn read_catalog(href: impl Into<PathBufHref>) -> Result<Catalog> {
 /// # Examples
 ///
 /// ```
-/// let collection = stac::read_collection("data/collection.json").unwrap();
+/// use stac::Href;
+/// let collection = stac::read_collection(&Href::new("data/collection.json")).unwrap();
 /// ```
-pub fn read_collection(href: impl Into<PathBufHref>) -> Result<Collection> {
+pub fn read_collection(href: &Href) -> Result<Collection> {
     let reader = Reader::default();
-    reader.read_object(href.into())
+    reader.read_object(href)
 }
 
 /// Reads an [Item] from an [Href].
@@ -235,11 +237,12 @@ pub fn read_collection(href: impl Into<PathBufHref>) -> Result<Collection> {
 /// # Examples
 ///
 /// ```
-/// let item = stac::read_item("data/simple-item.json").unwrap();
+/// use stac::Href;
+/// let item = stac::read_item(&Href::new("data/simple-item.json")).unwrap();
 /// ```
-pub fn read_item(href: impl Into<PathBufHref>) -> Result<Item> {
+pub fn read_item(href: &Href) -> Result<Item> {
     let reader = Reader::default();
-    reader.read_object(href.into())
+    reader.read_object(href)
 }
 
 #[cfg(test)]

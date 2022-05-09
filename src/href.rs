@@ -1,6 +1,11 @@
 use crate::{Error, Result};
-use path_slash::PathBufExt;
-use std::path::PathBuf;
+use path_slash::{PathBufExt, PathExt};
+use std::{
+    convert::Infallible,
+    fmt::{Display, Formatter},
+    path::{Path, PathBuf},
+    str::FromStr,
+};
 use url::Url;
 
 /// An href can be an absolute url, an absolute path, or a relative path.
@@ -11,18 +16,17 @@ use url::Url;
 /// provides a platform-independent way to store and manipulate the paths.
 ///
 /// `Href`s are always created from `/`-delimited strings. If you might be
-/// working with a `\` delimited string (e.g. on Windows), use [PathBufHref].
+/// working with a `\` delimited string (e.g. on Windows), use [Href::to_slash].
 ///
 /// ```
 /// use stac::Href;
+/// use std::path::PathBuf;
 /// let path_href = Href::new("a/path/to/an/item.json");
 /// let url_href = Href::new("http://example.com/item.json");
 ///
 /// #[cfg(target_os = "windows")]
 /// {
-///     use stac::PathBufHref;
-///     let path_buf_href = PathBufHref::new(r"a\path\to\an\item.json");
-///     let href = Href::from(path_buf_href);
+///     let href = Href::to_slash(r"a\path\to\an\item.json");
 ///     assert_eq!(href.as_str(), "a/path/to/an/item.json");
 /// }
 /// ```
@@ -33,37 +37,15 @@ pub enum Href {
 
     /// A path href, either relative or absolute.
     ///
-    /// This path will be `/`-delimited regardless of OS.
+    /// This path is always `/`-delimited.
     Path(String),
-}
-
-/// An href that uses [PathBuf] instead of a [String] for paths.
-///
-/// `PathBufHref` is used when actually reading or writing from hrefs, e.g. in
-/// the signature of [Read::read](crate::Read::read). `PathBufHref` can be
-/// converted from and to [Hrefs](Href), which uses
-/// [path-slash](https://github.com/rhysd/path-slash) to convert the `/`
-/// delimiters.
-///
-/// ```
-/// use stac::{Href, PathBufHref};
-/// let href = Href::new("data/catalog.json");
-/// let path_buf_href = PathBufHref::from(href);
-/// let href = Href::from(path_buf_href);
-/// ```
-#[derive(Debug, Clone)]
-pub enum PathBufHref {
-    /// A parsed url href.
-    Url(Url),
-
-    /// A filesystem path, stored as a [PathBuf].
-    Path(PathBuf),
 }
 
 impl Href {
     /// Creates an href.
     ///
-    /// Does not do any `\` conversion. If you need to handle possibly-`\`-delimited paths, use [PathBufHref].
+    /// Does not do any `\` conversion. If you need to handle
+    /// possibly-`\`-delimited paths, use [Href::to_slash].
     ///
     /// # Examples
     ///
@@ -86,6 +68,19 @@ impl Href {
             }
         } else {
             Href::Path(href)
+        }
+    }
+
+    /// Creates an href from a possibly `\`-delimited string.
+    ///
+    /// If the href is an url, no conversion is performed. Otherwise, the path
+    /// is converted from `\`-delimited to `/`-delimited.
+    pub fn to_slash(href: impl ToString) -> Href {
+        let href = Href::new(href);
+        if let Href::Path(path) = href {
+            Path::new(&path).into()
+        } else {
+            href
         }
     }
 
@@ -235,10 +230,8 @@ impl Href {
     ///
     pub fn make_absolute(&mut self) -> Result<()> {
         if let Href::Path(path) = self {
-            if let PathBufHref::Path(path) = PathBufHref::from(path.as_str()) {
-                let path = std::fs::canonicalize(path)?;
-                *self = PathBufHref::Path(path).into();
-            }
+            let path = PathBuf::from_slash(path).canonicalize()?;
+            *self = Href::Path(path.to_slash_lossy());
         }
         Ok(())
     }
@@ -370,68 +363,21 @@ impl Href {
     }
 }
 
-impl PathBufHref {
-    /// Creates a new href with system-specific delimiters.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use stac::{PathBufHref, Href};
-    ///
-    /// #[cfg(target_os = "windows")]
-    /// {
-    ///     use stac::PathBufHref;
-    ///     let path_buf_href = PathBufHref::new(r"a\path\to\an\item.json");
-    ///     let href = Href::from(path_buf_href);
-    ///     assert_eq!(href.as_str(), "a/path/to/an/item.json");
-    /// }
-    ///
-    /// #[cfg(not(target_os = "windows"))]
-    /// {
-    ///     use stac::PathBufHref;
-    ///     let path_buf_href = PathBufHref::new("a/path/to/an/item.json");
-    ///     let href = Href::from(path_buf_href);
-    ///     assert_eq!(href.as_str(), "a/path/to/an/item.json");
-    /// }
-    /// ```
-    pub fn new(href: impl ToString) -> PathBufHref {
-        Href::new(href).into()
-    }
-}
-
 impl From<Url> for Href {
     fn from(url: Url) -> Href {
         Href::Url(url)
     }
 }
 
-impl From<Href> for PathBufHref {
-    fn from(href: Href) -> PathBufHref {
-        match href {
-            Href::Url(url) => PathBufHref::Url(url),
-            Href::Path(path) => PathBufHref::Path(PathBuf::from_slash(path)),
-        }
-    }
-}
-
-impl From<PathBufHref> for Href {
-    fn from(href: PathBufHref) -> Href {
-        match href {
-            PathBufHref::Url(url) => Href::Url(url),
-            PathBufHref::Path(path) => Href::Path(path.to_slash_lossy()),
-        }
-    }
-}
-
-impl From<PathBuf> for PathBufHref {
-    fn from(path_buf: PathBuf) -> PathBufHref {
-        PathBufHref::Path(path_buf)
+impl From<&Path> for Href {
+    fn from(path: &Path) -> Href {
+        Href::Path(path.to_slash_lossy())
     }
 }
 
 impl From<PathBuf> for Href {
-    fn from(path_buf: PathBuf) -> Href {
-        PathBufHref::Path(path_buf).into()
+    fn from(path: PathBuf) -> Href {
+        Href::Path(path.to_slash_lossy())
     }
 }
 
@@ -462,27 +408,17 @@ impl From<Href> for String {
     }
 }
 
-impl From<&str> for PathBufHref {
-    fn from(s: &str) -> PathBufHref {
-        PathBufHref::new(s)
+impl FromStr for Href {
+    type Err = Infallible;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        Ok(Href::new(s))
     }
 }
 
-impl From<&Href> for PathBufHref {
-    fn from(href: &Href) -> PathBufHref {
-        PathBufHref::new(href.as_str())
-    }
-}
-
-impl From<&String> for PathBufHref {
-    fn from(s: &String) -> PathBufHref {
-        PathBufHref::new(s)
-    }
-}
-
-impl From<String> for PathBufHref {
-    fn from(s: String) -> PathBufHref {
-        PathBufHref::new(s)
+impl Display for Href {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.as_str())
     }
 }
 
