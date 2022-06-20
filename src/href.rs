@@ -348,7 +348,7 @@ impl Href {
         match self {
             Href::Url(url) => {
                 if let Ok(mut path_segments) = url.path_segments_mut() {
-                    let _ = path_segments.push("/");
+                    let _ = path_segments.push("");
                 }
             }
             Href::Path(path) => path.push('/'),
@@ -647,5 +647,12 @@ mod tests {
         let mut item = Href::new("path/to/a/item/item.json");
         item.rebase(&old_root_catalog, &new_root).unwrap();
         assert_eq!(item.as_str(), "a/new/base/item/item.json");
+    }
+
+    #[test]
+    fn ensure_url_ends_in_slash() {
+        let mut href = Href::new("https://stac.test/v0");
+        href.ensure_ends_in_slash();
+        assert_eq!(href.as_str(), "https://stac.test/v0/");
     }
 }
