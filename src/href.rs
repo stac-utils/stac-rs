@@ -116,7 +116,7 @@ impl Href {
             Href::Path(base) => {
                 let (path, _) = extract_path_filename(base);
                 let path = if path.is_empty() {
-                    href.into_string()
+                    href.into()
                 } else {
                     format!("{}/{}", path, href.as_str())
                 };
@@ -352,13 +352,6 @@ impl Href {
                 }
             }
             Href::Path(path) => path.push('/'),
-        }
-    }
-
-    fn into_string(self) -> String {
-        match self {
-            Href::Path(path) => path,
-            Href::Url(url) => url.into(),
         }
     }
 }
