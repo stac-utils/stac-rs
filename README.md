@@ -41,7 +41,7 @@ There is one example at [examples/copy.rs](./examples/copy.rs) that demonstrates
 To run it from the command line:
 
 ```shell
-cargo run --examples copy data/catalog.json tmp
+cargo run --example copy data/catalog.json tmp
 ```
 
 ## Incubator
