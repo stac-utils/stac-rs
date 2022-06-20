@@ -211,6 +211,21 @@ impl Object {
         self.links().iter().find(|link| link.is_parent())
     }
 
+    /// Returns the self link if there is one.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let object = stac::read("data/catalog.json").unwrap().object;
+    /// assert_eq!(
+    ///     object.self_link().unwrap().href,
+    ///     "https://raw.githubusercontent.com/radiantearth/stac-spec/v1.0.0/examples/catalog.json"
+    /// );
+    /// ```
+    pub fn self_link(&self) -> Option<&Link> {
+        self.links().iter().find(|link| link.is_self())
+    }
+
     /// Iterates over the child links.
     ///
     /// # Examples
