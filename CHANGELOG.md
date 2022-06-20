@@ -12,6 +12,7 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 - `Href::to_slash`
 - `FromStr` for `Href`
+- `Object::self_link`
 
 ### Changed
 
@@ -20,9 +21,14 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 - `Read::read_json` now takes a reference to a `PathBufHref`
 - `reqwests` is now an optional feature
 
+### Fixed
+
+- Ensuring a url href ends in a slash
+
 ### Removed
 
 - `PathBufHref`
+- `Href::into_string`
 
 ## [0.0.4] - 2022-03-09
 
