@@ -13,6 +13,7 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 - `Href::to_slash`
 - `FromStr` for `Href`
 - `Object::self_link`
+- Warnings for missing code examples (only works on nightly)
 
 ### Changed
 
