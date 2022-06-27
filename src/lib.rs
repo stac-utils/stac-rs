@@ -152,6 +152,7 @@
     unused_qualifications,
     unused_results
 )]
+#![warn(rustdoc::missing_doc_code_examples)]
 
 mod asset;
 mod catalog;
