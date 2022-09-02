@@ -1,5 +1,8 @@
+use std::collections::HashMap;
+
 use crate::{
-    Catalog, Collection, Error, Href, Item, Link, Result, CATALOG_TYPE, COLLECTION_TYPE, ITEM_TYPE,
+    Asset, Catalog, Collection, Error, Href, Item, Link, Result, CATALOG_TYPE, COLLECTION_TYPE,
+    ITEM_TYPE,
 };
 
 /// A type used to pass either an [Object] or an [HrefObject] into functions.
@@ -167,6 +170,22 @@ impl Object {
                 .and_then(|value| value.as_str()),
             Object::Catalog(catalog) => catalog.title.as_deref(),
             Object::Collection(collection) => collection.title.as_deref(),
+        }
+    }
+
+    /// Returns a reference to this object's assets.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let href_object = stac::read("data/simple-item.json").unwrap();
+    /// assert!(href_object.object.assets().is_some());
+    /// ```
+    pub fn assets(&self) -> Option<&HashMap<String, Asset>> {
+        match &self {
+            Object::Item(item) => Some(&item.assets),
+            Object::Collection(collection) => collection.assets.as_ref(),
+            Object::Catalog(_) => None,
         }
     }
 
