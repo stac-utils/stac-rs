@@ -231,7 +231,7 @@ impl Href {
     pub fn make_absolute(&mut self) -> Result<()> {
         if let Href::Path(path) = self {
             let path = PathBuf::from_slash(path).canonicalize()?;
-            *self = Href::Path(path.to_slash_lossy());
+            *self = Href::Path(path.to_slash_lossy().into_owned());
         }
         Ok(())
     }
@@ -364,13 +364,13 @@ impl From<Url> for Href {
 
 impl From<&Path> for Href {
     fn from(path: &Path) -> Href {
-        Href::Path(path.to_slash_lossy())
+        Href::Path(path.to_slash_lossy().into_owned())
     }
 }
 
 impl From<PathBuf> for Href {
     fn from(path: PathBuf) -> Href {
-        Href::Path(path.to_slash_lossy())
+        Href::Path(path.to_slash_lossy().into_owned())
     }
 }
 
