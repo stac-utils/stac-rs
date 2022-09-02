@@ -1,4 +1,5 @@
 pre-release-commit-message = "chore: release {{prefix}}v{{version}}"
+sign-tag = true
 tag-message = "{{tag_name}}"
 tag-name = "{{prefix}}v{{version}}"
 allow-branch = ["main"]
