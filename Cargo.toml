@@ -15,7 +15,7 @@ chrono = "0.4"
 geojson = "0.23"
 indexmap = "1.8"
 reqwest = { version = "0.11", optional = true, features = ["json", "blocking"] }
-path-slash = "0.1"
+path-slash = "0.2"
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
 thiserror = "1"
