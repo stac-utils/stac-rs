@@ -20,6 +20,5 @@ Your commits do not have to but if you'd like to format them this way, we would 
 If you can, use `git rebase -i` to create a clean, well-formatted history before opening your pull request.
 If you need to make changes after opening your pull request (e.g. to fix CI breakages) we will be grateful if you squash those fixes into their relevant commits.
 
-
 Thanks so much! \
 -Pete Gadomski
