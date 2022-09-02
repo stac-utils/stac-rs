@@ -1,4 +1,4 @@
-## Version number
+# Version number
 
 major.minor.patch
 
