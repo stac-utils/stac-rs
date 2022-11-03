@@ -37,10 +37,6 @@ pub struct Asset {
 impl Asset {
     /// Creates a new asset with the provided href.
     ///
-    /// Note that the path separator for the href should always be `/`. If you
-    /// need to convert a filesystem path to an href, use
-    /// [Href::as_str](crate::Href::as_str).
-    ///
     /// # Examples
     ///
     /// ```

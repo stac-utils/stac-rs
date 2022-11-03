@@ -1,4 +1,4 @@
-use crate::{Asset, Extent, Link, Provider, STAC_VERSION};
+use crate::{Asset, Extent, Href, Link, Provider, STAC_VERSION};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::collections::HashMap;
@@ -79,6 +79,9 @@ pub struct Collection {
     /// Additional fields not part of the `Collection` specification.
     #[serde(flatten)]
     pub additional_fields: Map<String, Value>,
+
+    #[serde(skip)]
+    href: Option<String>,
 }
 
 impl Collection {
@@ -107,7 +110,18 @@ impl Collection {
             links: Vec::new(),
             assets: None,
             additional_fields: Map::new(),
+            href: None,
         }
+    }
+}
+
+impl Href for Collection {
+    fn href(&self) -> Option<&str> {
+        self.href.as_deref()
+    }
+
+    fn set_href(&mut self, href: impl ToString) {
+        self.href = Some(href.to_string())
     }
 }
 
