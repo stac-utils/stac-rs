@@ -12,10 +12,8 @@ categories = ["science", "data-structures"]
 
 [dependencies]
 chrono = "0.4"
-geojson = "0.23"
-indexmap = "1.8"
+geojson = "0.24"
 reqwest = { version = "0.11", optional = true, features = ["json", "blocking"] }
-path-slash = "0.2"
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
 thiserror = "1"
@@ -23,13 +21,7 @@ url = "2"
 
 [dev-dependencies]
 assert-json-diff = "2"
-criterion = "0.3"
-tempfile = "3"
 
-[[bench]]
-name = "read"
-harness = false
 
-[[bench]]
-name = "layout"
-harness = false
+[package.metadata.docs.rs]
+all-features = true

@@ -11,7 +11,7 @@
 //! - .NET: [DotNetStac](https://github.com/Terradue/DotNetStac)
 //! - PHP: [resto](https://github.com/jjrom/resto)
 //!
-//! # Basic data structures
+//! # Data structures
 //!
 //! STAC has three data structures:
 //!
@@ -29,98 +29,46 @@
 //! let collection = Catalog::new("id");
 //! ```
 //!
-//! # Reading and writing
-//!
-//! [Reader] uses the standard library for filesystem access:
+//! All attributes of STAC objects are accessible as public members:
 //!
 //! ```
-//! use stac::{Reader, Read};
-//! let catalog = Reader::default().read("data/catalog.json").unwrap();
+//! use stac::{Item, Link};
+//! let mut item = Item::new("id");
+//! assert_eq!(item.id, "id");
+//! assert!(item.geometry.is_none());
+//! assert!(item.links.is_empty());
+//! item.links.push(Link::new("an/href", "a-rel-type"));
 //! ```
 //!
-//! If the [reqwest](https://docs.rs/reqwest/latest/reqwest/) feature is enabled, it is used for network access:
+//! # Reading
+//!
+//! Synchronous reads from the filesystem are supported via [read].
+//! Read objects are returned as a [Value], which implements [TryInto] for all three object types:
+//!
+//! ```
+//! let value = stac::read("data/simple-item.json").unwrap();
+//! assert!(value.is_item());
+//! let item: stac::Item = value.try_into().unwrap();
+//! ```
+//!
+//! If the [reqwest](https://docs.rs/reqwest/latest/reqwest/) feature is enabled, synchronous reads from urls are also supported:
 //!
 //! ```no_run
-//! # use stac::{Reader, Read};
-//! let catalog = Reader::default().read("http://example.com/stac/catalog.json").unwrap();
+//! let url = "https://raw.githubusercontent.com/radiantearth/stac-spec/master/examples/simple-item.json";
+//! let value = stac::read(url).unwrap();
 //! ```
 //!
-//! Because the type of a STAC object cannot be known before reading, reading returns an [HrefObject], which is an [Href] and an [Object]:
+//! ## Hrefs
+//!
+//! When objects are read from the filesystem or from a remote location, they store the href from which they were read.
+//! The href is accessible via the [Href] trait:
 //!
 //! ```
-//! # use stac::{Reader, Read};
-//! let reader = Reader::default();
-//! let href_object = reader.read("data/catalog.json").unwrap();
-//!
-//! let object = href_object.object;
-//! assert_eq!(object.id(), "examples");
-//! let catalog = object.as_catalog().unwrap();
-//! assert_eq!(catalog.title.as_ref().unwrap(), "Example Catalog");
-//!
-//! let href = href_object.href;
-//! assert_eq!(href.as_str(), "data/catalog.json");
-//! ```
-//!
-//! There is a top-level [read()] method for convenience:
-//!
-//! ```
-//! let catalog = stac::read("data/catalog.json").unwrap();
-//! ```
-//!
-//! [Writer] only knows how to write to the local filesystem -- writing to a url is an error:
-//!
-//! ```no_run
-//! use stac::{Item, HrefObject, Writer, Write};
-//! let item = Item::new("an-id");
-//! let object = HrefObject::new(item, "item.json");
-//! let writer = Writer::default();
-//! writer.write(object).unwrap();
-//!
-//! let item = Item::new("an-id");
-//! let object = HrefObject::new(item, "http://example.com/item.json");
-//! writer.write(object).unwrap_err();
-//! ```
-//!
-//! If you need more functionality than what is provided by [Reader] and [Writer], you can implement the [Read] or [Write] traits.
-//!
-//! # STAC catalogs
-//!
-//! Throughout the STAC spec, `catalog` (with a lower-case `c`) is used to refer to entire trees of STAC Catalogs, Collections, and Items.
-//! STAC catalogs (with a lower-case `c`) are supported via the [Stac] structure.
-//! See the [stac] module documentation for more information on how to read, create, modify, and write STAC catalogs.
-//!
-//! ```no_run
-//! use stac::{Layout, Stac, Catalog, Item, Writer};
-//! let (mut stac, root) = Stac::new(Catalog::new("root")).unwrap();
-//! let _ = stac.add_child(root, Item::new("child-item"));
-//! let mut layout = Layout::new("the/root/directory");
-//! let writer = Writer::default();
-//! // Writes the stac to
-//! // - `the/root/directory/catalog.json`
-//! // - `the/root/directory/child-item/child-item.json`
-//! // with the appropriate links between the objects.
-//! stac.write(&mut layout, &writer).unwrap();
-//! ```
-//!
-//! # Other features
-//!
-//! - The [Href] enum provides a wrapper around remote and local hrefs and paths to ensure cross-platform compatibility.
-//! - The source repository contains canonical examples copied the [stac-spec repository](https://github.com/radiantearth/stac-spec/tree/master/examples), and these examples are tested for round trip equality.
-//!   For example:
-//!
-//! ```
-//! use std::fs::File;
-//! use std::io::BufReader;
-//! use std::str::FromStr;
-//! use serde_json::Value;
-//! use stac::Item;
-//!
-//! let file = File::open("data/simple-item.json").unwrap();
-//! let buf_reader = BufReader::new(file);
-//! let before: Value = serde_json::from_reader(buf_reader).unwrap();
-//! let item: Item = serde_json::from_value(before.clone()).unwrap();
-//! let after = serde_json::to_value(item).unwrap();
-//! assert_eq!(before, after);
+//! use stac::{Href, Item};
+//! let value = stac::read("data/simple-item.json").unwrap();
+//! assert!(value.href().as_deref().unwrap().ends_with("data/simple-item.json"));
+//! let item: Item = value.clone().try_into().unwrap();
+//! assert_eq!(value.href(), item.href());
 //! ```
 
 #![deny(
@@ -152,7 +100,6 @@
     unused_qualifications,
     unused_results
 )]
-#![warn(rustdoc::missing_doc_code_examples)]
 
 mod asset;
 mod catalog;
@@ -160,33 +107,27 @@ mod collection;
 mod error;
 mod extent;
 mod href;
+mod io;
 mod item;
-pub mod layout;
-mod link;
+pub mod link;
 pub mod media_type;
-mod object;
 mod properties;
 mod provider;
-mod read;
-pub mod stac;
-mod write;
+mod value;
 
 pub use {
-    crate::stac::{Handle, Stac, Walk},
     asset::Asset,
     catalog::{Catalog, CATALOG_TYPE},
     collection::{Collection, COLLECTION_TYPE},
     error::Error,
     extent::{Extent, SpatialExtent, TemporalExtent},
     href::Href,
+    io::{read, read_from_path, read_from_url},
     item::{Item, ITEM_TYPE},
-    layout::Layout,
     link::Link,
-    object::{HrefObject, Object, ObjectHrefTuple},
     properties::Properties,
     provider::Provider,
-    read::{Read, Reader},
-    write::{Write, Writer},
+    value::Value,
 };
 
 /// The default STAC version supported by this library.
@@ -195,61 +136,8 @@ pub const STAC_VERSION: &str = "1.0.0";
 /// Custom [Result](std::result::Result) type for this crate.
 pub type Result<T> = std::result::Result<T, Error>;
 
-/// Reads a STAC object from an href.
-///
-/// # Examples
-///
-/// ```
-/// let catalog = stac::read("data/catalog.json").unwrap();
-/// ```
-pub fn read(href: impl Into<Href>) -> Result<HrefObject> {
-    let reader = Reader::default();
-    reader.read(href)
-}
-
-/// Reads a [Catalog] from an [Href].
-///
-/// # Examples
-///
-/// ```
-/// use stac::Href;
-/// let catalog = stac::read_catalog(&Href::new("data/catalog.json")).unwrap();
-/// ```
-pub fn read_catalog(href: &Href) -> Result<Catalog> {
-    let reader = Reader::default();
-    reader.read_object(href)
-}
-
-/// Reads a [Collection] from an [Href].
-///
-/// # Examples
-///
-/// ```
-/// use stac::Href;
-/// let collection = stac::read_collection(&Href::new("data/collection.json")).unwrap();
-/// ```
-pub fn read_collection(href: &Href) -> Result<Collection> {
-    let reader = Reader::default();
-    reader.read_object(href)
-}
-
-/// Reads an [Item] from an [Href].
-///
-/// # Examples
-///
-/// ```
-/// use stac::Href;
-/// let item = stac::read_item(&Href::new("data/simple-item.json")).unwrap();
-/// ```
-pub fn read_item(href: &Href) -> Result<Item> {
-    let reader = Reader::default();
-    reader.read_object(href)
-}
-
 #[cfg(test)]
 mod tests {
-    use criterion as _;
-
     macro_rules! roundtrip {
         ($function:ident, $filename:expr, $object:ident) => {
             #[test]

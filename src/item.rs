@@ -1,4 +1,7 @@
-use crate::{Asset, Link, Properties, STAC_VERSION};
+use crate::{
+    link::COLLECTION_REL, media_type::JSON, Asset, Collection, Error, Href, Link, Properties,
+    Result, STAC_VERSION,
+};
 use geojson::Geometry;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
@@ -72,6 +75,9 @@ pub struct Item {
     /// Additional fields not part of the Item specification.
     #[serde(flatten)]
     pub additional_fields: Map<String, Value>,
+
+    #[serde(skip)]
+    href: Option<String>,
 }
 
 impl Item {
@@ -100,14 +106,83 @@ impl Item {
             assets: HashMap::new(),
             collection: None,
             additional_fields: Map::new(),
+            href: None,
         }
+    }
+
+    /// Sets this item's [Collection], both setting the `collection` field and adding a link with a `collection` rel type.
+    ///
+    /// If the Collection does not have an href, returns an error.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::{Item, Href, Collection};
+    /// let mut item = Item::new("an-item");
+    /// let mut collection = Collection::new("a-collection");
+    /// collection.set_href("a/href");
+    /// item.set_collection(&collection).unwrap();
+    /// ```
+    pub fn set_collection(&mut self, collection: &Collection) -> Result<()> {
+        if let Some(href) = collection.href() {
+            self.collection = Some(collection.id.clone());
+            self.links.retain(|link| !link.is_collection());
+            self.links.push(Link {
+                href: href.to_string(),
+                rel: COLLECTION_REL.to_string(),
+                r#type: Some(JSON.to_string()),
+                title: collection.title.clone(),
+                additional_fields: Default::default(),
+            });
+            Ok(())
+        } else {
+            Err(Error::MissingHref(collection.id.clone()))
+        }
+    }
+
+    /// Returns this item's collection link.
+    ///
+    /// If there are zero or more than one link with rel "collection", returns [None].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::{Item, Link};
+    /// let mut item = Item::new("an-id");
+    /// assert!(item.collection_link().is_none());
+    /// item.links.push(Link::new("a/href", "collection"));
+    /// assert!(item.collection_link().is_some());
+    /// item.links.push(Link::new("a/second/href", "collection"));
+    /// assert!(item.collection_link().is_none());
+    /// ```
+    pub fn collection_link(&self) -> Option<&Link> {
+        let mut iter = self.links.iter().filter(|link| link.is_collection());
+        if let Some(link) = iter.next() {
+            if iter.next().is_none() {
+                Some(link)
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    }
+}
+
+impl Href for Item {
+    fn href(&self) -> Option<&str> {
+        self.href.as_deref()
+    }
+
+    fn set_href(&mut self, href: impl ToString) {
+        self.href = Some(href.to_string())
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::Item;
-    use crate::STAC_VERSION;
+    use crate::{media_type::JSON, Collection, Error, Href, Link, STAC_VERSION};
 
     #[test]
     fn new() {
@@ -131,6 +206,65 @@ mod tests {
         assert!(value.get("bbox").is_none());
         assert!(value.get("collection").is_none());
     }
+
+    #[test]
+    fn set_collection_without_href() {
+        let mut item = Item::new("an-id");
+        let collection = Collection::new("a-collection");
+        assert!(matches!(
+            item.set_collection(&collection).unwrap_err(),
+            Error::MissingHref(_)
+        ))
+    }
+
+    #[test]
+    fn set_collection() {
+        let mut item = Item::new("an-id");
+        let mut collection = Collection::new("a-collection");
+        collection.set_href("a/href");
+        item.set_collection(&collection).unwrap();
+        assert_eq!(item.collection.as_deref().unwrap(), "a-collection");
+        let link = item.collection_link().unwrap();
+        assert_eq!(link.href, "a/href");
+        assert_eq!(link.r#type.as_deref().unwrap(), JSON);
+    }
+
+    #[test]
+    fn set_collection_clears_old_link() {
+        let mut item = Item::new("an-id");
+        let mut collection = Collection::new("a-collection");
+        collection.set_href("a/href");
+        item.set_collection(&collection).unwrap();
+        collection.id = "a-second-id".to_string();
+        collection.set_href("a/second/href");
+        item.set_collection(&collection).unwrap();
+        assert_eq!(item.collection.as_deref().unwrap(), "a-second-id");
+        let link = item.collection_link().unwrap();
+        assert_eq!(link.href, "a/second/href");
+    }
+
+    #[test]
+    fn collection_link_no_links() {
+        let item = Item::new("an-id");
+        assert!(item.collection_link().is_none());
+    }
+
+    #[test]
+    fn collection_link_one() {
+        let mut item = Item::new("an-id");
+        item.links.push(Link::new("a/href", "collection"));
+        let link = item.collection_link().unwrap();
+        assert_eq!(link.href, "a/href")
+    }
+
+    #[test]
+    fn collection_link_two() {
+        let mut item = Item::new("an-id");
+        item.links.push(Link::new("a/href", "collection"));
+        item.links.push(Link::new("a/second/href", "collection"));
+        assert!(item.collection_link().is_none());
+    }
+
     mod roundtrip {
         use super::Item;
         use crate::tests::roundtrip;

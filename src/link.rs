@@ -1,12 +1,21 @@
+//! Links.
+
 use crate::media_type;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
-const CHILD_REL: &str = "child";
-const ITEM_REL: &str = "item";
-const PARENT_REL: &str = "parent";
-const ROOT_REL: &str = "root";
-const SELF_REL: &str = "self";
+/// Child links.
+pub const CHILD_REL: &str = "child";
+/// Item link.
+pub const ITEM_REL: &str = "item";
+/// Parent link.
+pub const PARENT_REL: &str = "parent";
+/// Root link.
+pub const ROOT_REL: &str = "root";
+/// Self link.
+pub const SELF_REL: &str = "self";
+/// Collection link.
+pub const COLLECTION_REL: &str = "collection";
 
 /// This object describes a relationship with another entity.
 ///
@@ -198,11 +207,26 @@ impl Link {
     /// # use stac::Link;
     /// let link = Link::new("an-href", "self");
     /// assert!(link.is_self());
-    /// let link = Link::new("an-href", "not-a-root");
+    /// let link = Link::new("an-href", "not-a-self");
     /// assert!(!link.is_self());
     /// ```
     pub fn is_self(&self) -> bool {
         self.rel == SELF_REL
+    }
+
+    /// Returns true if this link's rel is `"collection"`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac::Link;
+    /// let link = Link::new("an-href", "collection");
+    /// assert!(link.is_collection());
+    /// let link = Link::new("an-href", "not-a-collection");
+    /// assert!(!link.is_collection());
+    /// ```
+    pub fn is_collection(&self) -> bool {
+        self.rel == COLLECTION_REL
     }
 
     /// Returns true if this link is structural (i.e. not child, parent, item,

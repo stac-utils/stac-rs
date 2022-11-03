@@ -1,42 +1,46 @@
-use crate::stac::Handle;
-use serde_json::Value;
+use crate::Value;
+use serde_json::Value as JsonValue;
 use thiserror::Error;
-use url::Url;
 
 /// Error enum for crate-specific errors.
 #[derive(Error, Debug)]
 pub enum Error {
-    /// Returned when you try to remove the root object from a [Stac](crate::Stac).
-    #[error("cannot remove root")]
-    CannotRemoveRoot,
-
-    /// Returned when trying to write urls from the default writer.
-    #[error("cannot write url: {0}")]
-    CannotWriteUrl(Url),
-
     /// [std::io::Error]
     #[error("std::io error: {0}")]
     Io(#[from] std::io::Error),
 
-    /// Returned when trying to access data in a [Stac](crate::Stac) with an invalid [Handle].
-    #[error("invalid handle: {0:?}")]
-    InvalidHandle(Handle),
-
     /// Returned when the `type` field of a STAC object is not a [String].
     #[error("invalid \"type\" field: {0}")]
-    InvalidTypeField(Value),
+    InvalidTypeField(JsonValue),
 
-    /// Returned when the `type` field of a STAC object does not equal `"Feature"`, `"Catalog"`, or `"Collection"`.
-    #[error("invalid \"type\" value: {0}")]
-    InvalidTypeValue(String),
+    /// Returned when a STAC object has the wrong type field.
+    #[error("incorrect type: expected={expected}, actual={actual}")]
+    IncorrectType {
+        /// The actual type field on the object.
+        actual: String,
+        /// The expected value.
+        expected: String,
+    },
 
     /// Returned when there is not a `type` field on a STAC object
     #[error("no \"type\" field in the JSON object")]
     MissingType,
 
-    /// Returned when trying to write an [Object](crate::Object) that does not have an href.
-    #[error("object has no href, cannot write")]
-    MissingHref,
+    /// Returned when an object is expected to have an href, but it doesn't.
+    #[error("object has no href: id={0}")]
+    MissingHref(String),
+
+    /// This value is not an item.
+    #[error("value is not an item")]
+    NotAnItem(Value),
+
+    /// This value is not a catalog.
+    #[error("value is not a catalog")]
+    NotACatalog(Value),
+
+    /// This value is not a collection.
+    #[error("value is not a collection")]
+    NotACollection(Value),
 
     /// Returned when trying to read from a url but the `reqwest` feature is not enabled.
     #[error("reqwest is not enabled")]
@@ -60,9 +64,9 @@ pub enum Error {
         actual: String,
     },
 
-    /// Returned if a node doesn't have an href or an object.
-    #[error("unresolvable node")]
-    UnresolvableNode,
+    /// Returned when the `type` field of a STAC object does not equal `"Feature"`, `"Catalog"`, or `"Collection"`.
+    #[error("unknown \"type\": {0}")]
+    UnknownType(String),
 
     /// [url::ParseError]
     #[error("url parse error: {0}")]

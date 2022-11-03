@@ -1,4 +1,4 @@
-use crate::{Link, STAC_VERSION};
+use crate::{Href, Link, STAC_VERSION};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
@@ -49,6 +49,9 @@ pub struct Catalog {
     /// Additional fields not part of the Catalog specification.
     #[serde(flatten)]
     pub additional_fields: Map<String, Value>,
+
+    #[serde(skip)]
+    href: Option<String>,
 }
 
 impl Catalog {
@@ -71,7 +74,18 @@ impl Catalog {
             description: String::new(),
             links: Vec::new(),
             additional_fields: Map::new(),
+            href: None,
         }
+    }
+}
+
+impl Href for Catalog {
+    fn href(&self) -> Option<&str> {
+        self.href.as_deref()
+    }
+
+    fn set_href(&mut self, href: impl ToString) {
+        self.href = Some(href.to_string())
     }
 }
 
