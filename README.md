@@ -29,27 +29,17 @@ If you'd like to use the library with `reqwest` for blocking remote reads:
 stac = { version = "0.0.5", features = ["reqwest"]}
 ```
 
-If `reqwest` is not enabled, `Reader::read` will throw an error if you try to read from a url.
+If `reqwest` is not enabled, `stac::read` will throw an error if you try to read from a url.
 
 ## API
 
-Please see the [documentation](https://docs.rs/stac/latest/stac/) for usage examples, and the [architecture diagram](./ARCHITECTURE.md) for a visual diagram of the key structures and traits.
-
-## Examples
-
-There is one example at [examples/copy.rs](./examples/copy.rs) that demonstrates a simple read-write operation.
-To run it from the command line:
-
-```shell
-cargo run --example copy data/catalog.json tmp
-```
+Please see the [documentation](https://docs.rs/stac/latest/stac/) for usage examples.
 
 ## Incubator
 
 We have an [incubator repository](https://github.com/gadomski/stac-rs-incubator) that holds related projects that aren't ready to be released as their own repositories.
 These include (or are planned to include):
 
-- async support
 - command line interface
 - STAC-API client
 - STAC-API server
