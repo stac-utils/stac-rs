@@ -8,6 +8,8 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.0.5] - 2022-11-12
+
 ### Added
 
 - `Href` trait
@@ -17,8 +19,6 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 - `Asset.type_` is now `Asset.r#type`
 - `reqwest` is now an optional feature
-
-### Fixed
 
 ### Removed
 
@@ -111,7 +111,8 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 Initial release.
 
-[Unreleased]: https://github.com/gadomski/stac-rs/compare/v0.0.4...HEAD
+[Unreleased]: https://github.com/gadomski/stac-rs/compare/v0.0.5...HEAD
+[0.0.5]: https://github.com/gadomski/stac-rs/compare/v0.0.4...v0.0.5
 [0.0.4]: https://github.com/gadomski/stac-rs/compare/v0.0.3...v0.0.4
 [0.0.3]: https://github.com/gadomski/stac-rs/compare/v0.0.2...v0.0.3
 [0.0.2]: https://github.com/gadomski/stac-rs/compare/v0.0.1...v0.0.2

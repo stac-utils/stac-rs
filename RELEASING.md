@@ -17,5 +17,4 @@ These should be taken from the CHANGELOG, but any leading `### Heading` should b
 - [ ] Version is updated in README.md examples
 - [ ] CHANGELOG is updated w/ correct header and correct links
 - [ ] CHANGELOG content is audited for correctness and clarity
-- [ ] (after merge, if necessary) Run `cargo install cargo-release`
 - [ ] (after merge) Run `cargo release`
