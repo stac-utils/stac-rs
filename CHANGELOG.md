@@ -10,27 +10,27 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
-- `Href::to_slash`
-- `FromStr` for `Href`
-- `Object::self_link`
-- Warnings for missing code examples (only works on nightly)
-- `Object::assets`
+- `Href` trait
+- `Value`
 
 ### Changed
 
 - `Asset.type_` is now `Asset.r#type`
-- Rename `Read::read_struct` to `Read::read_object`
-- `Read::read_json` now takes a reference to a `PathBufHref`
 - `reqwest` is now an optional feature
 
 ### Fixed
-
-- Ensuring a url href ends in a slash
 
 ### Removed
 
 - `PathBufHref`
 - `Href::into_string`
+- `Stac`
+- `Layout`
+- `Reader`
+- `Writer`
+- `Object`
+- `Href` struct
+- benchmarks
 
 ## [0.0.4] - 2022-03-09
 
