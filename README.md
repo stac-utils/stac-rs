@@ -16,7 +16,7 @@ To use the library in your project:
 
 ```toml
 [dependencies]
-stac = "0.0.4"
+stac = "0.0.5"
 ```
 
 ### Features
@@ -26,7 +26,7 @@ If you'd like to use the library with `reqwest` for blocking remote reads:
 
 ```toml
 [dependencies]
-stac = { version = "0.0.4", features = ["reqwest"]}
+stac = { version = "0.0.5", features = ["reqwest"]}
 ```
 
 If `reqwest` is not enabled, `Reader::read` will throw an error if you try to read from a url.
