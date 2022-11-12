@@ -23,6 +23,7 @@ impl Value {
     ///
     /// ```
     /// use serde_json::json;
+    /// use stac::Value;
     /// let catalog = json!({
     ///     "type": "Catalog",
     ///     "stac_version": "1.0.0",
@@ -30,6 +31,7 @@ impl Value {
     ///     "description": "a description",
     ///     "links": []
     /// });
+    /// let catalog = Value::from_json(catalog).unwrap();
     /// ```
     pub fn from_json(value: serde_json::Value) -> Result<Value> {
         if let Some(r#type) = value.get("type") {
