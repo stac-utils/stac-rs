@@ -15,6 +15,7 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 ### Removed
 
 - `Item::set_collection` and `Item::collection_link`
+- CI coverage
 
 ### Fixed
 
