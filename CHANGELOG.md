@@ -8,6 +8,18 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- Module layout
+
+### Removed
+
+- `Item::set_collection` and `Item::collection_link`
+
+### Fixed
+
+- Documentation examples
+
 ## [0.0.5] - 2022-11-12
 
 ### Added
