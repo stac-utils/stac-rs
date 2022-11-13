@@ -105,28 +105,22 @@ mod asset;
 mod catalog;
 mod collection;
 mod error;
-mod extent;
 mod href;
 mod io;
 mod item;
 pub mod link;
 pub mod media_type;
-mod properties;
-mod provider;
 mod value;
 
 pub use {
     asset::Asset,
     catalog::{Catalog, CATALOG_TYPE},
-    collection::{Collection, COLLECTION_TYPE},
+    collection::{Collection, Extent, Provider, SpatialExtent, TemporalExtent, COLLECTION_TYPE},
     error::Error,
-    extent::{Extent, SpatialExtent, TemporalExtent},
     href::Href,
     io::{read, read_from_path, read_from_url},
-    item::{Item, ITEM_TYPE},
+    item::{Item, Properties, ITEM_TYPE},
     link::Link,
-    properties::Properties,
-    provider::Provider,
     value::Value,
 };
 

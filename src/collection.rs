@@ -1,4 +1,4 @@
-use crate::{Asset, Extent, Href, Link, Provider, STAC_VERSION};
+use crate::{Asset, Href, Link, STAC_VERSION};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::collections::HashMap;
@@ -84,6 +84,67 @@ pub struct Collection {
     href: Option<String>,
 }
 
+/// This object provides information about a provider.
+///
+/// A provider is any of the organizations that captures or processes the
+/// content of the [Collection](crate::Collection) and therefore influences the
+/// data offered by this `Collection`. May also include information about the
+/// final storage provider hosting the data.
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+pub struct Provider {
+    /// The name of the organization or the individual.
+    pub name: String,
+
+    /// Multi-line description to add further provider information such as
+    /// processing details for processors and producers, hosting details for
+    /// hosts or basic contact information.
+    ///
+    /// [CommonMark 0.29](http://commonmark.org/) syntax MAY be used for rich text representation.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+
+    /// Roles of the provider.
+    ///
+    /// Any of `"licensor"`, `"producer"`, `"processor"`, or `"host"`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub roles: Option<Vec<String>>,
+
+    /// Homepage on which the provider describes the dataset and publishes contact information.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub url: Option<String>,
+
+    /// Additional fields on the provider.
+    #[serde(flatten)]
+    pub additional_fields: Map<String, Value>,
+}
+
+/// The object describes the spatio-temporal extents of the [Collection](crate::Collection).
+#[derive(Debug, Default, Serialize, Deserialize, PartialEq, Clone)]
+pub struct Extent {
+    /// Spatial extents covered by the `Collection`.
+    pub spatial: SpatialExtent,
+    /// Temporal extents covered by the `Collection`.
+    pub temporal: TemporalExtent,
+
+    /// Additional fields on the extent.
+    #[serde(flatten)]
+    pub additional_fields: Map<String, Value>,
+}
+
+/// The object describes the spatial extents of the Collection.
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+pub struct SpatialExtent {
+    /// Potential spatial extents covered by the Collection.
+    pub bbox: Vec<Vec<f64>>,
+}
+
+/// The object describes the temporal extents of the Collection.
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+pub struct TemporalExtent {
+    /// Potential temporal extents covered by the Collection.
+    pub interval: Vec<[Option<String>; 2]>,
+}
+
 impl Collection {
     /// Creates a new `Collection` with the given `id`.
     ///
@@ -125,39 +186,116 @@ impl Href for Collection {
     }
 }
 
+impl Provider {
+    /// Creates a new provider with the given name.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac::Provider;
+    /// let provider = Provider::new("a-name");
+    /// assert_eq!(provider.name, "a-name");
+    /// ```
+    pub fn new(name: impl ToString) -> Provider {
+        Provider {
+            name: name.to_string(),
+            description: None,
+            roles: None,
+            url: None,
+            additional_fields: Map::new(),
+        }
+    }
+}
+
+impl Default for SpatialExtent {
+    fn default() -> SpatialExtent {
+        SpatialExtent {
+            bbox: vec![vec![-180.0, -90.0, 180.0, 90.0]],
+        }
+    }
+}
+
+impl Default for TemporalExtent {
+    fn default() -> TemporalExtent {
+        TemporalExtent {
+            interval: vec![[None, None]],
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::Collection;
-    use crate::{Extent, STAC_VERSION};
+    use super::{Collection, Extent, Provider};
 
-    #[test]
-    fn new() {
-        let collection = Collection::new("an-id");
-        assert!(collection.title.is_none());
-        assert_eq!(collection.description, "");
-        assert_eq!(collection.license, "");
-        assert!(collection.providers.is_none());
-        assert_eq!(collection.extent, Extent::default());
-        assert!(collection.summaries.is_none());
-        assert!(collection.assets.is_none());
-        assert_eq!(collection.r#type, "Collection");
-        assert_eq!(collection.version, STAC_VERSION);
-        assert!(collection.extensions.is_none());
-        assert_eq!(collection.id, "an-id");
-        assert!(collection.links.is_empty());
+    mod collection {
+        use super::Collection;
+        use crate::{Extent, STAC_VERSION};
+
+        #[test]
+        fn new() {
+            let collection = Collection::new("an-id");
+            assert!(collection.title.is_none());
+            assert_eq!(collection.description, "");
+            assert_eq!(collection.license, "");
+            assert!(collection.providers.is_none());
+            assert_eq!(collection.extent, Extent::default());
+            assert!(collection.summaries.is_none());
+            assert!(collection.assets.is_none());
+            assert_eq!(collection.r#type, "Collection");
+            assert_eq!(collection.version, STAC_VERSION);
+            assert!(collection.extensions.is_none());
+            assert_eq!(collection.id, "an-id");
+            assert!(collection.links.is_empty());
+        }
+
+        #[test]
+        fn skip_serializing() {
+            let collection = Collection::new("an-id");
+            let value = serde_json::to_value(collection).unwrap();
+            assert!(value.get("stac_extensions").is_none());
+            assert!(value.get("title").is_none());
+            assert!(value.get("keywords").is_none());
+            assert!(value.get("providers").is_none());
+            assert!(value.get("summaries").is_none());
+            assert!(value.get("assets").is_none());
+        }
     }
 
-    #[test]
-    fn skip_serializing() {
-        let collection = Collection::new("an-id");
-        let value = serde_json::to_value(collection).unwrap();
-        assert!(value.get("stac_extensions").is_none());
-        assert!(value.get("title").is_none());
-        assert!(value.get("keywords").is_none());
-        assert!(value.get("providers").is_none());
-        assert!(value.get("summaries").is_none());
-        assert!(value.get("assets").is_none());
+    mod provider {
+        use super::Provider;
+
+        #[test]
+        fn new() {
+            let provider = Provider::new("a-name");
+            assert_eq!(provider.name, "a-name");
+            assert!(provider.description.is_none());
+            assert!(provider.roles.is_none());
+            assert!(provider.url.is_none());
+            assert!(provider.additional_fields.is_empty());
+        }
+
+        #[test]
+        fn skip_serializing() {
+            let provider = Provider::new("an-id");
+            let value = serde_json::to_value(provider).unwrap();
+            assert!(value.get("description").is_none());
+            assert!(value.get("roles").is_none());
+            assert!(value.get("url").is_none());
+        }
     }
+
+    mod extent {
+        use super::Extent;
+
+        #[test]
+        fn default() {
+            let extent = Extent::default();
+            assert_eq!(extent.spatial.bbox, [[-180.0, -90.0, 180.0, 90.0]]);
+            assert_eq!(extent.temporal.interval, [[None, None]]);
+            assert!(extent.additional_fields.is_empty());
+        }
+    }
+
     mod roundtrip {
         use super::Collection;
         use crate::tests::roundtrip;
