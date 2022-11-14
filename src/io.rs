@@ -1,4 +1,4 @@
-use crate::{Href, Result, Value};
+use crate::{Error, Href, Result, Value};
 use std::{fs::File, io::BufReader, path::Path};
 use url::Url;
 
@@ -12,61 +12,41 @@ use url::Url;
 /// ```
 pub fn read(href: impl ToString) -> Result<Value> {
     let href = href.to_string();
+    let value = read_json(&href)?;
+    let mut value = Value::from_json(value)?;
+    value.set_href(href);
+    Ok(value)
+}
+
+/// Reads any JSON value from an href.
+///
+/// # Examples
+///
+/// ```
+/// let value = stac::read_json("data/simple-item.json").unwrap();
+/// ```
+pub fn read_json(href: &str) -> Result<serde_json::Value> {
     if let Ok(url) = Url::parse(&href) {
-        read_from_url(url)
+        read_json_from_url(url)
     } else {
-        read_from_path(href)
+        read_json_from_path(href)
     }
 }
 
-/// Reads any STAC object from a path.
-///
-/// # Examples
-///
-/// ```
-/// let item = stac::read_from_path("data/simple-item.json").unwrap();
-/// assert!(item.is_item());
-/// ```
-pub fn read_from_path<P: AsRef<Path>>(path: P) -> Result<Value> {
+fn read_json_from_path<P: AsRef<Path>>(path: P) -> Result<serde_json::Value> {
     let file = File::open(path.as_ref())?;
     let reader = BufReader::new(file);
-    let value: serde_json::Value = serde_json::from_reader(reader)?;
-    let mut value = Value::from_json(value)?;
-    value.set_href(path.as_ref().to_string_lossy());
-    Ok(value)
+    serde_json::from_reader(reader).map_err(Error::from)
 }
 
-/// Reads any STAC object from a url.
-///
-/// # Examples
-///
-/// ```no_run
-/// let url = "https://raw.githubusercontent.com/radiantearth/stac-spec/master/examples/simple-item.json";
-/// let item = stac::read_from_url(url.parse().unwrap()).unwrap();
-/// assert!(item.is_item());
-/// ```
 #[cfg(feature = "reqwest")]
-pub fn read_from_url(url: Url) -> Result<Value> {
+fn read_json_from_url(url: Url) -> Result<serde_json::Value> {
     let response = reqwest::blocking::get(url.clone())?;
-    let value: serde_json::Value = response.json()?;
-    let mut value = Value::from_json(value)?;
-    value.set_href(url.to_string());
-    Ok(value)
+    response.json().map_err(Error::from)
 }
 
-/// Reads any STAC object from a url.
-///
-/// Returns an error because reqwest is not enabled.
-///
-/// # Examples
-///
-/// ```
-/// let url = "http://stac-rs.test/item.json";
-/// let err = stac::read_from_url(url.parse().unwrap()).unwrap_err();
-/// assert!(matches!(err, stac::Error::ReqwestNotEnabled));
-/// ```
 #[cfg(not(feature = "reqwest"))]
-pub fn read_from_url(_: Url) -> Result<Value> {
+fn read_json_from_url(_: Url) -> Result<serde_json::Value> {
     Err(crate::Error::ReqwestNotEnabled)
 }
 

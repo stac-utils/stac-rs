@@ -118,7 +118,7 @@ pub use {
     collection::{Collection, Extent, Provider, SpatialExtent, TemporalExtent, COLLECTION_TYPE},
     error::Error,
     href::Href,
-    io::{read, read_from_path, read_from_url},
+    io::{read, read_json},
     item::{Item, Properties, ITEM_TYPE},
     link::Link,
     value::Value,
