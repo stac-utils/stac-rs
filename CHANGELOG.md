@@ -8,6 +8,10 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- `stac::read_json`
+
 ### Changed
 
 - Module layout
@@ -16,6 +20,7 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 - `Item::set_collection` and `Item::collection_link`
 - CI coverage
+- `stac::read_from_url` and `stac::read_from_path`
 
 ### Fixed
 
