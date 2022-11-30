@@ -8,6 +8,8 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.0] - 2022-11-30
+
 ### Added
 
 - `stac::read_json`
@@ -129,7 +131,8 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 Initial release.
 
-[Unreleased]: https://github.com/gadomski/stac-rs/compare/v0.0.5...HEAD
+[Unreleased]: https://github.com/gadomski/stac-rs/compare/v0.1.0...main
+[0.1.0]: https://github.com/gadomski/stac-rs/compare/v0.0.5...v0.1.0
 [0.0.5]: https://github.com/gadomski/stac-rs/compare/v0.0.4...v0.0.5
 [0.0.4]: https://github.com/gadomski/stac-rs/compare/v0.0.3...v0.0.4
 [0.0.3]: https://github.com/gadomski/stac-rs/compare/v0.0.2...v0.0.3
