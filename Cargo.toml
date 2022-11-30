@@ -1,6 +1,6 @@
 [package]
 name = "stac"
-version = "0.0.5"
+version = "0.1.0"
 authors = ["Pete Gadomski <pete.gadomski@gmail.com>"]
 edition = "2021"
 description = "Rust library for the SpatioTemporal Asset Catalog (STAC) specification"
@@ -21,7 +21,6 @@ url = "2"
 
 [dev-dependencies]
 assert-json-diff = "2"
-
 
 [package.metadata.docs.rs]
 all-features = true
