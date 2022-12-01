@@ -57,6 +57,7 @@ pub enum Error {
 
     /// Mismatch between expected and actual type fields.
     #[error("type mismatch: expected={expected}, actual={actual}")]
+    #[deprecated(since = "0.1.1", note = "use Error::IncorrecType instead")]
     TypeMismatch {
         /// The expected type field.
         expected: String,
