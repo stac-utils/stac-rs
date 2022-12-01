@@ -2,14 +2,6 @@
 
 major.minor.patch
 
-## Release notes
-
-These should be taken from the CHANGELOG, but any leading `### Heading` should be modified to be `Heading:`:
-
-```text
-
-```
-
 ## Checklist
 
 - [ ] Branch is formatted `release/vX.Y.Z`
