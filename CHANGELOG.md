@@ -8,6 +8,10 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Deprecated
+
+- `Error::TypeMismatch` ([#93](https://github.com/gadomski/stac-rs/pull/93))
+
 ## [0.1.0] - 2022-11-30
 
 ### Added
