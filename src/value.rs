@@ -225,6 +225,15 @@ impl Links for Value {
             Item(item) => item.links(),
         }
     }
+
+    fn links_mut(&mut self) -> &mut Vec<Link> {
+        use Value::*;
+        match self {
+            Catalog(catalog) => catalog.links_mut(),
+            Collection(collection) => collection.links_mut(),
+            Item(item) => item.links_mut(),
+        }
+    }
 }
 
 impl TryFrom<Value> for serde_json::Value {

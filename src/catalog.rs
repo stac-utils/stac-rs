@@ -93,6 +93,9 @@ impl Links for Catalog {
     fn links(&self) -> &[Link] {
         &self.links
     }
+    fn links_mut(&mut self) -> &mut Vec<Link> {
+        &mut self.links
+    }
 }
 
 #[cfg(test)]
