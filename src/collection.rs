@@ -1,4 +1,4 @@
-use crate::{Asset, Href, Link, STAC_VERSION};
+use crate::{Asset, Href, Link, Links, STAC_VERSION};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::collections::HashMap;
@@ -183,6 +183,12 @@ impl Href for Collection {
 
     fn set_href(&mut self, href: impl ToString) {
         self.href = Some(href.to_string())
+    }
+}
+
+impl Links for Collection {
+    fn links(&self) -> &[Link] {
+        &self.links
     }
 }
 

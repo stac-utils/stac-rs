@@ -120,7 +120,7 @@ pub use {
     href::Href,
     io::{read, read_json},
     item::{Item, Properties, ITEM_TYPE},
-    link::Link,
+    link::{Link, Links},
     value::Value,
 };
 
