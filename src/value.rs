@@ -1,5 +1,6 @@
 use crate::{
-    Catalog, Collection, Error, Href, Item, Result, CATALOG_TYPE, COLLECTION_TYPE, ITEM_TYPE,
+    Catalog, Collection, Error, Href, Item, Link, Links, Result, CATALOG_TYPE, COLLECTION_TYPE,
+    ITEM_TYPE,
 };
 use std::convert::TryFrom;
 
@@ -211,6 +212,17 @@ impl Href for Value {
             Catalog(catalog) => catalog.set_href(href),
             Collection(collection) => collection.set_href(href),
             Item(item) => item.set_href(href),
+        }
+    }
+}
+
+impl Links for Value {
+    fn links(&self) -> &[Link] {
+        use Value::*;
+        match self {
+            Catalog(catalog) => catalog.links(),
+            Collection(collection) => collection.links(),
+            Item(item) => item.links(),
         }
     }
 }

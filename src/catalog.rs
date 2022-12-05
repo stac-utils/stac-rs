@@ -1,4 +1,4 @@
-use crate::{Href, Link, STAC_VERSION};
+use crate::{Href, Link, Links, STAC_VERSION};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
@@ -86,6 +86,12 @@ impl Href for Catalog {
 
     fn set_href(&mut self, href: impl ToString) {
         self.href = Some(href.to_string())
+    }
+}
+
+impl Links for Catalog {
+    fn links(&self) -> &[Link] {
+        &self.links
     }
 }
 

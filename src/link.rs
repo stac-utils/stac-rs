@@ -52,6 +52,65 @@ pub struct Link {
     pub additional_fields: Map<String, Value>,
 }
 
+/// Implemented by any object that has links.
+pub trait Links {
+    /// Returns a reference to this object's links.
+    ///
+    /// # Examples
+    ///
+    /// [Value](crate::Value) implements Links:
+    ///
+    /// ```
+    /// use stac::Links;
+    /// let item = stac::read("data/simple-item.json").unwrap();
+    /// let links = item.links();
+    /// ```
+    fn links(&self) -> &[Link];
+
+    /// Returns the first link with the given rel type.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::Links;
+    /// let item = stac::read("data/simple-item.json").unwrap();
+    /// let link = item.link("root").unwrap();
+    /// ```
+    fn link(&self, rel: &str) -> Option<&Link> {
+        self.links().iter().find(|link| link.rel == rel)
+    }
+
+    /// Returns this object's root link.
+    ///
+    /// This is the first link with a rel="root".
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::Links;
+    /// let item = stac::read("data/simple-item.json").unwrap();
+    /// let link = item.root_link().unwrap();
+    /// ```
+    fn root_link(&self) -> Option<&Link> {
+        self.links().iter().find(|link| link.is_root())
+    }
+
+    /// Returns this object's self link.
+    ///
+    /// This is the first link with a rel="self".
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::Links;
+    /// let item = stac::read("data/simple-item.json").unwrap();
+    /// let link = item.root_link().unwrap();
+    /// ```
+    fn self_link(&self) -> Option<&Link> {
+        self.links().iter().find(|link| link.is_self())
+    }
+}
+
 impl Link {
     /// Creates a new link with the provided href and rel type.
     ///
@@ -266,5 +325,33 @@ mod tests {
         let value = serde_json::to_value(link).unwrap();
         assert!(value.get("type").is_none());
         assert!(value.get("title").is_none());
+    }
+
+    mod links {
+        use crate::{Item, Link, Links};
+
+        #[test]
+        fn link() {
+            let mut item = Item::new("an-item");
+            assert!(item.link("root").is_none());
+            item.links.push(Link::new("an-href", "root"));
+            assert!(item.link("root").is_some());
+        }
+
+        #[test]
+        fn root() {
+            let mut item = Item::new("an-item");
+            assert!(item.root_link().is_none());
+            item.links.push(Link::new("an-href", "root"));
+            assert!(item.root_link().is_some());
+        }
+
+        #[test]
+        fn self_() {
+            let mut item = Item::new("an-item");
+            assert!(item.self_link().is_none());
+            item.links.push(Link::new("an-href", "self"));
+            assert!(item.self_link().is_some());
+        }
     }
 }

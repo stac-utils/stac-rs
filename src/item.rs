@@ -1,4 +1,4 @@
-use crate::{Asset, Href, Link, STAC_VERSION};
+use crate::{Asset, Href, Link, Links, STAC_VERSION};
 use chrono::Utc;
 use geojson::Geometry;
 use serde::{Deserialize, Serialize};
@@ -139,6 +139,12 @@ impl Href for Item {
 
     fn set_href(&mut self, href: impl ToString) {
         self.href = Some(href.to_string())
+    }
+}
+
+impl Links for Item {
+    fn links(&self) -> &[Link] {
+        &self.links
     }
 }
 
