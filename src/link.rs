@@ -247,14 +247,18 @@ impl Link {
         }
     }
 
-    fn new_json(href: impl ToString, rel: impl ToString) -> Link {
-        Link {
-            href: href.to_string(),
-            rel: rel.to_string(),
-            r#type: Some(media_type::JSON.to_string()),
-            title: None,
-            additional_fields: Map::new(),
-        }
+    /// Sets this link's media type to JSON.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::{Link, media_type};
+    /// let link = Link::new("a/href", "rel-type").json();
+    /// assert_eq!(link.r#type.unwrap(), media_type::JSON);
+    /// ```
+    pub fn json(mut self) -> Link {
+        self.r#type = Some(media_type::JSON.to_string());
+        self
     }
 
     /// Creates a new root link with JSON media type.
@@ -268,7 +272,7 @@ impl Link {
     /// assert_eq!(root.r#type.as_ref().unwrap(), media_type::JSON);
     /// ```
     pub fn root(href: impl ToString) -> Link {
-        Link::new_json(href, ROOT_REL)
+        Link::new(href, ROOT_REL).json()
     }
 
     /// Creates a new child link with JSON media type.
@@ -282,7 +286,7 @@ impl Link {
     /// assert_eq!(root.r#type.as_ref().unwrap(), media_type::JSON);
     /// ```
     pub fn child(href: impl ToString) -> Link {
-        Link::new_json(href, CHILD_REL)
+        Link::new(href, CHILD_REL).json()
     }
 
     /// Creates a new item link with JSON media type.
@@ -296,7 +300,7 @@ impl Link {
     /// assert_eq!(root.r#type.as_ref().unwrap(), media_type::JSON);
     /// ```
     pub fn item(href: impl ToString) -> Link {
-        Link::new_json(href, ITEM_REL)
+        Link::new(href, ITEM_REL).json()
     }
 
     /// Creates a new parent link with JSON media type.
@@ -310,7 +314,7 @@ impl Link {
     /// assert_eq!(root.r#type.as_ref().unwrap(), media_type::JSON);
     /// ```
     pub fn parent(href: impl ToString) -> Link {
-        Link::new_json(href, PARENT_REL)
+        Link::new(href, PARENT_REL).json()
     }
 
     /// Returns true if this link's rel is `"item"`.
