@@ -109,6 +109,32 @@ pub trait Links {
     fn self_link(&self) -> Option<&Link> {
         self.links().iter().find(|link| link.is_self())
     }
+
+    /// Returns an iterator over this object's child links.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::Links;
+    /// let collection = stac::read("data/collection.json").unwrap();
+    /// let links: Vec<_> = collection.iter_child_links().collect();
+    /// ```
+    fn iter_child_links(&self) -> Box<dyn Iterator<Item = &Link> + '_> {
+        Box::new(self.links().iter().filter(|link| link.is_child()))
+    }
+
+    /// Returns an iterator over this object's item links.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::Links;
+    /// let collection = stac::read("data/collection.json").unwrap();
+    /// let links: Vec<_> = collection.iter_item_links().collect();
+    /// ```
+    fn iter_item_links(&self) -> Box<dyn Iterator<Item = &Link> + '_> {
+        Box::new(self.links().iter().filter(|link| link.is_item()))
+    }
 }
 
 impl Link {
