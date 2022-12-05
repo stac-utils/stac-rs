@@ -8,6 +8,10 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- `Links` trait ([#95](https://github.com/gadomski/stac-rs/pull/95))
+
 ## [0.1.1] - 2022-12-01
 
 ### Deprecated
