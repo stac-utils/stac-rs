@@ -130,6 +130,21 @@ impl Item {
             href: None,
         }
     }
+
+    /// Returns this item's collection link.
+    ///
+    /// This is the first link with a rel="collection".
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::Item;
+    /// let item: Item = stac::read("data/simple-item.json").unwrap().try_into().unwrap();
+    /// let link = item.collection_link().unwrap();
+    /// ```
+    pub fn collection_link(&self) -> Option<&Link> {
+        self.links.iter().find(|link| link.is_collection())
+    }
 }
 
 impl Href for Item {
