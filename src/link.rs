@@ -155,6 +155,21 @@ pub trait Links {
         previous_root_link
     }
 
+    /// Returns this object's self link.
+    ///
+    /// This is the first link with a rel="self".
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::Links;
+    /// let item = stac::read("data/simple-item.json").unwrap();
+    /// let link = item.root_link().unwrap();
+    /// ```
+    fn self_link(&self) -> Option<&Link> {
+        self.links().iter().find(|link| link.is_self())
+    }
+
     /// Sets this object's self link.
     ///
     /// This link will have a JSON media type. This removes and returns any
@@ -184,19 +199,48 @@ pub trait Links {
         previous_self_link
     }
 
-    /// Returns this object's self link.
+    /// Returns this object's parent link.
     ///
-    /// This is the first link with a rel="self".
+    /// This is the first link with a rel="parent".
     ///
     /// # Examples
     ///
     /// ```
     /// use stac::Links;
     /// let item = stac::read("data/simple-item.json").unwrap();
-    /// let link = item.root_link().unwrap();
+    /// let link = item.parent_link().unwrap();
     /// ```
-    fn self_link(&self) -> Option<&Link> {
-        self.links().iter().find(|link| link.is_self())
+    fn parent_link(&self) -> Option<&Link> {
+        self.links().iter().find(|link| link.is_parent())
+    }
+
+    /// Sets this object's parent link.
+    ///
+    /// This link will have a JSON media type. This removes and returns any
+    /// existing parent link.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::{Links, Item};
+    /// let mut item = Item::new("an-id");
+    /// assert!(item.set_parent_link("an/href", "The title of the link".to_string()).is_none());
+    /// assert!(item.parent_link().is_some());
+    /// ```
+    fn set_parent_link(
+        &mut self,
+        href: impl ToString,
+        title: impl Into<Option<String>>,
+    ) -> Option<Link> {
+        let previous_parent_link = self.remove_link(PARENT_REL);
+        self.links_mut().push(Link {
+            href: href.to_string(),
+            rel: PARENT_REL.to_string(),
+            r#type: Some(media_type::JSON.to_string()),
+            title: title.into(),
+            additional_fields: Default::default(),
+        });
+        previous_parent_link
     }
 
     /// Returns an iterator over this object's child links.
