@@ -220,15 +220,43 @@ impl Link {
         self
     }
 
+    /// Sets this link's media type.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::{Link, media_type};
+    /// let link = Link::new("a/href", "rel-type").r#type(media_type::GEOJSON.to_string());
+    /// assert_eq!(link.r#type.unwrap(), media_type::GEOJSON);
+    /// ```
+    pub fn r#type(mut self, r#type: impl Into<Option<String>>) -> Link {
+        self.r#type = r#type.into();
+        self
+    }
+
+    /// Sets this link's title.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::Link;
+    /// let link = Link::new("a/href", "rel-type").title("a title".to_string());
+    /// assert_eq!(link.title.unwrap(), "a title");
+    /// ```
+    pub fn title(mut self, title: impl Into<Option<String>>) -> Link {
+        self.title = title.into();
+        self
+    }
+
     /// Creates a new root link with JSON media type.
     ///
     /// # Examples
     ///
     /// ```
     /// # use stac::{Link, media_type};
-    /// let root = Link::root("an-href");
-    /// assert!(root.is_root());
-    /// assert_eq!(root.r#type.as_ref().unwrap(), media_type::JSON);
+    /// let link = Link::root("an-href");
+    /// assert!(link.is_root());
+    /// assert_eq!(link.r#type.as_ref().unwrap(), media_type::JSON);
     /// ```
     pub fn root(href: impl ToString) -> Link {
         Link::new(href, ROOT_REL).json()
@@ -240,9 +268,9 @@ impl Link {
     ///
     /// ```
     /// # use stac::{Link, media_type};
-    /// let root = Link::child("an-href");
-    /// assert!(root.is_child());
-    /// assert_eq!(root.r#type.as_ref().unwrap(), media_type::JSON);
+    /// let link = Link::child("an-href");
+    /// assert!(link.is_child());
+    /// assert_eq!(link.r#type.as_ref().unwrap(), media_type::JSON);
     /// ```
     pub fn child(href: impl ToString) -> Link {
         Link::new(href, CHILD_REL).json()
@@ -254,9 +282,9 @@ impl Link {
     ///
     /// ```
     /// # use stac::{Link, media_type};
-    /// let root = Link::item("an-href");
-    /// assert!(root.is_item());
-    /// assert_eq!(root.r#type.as_ref().unwrap(), media_type::JSON);
+    /// let link = Link::item("an-href");
+    /// assert!(link.is_item());
+    /// assert_eq!(link.r#type.as_ref().unwrap(), media_type::JSON);
     /// ```
     pub fn item(href: impl ToString) -> Link {
         Link::new(href, ITEM_REL).json()
@@ -268,12 +296,26 @@ impl Link {
     ///
     /// ```
     /// # use stac::{Link, media_type};
-    /// let root = Link::parent("an-href");
-    /// assert!(root.is_parent());
-    /// assert_eq!(root.r#type.as_ref().unwrap(), media_type::JSON);
+    /// let link = Link::parent("an-href");
+    /// assert!(link.is_parent());
+    /// assert_eq!(link.r#type.as_ref().unwrap(), media_type::JSON);
     /// ```
     pub fn parent(href: impl ToString) -> Link {
         Link::new(href, PARENT_REL).json()
+    }
+
+    /// Creates a new collection link with JSON media type.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac::{Link, media_type};
+    /// let link = Link::collection("an-href");
+    /// assert!(link.is_collection());
+    /// assert_eq!(link.r#type.as_ref().unwrap(), media_type::JSON);
+    /// ```
+    pub fn collection(href: impl ToString) -> Link {
+        Link::new(href, COLLECTION_REL).json()
     }
 
     /// Returns true if this link's rel is `"item"`.
