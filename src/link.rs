@@ -94,21 +94,23 @@ pub trait Links {
         self.links().iter().find(|link| link.rel == rel)
     }
 
-    /// Removes and returns the first link with the given rel type.
+    /// Sets a link of the given rel type.
+    ///
+    /// This will remove all other links of that rel type, so should only be
+    /// used for e.g. "root", not e.g. "child".
+    ///
+    /// Returns a vector of all removed links.
     ///
     /// # Examples
     ///
     /// ```
-    /// use stac::Links;
+    /// use stac::{Links, Link};
     /// let mut item = stac::read("data/simple-item.json").unwrap();
-    /// let link = item.remove_link("root").unwrap();
+    /// item.set_link(Link::root("a/href"));
     /// ```
-    fn remove_link(&mut self, rel: &str) -> Option<Link> {
-        if let Some(i) = self.links().iter().position(|link| link.rel == rel) {
-            Some(self.links_mut().remove(i))
-        } else {
-            None
-        }
+    fn set_link(&mut self, link: Link) {
+        self.links_mut().retain(|l| l.rel != link.rel);
+        self.links_mut().push(link)
     }
 
     /// Returns this object's root link.
@@ -126,35 +128,6 @@ pub trait Links {
         self.links().iter().find(|link| link.is_root())
     }
 
-    /// Sets this object's root link.
-    ///
-    /// This link will have a JSON media type. This removes and returns any
-    /// existing root link.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use stac::{Links, Item};
-    /// let mut item = Item::new("an-id");
-    /// assert!(item.set_root_link("an/href", "The title of the link".to_string()).is_none());
-    /// assert!(item.root_link().is_some());
-    /// ```
-    fn set_root_link(
-        &mut self,
-        href: impl ToString,
-        title: impl Into<Option<String>>,
-    ) -> Option<Link> {
-        let previous_root_link = self.remove_link(ROOT_REL);
-        self.links_mut().push(Link {
-            href: href.to_string(),
-            rel: ROOT_REL.to_string(),
-            r#type: Some(media_type::JSON.to_string()),
-            title: title.into(),
-            additional_fields: Default::default(),
-        });
-        previous_root_link
-    }
-
     /// Returns this object's self link.
     ///
     /// This is the first link with a rel="self".
@@ -170,35 +143,6 @@ pub trait Links {
         self.links().iter().find(|link| link.is_self())
     }
 
-    /// Sets this object's self link.
-    ///
-    /// This link will have a JSON media type. This removes and returns any
-    /// existing self link.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use stac::{Links, Item};
-    /// let mut item = Item::new("an-id");
-    /// assert!(item.set_self_link("an/href", "The title of the link".to_string()).is_none());
-    /// assert!(item.self_link().is_some());
-    /// ```
-    fn set_self_link(
-        &mut self,
-        href: impl ToString,
-        title: impl Into<Option<String>>,
-    ) -> Option<Link> {
-        let previous_self_link = self.remove_link(SELF_REL);
-        self.links_mut().push(Link {
-            href: href.to_string(),
-            rel: SELF_REL.to_string(),
-            r#type: Some(media_type::JSON.to_string()),
-            title: title.into(),
-            additional_fields: Default::default(),
-        });
-        previous_self_link
-    }
-
     /// Returns this object's parent link.
     ///
     /// This is the first link with a rel="parent".
@@ -212,35 +156,6 @@ pub trait Links {
     /// ```
     fn parent_link(&self) -> Option<&Link> {
         self.links().iter().find(|link| link.is_parent())
-    }
-
-    /// Sets this object's parent link.
-    ///
-    /// This link will have a JSON media type. This removes and returns any
-    /// existing parent link.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use stac::{Links, Item};
-    /// let mut item = Item::new("an-id");
-    /// assert!(item.set_parent_link("an/href", "The title of the link".to_string()).is_none());
-    /// assert!(item.parent_link().is_some());
-    /// ```
-    fn set_parent_link(
-        &mut self,
-        href: impl ToString,
-        title: impl Into<Option<String>>,
-    ) -> Option<Link> {
-        let previous_parent_link = self.remove_link(PARENT_REL);
-        self.links_mut().push(Link {
-            href: href.to_string(),
-            rel: PARENT_REL.to_string(),
-            r#type: Some(media_type::JSON.to_string()),
-            title: title.into(),
-            additional_fields: Default::default(),
-        });
-        previous_parent_link
     }
 
     /// Returns an iterator over this object's child links.
