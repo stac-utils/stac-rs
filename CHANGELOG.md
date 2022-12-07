@@ -11,6 +11,11 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 ### Added
 
 - `Links` trait ([#95](https://github.com/gadomski/stac-rs/pull/95), [#96](https://github.com/gadomski/stac-rs/pull/96), [#97](https://github.com/gadomski/stac-rs/pull/97), [#100](https://github.com/gadomski/stac-rs/pull/100))
+- `Link::json` for making links with a JSON media type ([#100](https://github.com/gadomski/stac-rs/pull/100))
+- Builder methods for `Link` ([#100](https://github.com/gadomski/stac-rs/pull/100))
+- `Item::collection_link` ([#100](https://github.com/gadomski/stac-rs/pull/100))
+- `Link::collection` for making `rel="collection"` links ([#100](https://github.com/gadomski/stac-rs/pull/100))
+- `Link::self_` for making `rel="self"` links ([#101](https://github.com/gadomski/stac-rs/pull/101))
 
 ## [0.1.1] - 2022-12-01
 
