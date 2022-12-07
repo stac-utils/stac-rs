@@ -262,6 +262,20 @@ impl Link {
         Link::new(href, ROOT_REL).json()
     }
 
+    /// Creates a new self link with JSON media type.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac::{Link, media_type};
+    /// let link = Link::self_("an-href");
+    /// assert!(link.is_self());
+    /// assert_eq!(link.r#type.as_ref().unwrap(), media_type::JSON);
+    /// ```
+    pub fn self_(href: impl ToString) -> Link {
+        Link::new(href, SELF_REL).json()
+    }
+
     /// Creates a new child link with JSON media type.
     ///
     /// # Examples
