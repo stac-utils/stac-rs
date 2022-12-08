@@ -20,13 +20,13 @@
 //! - [Collection] shares all fields with the `Catalog` (with different allowed values for `type` and `stac_extensions`) and adds fields to describe the whole dataset and the included set of `Items`
 //!
 //! All three are provided as [serde](https://serde.rs/) (de)serializable structures with public attributes.
-//! Each structure provides a `new` method that takes an `id` and fills the rest of the object's attributes with sensible defaults:
+//! Each structure provides a `new` method that fills most of the object's attributes with sensible defaults:
 //!
 //! ```
 //! use stac::{Item, Catalog, Collection};
 //! let item = Item::new("id");
-//! let catalog = Catalog::new("id");
-//! let collection = Catalog::new("id");
+//! let catalog = Catalog::new("id", "description");
+//! let collection = Catalog::new("id", "description");
 //! ```
 //!
 //! All attributes of STAC objects are accessible as public members:

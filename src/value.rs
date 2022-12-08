@@ -63,7 +63,7 @@ impl Value {
     ///
     /// ```
     /// # use stac::{Value, Catalog};
-    /// assert!(Value::Catalog(Catalog::new("an-id")).is_catalog());
+    /// assert!(Value::Catalog(Catalog::new("an-id", "a description")).is_catalog());
     /// ```
     pub fn is_catalog(&self) -> bool {
         matches!(self, Value::Catalog(_))
@@ -75,7 +75,7 @@ impl Value {
     ///
     /// ```
     /// # use stac::{Value, Catalog};
-    /// let value = Value::Catalog(Catalog::new("an-id"));
+    /// let value = Value::Catalog(Catalog::new("an-id", "a description"));
     /// assert_eq!(value.as_catalog().unwrap().id, "an-id");
     /// ```
     pub fn as_catalog(&self) -> Option<&Catalog> {
@@ -92,7 +92,7 @@ impl Value {
     ///
     /// ```
     /// # use stac::{Value, Catalog};
-    /// let mut value = Value::Catalog(Catalog::new("an-id"));
+    /// let mut value = Value::Catalog(Catalog::new("an-id", "a description"));
     /// value.as_mut_catalog().unwrap().id = "another-id".to_string();
     /// ```
     pub fn as_mut_catalog(&mut self) -> Option<&mut Catalog> {
@@ -109,7 +109,7 @@ impl Value {
     ///
     /// ```
     /// # use stac::{Value, Collection};
-    /// assert!(Value::Collection(Collection::new("an-id")).is_collection());
+    /// assert!(Value::Collection(Collection::new("an-id", "a description")).is_collection());
     /// ```
     pub fn is_collection(&self) -> bool {
         matches!(self, Value::Collection(_))
@@ -121,7 +121,7 @@ impl Value {
     ///
     /// ```
     /// # use stac::{Value, Collection};
-    /// let value = Value::Collection(Collection::new("an-id"));
+    /// let value = Value::Collection(Collection::new("an-id", "a description"));
     /// assert_eq!(value.as_collection().unwrap().id, "an-id");
     /// ```
     pub fn as_collection(&self) -> Option<&Collection> {
@@ -138,7 +138,7 @@ impl Value {
     ///
     /// ```
     /// # use stac::{Value, Collection};
-    /// let mut value = Value::Collection(Collection::new("an-id"));
+    /// let mut value = Value::Collection(Collection::new("an-id", "a description"));
     /// value.as_mut_collection().unwrap().id = "another-id".to_string();
     /// ```
     pub fn as_mut_collection(&mut self) -> Option<&mut Collection> {
@@ -407,7 +407,7 @@ mod tests {
 
     #[test]
     fn catalog_into_json_incorrect_type() {
-        let mut catalog = Catalog::new("an-id");
+        let mut catalog = Catalog::new("an-id", "a description");
         catalog.r#type = "Schmatalog".to_string();
         assert!(matches!(
             serde_json::Value::try_from(Value::Catalog(catalog)).unwrap_err(),
@@ -417,7 +417,7 @@ mod tests {
 
     #[test]
     fn collection_into_json_incorrect_type() {
-        let mut collection = Collection::new("an-id");
+        let mut collection = Collection::new("an-id", "a description");
         collection.r#type = "Scmalection".to_string();
         assert!(matches!(
             serde_json::Value::try_from(Value::Collection(collection)).unwrap_err(),
