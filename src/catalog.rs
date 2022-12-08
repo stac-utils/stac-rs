@@ -61,17 +61,18 @@ impl Catalog {
     ///
     /// ```
     /// use stac::Catalog;
-    /// let catalog = Catalog::new("an-id");
+    /// let catalog = Catalog::new("an-id", "a description");
     /// assert_eq!(catalog.id, "an-id");
+    /// assert_eq!(catalog.description, "a description");
     /// ```
-    pub fn new(id: impl ToString) -> Catalog {
+    pub fn new(id: impl ToString, description: impl ToString) -> Catalog {
         Catalog {
             r#type: CATALOG_TYPE.to_string(),
             version: STAC_VERSION.to_string(),
             extensions: None,
             id: id.to_string(),
             title: None,
-            description: String::new(),
+            description: description.to_string(),
             links: Vec::new(),
             additional_fields: Map::new(),
             href: None,
@@ -105,9 +106,9 @@ mod tests {
 
     #[test]
     fn new() {
-        let catalog = Catalog::new("an-id");
+        let catalog = Catalog::new("an-id", "a description");
         assert!(catalog.title.is_none());
-        assert_eq!(catalog.description, "");
+        assert_eq!(catalog.description, "a description");
         assert_eq!(catalog.r#type, "Catalog");
         assert_eq!(catalog.version, STAC_VERSION);
         assert!(catalog.extensions.is_none());
@@ -117,7 +118,7 @@ mod tests {
 
     #[test]
     fn skip_serializing() {
-        let catalog = Catalog::new("an-id");
+        let catalog = Catalog::new("an-id", "a description");
         let value = serde_json::to_value(catalog).unwrap();
         assert!(value.get("stac_extensions").is_none());
         assert!(value.get("title").is_none());

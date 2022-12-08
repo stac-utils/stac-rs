@@ -152,18 +152,20 @@ impl Collection {
     ///
     /// ```
     /// use stac::Collection;
-    /// let collection = Collection::new("an-id");
+    /// let collection = Collection::new("an-id", "a description");
     /// assert_eq!(collection.id, "an-id");
+    /// assert_eq!(collection.description, "a description");
     /// ```
-    pub fn new(id: impl ToString) -> Collection {
+    pub fn new(id: impl ToString, description: impl ToString) -> Collection {
         Collection {
             r#type: COLLECTION_TYPE.to_string(),
             version: STAC_VERSION.to_string(),
             extensions: None,
             id: id.to_string(),
             title: None,
-            description: String::new(),
+            description: description.to_string(),
             keywords: None,
+            // TODO set a valid license by default
             license: String::new(),
             providers: None,
             extent: Extent::default(),
@@ -242,9 +244,9 @@ mod tests {
 
         #[test]
         fn new() {
-            let collection = Collection::new("an-id");
+            let collection = Collection::new("an-id", "a description");
             assert!(collection.title.is_none());
-            assert_eq!(collection.description, "");
+            assert_eq!(collection.description, "a description");
             assert_eq!(collection.license, "");
             assert!(collection.providers.is_none());
             assert_eq!(collection.extent, Extent::default());
@@ -259,7 +261,7 @@ mod tests {
 
         #[test]
         fn skip_serializing() {
-            let collection = Collection::new("an-id");
+            let collection = Collection::new("an-id", "a description");
             let value = serde_json::to_value(collection).unwrap();
             assert!(value.get("stac_extensions").is_none());
             assert!(value.get("title").is_none());
