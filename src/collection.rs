@@ -6,6 +6,8 @@ use std::collections::HashMap;
 /// The type field for [Collections](Collection).
 pub const COLLECTION_TYPE: &str = "Collection";
 
+const DEFAULT_LICENSE: &str = "proprietary";
+
 /// The STAC `Collection` Specification defines a set of common fields to describe
 /// a group of [Items](crate::Item) that share properties and metadata.
 ///
@@ -165,8 +167,7 @@ impl Collection {
             title: None,
             description: description.to_string(),
             keywords: None,
-            // TODO set a valid license by default
-            license: String::new(),
+            license: DEFAULT_LICENSE.to_string(),
             providers: None,
             extent: Extent::default(),
             summaries: None,
@@ -247,7 +248,7 @@ mod tests {
             let collection = Collection::new("an-id", "a description");
             assert!(collection.title.is_none());
             assert_eq!(collection.description, "a description");
-            assert_eq!(collection.license, "");
+            assert_eq!(collection.license, "proprietary");
             assert!(collection.providers.is_none());
             assert_eq!(collection.extent, Extent::default());
             assert!(collection.summaries.is_none());
