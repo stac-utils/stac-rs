@@ -20,7 +20,21 @@ stac = "0.1"
 
 ### Features
 
-There is one opt-in feature:  `reqwest`.
+There are two opt-in features: `jsonschema` and `reqwest`.
+
+#### jsonschema
+
+The `jsonschema` feature enables validation against [json-schema](https://json-schema.org/) definitions:
+
+```toml
+[dependencies]
+stac = { version = "0.1", features = ["jsonschema"]}
+```
+
+The `jsonschema` feature also enables the `reqwest` feature.
+
+#### reqwest
+
 If you'd like to use the library with `reqwest` for blocking remote reads:
 
 ```toml

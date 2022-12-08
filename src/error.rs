@@ -72,4 +72,9 @@ pub enum Error {
     /// [url::ParseError]
     #[error("url parse error: {0}")]
     Url(#[from] url::ParseError),
+
+    /// [jsonschema::ValidationError], but owned.
+    #[cfg(feature = "jsonschema")]
+    #[error(transparent)]
+    ValidationError(#[from] jsonschema::ValidationError<'static>),
 }
