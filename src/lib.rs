@@ -53,9 +53,22 @@
 //!
 //! If the [reqwest](https://docs.rs/reqwest/latest/reqwest/) feature is enabled, synchronous reads from urls are also supported:
 //!
-//! ```no_run
-//! let url = "https://raw.githubusercontent.com/radiantearth/stac-spec/master/examples/simple-item.json";
-//! let value = stac::read(url).unwrap();
+//! ```
+//! #[cfg(feature = "reqwest")]
+//! {
+//!     let url = "https://raw.githubusercontent.com/radiantearth/stac-spec/master/examples/simple-item.json";
+//!     let value = stac::read(url).unwrap();
+//! }
+//! ```
+//!
+//! If `reqwest` is not enabled, reading from a url will return an error:
+//!
+//! ```
+//! #[cfg(not(feature = "reqwest"))]
+//! {
+//!     let url = "https://raw.githubusercontent.com/radiantearth/stac-spec/master/examples/simple-item.json";
+//!     let error = stac::read(url).unwrap_err();
+//! }
 //! ```
 //!
 //! ## Hrefs
@@ -70,6 +83,21 @@
 //! let item: Item = value.clone().try_into().unwrap();
 //! assert_eq!(value.href(), item.href());
 //! ```
+//!
+//! # Validation
+//!
+//! If the `jsonschema` feature is enabled, objects can be validated against their [json-schema](https://json-schema.org/) definitions:
+//!
+//! ```
+//! #[cfg(feature = "jsonschema")]
+//! {
+//!     use stac::{Item, Validate};
+//!     let item = Item::new("an-id");
+//!     item.validate().unwrap();
+//! }
+//! ```
+//!
+//! See the `validate` module for more examples.
 
 #![deny(
     elided_lifetimes_in_paths,
@@ -105,18 +133,24 @@ mod asset;
 mod catalog;
 mod collection;
 mod error;
+mod extensions;
 mod href;
 mod io;
 mod item;
 pub mod link;
 pub mod media_type;
+#[cfg(feature = "jsonschema")]
+pub mod validate;
 mod value;
 
+#[cfg(feature = "jsonschema")]
+pub use validate::{Validate, Validator};
 pub use {
     asset::Asset,
     catalog::{Catalog, CATALOG_TYPE},
     collection::{Collection, Extent, Provider, SpatialExtent, TemporalExtent, COLLECTION_TYPE},
     error::Error,
+    extensions::Extensions,
     href::Href,
     io::{read, read_json},
     item::{Item, Properties, ITEM_TYPE},
