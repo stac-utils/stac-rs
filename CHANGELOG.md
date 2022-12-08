@@ -8,6 +8,8 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.2] - 2022-12-08
+
 ### Added
 
 - `Links` trait ([#95](https://github.com/gadomski/stac-rs/pull/95), [#96](https://github.com/gadomski/stac-rs/pull/96), [#97](https://github.com/gadomski/stac-rs/pull/97), [#100](https://github.com/gadomski/stac-rs/pull/100))
@@ -146,7 +148,8 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 Initial release.
 
-[Unreleased]: https://github.com/gadomski/stac-rs/compare/v0.1.1...main
+[Unreleased]: https://github.com/gadomski/stac-rs/compare/v0.1.2...main
+[0.1.2]: https://github.com/gadomski/stac-rs/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/gadomski/stac-rs/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/gadomski/stac-rs/compare/v0.0.5...v0.1.0
 [0.0.5]: https://github.com/gadomski/stac-rs/compare/v0.0.4...v0.0.5
