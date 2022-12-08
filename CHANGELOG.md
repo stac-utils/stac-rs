@@ -11,6 +11,8 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 ### Added
 
 - `description` to `Catalog::new` and `Collection::new` ([#102](https://github.com/gadomski/stac-rs/pull/102))
+- jsonschema validation ([#105](https://github.com/gadomski/stac-rs/pull/105))
+- `Extensions` trait ([#105](https://github.com/gadomski/stac-rs/pull/105))
 
 ### Fixed
 
