@@ -12,6 +12,10 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 - `description` to `Catalog::new` and `Collection::new` ([#102](https://github.com/gadomski/stac-rs/pull/102))
 
+### Fixed
+
+- `Collections::new` sets a valid license ("proprietary") ([#104](https://github.com/gadomski/stac-rs/pull/104))
+
 ## [0.1.2] - 2022-12-08
 
 ### Added
