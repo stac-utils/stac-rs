@@ -30,20 +30,3 @@ impl Extensions for Collection {
         self.extensions.as_deref()
     }
 }
-
-impl Extensions for &Item {
-    fn extensions(&self) -> Option<&[String]> {
-        self.extensions.as_deref()
-    }
-}
-impl Extensions for &Catalog {
-    fn extensions(&self) -> Option<&[String]> {
-        self.extensions.as_deref()
-    }
-}
-
-impl Extensions for &Collection {
-    fn extensions(&self) -> Option<&[String]> {
-        self.extensions.as_deref()
-    }
-}

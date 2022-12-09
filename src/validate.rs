@@ -30,8 +30,8 @@
 //! let mut validator = Validator::new().unwrap();
 //! let item = stac::read("data/simple-item.json").unwrap();
 //! let catalog = stac::read("data/catalog.json").unwrap();
-//! validator.validate(&item).unwrap();
-//! validator.validate(&catalog).unwrap();
+//! validator.validate(item).unwrap();
+//! validator.validate(catalog).unwrap();
 //! ```
 
 use crate::{Catalog, Collection, Error, Extensions, Item, Value};
@@ -54,14 +54,16 @@ pub struct Validator {
 pub trait Validate {
     /// Validate this STAC object using a one-time-use [Validator].
     ///
+    /// Validation consumes the object.
+    ///
     /// # Examples
     ///
     /// ```
     /// use stac::{Validate, Item};
     /// let item = Item::new("an-id");
-    /// item.validate().unwrap();
+    /// item.validate().unwrap(); // <- item is consumed
     /// ```
-    fn validate(&self) -> Result<(), Vec<Error>>;
+    fn validate(self) -> Result<(), Vec<Error>>;
 }
 
 enum Schema {
@@ -96,9 +98,9 @@ impl Validator {
     /// # use stac::{Item, Validator};
     /// let item = Item::new("an-id");
     /// let mut validator = Validator::new().unwrap();
-    /// validator.validate_item(&item).unwrap();
+    /// validator.validate_item(item).unwrap();
     /// ```
-    pub fn validate_item(&mut self, item: &Item) -> Result<(), Vec<Error>> {
+    pub fn validate_item(&mut self, item: Item) -> Result<(), Vec<Error>> {
         self.validate_with_schema(Schema::Item, item)
     }
 
@@ -110,9 +112,9 @@ impl Validator {
     /// # use stac::{Catalog, Validator};
     /// let catalog = Catalog::new("an-id", "a description");
     /// let mut validator = Validator::new().unwrap();
-    /// validator.validate_catalog(&catalog).unwrap();
+    /// validator.validate_catalog(catalog).unwrap();
     /// ```
-    pub fn validate_catalog(&mut self, catalog: &Catalog) -> Result<(), Vec<Error>> {
+    pub fn validate_catalog(&mut self, catalog: Catalog) -> Result<(), Vec<Error>> {
         self.validate_with_schema(Schema::Catalog, catalog)
     }
 
@@ -124,9 +126,9 @@ impl Validator {
     /// # use stac::{Collection, Validator};
     /// let collection = Collection::new("an-id", "a description");
     /// let mut validator = Validator::new().unwrap();
-    /// validator.validate_collection(&collection).unwrap();
+    /// validator.validate_collection(collection).unwrap();
     /// ```
-    pub fn validate_collection(&mut self, collection: &Collection) -> Result<(), Vec<Error>> {
+    pub fn validate_collection(&mut self, collection: Collection) -> Result<(), Vec<Error>> {
         self.validate_with_schema(Schema::Collection, collection)
     }
 
@@ -138,9 +140,9 @@ impl Validator {
     /// # use stac::{Value, Validator};
     /// let mut validator = Validator::new().unwrap();
     /// let item = stac::read("data/simple-item.json").unwrap();
-    /// validator.validate(&item).unwrap();
+    /// validator.validate(item).unwrap();
     /// ```
-    pub fn validate(&mut self, value: &Value) -> Result<(), Vec<Error>> {
+    pub fn validate(&mut self, value: Value) -> Result<(), Vec<Error>> {
         match value {
             Value::Item(item) => self.validate_item(item),
             Value::Catalog(catalog) => self.validate_catalog(catalog),
@@ -208,7 +210,7 @@ impl Validator {
 }
 
 impl Validate for Item {
-    fn validate(&self) -> Result<(), Vec<Error>> {
+    fn validate(self) -> Result<(), Vec<Error>> {
         Validator::new()
             .map_err(|e| vec![e])
             .and_then(|mut v| v.validate_item(self))
@@ -216,7 +218,7 @@ impl Validate for Item {
 }
 
 impl Validate for Catalog {
-    fn validate(&self) -> Result<(), Vec<Error>> {
+    fn validate(self) -> Result<(), Vec<Error>> {
         Validator::new()
             .map_err(|e| vec![e])
             .and_then(|mut v| v.validate_catalog(self))
@@ -224,7 +226,7 @@ impl Validate for Catalog {
 }
 
 impl Validate for Collection {
-    fn validate(&self) -> Result<(), Vec<Error>> {
+    fn validate(self) -> Result<(), Vec<Error>> {
         Validator::new()
             .map_err(|e| vec![e])
             .and_then(|mut v| v.validate_collection(self))
@@ -232,7 +234,7 @@ impl Validate for Collection {
 }
 
 impl Validate for Value {
-    fn validate(&self) -> Result<(), Vec<Error>> {
+    fn validate(self) -> Result<(), Vec<Error>> {
         match self {
             Value::Item(item) => item.validate(),
             Value::Catalog(catalog) => catalog.validate(),
