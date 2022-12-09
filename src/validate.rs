@@ -34,7 +34,7 @@
 //! validator.validate(catalog).unwrap();
 //! ```
 
-use crate::{Catalog, Collection, Error, Extensions, Item, Value};
+use crate::{Catalog, Collection, Error, Extensions, Item, ItemCollection, Value};
 use jsonschema::{JSONSchema, ValidationError};
 use serde::Serialize;
 use std::{borrow::Cow, collections::HashMap};
@@ -132,6 +132,33 @@ impl Validator {
         self.validate_with_schema(Schema::Collection, collection)
     }
 
+    /// Validate an [ItemCollection].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac::{ItemCollection, Item, Validator};
+    /// let item_collection: ItemCollection = vec![Item::new("a"), Item::new("b")].into();
+    /// let mut validator = Validator::new().unwrap();
+    /// validator.validate_item_collection(item_collection).unwrap();
+    /// ```
+    pub fn validate_item_collection(
+        &mut self,
+        item_collection: ItemCollection,
+    ) -> Result<(), Vec<Error>> {
+        let mut errors = Vec::new();
+        for item in item_collection.items {
+            if let Err(e) = self.validate_item(item) {
+                errors.extend(e);
+            }
+        }
+        if errors.is_empty() {
+            Ok(())
+        } else {
+            Err(errors)
+        }
+    }
+
     /// Validate a [Value].
     ///
     /// # Examples
@@ -147,6 +174,9 @@ impl Validator {
             Value::Item(item) => self.validate_item(item),
             Value::Catalog(catalog) => self.validate_catalog(catalog),
             Value::Collection(collection) => self.validate_collection(collection),
+            Value::ItemCollection(item_collection) => {
+                self.validate_item_collection(item_collection)
+            }
         }
     }
 
@@ -230,12 +260,21 @@ impl Validate for Collection {
     }
 }
 
+impl Validate for ItemCollection {
+    fn validate(self) -> Result<(), Vec<Error>> {
+        Validator::new()
+            .map_err(|e| vec![e])
+            .and_then(|mut v| v.validate_item_collection(self))
+    }
+}
+
 impl Validate for Value {
     fn validate(self) -> Result<(), Vec<Error>> {
         match self {
             Value::Item(item) => item.validate(),
             Value::Catalog(catalog) => catalog.validate(),
             Value::Collection(collection) => collection.validate(),
+            Value::ItemCollection(item_collection) => item_collection.validate(),
         }
     }
 }
@@ -328,5 +367,11 @@ mod tests {
         ]);
         let errors = item.validate().unwrap_err();
         assert_eq!(errors.len(), 1);
+    }
+
+    #[test]
+    fn item_collection() {
+        let item_collection = crate::read("examples/item-collection.json").unwrap();
+        item_collection.validate().unwrap();
     }
 }

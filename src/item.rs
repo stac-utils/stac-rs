@@ -8,6 +8,9 @@ use std::collections::HashMap;
 /// The type field for [Items](Item).
 pub const ITEM_TYPE: &str = "Feature";
 
+/// The type field for [ItemCollections](ItemCollection).
+pub const ITEM_COLLECTION_TYPE: &str = "FeatureCollection";
+
 /// An `Item` is a GeoJSON Feature augmented with foreign members relevant to a
 /// STAC object.
 ///
@@ -73,6 +76,29 @@ pub struct Item {
     /// Additional fields not part of the Item specification.
     #[serde(flatten)]
     pub additional_fields: Map<String, Value>,
+
+    #[serde(skip)]
+    href: Option<String>,
+}
+
+/// A [GeoJSON FeatureCollection](https://www.rfc-editor.org/rfc/rfc7946#page-12) of items.
+///
+/// While not part of the STAC specification, ItemCollections are often used to store many items in a single file.
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+pub struct ItemCollection {
+    /// The type field.
+    ///
+    /// Must be set to "FeatureCollection".
+    pub r#type: String,
+
+    /// The list of [Items](Item).
+    ///
+    /// The attribute is actually "features", but we rename to "items".
+    #[serde(rename = "features")]
+    pub items: Vec<Item>,
+
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
+    links: Vec<Link>,
 
     #[serde(skip)]
     href: Option<String>,
@@ -166,9 +192,39 @@ impl Links for Item {
     }
 }
 
+impl From<Vec<Item>> for ItemCollection {
+    fn from(items: Vec<Item>) -> Self {
+        ItemCollection {
+            r#type: ITEM_COLLECTION_TYPE.to_string(),
+            items: items,
+            links: Vec::new(),
+            href: None,
+        }
+    }
+}
+
+impl Href for ItemCollection {
+    fn href(&self) -> Option<&str> {
+        self.href.as_deref()
+    }
+
+    fn set_href(&mut self, href: impl ToString) {
+        self.href = Some(href.to_string())
+    }
+}
+
+impl Links for ItemCollection {
+    fn links(&self) -> &[Link] {
+        &self.links
+    }
+    fn links_mut(&mut self) -> &mut Vec<Link> {
+        &mut self.links
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::Item;
+    use super::{Item, ItemCollection};
     use crate::STAC_VERSION;
 
     #[test]
@@ -192,6 +248,12 @@ mod tests {
         assert!(value.get("stac_extensions").is_none());
         assert!(value.get("bbox").is_none());
         assert!(value.get("collection").is_none());
+    }
+
+    #[test]
+    fn item_collection_from_vec() {
+        let items = vec![Item::new("a"), Item::new("b")];
+        let _ = ItemCollection::from(items);
     }
 
     mod roundtrip {

@@ -1,6 +1,6 @@
 use crate::{
-    Catalog, Collection, Error, Href, Item, Link, Links, Result, CATALOG_TYPE, COLLECTION_TYPE,
-    ITEM_TYPE,
+    Catalog, Collection, Error, Href, Item, ItemCollection, Link, Links, Result, CATALOG_TYPE,
+    COLLECTION_TYPE, ITEM_COLLECTION_TYPE, ITEM_TYPE,
 };
 use std::convert::TryFrom;
 
@@ -9,10 +9,15 @@ use std::convert::TryFrom;
 pub enum Value {
     /// A STAC Item.
     Item(Item),
+
     /// A STAC Catalog.
     Catalog(Catalog),
+
     /// A STAC Collection.
     Collection(Collection),
+
+    /// An ItemCollection.
+    ItemCollection(ItemCollection),
 }
 
 impl Value {
@@ -46,6 +51,9 @@ impl Value {
                         .map_err(Error::from),
                     ITEM_TYPE => serde_json::from_value::<Item>(value)
                         .map(Value::Item)
+                        .map_err(Error::from),
+                    ITEM_COLLECTION_TYPE => serde_json::from_value::<ItemCollection>(value)
+                        .map(Value::ItemCollection)
                         .map_err(Error::from),
                     _ => Err(Error::UnknownType(r#type.to_string())),
                 }
@@ -203,6 +211,7 @@ impl Href for Value {
             Catalog(catalog) => catalog.href(),
             Collection(collection) => collection.href(),
             Item(item) => item.href(),
+            ItemCollection(item_collection) => item_collection.href(),
         }
     }
 
@@ -212,6 +221,7 @@ impl Href for Value {
             Catalog(catalog) => catalog.set_href(href),
             Collection(collection) => collection.set_href(href),
             Item(item) => item.set_href(href),
+            ItemCollection(item_collection) => item_collection.set_href(href),
         }
     }
 }
@@ -223,6 +233,7 @@ impl Links for Value {
             Catalog(catalog) => catalog.links(),
             Collection(collection) => collection.links(),
             Item(item) => item.links(),
+            ItemCollection(item_collection) => item_collection.links(),
         }
     }
 
@@ -232,6 +243,7 @@ impl Links for Value {
             Catalog(catalog) => catalog.links_mut(),
             Collection(collection) => collection.links_mut(),
             Item(item) => item.links_mut(),
+            ItemCollection(item_collection) => item_collection.links_mut(),
         }
     }
 }
@@ -269,6 +281,16 @@ impl TryFrom<Value> for serde_json::Value {
                     Err(Error::IncorrectType {
                         actual: item.r#type,
                         expected: ITEM_TYPE.to_string(),
+                    })
+                }
+            }
+            ItemCollection(item_collection) => {
+                if item_collection.r#type == ITEM_COLLECTION_TYPE {
+                    serde_json::to_value(item_collection).map_err(Error::from)
+                } else {
+                    Err(Error::IncorrectType {
+                        actual: item_collection.r#type,
+                        expected: ITEM_COLLECTION_TYPE.to_string(),
                     })
                 }
             }
