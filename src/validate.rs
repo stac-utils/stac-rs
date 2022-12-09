@@ -155,32 +155,28 @@ impl Validator {
         schema: Schema,
         value: V,
     ) -> Result<(), Vec<Error>> {
-        let extension_schemas: Option<Vec<&JSONSchema>> =
-            if let Some(extensions) = value.extensions() {
-                if extensions.is_empty() {
-                    None
-                } else {
-                    for extension in extensions {
-                        self.ensure_extension_schema(extension)
-                            .map_err(|e| vec![e])?;
-                    }
-                    Some(
-                        extensions
-                            .iter()
-                            .map(|extension| self.extension_schemas.get(extension).unwrap())
-                            .collect(),
-                    )
-                }
-            } else {
-                None
-            };
-        let value = serde_json::to_value(value).map_err(|e| vec![Error::from(e)])?;
-        let mut errors = Vec::new();
+        let extension_schemas = if let Some(extensions) = value.extensions() {
+            for extension in extensions {
+                self.ensure_extension_schema(extension)
+                    .map_err(|e| vec![e])?;
+            }
+            Some(
+                extensions
+                    .iter()
+                    .map(|extension| self.extension_schemas.get(extension).unwrap())
+                    .collect::<Vec<_>>(),
+            )
+        } else {
+            None
+        };
         let schema = match schema {
             Schema::Item => &self.item_schema,
             Schema::Catalog => &self.catalog_schema,
             Schema::Collection => &self.collection_schema,
         };
+
+        let mut errors = Vec::new();
+        let value = serde_json::to_value(value).map_err(|e| vec![Error::from(e)])?;
         if let Err(e) = schema.validate(&value).map_err(|iter| iter.map(into_error)) {
             errors.extend(e);
         }
@@ -191,6 +187,7 @@ impl Validator {
                 }
             }
         }
+
         if errors.is_empty() {
             Ok(())
         } else {
