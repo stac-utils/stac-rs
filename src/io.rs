@@ -78,6 +78,11 @@ mod tests {
         "data/collection.json",
         Value::Collection(_)
     );
+    read!(
+        read_item_collection_from_path,
+        "examples/item-collection.json",
+        Value::ItemCollection(_)
+    );
 
     #[cfg(feature = "reqwest")]
     mod with_reqwest {
