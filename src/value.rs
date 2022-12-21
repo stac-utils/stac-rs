@@ -202,6 +202,28 @@ impl Value {
             None
         }
     }
+
+    /// Returns this value's type name.
+    ///
+    /// This is "Item", "Catalog", "Collection", or "ItemCollection".
+    ///
+    /// We can't just use the `type` field, because items' type field is "Feature".
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let value = stac::read("data/simple-item.json").unwrap();
+    /// assert_eq!(value.type_name(), "Item");
+    /// ```
+    pub fn type_name(&self) -> &'static str {
+        use Value::*;
+        match self {
+            Item(_) => "Item",
+            Collection(_) => "Collection",
+            Catalog(_) => "Catalog",
+            ItemCollection(_) => "ItemCollection",
+        }
+    }
 }
 
 impl Href for Value {
