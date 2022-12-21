@@ -14,6 +14,7 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 - jsonschema validation ([#105](https://github.com/gadomski/stac-rs/pull/105), [#106](https://github.com/gadomski/stac-rs/pull/106))
 - `Extensions` trait ([#105](https://github.com/gadomski/stac-rs/pull/105))
 - `ItemCollection` ([#107](https://github.com/gadomski/stac-rs/pull/107))
+- `Value::type_name` ([#108](https://github.com/gadomski/stac-rs/pull/108))
 
 ### Fixed
 
