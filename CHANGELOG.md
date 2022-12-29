@@ -15,6 +15,12 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 - `Extensions` trait ([#105](https://github.com/gadomski/stac-rs/pull/105))
 - `ItemCollection` ([#107](https://github.com/gadomski/stac-rs/pull/107))
 - `Value::type_name` ([#108](https://github.com/gadomski/stac-rs/pull/108))
+- `Links::make_relative_hrefs_absolute` ([#110](https://github.com/gadomski/stac-rs/pull/110))
+
+### Changed
+
+- Signature of `Error::MissingHref` (no longer takes a String) ([#110](https://github.com/gadomski/stac-rs/pull/110))
+- `Links` now requires `Href` ([#110](https://github.com/gadomski/stac-rs/pull/110))
 
 ### Fixed
 
