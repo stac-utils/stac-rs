@@ -8,6 +8,8 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.2.0] - 2022-12-29
+
 ### Added
 
 - `description` to `Catalog::new` and `Collection::new` ([#102](https://github.com/gadomski/stac-rs/pull/102))
@@ -170,7 +172,8 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 Initial release.
 
-[Unreleased]: https://github.com/gadomski/stac-rs/compare/v0.1.2...main
+[Unreleased]: https://github.com/gadomski/stac-rs/compare/v0.2.0...main
+[0.2.0]: https://github.com/gadomski/stac-rs/compare/v0.1.2...v0.2.0
 [0.1.2]: https://github.com/gadomski/stac-rs/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/gadomski/stac-rs/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/gadomski/stac-rs/compare/v0.0.5...v0.1.0
