@@ -55,16 +55,6 @@ pub enum Error {
     #[error("serde_json error: {0}")]
     SerdeJson(#[from] serde_json::Error),
 
-    /// Mismatch between expected and actual type fields.
-    #[error("type mismatch: expected={expected}, actual={actual}")]
-    #[deprecated(since = "0.1.1", note = "use Error::IncorrecType instead")]
-    TypeMismatch {
-        /// The expected type field.
-        expected: String,
-        /// The actual type field.
-        actual: String,
-    },
-
     /// Returned when the `type` field of a STAC object does not equal `"Feature"`, `"Catalog"`, or `"Collection"`.
     #[error("unknown \"type\": {0}")]
     UnknownType(String),
