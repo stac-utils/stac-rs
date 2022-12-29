@@ -27,8 +27,8 @@ pub enum Error {
     MissingType,
 
     /// Returned when an object is expected to have an href, but it doesn't.
-    #[error("object has no href: id={0}")]
-    MissingHref(String),
+    #[error("object has no href")]
+    MissingHref,
 
     /// This value is not an item.
     #[error("value is not an item")]
