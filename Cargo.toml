@@ -1,34 +1,5 @@
-[package]
-name = "stac"
-version = "0.2.0"
-authors = ["Pete Gadomski <pete.gadomski@gmail.com>"]
-edition = "2021"
-description = "Rust library for the SpatioTemporal Asset Catalog (STAC) specification"
-homepage = "https://github.com/gadomski/stac-rs"
-repository = "https://github.com/gadomski/stac-rs"
-license = "MIT OR Apache-2.0"
-keywords = ["geospatial", "stac", "metadata", "geo", "raster"]
-categories = ["science", "data-structures"]
-
-[features]
-jsonschema = ["dep:jsonschema", "reqwest"]
-
-[dependencies]
-chrono = "0.4"
-geojson = "0.24"
-jsonschema = { version = "0.16", optional = true, features = ["resolve-http"], default-features = false }
-reqwest = { version = "0.11", optional = true, features = ["json", "blocking"] }
-serde = { version = "1", features = ["derive"] }
-serde_json = { version = "1", features = ["preserve_order"] }
-thiserror = "1"
-url = "2"
-
-[dev-dependencies]
-assert-json-diff = "2"
-
-[[example]]
-name = "validate"
-required-features = ["jsonschema"]
-
-[package.metadata.docs.rs]
-all-features = true
+[workspace]
+members = [
+    "stac",
+    "stac-async",
+]
