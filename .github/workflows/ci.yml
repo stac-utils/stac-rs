@@ -14,7 +14,8 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        flags: ["", "--all-features"]
+        flags:
+          ["", "--features jsonschema", "--features reqwest", "--all-features"]
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
