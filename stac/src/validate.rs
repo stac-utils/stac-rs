@@ -6,7 +6,7 @@
 //! Run it like this:
 //!
 //! ```shell
-//! cargo run --example validate --feature jsonschema example/invalid-item.json
+//! cargo run --example validate --features jsonschema stac/examples/invalid-item.json
 //! ```
 //!
 //! # Examples
