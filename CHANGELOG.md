@@ -8,10 +8,17 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+### Changed
+
+- Reorganized to a workspace ([#114](https://github.com/gadomski/stac-rs/pull/114))
+
 ## [0.2.0] - 2022-12-29
 
 ### Added
 
+- `stac-async` ([#114](https://github.com/gadomski/stac-rs/pull/114))
 - `description` to `Catalog::new` and `Collection::new` ([#102](https://github.com/gadomski/stac-rs/pull/102))
 - jsonschema validation ([#105](https://github.com/gadomski/stac-rs/pull/105), [#106](https://github.com/gadomski/stac-rs/pull/106))
 - `Extensions` trait ([#105](https://github.com/gadomski/stac-rs/pull/105))
