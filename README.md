@@ -1,61 +1,24 @@
 # stac-rs
 
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/gadomski/stac-rs/ci.yml?branch=main&style=for-the-badge)](https://github.com/gadomski/stac-rs/actions/workflows/ci.yml)
-[![docs.rs](https://img.shields.io/docsrs/stac?style=for-the-badge)](https://docs.rs/stac/latest/stac/)
-[![Crates.io](https://img.shields.io/crates/v/stac?style=for-the-badge)](https://crates.io/crates/stac)
 ![Crates.io](https://img.shields.io/crates/l/stac?style=for-the-badge)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?style=for-the-badge)](./CODE_OF_CONDUCT)
 
-Rust implementation of the [SpatioTemporal Asset Catalog (STAC)](https://stacspec.org/) specification.
+Rust implementation of the [SpatioTemporal Asset Catalog (STAC)](https://stacspec.org/) specification in two crates.
 
-## Using the library
+## stac
 
-We are [**stac**](https://crates.io/crates/stac) on crates.io.
-To use the library in your project:
+[![docs.rs](https://img.shields.io/docsrs/stac?style=for-the-badge)](https://docs.rs/stac/latest/stac/)
+[![Crates.io](https://img.shields.io/crates/v/stac?style=for-the-badge)](https://crates.io/crates/stac)
 
-```toml
-[dependencies]
-stac = "0.2"
-```
+Data structures and synchronous I/O for STAC: [README](./stac/README.md)
 
-### Features
+## stac-async
 
-There are two opt-in features: `jsonschema` and `reqwest`.
+[![docs.rs](https://img.shields.io/docsrs/stac-async?style=for-the-badge)](https://docs.rs/stac-async/latest/stac_async/)
+[![Crates.io](https://img.shields.io/crates/v/stac-async?style=for-the-badge)](https://crates.io/crates/stac-async)
 
-#### jsonschema
-
-The `jsonschema` feature enables validation against [json-schema](https://json-schema.org/) definitions:
-
-```toml
-[dependencies]
-stac = { version = "0.2", features = ["jsonschema"]}
-```
-
-The `jsonschema` feature also enables the `reqwest` feature.
-
-#### reqwest
-
-If you'd like to use the library with `reqwest` for blocking remote reads:
-
-```toml
-[dependencies]
-stac = { version = "0.2", features = ["reqwest"]}
-```
-
-If `reqwest` is not enabled, `stac::read` will throw an error if you try to read from a url.
-
-## API
-
-Please see the [documentation](https://docs.rs/stac/latest/stac/) for usage examples.
-
-## Incubator
-
-We have an [incubator repository](https://github.com/gadomski/stac-rs-incubator) that holds related projects that aren't ready to be released as their own repositories.
-These include (or are planned to include):
-
-- command line interface
-- STAC-API client
-- STAC-API server
+Asynchronous I/O for STAC: [README](./stac-async/README.md)
 
 ## Development
 
