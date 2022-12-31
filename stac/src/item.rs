@@ -97,8 +97,9 @@ pub struct ItemCollection {
     #[serde(rename = "features")]
     pub items: Vec<Item>,
 
+    /// List of link objects to resources and related URLs.
     #[serde(skip_serializing_if = "Vec::is_empty", default)]
-    links: Vec<Link>,
+    pub links: Vec<Link>,
 
     #[serde(skip)]
     href: Option<String>,
