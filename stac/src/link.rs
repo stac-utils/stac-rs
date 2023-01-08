@@ -100,8 +100,6 @@ pub trait Links {
     /// This will remove all other links of that rel type, so should only be
     /// used for e.g. "root", not e.g. "child".
     ///
-    /// Returns a vector of all removed links.
-    ///
     /// # Examples
     ///
     /// ```
