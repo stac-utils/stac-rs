@@ -37,7 +37,7 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Removed
 
-- `Error::TypeMismatch`, depreacted since v0.1.1 ([#111](https://github.com/gadomski/stac-rs/pull/111))
+- `Error::TypeMismatch`, deprecated since v0.1.1 ([#111](https://github.com/gadomski/stac-rs/pull/111))
 
 ## [0.1.2] - 2022-12-08
 
