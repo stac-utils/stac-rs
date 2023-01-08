@@ -8,12 +8,11 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-### Added
-
 ### Changed
 
 - Reorganized to a workspace ([#114](https://github.com/gadomski/stac-rs/pull/114))
 - `ItemCollection::links` is now public ([#115](https://github.com/gadomski/stac-rs/pull/115))
+- `Links::make_relative_links_absolute` takes the href as an argument, and `Links` does not require `Href` ([#116](https://github.com/gadomski/stac-rs/pull/116))
 
 ## [0.2.0] - 2022-12-29
 
