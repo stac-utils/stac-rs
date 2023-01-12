@@ -158,6 +158,19 @@ impl Item {
         }
     }
 
+    /// Sets this item's collection id in the builder pattern.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::Item;
+    /// let item = Item::new("an-id").collection("a-collection");
+    /// assert_eq!(item.collection.unwrap(), "a-collection");
+    pub fn collection(mut self, id: impl ToString) -> Item {
+        self.collection = Some(id.to_string());
+        self
+    }
+
     /// Returns this item's collection link.
     ///
     /// This is the first link with a rel="collection".
