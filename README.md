@@ -4,6 +4,12 @@
 ![Crates.io](https://img.shields.io/crates/l/stac?style=for-the-badge)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?style=for-the-badge)](./CODE_OF_CONDUCT)
 
+[![docs.rs](https://img.shields.io/docsrs/stac?style=for-the-badge&label=docs(stac))](https://docs.rs/stac/latest/stac/)
+[![Crates.io](https://img.shields.io/crates/v/stac?style=for-the-badge&label=crates.io(stac))](https://crates.io/crates/stac)
+
+[![docs.rs](https://img.shields.io/docsrs/stac-async?style=for-the-badge&label=docs(stac-async))](https://docs.rs/stac-async/latest/stac_async/)
+[![Crates.io](https://img.shields.io/crates/v/stac-async?style=for-the-badge&label=crates.io(stac-async))](https://crates.io/crates/stac-async)
+
 Rust implementation of the [SpatioTemporal Asset Catalog (STAC)](https://stacspec.org/) specification.
 
 <p align="center">
@@ -11,12 +17,7 @@ Rust implementation of the [SpatioTemporal Asset Catalog (STAC)](https://stacspe
 <img src="https://rustacean.net/assets/rustacean-orig-noshadow.svg" height=100>
 </p>
 
-## stac: data structures and synchronous I/O
-
-[![docs.rs](https://img.shields.io/docsrs/stac?style=for-the-badge)](https://docs.rs/stac/latest/stac/)
-[![Crates.io](https://img.shields.io/crates/v/stac?style=for-the-badge)](https://crates.io/crates/stac)
-
-### Usage
+## Usage
 
 In your `Cargo.toml`:
 
@@ -25,16 +26,7 @@ In your `Cargo.toml`:
 stac = "0.3"
 ```
 
-See [the README](./stac/README.md) and [the documentation](https://docs.rs/stac) for more.
-
-## stac-async: asynchronous I/O
-
-[![docs.rs](https://img.shields.io/docsrs/stac-async?style=for-the-badge)](https://docs.rs/stac-async/latest/stac_async/)
-[![Crates.io](https://img.shields.io/crates/v/stac-async?style=for-the-badge)](https://crates.io/crates/stac-async)
-
-### Usage
-
-In your `Cargo.toml`:
+If you're using **stac-async** for asynchronous read/write with [tokio](https://tokio.rs/):
 
 ```toml
 [dependencies]
@@ -42,7 +34,10 @@ stac = "0.3"
 stac-async = "0.3"
 ```
 
-See [the README](./stac-async/README.md) and [the documentation](https://docs.rs/stac-async) for more.
+## More information
+
+- **stac**: [README](./stac/README.md) and [documentation](https://docs.rs/stac)
+- **stac-async**: [README](./stac-async/README.md) and [documentation](https://docs.rs/stac-async)
 
 ## Development
 
