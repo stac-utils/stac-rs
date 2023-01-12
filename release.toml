@@ -1,6 +1,3 @@
 allow-branch = ["main"]
 enable-all-features = true
-shared-version = true
 sign-tag = true
-tag-message = "{{tag_name}}"
-tag-name = "{{prefix}}v{{version}}"
