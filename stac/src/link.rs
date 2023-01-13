@@ -518,6 +518,31 @@ impl Link {
     pub fn is_absolute(&self) -> bool {
         is_absolute(&self.href)
     }
+
+    /// Sets a query pair on this link's href.
+    ///
+    /// Raises an error if the href is not parseable as a url.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac::Link;
+    /// let mut link = Link::new("http://stac-rs.test/", "a-rel");
+    /// link.set_query_pair("foo", "bar").unwrap();
+    /// assert_eq!(link.href, "http://stac-rs.test/?foo=bar");
+    /// ```
+    pub fn set_query_pair(&mut self, key: &str, value: &str) -> Result<()> {
+        let url: Url = self.href.parse()?;
+        let mut new_url = url.clone();
+        let new_url = new_url
+            .query_pairs_mut()
+            .clear()
+            .extend_pairs(url.query_pairs().filter(|(k, _)| k != key))
+            .append_pair(key, value)
+            .finish();
+        self.href = new_url.to_string();
+        Ok(())
+    }
 }
 
 fn is_absolute(href: &str) -> bool {
@@ -585,6 +610,17 @@ mod tests {
         let value = serde_json::to_value(link).unwrap();
         assert!(value.get("type").is_none());
         assert!(value.get("title").is_none());
+    }
+
+    #[test]
+    fn set_query_pair() {
+        let mut link = Link::new("http://stac-rs.test/an-href", "a-rel");
+        link.set_query_pair("foo", "bar").unwrap();
+        assert_eq!(link.href, "http://stac-rs.test/an-href?foo=bar");
+        link.set_query_pair("baz", "boz").unwrap();
+        assert_eq!(link.href, "http://stac-rs.test/an-href?foo=bar&baz=boz");
+        link.set_query_pair("foo", "bar").unwrap();
+        assert_eq!(link.href, "http://stac-rs.test/an-href?baz=boz&foo=bar");
     }
 
     mod links {
