@@ -239,6 +239,20 @@ impl Link {
         self
     }
 
+    /// Sets this link's media type to GeoJSON.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::{Link, media_type};
+    /// let link = Link::new("a/href", "rel-type").geojson();
+    /// assert_eq!(link.r#type.unwrap(), media_type::GEOJSON);
+    /// ```
+    pub fn geojson(mut self) -> Link {
+        self.r#type = Some(media_type::GEOJSON.to_string());
+        self
+    }
+
     /// Sets this link's media type.
     ///
     /// # Examples
