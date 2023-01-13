@@ -239,6 +239,22 @@ impl Link {
         self
     }
 
+    /// Returns true if this link's media type is JSON.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::{Link, media_type};
+    /// let link = Link::new("a/href", "rel-type").json();
+    /// assert!(link.is_json());
+    /// ```
+    pub fn is_json(&self) -> bool {
+        self.r#type
+            .as_ref()
+            .map(|t| t == media_type::JSON)
+            .unwrap_or(false)
+    }
+
     /// Sets this link's media type to GeoJSON.
     ///
     /// # Examples
@@ -251,6 +267,22 @@ impl Link {
     pub fn geojson(mut self) -> Link {
         self.r#type = Some(media_type::GEOJSON.to_string());
         self
+    }
+
+    /// Returns true if this link's media type is GeoJSON.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::{Link, media_type};
+    /// let link = Link::new("a/href", "rel-type").geojson();
+    /// assert!(link.is_geojson());
+    /// ```
+    pub fn is_geojson(&self) -> bool {
+        self.r#type
+            .as_ref()
+            .map(|t| t == media_type::GEOJSON)
+            .unwrap_or(false)
     }
 
     /// Sets this link's media type.
