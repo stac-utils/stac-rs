@@ -25,7 +25,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Added
 
-- `stac-async` ([#114](https://github.com/gadomski/stac-rs/pull/114))
 - `description` to `Catalog::new` and `Collection::new` ([#102](https://github.com/gadomski/stac-rs/pull/102))
 - jsonschema validation ([#105](https://github.com/gadomski/stac-rs/pull/105), [#106](https://github.com/gadomski/stac-rs/pull/106))
 - `Extensions` trait ([#105](https://github.com/gadomski/stac-rs/pull/105))
@@ -186,8 +185,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 Initial release.
 
-[Unreleased]: https://github.com/gadomski/stac-rs/compare/v0.3.0...main
-[0.3.0]: https://github.com/gadomski/stac-rs/compare/v0.2.0...v0.3.0
+[Unreleased]: https://github.com/gadomski/stac-rs/compare/stac-v0.3.0...main
+[0.3.0]: https://github.com/gadomski/stac-rs/compare/v0.2.0...stac-v0.3.0
 [0.2.0]: https://github.com/gadomski/stac-rs/compare/v0.1.2...v0.2.0
 [0.1.2]: https://github.com/gadomski/stac-rs/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/gadomski/stac-rs/compare/v0.1.0...v0.1.1
