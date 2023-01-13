@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 
 - `Item::collection` setter in the builder pattern ([#117](https://github.com/gadomski/stac-rs/pull/117))
+- `Link::geojson` ([#119](https://github.com/gadomski/stac-rs/pull/119))
 
 ## [0.3.0] - 2023-01-08
 
