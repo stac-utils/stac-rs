@@ -15,3 +15,13 @@ pub struct Collections {
     #[serde(flatten)]
     pub additional_fields: Map<String, Value>,
 }
+
+impl From<Vec<Collection>> for Collections {
+    fn from(collections: Vec<Collection>) -> Collections {
+        Collections {
+            collections,
+            links: Vec::new(),
+            additional_fields: Map::new(),
+        }
+    }
+}
