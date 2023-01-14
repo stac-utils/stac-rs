@@ -1,21 +1,21 @@
 # stac-rs
 
-[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/gadomski/stac-rs/ci.yml?branch=main&style=for-the-badge)](https://github.com/gadomski/stac-rs/actions/workflows/ci.yml)
-![Crates.io](https://img.shields.io/crates/l/stac?style=for-the-badge)
-[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?style=for-the-badge)](./CODE_OF_CONDUCT)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/gadomski/stac-rs/ci.yml?branch=main&style=flat-square)](https://github.com/gadomski/stac-rs/actions/workflows/ci.yml)
+![Crates.io](https://img.shields.io/crates/l/stac?style=flat-square)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?style=flat-square)](./CODE_OF_CONDUCT)
 
-[![docs.rs](https://img.shields.io/docsrs/stac?style=for-the-badge&label=docs(stac))](https://docs.rs/stac/latest/stac/)
-[![Crates.io](https://img.shields.io/crates/v/stac?style=for-the-badge&label=crates.io(stac))](https://crates.io/crates/stac)
-
-[![docs.rs](https://img.shields.io/docsrs/stac-async?style=for-the-badge&label=docs(stac-async))](https://docs.rs/stac-async/latest/stac_async/)
-[![Crates.io](https://img.shields.io/crates/v/stac-async?style=for-the-badge&label=crates.io(stac-async))](https://crates.io/crates/stac-async)
-
-Rust implementation of the [SpatioTemporal Asset Catalog (STAC)](https://stacspec.org/) specification.
+Rust implementation of the [SpatioTemporal Asset Catalog (STAC)](https://stacspec.org/) specification, spread over several crates.
 
 <p align="center">
-<img src="https://d33wubrfki0l68.cloudfront.net/22691a3c3002324451ed99f4009de8aab761e1b7/d24da/public/images-original/stac-01.png" height="100">
+<img src="https://github.com/radiantearth/stac-site/raw/main/assets/images/STAC-01.png" height="100">
 <img src="https://rustacean.net/assets/rustacean-orig-noshadow.svg" height=100>
 </p>
+
+| Crate | Description | Readme | Docs | Crates.io |
+| ----- | ---- | --------- | -- | -- |
+| **stac** | Core data structures and synchronous I/O | [![README](https://img.shields.io/static/v1?label=README&message=stac&color=informational&style=flat-square)](./stac/README.md) | [![docs.rs](https://img.shields.io/docsrs/stac?style=flat-square)](https://docs.rs/stac/latest/stac/) | [![Crates.io](https://img.shields.io/crates/v/stac?style=flat-square)](https://crates.io/crates/stac) |
+| **stac-async** | Asynchronous I/O with [tokio](https://tokio.rs/) | [![README](https://img.shields.io/static/v1?label=README&message=stac-async&color=informational&style=flat-square)](./stac-async/README.md) | [![docs.rs](https://img.shields.io/docsrs/stac-async?style=flat-square)](https://docs.rs/stac-async/latest/stac_async/) | [![Crates.io](https://img.shields.io/crates/v/stac-async?style=flat-square)](https://crates.io/crates/stac-async)
+| **stac-api** | Data structures for the [STAC API](https://github.com/radiantearth/stac-api-spec) specification | [![README](https://img.shields.io/static/v1?label=README&message=stac-api&color=informational&style=flat-square)](./stac-api/README.md) | [![docs.rs](https://img.shields.io/docsrs/stac-api?style=flat-square)](https://docs.rs/stac-api/latest/stac_api/) | [![Crates.io](https://img.shields.io/crates/v/stac-api?style=flat-square)](https://crates.io/crates/stac-api)
 
 ## Usage
 
@@ -34,10 +34,12 @@ stac = "0.3"
 stac-async = "0.3"
 ```
 
-## More information
+If you're using [STAC API](https://github.com/radiantearth/stac-api-spec) data structures:
 
-- **stac**: [README](./stac/README.md) and [documentation](https://docs.rs/stac)
-- **stac-async**: [README](./stac-async/README.md) and [documentation](https://docs.rs/stac-async)
+```toml
+[dependencies]
+stac-api = "0.1"
+```
 
 ## Development
 
