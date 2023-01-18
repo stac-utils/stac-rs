@@ -4,6 +4,25 @@ use stac::Link;
 use std::str::FromStr;
 use url::{ParseError, Url};
 
+/// Builds urls on a root url.
+///
+/// # Examples
+///
+/// ```
+/// # use stac_api::UrlBuilder;
+/// let url_builder = UrlBuilder::new("http://stac-api-rs.test/api/v1").unwrap();
+/// assert_eq!(
+///     url_builder.items("my-great-collection").unwrap().as_str(),
+///     "http://stac-api-rs.test/api/v1/collections/my-great-collection/items"
+/// );
+/// ```
+#[derive(Clone, Debug)]
+pub struct UrlBuilder {
+    root: Url,
+    collections: Url,
+    collections_with_slash: Url,
+}
+
 /// Build links to endpoints in a STAC API.
 ///
 /// # Examples
@@ -22,27 +41,8 @@ use url::{ParseError, Url};
 /// let link_builder: LinkBuilder = "http://stac-api-rs.test/api/v1".parse().unwrap();
 /// assert_eq!(link_builder.root().href, "http://stac-api-rs.test/api/v1/");
 /// ```
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct LinkBuilder(UrlBuilder);
-
-/// Builds urls on a root url.
-///
-/// # Examples
-///
-/// ```
-/// # use stac_api::UrlBuilder;
-/// let url_builder = UrlBuilder::new("http://stac-api-rs.test/api/v1").unwrap();
-/// assert_eq!(
-///     url_builder.items("my-great-collection").unwrap().as_str(),
-///     "http://stac-api-rs.test/api/v1/collections/my-great-collection/items"
-/// );
-/// ```
-#[derive(Debug)]
-pub struct UrlBuilder {
-    root: Url,
-    collections: Url,
-    collections_with_slash: Url,
-}
 
 impl UrlBuilder {
     /// Creates a new url builder.
