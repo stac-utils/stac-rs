@@ -1,5 +1,11 @@
 # stac-async
 
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/gadomski/stac-rs/ci.yml?branch=main&style=for-the-badge)](https://github.com/gadomski/stac-rs/actions/workflows/ci.yml)
+[![docs.rs](https://img.shields.io/docsrs/stac-async?style=for-the-badge)](https://docs.rs/stac-async/latest/stac_async/)
+[![Crates.io](https://img.shields.io/crates/v/stac-async?style=for-the-badge)](https://crates.io/crates/stac-async)
+![Crates.io](https://img.shields.io/crates/l/stac-async?style=for-the-badge)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?style=for-the-badge)](./CODE_OF_CONDUCT)
+
 Asynchronous I/O for the [SpatioTemporal Asset Catalog (STAC)](https://stacspec.org/) specification.
 
 ## Usage
@@ -10,4 +16,13 @@ stac = "0.3"
 stac-async = "0.3"
 ```
 
-Please see the [documentation](https://docs.rs/stac-async) for usage examples.
+## Examples
+
+```rust
+// Read an item.
+let url = "https://raw.githubusercontent.com/radiantearth/stac-spec/v1.0.0/examples/simple-item.json";
+let value = stac_async::read(url).await.unwrap();
+let item: stac::Item = value.try_into().unwrap();
+```
+
+Please see the [documentation](https://docs.rs/stac-async) for more usage examples.
