@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use stac::{Collection, Link};
+use stac::{Collection, Link, Links};
 
 /// Object containing an array of Collection objects in the Catalog, and Link relations.
 #[derive(Debug, Serialize, Deserialize)]
@@ -23,5 +23,15 @@ impl From<Vec<Collection>> for Collections {
             links: Vec::new(),
             additional_fields: Map::new(),
         }
+    }
+}
+
+impl Links for Collections {
+    fn links(&self) -> &[Link] {
+        &self.links
+    }
+
+    fn links_mut(&mut self) -> &mut Vec<Link> {
+        &mut self.links
     }
 }
