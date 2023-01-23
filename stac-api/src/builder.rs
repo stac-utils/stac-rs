@@ -21,6 +21,8 @@ pub struct UrlBuilder {
     root: Url,
     collections: Url,
     collections_with_slash: Url,
+    conformance: Url,
+    service_desc: Url,
 }
 
 /// Build links to endpoints in a STAC API.
@@ -62,6 +64,8 @@ impl UrlBuilder {
         Ok(UrlBuilder {
             collections: root.join("collections")?,
             collections_with_slash: root.join("collections/")?,
+            conformance: root.join("conformance")?,
+            service_desc: root.join("api")?,
             root,
         })
     }
@@ -128,6 +132,38 @@ impl UrlBuilder {
     pub fn items(&self, id: &str) -> Result<Url, ParseError> {
         self.collections_with_slash.join(&format!("{}/items", id))
     }
+
+    /// Returns the conformance url.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac_api::UrlBuilder;
+    /// let url_builder = UrlBuilder::new("http://stac-api-rs.test").unwrap();
+    /// assert_eq!(
+    ///     url_builder.conformance().as_str(),
+    ///     "http://stac-api-rs.test/conformance"
+    /// );
+    /// ```
+    pub fn conformance(&self) -> &Url {
+        &self.conformance
+    }
+
+    /// Returns the service-desc url.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac_api::UrlBuilder;
+    /// let url_builder = UrlBuilder::new("http://stac-api-rs.test").unwrap();
+    /// assert_eq!(
+    ///     url_builder.service_desc().as_str(),
+    ///     "http://stac-api-rs.test/api"
+    /// );
+    /// ```
+    pub fn service_desc(&self) -> &Url {
+        &self.service_desc
+    }
 }
 
 impl LinkBuilder {
@@ -153,12 +189,72 @@ impl LinkBuilder {
     /// ```
     /// # use stac_api::LinkBuilder;
     /// let link_builder: LinkBuilder = "http://stac-api-rs.test/api/v1".parse().unwrap();
-    /// let root = link_builder.root_self();
-    /// assert_eq!(root.rel, "self");
-    /// assert_eq!(root.href, "http://stac-api-rs.test/api/v1/");
+    /// let link = link_builder.root_to_self();
+    /// assert_eq!(link.rel, "self");
+    /// assert_eq!(link.href, "http://stac-api-rs.test/api/v1/");
     /// ```
-    pub fn root_self(&self) -> Link {
+    pub fn root_to_self(&self) -> Link {
         Link::self_(self.0.root())
+    }
+
+    /// Returns the collections' self link.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac_api::LinkBuilder;
+    /// let link_builder: LinkBuilder = "http://stac-api-rs.test/api/v1".parse().unwrap();
+    /// let link = link_builder.collections_to_self();
+    /// assert_eq!(link.rel, "self");
+    /// assert_eq!(link.href, "http://stac-api-rs.test/api/v1/collections");
+    /// ```
+    pub fn collections_to_self(&self) -> Link {
+        Link::self_(self.0.collections())
+    }
+
+    /// Returns a service-desc link.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac_api::LinkBuilder;
+    /// let link_builder: LinkBuilder = "http://stac-api-rs.test/api/v1".parse().unwrap();
+    /// let link = link_builder.service_desc();
+    /// assert_eq!(link.rel, "service-desc");
+    /// assert_eq!(link.href, "http://stac-api-rs.test/api/v1/api");
+    /// ```
+    pub fn service_desc(&self) -> Link {
+        Link::new(self.0.service_desc(), "service-desc")
+    }
+
+    /// Returns a conformance link.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac_api::LinkBuilder;
+    /// let link_builder: LinkBuilder = "http://stac-api-rs.test/api/v1".parse().unwrap();
+    /// let link = link_builder.conformance();
+    /// assert_eq!(link.rel, "conformance");
+    /// assert_eq!(link.href, "http://stac-api-rs.test/api/v1/conformance");
+    /// ```
+    pub fn conformance(&self) -> Link {
+        Link::new(self.0.conformance(), "conformance")
+    }
+
+    /// Returns a collections link.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac_api::LinkBuilder;
+    /// let link_builder: LinkBuilder = "http://stac-api-rs.test/api/v1".parse().unwrap();
+    /// let link = link_builder.collections();
+    /// assert_eq!(link.rel, "data");
+    /// assert_eq!(link.href, "http://stac-api-rs.test/api/v1/collections");
+    /// ```
+    pub fn collections(&self) -> Link {
+        Link::new(self.0.collections(), "data")
     }
 
     /// Returns an child link for a collection.
@@ -168,11 +264,11 @@ impl LinkBuilder {
     /// ```
     /// # use stac_api::LinkBuilder;
     /// let link_builder: LinkBuilder = "http://stac-api-rs.test/api/v1".parse().unwrap();
-    /// let link = link_builder.child_collection("an-id").unwrap();
+    /// let link = link_builder.root_to_collection("an-id").unwrap();
     /// assert_eq!(link.rel, "child");
     /// assert_eq!(link.href, "http://stac-api-rs.test/api/v1/collections/an-id");
     /// ```
-    pub fn child_collection(&self, id: &str) -> Result<Link, ParseError> {
+    pub fn root_to_collection(&self, id: &str) -> Result<Link, ParseError> {
         self.0.collection(id).map(Link::child)
     }
 
@@ -185,11 +281,11 @@ impl LinkBuilder {
     /// ```
     /// # use stac_api::LinkBuilder;
     /// let link_builder: LinkBuilder = "http://stac-api-rs.test/api/v1".parse().unwrap();
-    /// let link = link_builder.collection_parent();
+    /// let link = link_builder.collection_to_parent();
     /// assert_eq!(link.rel, "parent");
     /// assert_eq!(link.href, "http://stac-api-rs.test/api/v1/");
     /// ```
-    pub fn collection_parent(&self) -> Link {
+    pub fn collection_to_parent(&self) -> Link {
         Link::parent(self.0.root())
     }
 
@@ -200,30 +296,12 @@ impl LinkBuilder {
     /// ```
     /// # use stac_api::LinkBuilder;
     /// let link_builder: LinkBuilder = "http://stac-api-rs.test/api/v1".parse().unwrap();
-    /// let link = link_builder.collection_self("an-id").unwrap();
+    /// let link = link_builder.collection_to_self("an-id").unwrap();
     /// assert_eq!(link.rel, "self");
     /// assert_eq!(link.href, "http://stac-api-rs.test/api/v1/collections/an-id");
     /// ```
-    pub fn collection_self(&self, id: &str) -> Result<Link, ParseError> {
+    pub fn collection_to_self(&self, id: &str) -> Result<Link, ParseError> {
         self.0.collection(id).map(Link::self_)
-    }
-
-    /// Returns an items link for a collection.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use stac_api::LinkBuilder;
-    /// let link_builder: LinkBuilder = "http://stac-api-rs.test/api/v1".parse().unwrap();
-    /// let link = link_builder.items("an-id", ()).unwrap();
-    /// assert_eq!(link.rel, "items");
-    /// assert_eq!(link.href, "http://stac-api-rs.test/api/v1/collections/an-id/items");
-    /// ```
-    pub fn items<S>(&self, id: &str, parameters: S) -> Result<Link, Error>
-    where
-        S: Serialize,
-    {
-        self.items_with_rel(id, parameters, "items")
     }
 
     /// Returns a next items link for a collection.
@@ -280,6 +358,21 @@ impl LinkBuilder {
                 }
                 Link::new(url, rel).geojson()
             })
+    }
+
+    /// Returns a link from a collection to its items.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac_api::LinkBuilder;
+    /// let link_builder: LinkBuilder = "http://stac-api-rs.test/api/v1".parse().unwrap();
+    /// let link = link_builder.collection_to_items("an-id").unwrap();
+    /// assert_eq!(link.rel, "items");
+    /// assert_eq!(link.href, "http://stac-api-rs.test/api/v1/collections/an-id/items");
+    /// ```
+    pub fn collection_to_items(&self, id: &str) -> Result<Link, Error> {
+        self.items_with_rel(id, (), "items")
     }
 }
 

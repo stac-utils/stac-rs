@@ -46,11 +46,8 @@
 //! ```
 //! # use stac_api::LinkBuilder;
 //! # let link_builder: LinkBuilder = "http://stac-api-rs.test/api/v1".parse().unwrap();
-//! let link = link_builder.items("a-collection-id", [("limit", "10")]).unwrap();
-//! assert_eq!(
-//!     link.href,
-//!     "http://stac-api-rs.test/api/v1/collections/a-collection-id/items?limit=10"
-//! );
+//! let link = link_builder.collection_to_items("a-collection-id").unwrap();
+//! assert_eq!(link.href, "http://stac-api-rs.test/api/v1/collections/a-collection-id/items");
 //! ```
 
 #![deny(missing_docs, unused_extern_crates)]
