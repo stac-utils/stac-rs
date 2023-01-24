@@ -12,6 +12,8 @@ categories = ["science", "data-structures"]
 
 [features]
 jsonschema = ["dep:jsonschema", "reqwest"]
+reqwest = ["dep:reqwest"]
+set_query = ["dep:serde_urlencoded"]
 
 [dependencies]
 chrono = "0.4"
@@ -20,6 +22,7 @@ jsonschema = { version = "0.16", optional = true, features = ["resolve-http"], d
 reqwest = { version = "0.11", optional = true, features = ["json", "blocking"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
+serde_urlencoded = { version = "0.7", optional = true }
 thiserror = "1"
 url = "2"
 

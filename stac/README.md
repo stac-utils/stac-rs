@@ -19,7 +19,7 @@ stac = "0.3"
 
 ### Features
 
-There are two opt-in features: `jsonschema` and `reqwest`.
+There are three opt-in features: `jsonschema`, `reqwest`, and `set_query`.
 
 #### jsonschema
 
@@ -42,6 +42,16 @@ stac = { version = "0.3", features = ["reqwest"]}
 ```
 
 If `reqwest` is not enabled, `stac::read` will throw an error if you try to read from a url.
+
+#### set_query
+
+The `set_query` feature adds a single method to `Link`.
+It is behind a feature because it adds a dependency, [serde_urlencoded](https://crates.io/crates/serde_urlencoded).
+To enable:
+
+```toml
+stac = { version = "0.3", features = ["set_query"]}
+```
 
 ## Examples
 

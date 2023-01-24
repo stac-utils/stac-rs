@@ -519,28 +519,28 @@ impl Link {
         is_absolute(&self.href)
     }
 
-    /// Sets a query pair on this link's href.
+    /// Sets a link's href's query to anything serializable by [serde_urlencoded].
     ///
-    /// Raises an error if the href is not parseable as a url.
+    /// Raises an error if the href is not parseable as a url. Requires the
+    /// `set_query` feature to be enabled.
     ///
     /// # Examples
     ///
     /// ```
     /// # use stac::Link;
     /// let mut link = Link::new("http://stac-rs.test/", "a-rel");
-    /// link.set_query_pair("foo", "bar").unwrap();
+    /// link.set_query([("foo", "bar")]).unwrap();
     /// assert_eq!(link.href, "http://stac-rs.test/?foo=bar");
     /// ```
-    pub fn set_query_pair(&mut self, key: &str, value: &str) -> Result<()> {
-        let url: Url = self.href.parse()?;
-        let mut new_url = url.clone();
-        let new_url = new_url
-            .query_pairs_mut()
-            .clear()
-            .extend_pairs(url.query_pairs().filter(|(k, _)| k != key))
-            .append_pair(key, value)
-            .finish();
-        self.href = new_url.to_string();
+    #[cfg(feature = "set_query")]
+    pub fn set_query<Q>(&mut self, query: Q) -> Result<()>
+    where
+        Q: Serialize,
+    {
+        let mut url: Url = self.href.parse()?;
+        let query = serde_urlencoded::to_string(query)?;
+        url.set_query(Some(&query));
+        self.href = url.to_string();
         Ok(())
     }
 }
@@ -613,14 +613,13 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "set_query")]
     fn set_query_pair() {
         let mut link = Link::new("http://stac-rs.test/an-href", "a-rel");
-        link.set_query_pair("foo", "bar").unwrap();
+        link.set_query([("foo", "bar")]).unwrap();
         assert_eq!(link.href, "http://stac-rs.test/an-href?foo=bar");
-        link.set_query_pair("baz", "boz").unwrap();
-        assert_eq!(link.href, "http://stac-rs.test/an-href?foo=bar&baz=boz");
-        link.set_query_pair("foo", "bar").unwrap();
-        assert_eq!(link.href, "http://stac-rs.test/an-href?baz=boz&foo=bar");
+        link.set_query([("baz", "boz")]).unwrap();
+        assert_eq!(link.href, "http://stac-rs.test/an-href?baz=boz");
     }
 
     mod links {
