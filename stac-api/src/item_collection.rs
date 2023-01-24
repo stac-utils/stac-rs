@@ -1,7 +1,7 @@
 use crate::{Item, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use stac::Link;
+use stac::{Link, Links};
 
 const ITEM_COLLECTION_TYPE: &str = "FeatureCollection";
 
@@ -82,5 +82,14 @@ impl ItemCollection {
             context: None,
             additional_fields: Map::new(),
         })
+    }
+}
+
+impl Links for ItemCollection {
+    fn links(&self) -> &[Link] {
+        &self.links
+    }
+    fn links_mut(&mut self) -> &mut Vec<Link> {
+        &mut self.links
     }
 }
