@@ -6,7 +6,7 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum Error {
     /// [std::io::Error]
-    #[error("std::io error: {0}")]
+    #[error(transparent)]
     Io(#[from] std::io::Error),
 
     /// Returned when the `type` field of a STAC object is not a [String].
@@ -48,11 +48,11 @@ pub enum Error {
 
     /// [reqwest::Error]
     #[cfg(feature = "reqwest")]
-    #[error("reqwest error: {0}")]
+    #[error(transparent)]
     Reqwest(#[from] reqwest::Error),
 
     /// [serde_json::Error]
-    #[error("serde_json error: {0}")]
+    #[error(transparent)]
     SerdeJson(#[from] serde_json::Error),
 
     /// [serde_urlencoded::ser::Error]
@@ -65,7 +65,7 @@ pub enum Error {
     UnknownType(String),
 
     /// [url::ParseError]
-    #[error("url parse error: {0}")]
+    #[error(transparent)]
     Url(#[from] url::ParseError),
 
     /// [jsonschema::ValidationError], but owned.
