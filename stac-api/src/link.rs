@@ -15,8 +15,8 @@ pub struct Link {
     pub method: Option<String>,
 
     /// A dictionary of header values that must be included in the next request
-    #[serde(skip_serializing_if = "Map::is_empty")]
-    pub headers: Map<String, Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub headers: Option<Map<String, Value>>,
 
     /// If true, the headers/body fields in the next link must be merged into
     /// the original request and be sent combined in the next request. Defaults
