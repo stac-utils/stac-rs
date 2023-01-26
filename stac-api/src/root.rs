@@ -1,3 +1,4 @@
+use crate::Conformance;
 use serde::{Deserialize, Serialize};
 use stac::Catalog;
 
@@ -56,5 +57,6 @@ pub struct Root {
     /// class, perhaps because it uses multiple databases to store items, but
     /// sub-catalogs whose items are all in one database can support search.
     /// #[serde(rename = "conformsTo")]
-    pub conforms_to: Vec<String>,
+    #[serde(flatten)]
+    pub conformance: Conformance,
 }

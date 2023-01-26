@@ -24,10 +24,12 @@
 //!
 //! ```
 //! use stac::Catalog;
-//! use stac_api::Root;
+//! use stac_api::{Root, Conformance};
 //! let root = Root {
 //!     catalog: Catalog::new("an-id", "a description"),
-//!     conforms_to: vec!["https://api.stacspec.org/v1.0.0-rc.2/core".to_string()],
+//!     conformance: Conformance {
+//!         conforms_to: vec!["https://api.stacspec.org/v1.0.0-rc.2/core".to_string()]
+//!     },
 //! };
 //! ```
 //!
@@ -54,6 +56,7 @@
 
 mod builder;
 mod collections;
+mod conformance;
 mod error;
 mod fields;
 mod item_collection;
@@ -65,6 +68,7 @@ mod sort;
 pub use {
     builder::{LinkBuilder, UrlBuilder},
     collections::Collections,
+    conformance::Conformance,
     error::Error,
     fields::Fields,
     item_collection::{Context, ItemCollection},
