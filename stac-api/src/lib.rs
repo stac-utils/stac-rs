@@ -60,7 +60,6 @@ mod conformance;
 mod error;
 mod fields;
 mod item_collection;
-mod link;
 mod root;
 mod search;
 mod sort;
@@ -72,7 +71,6 @@ pub use {
     error::Error,
     fields::Fields,
     item_collection::{Context, ItemCollection},
-    link::Link,
     root::Root,
     search::Search,
     sort::Sortby,

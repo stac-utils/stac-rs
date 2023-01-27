@@ -25,6 +25,12 @@ pub const COLLECTION_REL: &str = "collection";
 /// related `Item`s, parent or child `Item`s (modeled in different ways, like an
 /// 'acquisition' or derived data). It is allowed to add additional fields such
 /// as a title and type.
+///
+/// This link structure includes a few fields from the [STAC API
+/// specification](https://github.com/radiantearth/stac-api-spec/tree/main/item-search#pagination).
+/// Generally we keep STAC API structures in the [stac-api
+/// crate](https://github.com/gadomski/stac-rs/stac-api), but in this case it
+/// was simpler to include these attributes in the base [Link] rather to create a new one.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Link {
     /// The actual link in the format of an URL.
@@ -47,6 +53,33 @@ pub struct Link {
     /// A human readable title to be used in rendered displays of the link.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
+
+    /// The HTTP method of the request, usually GET or POST. Defaults to GET.
+    ///
+    /// From the STAC API spec.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub method: Option<String>,
+
+    /// A dictionary of header values that must be included in the next request
+    ///
+    /// From the STAC API spec.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub headers: Option<Map<String, Value>>,
+
+    /// A JSON object containing fields/values that must be included in the body
+    /// of the next request.
+    ///
+    /// From the STAC API spec.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub body: Option<Map<String, Value>>,
+
+    /// If true, the headers/body fields in the next link must be merged into
+    /// the original request and be sent combined in the next request. Defaults
+    /// to false
+    ///
+    /// From the STAC API spec.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub merge: Option<bool>,
 
     /// Additional fields on the link.
     #[serde(flatten)]
@@ -221,6 +254,10 @@ impl Link {
             rel: rel.to_string(),
             r#type: None,
             title: None,
+            method: None,
+            headers: None,
+            body: None,
+            merge: None,
             additional_fields: Map::new(),
         }
     }
