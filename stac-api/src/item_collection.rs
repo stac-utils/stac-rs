@@ -17,7 +17,8 @@ pub struct ItemCollection {
     pub r#type: String,
 
     /// A possibly-empty array of Item objects.
-    pub features: Vec<Item>,
+    #[serde(rename = "features")]
+    pub items: Vec<Item>,
 
     /// An array of Links related to this ItemCollection.
     pub links: Vec<Link>,
@@ -75,7 +76,7 @@ impl ItemCollection {
         let number_returned = items.len();
         Ok(ItemCollection {
             r#type: ITEM_COLLECTION_TYPE.to_string(),
-            features: items,
+            items,
             links: Vec::new(),
             number_matched: None,
             number_returned: Some(number_returned.try_into()?),
