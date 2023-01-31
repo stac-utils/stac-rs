@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
 /// The core parameters for STAC search are defined by OAFeat, and STAC adds a few parameters for convenience.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Default, Debug, Serialize, Deserialize)]
 pub struct Search {
     /// The maximum number of results to return (page size).
     #[serde(skip_serializing_if = "Option::is_none")]
