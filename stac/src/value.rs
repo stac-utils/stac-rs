@@ -2,6 +2,7 @@ use crate::{
     Catalog, Collection, Error, Href, Item, ItemCollection, Link, Links, Result, CATALOG_TYPE,
     COLLECTION_TYPE, ITEM_COLLECTION_TYPE, ITEM_TYPE,
 };
+use serde_json::Map;
 use std::convert::TryFrom;
 
 /// An enum that can hold any STAC object type.
@@ -316,6 +317,17 @@ impl TryFrom<Value> for serde_json::Value {
                     })
                 }
             }
+        }
+    }
+}
+
+impl TryFrom<Value> for Map<String, serde_json::Value> {
+    type Error = Error;
+    fn try_from(value: Value) -> Result<Self> {
+        if let serde_json::Value::Object(object) = serde_json::Value::try_from(value)? {
+            Ok(object)
+        } else {
+            panic!("all STAC values should serialize to a serde_json::Value::Object")
         }
     }
 }
