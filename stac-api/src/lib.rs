@@ -47,28 +47,31 @@
 //! # use stac_api::LinkBuilder;
 //! # let link_builder: LinkBuilder = "http://stac-api-rs.test/api/v1".parse().unwrap();
 //! let link = link_builder.items("a-collection-id", [("limit", "10")]).unwrap();
-//! assert_eq!(link.href, "http://stac-api-rs.test/api/v1/collections/a-collection-id/items?limit=10");
+//! assert_eq!(
+//!     link.href,
+//!     "http://stac-api-rs.test/api/v1/collections/a-collection-id/items?limit=10"
+//! );
 //! ```
 
 #![deny(missing_docs, unused_extern_crates)]
 
+mod builder;
 mod collections;
 mod error;
 mod fields;
 mod item_collection;
 mod link;
-mod link_builder;
 mod root;
 mod search;
 mod sort;
 
 pub use {
+    builder::{LinkBuilder, UrlBuilder},
     collections::Collections,
     error::Error,
     fields::Fields,
     item_collection::{Context, ItemCollection},
     link::Link,
-    link_builder::LinkBuilder,
     root::Root,
     search::Search,
     sort::Sortby,
