@@ -3,9 +3,9 @@
 <!-- Allow html tags -->
 <!-- markdownlint-disable MD033 -->
 
-[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/gadomski/stac-rs/ci.yml?branch=main&style=flat-square)](https://github.com/gadomski/stac-rs/actions/workflows/ci.yml)
-![Crates.io](https://img.shields.io/crates/l/stac?style=flat-square)
-[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?style=flat-square)](./CODE_OF_CONDUCT)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/gadomski/stac-rs/ci.yml?branch=main&style=for-the-badge)](https://github.com/gadomski/stac-rs/actions/workflows/ci.yml)
+![Crates.io](https://img.shields.io/crates/l/stac?style=for-the-badge)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?style=for-the-badge)](./CODE_OF_CONDUCT)
 
 Rust implementation of the [SpatioTemporal Asset Catalog (STAC)](https://stacspec.org/) specification, spread over several crates.
 
