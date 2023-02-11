@@ -76,3 +76,43 @@ pub enum FilterLang {
     #[serde(rename = "cql2-text")]
     Cql2Json,
 }
+
+impl Search {
+    /// Creates a new, default, empty search.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac_api::Search;
+    /// let search = Search::new();
+    /// ```
+    pub fn new() -> Search {
+        Default::default()
+    }
+
+    /// Adds a collection id to this search.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac_api::Search;
+    /// let search = Search::new().collection("sentinel-2-l1a");
+    /// ```
+    pub fn collection(mut self, id: impl ToString) -> Search {
+        self.collections.push(id.to_string());
+        self
+    }
+
+    /// Sets this search's limit.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac_api::Search;
+    /// let search = Search::new().limit(42);
+    /// ```
+    pub fn limit(mut self, limit: impl Into<Option<u64>>) -> Search {
+        self.limit = limit.into();
+        self
+    }
+}
