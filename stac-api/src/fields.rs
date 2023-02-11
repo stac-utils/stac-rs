@@ -9,7 +9,7 @@ use std::{convert::Infallible, str::FromStr};
 /// them are in results. Frequently, not all fields in an Item are used, so this
 /// specification provides a mechanism for clients to request that servers to
 /// explicitly include or exclude certain fields.
-#[derive(Debug, Serialize, Deserialize, Default, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default, PartialEq)]
 pub struct Fields {
     /// Fields to include.
     #[serde(skip_serializing_if = "Vec::is_empty")]
