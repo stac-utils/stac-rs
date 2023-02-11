@@ -106,8 +106,12 @@ fn pager(
             match result {
                 Ok((page, next_url, next_search)) => {
                     yield Ok(page);
-                    url = next_url;
-                    search = next_search;
+                    if let Some(next_url) = next_url {
+                        url = next_url;
+                        search = next_search;
+                    } else {
+                        return;
+                    }
                 }
                 Err(err) => {
                     yield Err(err);
@@ -122,7 +126,7 @@ async fn page(
     client: Client,
     url: Url,
     search: Option<Search>,
-) -> Option<Result<(ItemCollection, Url, Option<Search>)>> {
+) -> Option<Result<(ItemCollection, Option<Url>, Option<Search>)>> {
     // TODO support GET
     match client.post::<_, ItemCollection>(url, &search).await {
         Ok(page) => {
@@ -130,8 +134,8 @@ async fn page(
                 return None;
             }
             match page.next_url_and_search() {
-                Ok(Some((url, search))) => Some(Ok((page, url, search))),
-                Ok(None) => None,
+                Ok(Some((url, search))) => Some(Ok((page, Some(url), search))),
+                Ok(None) => Some(Ok((page, None, None))),
                 Err(err) => Some(Err(Error::from(err))),
             }
         }
@@ -166,5 +170,6 @@ mod tests {
             .collect()
             .await;
         assert_eq!(items.len(), 2);
+        assert!(items[0]["id"] != items[1]["id"]);
     }
 }
