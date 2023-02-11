@@ -23,6 +23,7 @@ pub struct UrlBuilder {
     collections_with_slash: Url,
     conformance: Url,
     service_desc: Url,
+    search: Url,
 }
 
 /// Build links to endpoints in a STAC API.
@@ -66,6 +67,7 @@ impl UrlBuilder {
             collections_with_slash: root.join("collections/")?,
             conformance: root.join("conformance")?,
             service_desc: root.join("api")?,
+            search: root.join("search")?,
             root,
         })
     }
@@ -163,6 +165,22 @@ impl UrlBuilder {
     /// ```
     pub fn service_desc(&self) -> &Url {
         &self.service_desc
+    }
+
+    /// Returns the search url.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac_api::UrlBuilder;
+    /// let url_builder = UrlBuilder::new("http://stac-api-rs.test").unwrap();
+    /// assert_eq!(
+    ///     url_builder.search().as_str(),
+    ///     "http://stac-api-rs.test/search"
+    /// );
+    /// ```
+    pub fn search(&self) -> &Url {
+        &self.search
     }
 }
 
