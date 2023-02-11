@@ -3,7 +3,7 @@ use std::{convert::Infallible, str::FromStr};
 use serde::{Deserialize, Serialize};
 
 /// Fields by which to sort results.
-#[derive(Debug, Deserialize, Serialize, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
 pub struct Sortby {
     /// The field to sort by.
     pub field: String,
@@ -12,7 +12,7 @@ pub struct Sortby {
     pub direction: Direction,
 }
 
-#[derive(Debug, Deserialize, Serialize, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
 pub enum Direction {
     #[serde(rename = "asc")]
     Ascending,
