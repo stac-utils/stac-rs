@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+
+- STAC API fields to `Link` ([#126](https://github.com/gadomski/stac-rs/pull/126)])
+- `TryFrom<Value>` for a `serde_json::Map<String, serde_json::Value>` ([#126](https://github.com/gadomski/stac-rs/pull/126))
+
 ## [0.3.1] - 2023-01-13
 
 ### Added
@@ -199,3 +204,5 @@ Initial release.
 [0.0.3]: https://github.com/gadomski/stac-rs/compare/v0.0.2...v0.0.3
 [0.0.2]: https://github.com/gadomski/stac-rs/compare/v0.0.1...v0.0.2
 [0.0.1]: https://github.com/gadomski/stac-rs/releases/tag/v0.0.1
+
+<!-- markdownlint-disable-file MD024 -->
