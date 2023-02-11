@@ -1,5 +1,5 @@
 use crate::{Client, Error, Result};
-use async_stream::stream;
+use async_stream::try_stream;
 use futures_core::stream::Stream;
 use futures_util::{pin_mut, StreamExt};
 use stac::Collection;
@@ -78,18 +78,11 @@ impl ApiClient {
                 }
             }
         });
-        stream! {
+        try_stream! {
             while let Some(result) = rx.recv().await {
-                match result {
-                    Ok(page) => {
-                        for item in page.items {
-                            yield Ok(item);
-                        }
-                    }
-                    Err(err) => {
-                        yield Err(err);
-                        return;
-                    }
+                let page = result?;
+                for item in page.items {
+                    yield item;
                 }
             }
         }
@@ -101,22 +94,15 @@ fn pager(
     mut url: Url,
     mut search: Option<Search>,
 ) -> impl Stream<Item = Result<ItemCollection>> {
-    stream! {
+    try_stream! {
         while let Some(result) = page(client.clone(), url, search).await {
-            match result {
-                Ok((page, next_url, next_search)) => {
-                    yield Ok(page);
-                    if let Some(next_url) = next_url {
-                        url = next_url;
-                        search = next_search;
-                    } else {
-                        return;
-                    }
-                }
-                Err(err) => {
-                    yield Err(err);
-                    return;
-                }
+            let (page, next_url, next_search) = result?;
+            yield page;
+            if let Some(next_url) = next_url {
+                url = next_url;
+                search = next_search;
+            } else {
+                return;
             }
         }
     }
