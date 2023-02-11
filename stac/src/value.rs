@@ -332,6 +332,43 @@ impl TryFrom<Value> for Map<String, serde_json::Value> {
     }
 }
 
+impl TryFrom<Item> for Map<String, serde_json::Value> {
+    type Error = Error;
+    fn try_from(item: Item) -> Result<Self> {
+        if let serde_json::Value::Object(object) = serde_json::Value::try_from(Value::Item(item))? {
+            Ok(object)
+        } else {
+            panic!("all STAC items should serialize to a serde_json::Value::Object")
+        }
+    }
+}
+
+impl TryFrom<Catalog> for Map<String, serde_json::Value> {
+    type Error = Error;
+    fn try_from(catalog: Catalog) -> Result<Self> {
+        if let serde_json::Value::Object(object) =
+            serde_json::Value::try_from(Value::Catalog(catalog))?
+        {
+            Ok(object)
+        } else {
+            panic!("all STAC items should serialize to a serde_json::Value::Object")
+        }
+    }
+}
+
+impl TryFrom<Collection> for Map<String, serde_json::Value> {
+    type Error = Error;
+    fn try_from(collection: Collection) -> Result<Self> {
+        if let serde_json::Value::Object(object) =
+            serde_json::Value::try_from(Value::Collection(collection))?
+        {
+            Ok(object)
+        } else {
+            panic!("all STAC items should serialize to a serde_json::Value::Object")
+        }
+    }
+}
+
 impl TryFrom<Value> for Item {
     type Error = Error;
     fn try_from(value: Value) -> Result<Self> {
