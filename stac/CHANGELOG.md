@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 
 - STAC API fields to `Link` ([#126](https://github.com/gadomski/stac-rs/pull/126)])
-- `TryFrom<Value>` for a `serde_json::Map<String, serde_json::Value>` ([#126](https://github.com/gadomski/stac-rs/pull/126))
+- `TryFrom<Value>` (and `TryFrom<Item>` and friends) for a `serde_json::Map<String, serde_json::Value>` ([#126](https://github.com/gadomski/stac-rs/pull/126), [#130](https://github.com/gadomski/stac-rs/pull/130))
 
 ## [0.3.1] - 2023-01-13
 

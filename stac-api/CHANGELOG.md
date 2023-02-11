@@ -9,15 +9,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 
 - `From<Vec<Collection>>` for `Collections` ([#124](https://github.com/gadomski/stac-rs/pull/124))
-- `UrlBuilder` ([#129](https://github.com/gadomski/stac-rs/pull/129))
+- `UrlBuilder` ([#129](https://github.com/gadomski/stac-rs/pull/129), [#130](https://github.com/gadomski/stac-rs/pull/130))
 - New `LinkBuilder` methods, including some renames ([#126](https://github.com/gadomski/stac-rs/pull/126))
 - `Links` for `Collections`, `ItemCollection` ([#126](https://github.com/gadomski/stac-rs/pull/126))
 - `Conformance` structure ([#126](https://github.com/gadomski/stac-rs/pull/126))
 - `Default` for `Search` ([#126](https://github.com/gadomski/stac-rs/pull/126))
+- `next_url_and_search` method for `ItemCollection` ([#130](https://github.com/gadomski/stac-rs/pull/130))
+- `Clone` for `Search` and its sub structs ([#130](https://github.com/gadomski/stac-rs/pull/130))
+- Some `Search` builder methods ([#130](https://github.com/gadomski/stac-rs/pull/130))
 
 ### Changed
 
 - `ItemCollection` now has a `items` attribute, instead of `features` ([#126](https://github.com/gadomski/stac-rs/pull/126))
+- `Item` is now just a type alias ([#130](https://github.com/gadomski/stac-rs/pull/130))
+- All `Search` fields are now optional ([#130](https://github.com/gadomski/stac-rs/pull/130))
 
 ### Removed
 
