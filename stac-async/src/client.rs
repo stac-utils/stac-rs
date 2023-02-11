@@ -1,5 +1,6 @@
 use crate::Error;
-use reqwest::IntoUrl;
+use reqwest::{IntoUrl, StatusCode};
+use serde::{de::DeserializeOwned, Serialize};
 use stac::{Href, Value};
 
 /// A thin wrapper around [reqwest::Client].
@@ -35,7 +36,8 @@ impl Client {
 
     /// Gets a STAC value from a url.
     ///
-    /// Also sets that [Values](Value) href.
+    /// Also sets that [Values](Value) href. Returns Ok(None) if a 404 is
+    /// returned from the server.
     ///
     /// # Examples
     ///
@@ -43,16 +45,31 @@ impl Client {
     /// let client = stac_async::Client::new();
     /// let href = "https://raw.githubusercontent.com/radiantearth/stac-spec/v1.0.0/examples/simple-item.json";
     /// # tokio_test::block_on(async {
-    /// let value = client.get(href).await.unwrap();
+    /// let value = client.get(href).await.unwrap().unwrap();
     /// # })
     /// ```
-    pub async fn get(&self, url: impl IntoUrl) -> Result<Value, Error> {
+    pub async fn get(&self, url: impl IntoUrl) -> Result<Option<Value>, Error> {
         let url = url.into_url()?;
         let response = self.0.get(url.clone()).send().await?;
+        if response.status() == StatusCode::NOT_FOUND {
+            return Ok(None);
+        }
         let value: serde_json::Value = response.json().await?;
         let mut value = Value::from_json(value)?;
         value.set_href(url);
-        Ok(value)
+        Ok(Some(value))
+    }
+
+    /// Posts data to a url.
+    pub async fn post<S, R>(&self, url: impl IntoUrl, data: &S) -> Result<R, Error>
+    where
+        S: Serialize,
+        R: DeserializeOwned,
+    {
+        let url = url.into_url()?;
+        let response = self.0.post(url).json(data).send().await?;
+        let response = response.error_for_status()?;
+        response.json().await.map_err(Error::from)
     }
 }
 
@@ -65,7 +82,7 @@ mod tests {
     async fn client() {
         let client = Client::new();
         let href = "https://raw.githubusercontent.com/radiantearth/stac-spec/v1.0.0/examples/simple-item.json";
-        let value = client.get(href).await.unwrap();
+        let value = client.get(href).await.unwrap().unwrap();
         assert_eq!(value.href().unwrap(), href);
     }
 }
