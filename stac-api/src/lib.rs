@@ -79,7 +79,7 @@ pub use {
 /// Crate-specific result type.
 pub type Result<T> = std::result::Result<T, Error>;
 
-/// A crate-specific STAC Item struct.
+/// A STAC API Item type definition.
 ///
 /// By default, STAC API endpoints that return [stac::Item] objects return every
 /// field of those Items. However, Item objects can have hundreds of fields, or
@@ -87,24 +87,4 @@ pub type Result<T> = std::result::Result<T, Error>;
 /// numbers of them are in results. Frequently, not all fields in an Item are
 /// used, so this specification provides a mechanism for clients to request that
 /// servers to explicitly include or exclude certain fields.
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
-pub struct Item(pub serde_json::Map<String, serde_json::Value>);
-
-impl TryFrom<stac::Item> for Item {
-    type Error = serde_json::Error;
-
-    fn try_from(item: stac::Item) -> std::result::Result<Item, serde_json::Error> {
-        match serde_json::to_value(item)? {
-            serde_json::Value::Object(object) => Ok(Item(object)),
-            _ => panic!("a STAC item shouldn't be able to deserialize to anything but an object"),
-        }
-    }
-}
-
-impl TryFrom<Item> for stac::Item {
-    type Error = serde_json::Error;
-
-    fn try_from(item: Item) -> std::result::Result<stac::Item, serde_json::Error> {
-        serde_json::from_value(serde_json::Value::Object(item.0))
-    }
-}
+pub type Item = serde_json::Map<String, serde_json::Value>;
