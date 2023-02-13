@@ -1,11 +1,13 @@
 use crate::{Fields, FilterLang, Sortby};
-use geojson::Geometry;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
-/// The core parameters for STAC search are defined by OAFeat, and STAC adds a few parameters for convenience.
-#[derive(Clone, Default, Debug, Serialize, Deserialize)]
-pub struct Search {
+/// Parameters for the items endpoint from STAC API - Features.
+///
+/// This is a lot like [Search](crate::Search), but without intersects, ids, and
+/// collections.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Items {
     /// The maximum number of results to return (page size).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub limit: Option<u64>,
@@ -20,20 +22,6 @@ pub struct Search {
     /// Use double dots `..` for open date ranges.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub datetime: Option<String>,
-
-    /// Searches items by performing intersection between their geometry and provided GeoJSON geometry.
-    ///
-    /// All GeoJSON geometry types must be supported.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub intersects: Option<Geometry>,
-
-    /// Array of Item ids to return.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub ids: Option<Vec<String>>,
-
-    /// Array of one or more Collection IDs that each matching Item must be in.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub collections: Option<Vec<String>>,
 
     /// Include/exclude fields from item collections.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -56,8 +44,6 @@ pub struct Search {
     pub filter_crs: Option<String>,
 
     /// CQL2 filter expression.
-    ///
-    /// TODO support a String for cql2-text
     #[serde(skip_serializing_if = "Option::is_none")]
     pub filter: Option<Map<String, Value>>,
 
@@ -70,46 +56,4 @@ pub struct Search {
     /// Additional fields.
     #[serde(flatten)]
     pub additional_fields: Map<String, Value>,
-}
-
-impl Search {
-    /// Creates a new, default, empty search.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use stac_api::Search;
-    /// let search = Search::new();
-    /// ```
-    pub fn new() -> Search {
-        Default::default()
-    }
-
-    /// Adds a collection id to this search.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use stac_api::Search;
-    /// let search = Search::new().collection("sentinel-2-l1a");
-    /// ```
-    pub fn collection(mut self, id: impl ToString) -> Search {
-        let mut collections = self.collections.unwrap_or_default();
-        collections.push(id.to_string());
-        self.collections = Some(collections);
-        self
-    }
-
-    /// Sets this search's limit.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use stac_api::Search;
-    /// let search = Search::new().limit(42);
-    /// ```
-    pub fn limit(mut self, limit: impl Into<Option<u64>>) -> Search {
-        self.limit = limit.into();
-        self
-    }
 }
