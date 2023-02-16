@@ -59,7 +59,7 @@ mod collections;
 mod conformance;
 mod error;
 mod fields;
-mod filter_lang;
+mod filter;
 mod item_collection;
 mod items;
 mod root;
@@ -72,7 +72,7 @@ pub use {
     conformance::Conformance,
     error::Error,
     fields::Fields,
-    filter_lang::FilterLang,
+    filter::Filter,
     item_collection::{Context, ItemCollection},
     items::Items,
     root::Root,
