@@ -1,4 +1,4 @@
-use crate::{Fields, FilterLang, Sortby};
+use crate::{Fields, Filter, Sortby};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
@@ -31,12 +31,6 @@ pub struct Items {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sortby: Option<Vec<Sortby>>,
 
-    /// `cql2-text` or `cql2-json`.
-    ///
-    /// If undefined, defaults to `cql2-text` for a GET request and `cql2-json` for a POST request.
-    #[serde(skip_serializing_if = "Option::is_none", rename = "filter-lang")]
-    pub filter_lang: Option<FilterLang>,
-
     /// Recommended to not be passed, but server must only accept
     /// <http://www.opengis.net/def/crs/OGC/1.3/CRS84> as a valid value, may
     /// reject any others
@@ -45,7 +39,7 @@ pub struct Items {
 
     /// CQL2 filter expression.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub filter: Option<Map<String, Value>>,
+    pub filter: Option<Filter>,
 
     /// Additional filtering based on properties.
     ///
