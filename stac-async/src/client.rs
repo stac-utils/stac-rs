@@ -1,5 +1,5 @@
 use crate::Error;
-use reqwest::{IntoUrl, StatusCode};
+use reqwest::{IntoUrl, Method, StatusCode};
 use serde::{de::DeserializeOwned, Serialize};
 use stac::Href;
 
@@ -53,13 +53,15 @@ impl Client {
         V: DeserializeOwned + Href,
     {
         let url = url.into_url()?;
-        let response = self.0.get(url.clone()).send().await?;
-        if response.status() == StatusCode::NOT_FOUND {
-            return Ok(None);
+        if let Some(mut value) = self
+            .request::<(), V>(Method::GET, url.clone(), None)
+            .await?
+        {
+            value.set_href(url);
+            Ok(Some(value))
+        } else {
+            Ok(None)
         }
-        let mut value: V = response.json().await?;
-        value.set_href(url);
-        Ok(Some(value))
     }
 
     /// Posts data to a url.
@@ -71,16 +73,63 @@ impl Client {
     /// let client = stac_async::Client::new();
     /// let href = "https://planetarycomputer.microsoft.com/api/stac/v1/search";
     /// # tokio_test::block_on(async {
-    /// let items: stac_api::ItemCollection = client.post(href, &Search::new().limit(1)).await.unwrap();
+    /// let items: stac_api::ItemCollection = client.post(href, &Search::new().limit(1)).await.unwrap().unwrap();
     /// # })
     /// ```
-    pub async fn post<S, R>(&self, url: impl IntoUrl, data: &S) -> Result<R, Error>
+    pub async fn post<S, R>(&self, url: impl IntoUrl, data: &S) -> Result<Option<R>, Error>
     where
-        S: Serialize,
+        S: Serialize + 'static,
+        R: DeserializeOwned,
+    {
+        self.request(Method::POST, url, Some(data)).await
+    }
+
+    /// Sends a request to a url.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::Item;
+    /// use reqwest::Method;
+    ///
+    /// let client = stac_async::Client::new();
+    /// let href = "https://raw.githubusercontent.com/radiantearth/stac-spec/v1.0.0/examples/simple-item.json";
+    /// # tokio_test::block_on(async {
+    /// let item = client.request::<(), Item>(Method::GET, href, None).await.unwrap().unwrap();
+    /// # })
+    /// ```
+    pub async fn request<S, R>(
+        &self,
+        method: Method,
+        url: impl IntoUrl,
+        params: impl Into<Option<&S>>,
+    ) -> Result<Option<R>, Error>
+    where
+        S: Serialize + 'static,
         R: DeserializeOwned,
     {
         let url = url.into_url()?;
-        let response = self.0.post(url).json(data).send().await?;
+        let request = match method {
+            Method::GET => {
+                let mut request = self.0.get(url);
+                if let Some(query) = params.into() {
+                    request = request.query(query);
+                }
+                request
+            }
+            Method::POST => {
+                let mut request = self.0.post(url);
+                if let Some(data) = params.into() {
+                    request = request.json(&data);
+                }
+                request
+            }
+            _ => unimplemented!(),
+        };
+        let response = request.send().await?;
+        if response.status() == StatusCode::NOT_FOUND {
+            return Ok(None);
+        }
         let response = response.error_for_status()?;
         response.json().await.map_err(Error::from)
     }
@@ -101,9 +150,20 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn client_get_404() {
+        let client = Client::new();
+        let href = "https://raw.githubusercontent.com/radiantearth/stac-spec/v1.0.0/examples/not-an-item.json";
+        assert!(client.get::<stac::Item>(href).await.unwrap().is_none());
+    }
+
+    #[tokio::test]
     async fn client_post() {
         let client = Client::new();
         let href = "https://planetarycomputer.microsoft.com/api/stac/v1/search";
-        let _: stac_api::ItemCollection = client.post(href, &Search::new().limit(1)).await.unwrap();
+        let _: stac_api::ItemCollection = client
+            .post(href, &Search::new().limit(1))
+            .await
+            .unwrap()
+            .unwrap();
     }
 }
