@@ -111,7 +111,7 @@ async fn page(
 ) -> Option<Result<(ItemCollection, Option<Url>, Option<Search>)>> {
     // TODO support GET
     match client.post::<_, ItemCollection>(url, &search).await {
-        Ok(page) => {
+        Ok(Some(page)) => {
             if page.items.is_empty() {
                 return None;
             }
@@ -121,6 +121,7 @@ async fn page(
                 Err(err) => Some(Err(Error::from(err))),
             }
         }
+        Ok(None) => None,
         Err(err) => Some(Err(err)),
     }
 }
