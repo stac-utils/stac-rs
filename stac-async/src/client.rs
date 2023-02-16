@@ -1,7 +1,7 @@
 use crate::Error;
 use reqwest::{IntoUrl, StatusCode};
 use serde::{de::DeserializeOwned, Serialize};
-use stac::{Href, Value};
+use stac::Href;
 
 /// A thin wrapper around [reqwest::Client].
 #[derive(Clone, Debug)]
@@ -45,17 +45,19 @@ impl Client {
     /// let client = stac_async::Client::new();
     /// let href = "https://raw.githubusercontent.com/radiantearth/stac-spec/v1.0.0/examples/simple-item.json";
     /// # tokio_test::block_on(async {
-    /// let value = client.get(href).await.unwrap().unwrap();
+    /// let item: stac::Item = client.get(href).await.unwrap().unwrap();
     /// # })
     /// ```
-    pub async fn get(&self, url: impl IntoUrl) -> Result<Option<Value>, Error> {
+    pub async fn get<V>(&self, url: impl IntoUrl) -> Result<Option<V>, Error>
+    where
+        V: DeserializeOwned + Href,
+    {
         let url = url.into_url()?;
         let response = self.0.get(url.clone()).send().await?;
         if response.status() == StatusCode::NOT_FOUND {
             return Ok(None);
         }
-        let value: serde_json::Value = response.json().await?;
-        let mut value = Value::from_json(value)?;
+        let mut value: V = response.json().await?;
         value.set_href(url);
         Ok(Some(value))
     }
@@ -76,13 +78,13 @@ impl Client {
 #[cfg(test)]
 mod tests {
     use super::Client;
-    use stac::Href;
+    use stac::{Href, Item};
 
     #[tokio::test]
     async fn client() {
         let client = Client::new();
         let href = "https://raw.githubusercontent.com/radiantearth/stac-spec/v1.0.0/examples/simple-item.json";
-        let value = client.get(href).await.unwrap().unwrap();
-        assert_eq!(value.href().unwrap(), href);
+        let item: Item = client.get(href).await.unwrap().unwrap();
+        assert_eq!(item.href().unwrap(), href);
     }
 }
