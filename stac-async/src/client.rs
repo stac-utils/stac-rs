@@ -63,6 +63,17 @@ impl Client {
     }
 
     /// Posts data to a url.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac_api::Search;
+    /// let client = stac_async::Client::new();
+    /// let href = "https://planetarycomputer.microsoft.com/api/stac/v1/search";
+    /// # tokio_test::block_on(async {
+    /// let items: stac_api::ItemCollection = client.post(href, &Search::new().limit(1)).await.unwrap();
+    /// # })
+    /// ```
     pub async fn post<S, R>(&self, url: impl IntoUrl, data: &S) -> Result<R, Error>
     where
         S: Serialize,
@@ -79,12 +90,20 @@ impl Client {
 mod tests {
     use super::Client;
     use stac::{Href, Item};
+    use stac_api::Search;
 
     #[tokio::test]
-    async fn client() {
+    async fn client_get() {
         let client = Client::new();
         let href = "https://raw.githubusercontent.com/radiantearth/stac-spec/v1.0.0/examples/simple-item.json";
         let item: Item = client.get(href).await.unwrap().unwrap();
         assert_eq!(item.href().unwrap(), href);
+    }
+
+    #[tokio::test]
+    async fn client_post() {
+        let client = Client::new();
+        let href = "https://planetarycomputer.microsoft.com/api/stac/v1/search";
+        let _: stac_api::ItemCollection = client.post(href, &Search::new().limit(1)).await.unwrap();
     }
 }
