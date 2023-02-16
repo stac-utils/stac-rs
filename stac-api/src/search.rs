@@ -112,4 +112,18 @@ impl Search {
         self.limit = limit.into();
         self
     }
+
+    /// Sets this search's fields.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac_api::Search;
+    /// let fields = "+foo,-bar".parse().unwrap();
+    /// let search = Search::new().fields(Some(fields));
+    /// ```
+    pub fn fields(mut self, fields: impl Into<Option<Fields>>) -> Search {
+        self.fields = fields.into();
+        self
+    }
 }
