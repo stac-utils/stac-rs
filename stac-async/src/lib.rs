@@ -28,30 +28,3 @@ pub use {
 
 /// Crate-specific result type.
 pub type Result<T> = std::result::Result<T, Error>;
-
-#[cfg(test)]
-mod tests {
-    use super::Client;
-    use stac::Href;
-
-    #[tokio::test]
-    async fn read_filesystem() {
-        let value = super::read("data/simple-item.json").await.unwrap();
-        assert!(value.href().unwrap().ends_with("data/simple-item.json"));
-    }
-
-    #[tokio::test]
-    async fn read_network() {
-        let href = "https://raw.githubusercontent.com/radiantearth/stac-spec/v1.0.0/examples/simple-item.json";
-        let value = super::read(href).await.unwrap();
-        assert_eq!(value.href().unwrap(), href);
-    }
-
-    #[tokio::test]
-    async fn client() {
-        let client = Client::new();
-        let href = "https://raw.githubusercontent.com/radiantearth/stac-spec/v1.0.0/examples/simple-item.json";
-        let value = client.get(href).await.unwrap().unwrap();
-        assert_eq!(value.href().unwrap(), href);
-    }
-}

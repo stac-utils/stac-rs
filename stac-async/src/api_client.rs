@@ -47,11 +47,7 @@ impl ApiClient {
     /// ```
     pub async fn collection(&self, id: &str) -> Result<Option<Collection>> {
         let url = self.url_builder.collection(id)?;
-        if let Some(value) = self.client.get(url).await? {
-            value.try_into().map_err(Error::from).map(Some)
-        } else {
-            Ok(None)
-        }
+        self.client.get(url).await
     }
 
     /// Searches an API.
