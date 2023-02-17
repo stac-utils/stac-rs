@@ -6,7 +6,7 @@ use serde_json::{Map, Value};
 ///
 /// This is a lot like [Search](crate::Search), but without intersects, ids, and
 /// collections.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Default, Debug, Serialize, Deserialize)]
 pub struct Items {
     /// The maximum number of results to return (page size).
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -50,4 +50,45 @@ pub struct Items {
     /// Additional fields.
     #[serde(flatten)]
     pub additional_fields: Map<String, Value>,
+}
+
+impl Items {
+    /// Creates a new items filter.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac_api::Items;
+    /// let items = Items::new();
+    /// ```
+    pub fn new() -> Items {
+        Default::default()
+    }
+
+    /// Sets this items' limit.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac_api::Items;
+    /// let items = Items::new().limit(42);
+    /// ```
+    pub fn limit(mut self, limit: impl Into<Option<u64>>) -> Items {
+        self.limit = limit.into();
+        self
+    }
+
+    /// Sets this search's fields.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use stac_api::Items;
+    /// let fields = "+foo,-bar".parse().unwrap();
+    /// let items = Items::new().fields(Some(fields));
+    /// ```
+    pub fn fields(mut self, fields: impl Into<Option<Fields>>) -> Items {
+        self.fields = fields.into();
+        self
+    }
 }
