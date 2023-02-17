@@ -2,8 +2,9 @@ use crate::{Client, Error, Result};
 use async_stream::try_stream;
 use futures_core::stream::Stream;
 use futures_util::{pin_mut, StreamExt};
+use reqwest::Method;
 use stac::{Collection, Links};
-use stac_api::{Item, ItemCollection, Search, UrlBuilder};
+use stac_api::{Item, ItemCollection, Items, Search, UrlBuilder};
 use tokio::sync::mpsc;
 
 const DEFAULT_CHANNEL_BUFFER: usize = 4;
@@ -48,6 +49,46 @@ impl ApiClient {
     pub async fn collection(&self, id: &str) -> Result<Option<Collection>> {
         let url = self.url_builder.collection(id)?;
         self.client.get(url).await
+    }
+
+    /// Returns a stream of items belonging to a collection.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use stac_api::Search;
+    /// use stac_async::ApiClient;
+    /// use futures_util::stream::StreamExt;
+    ///
+    /// let client = ApiClient::new("https://planetarycomputer.microsoft.com/api/stac/v1").unwrap();
+    /// let search = Search::new().collection("sentinel-2-l2a").limit(1);
+    /// # tokio_test::block_on(async {
+    /// let items: Vec<_> = client
+    ///     .search(search)
+    ///     .await
+    ///     .unwrap()
+    ///     .map(|result| result.unwrap())
+    ///     .collect()
+    ///     .await;
+    /// assert_eq!(items.len(), 1);
+    /// # })
+    /// ```
+    /// ```
+    pub async fn items(
+        &self,
+        id: &str,
+        items: impl Into<Option<&Items>>,
+    ) -> Result<impl Stream<Item = Result<Item>>> {
+        let url = self.url_builder.items(id)?;
+        let page: Option<ItemCollection> = self
+            .client
+            .request(Method::GET, url.clone(), items.into(), None)
+            .await?;
+        if let Some(page) = page {
+            Ok(stream_items(self.client.clone(), page, self.channel_buffer))
+        } else {
+            Err(Error::NotFound(url))
+        }
     }
 
     /// Searches an API, returning a stream of items.
@@ -141,7 +182,8 @@ mod tests {
     use mockito::{Matcher, Server};
     use serde_json::json;
     use stac::Links;
-    use stac_api::{ItemCollection, Search};
+    use stac_api::{ItemCollection, Items, Search};
+    use url::Url;
 
     #[tokio::test]
     async fn collection_not_found() {
@@ -167,7 +209,7 @@ mod tests {
     async fn search_with_paging() {
         let mut server = Server::new_async().await;
         let mut page_1_body: ItemCollection =
-            serde_json::from_str(include_str!("../mocks/page-1.json")).unwrap();
+            serde_json::from_str(include_str!("../mocks/search-page-1.json")).unwrap();
         let mut next_link = page_1_body.link("next").unwrap().clone();
         next_link.href = format!("{}/search", server.url());
         page_1_body.set_link(next_link);
@@ -188,7 +230,7 @@ mod tests {
                 "limit": 1,
                 "token": "next:S2A_MSIL2A_20230216T150721_R082_T19PHS_20230217T082924"
             })))
-            .with_body(include_str!("../mocks/page-2.json"))
+            .with_body(include_str!("../mocks/search-page-2.json"))
             .with_header("content-type", "application/geo+json")
             .create_async()
             .await;
@@ -197,6 +239,50 @@ mod tests {
         let search = Search::new().collection("sentinel-2-l2a").limit(1);
         let items: Vec<_> = client
             .search(search)
+            .await
+            .unwrap()
+            .map(|result| result.unwrap())
+            .take(2)
+            .collect()
+            .await;
+        page_1.assert_async().await;
+        page_2.assert_async().await;
+        assert_eq!(items.len(), 2);
+        assert!(items[0]["id"] != items[1]["id"]);
+    }
+
+    #[tokio::test]
+    async fn items_with_paging() {
+        let mut server = Server::new_async().await;
+        let mut page_1_body: ItemCollection =
+            serde_json::from_str(include_str!("../mocks/items-page-1.json")).unwrap();
+        let mut next_link = page_1_body.link("next").unwrap().clone();
+        let url: Url = next_link.href.parse().unwrap();
+        let query = url.query().unwrap();
+        next_link.href = format!(
+            "{}/collections/sentinel-2-l2a/items?{}",
+            server.url(),
+            query
+        );
+        println!("{:?}", next_link);
+        page_1_body.set_link(next_link);
+        let page_1 = server
+            .mock("GET", "/collections/sentinel-2-l2a/items?limit=1")
+            .with_body(serde_json::to_string(&page_1_body).unwrap())
+            .with_header("content-type", "application/geo+json")
+            .create_async()
+            .await;
+        let page_2 = server
+            .mock("GET", "/collections/sentinel-2-l2a/items?limit=1&token=next:S2A_MSIL2A_20230216T235751_R087_T52CEB_20230217T134604")
+            .with_body(include_str!("../mocks/items-page-2.json"))
+            .with_header("content-type", "application/geo+json")
+            .create_async()
+            .await;
+
+        let client = ApiClient::new(&server.url()).unwrap();
+        let items = Items::new().limit(1);
+        let items: Vec<_> = client
+            .items("sentinel-2-l2a", Some(&items))
             .await
             .unwrap()
             .map(|result| result.unwrap())

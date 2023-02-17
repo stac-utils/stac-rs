@@ -205,7 +205,7 @@ mod tests {
         let mut server = Server::new_async().await;
         let page = server
             .mock("POST", "/search")
-            .with_body(include_str!("../mocks/page-1.json"))
+            .with_body(include_str!("../mocks/search-page-1.json"))
             .with_header("content-type", "application/geo+json")
             .create_async()
             .await;
