@@ -1,6 +1,7 @@
 use crate::{Error, Fields, Filter, Result, Sortby};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
+use std::collections::HashMap;
 
 /// Parameters for the items endpoint from STAC API - Features.
 ///
@@ -97,7 +98,7 @@ pub struct GetItems {
 
     /// Additional fields.
     #[serde(flatten)]
-    pub additional_fields: Vec<(String, String)>,
+    pub additional_fields: HashMap<String, String>,
 }
 
 impl Items {
