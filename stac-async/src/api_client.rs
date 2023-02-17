@@ -84,14 +84,14 @@ impl ApiClient {
         items: impl Into<Option<Items>>,
     ) -> Result<impl Stream<Item = Result<Item>>> {
         let url = self.url_builder.items(id)?;
-        let query_pairs = if let Some(items) = items.into() {
+        let items = if let Some(items) = items.into() {
             Some(items.into_get_items()?)
         } else {
             None
         };
         let page: Option<ItemCollection> = self
             .client
-            .request(Method::GET, url.clone(), query_pairs.as_ref(), None)
+            .request(Method::GET, url.clone(), items.as_ref(), None)
             .await?;
         if let Some(page) = page {
             Ok(stream_items(self.client.clone(), page, self.channel_buffer))
