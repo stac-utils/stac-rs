@@ -1,8 +1,7 @@
-use crate::{Item, Result, Search};
+use crate::{Item, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use stac::{Link, Links};
-use url::Url;
 
 const ITEM_COLLECTION_TYPE: &str = "FeatureCollection";
 
@@ -85,30 +84,6 @@ impl ItemCollection {
             additional_fields: Map::new(),
         })
     }
-
-    /// Returns the next url and search for this item collection.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use stac_api::ItemCollection;
-    /// let value = stac::read_json("examples/planetary-computer-page.geojson").unwrap();
-    /// let item_collection: ItemCollection = serde_json::from_value(value).unwrap();
-    /// let (url, search) = item_collection.next_url_and_search().unwrap().unwrap();
-    /// ```
-    pub fn next_url_and_search(&self) -> Result<Option<(Url, Option<Search>)>> {
-        if let Some(link) = self.link("next") {
-            let url = link.href.parse()?;
-            let search = if let Some(body) = link.body.as_ref() {
-                serde_json::from_value(Value::Object(body.clone()))?
-            } else {
-                None
-            };
-            Ok(Some((url, search)))
-        } else {
-            Ok(None)
-        }
-    }
 }
 
 impl Links for ItemCollection {
@@ -117,31 +92,5 @@ impl Links for ItemCollection {
     }
     fn links_mut(&mut self) -> &mut Vec<Link> {
         &mut self.links
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::ItemCollection;
-
-    #[test]
-    fn next_search() {
-        let value = stac::read_json("examples/planetary-computer-page.geojson").unwrap();
-        let item_collection: ItemCollection = serde_json::from_value(value).unwrap();
-        let (url, search) = item_collection.next_url_and_search().unwrap().unwrap();
-        assert_eq!(
-            url.as_str(),
-            "https://planetarycomputer.microsoft.com/api/stac/v1/search"
-        );
-        let search = search.unwrap();
-        assert_eq!(
-            search.collections.unwrap(),
-            vec!["sentinel-2-l2a".to_string()]
-        );
-        assert_eq!(search.limit.unwrap(), 1);
-        assert_eq!(
-            search.additional_fields["token"],
-            "next:S2A_MSIL2A_20230210T165801_R140_T60CWQ_20230211T071706"
-        );
     }
 }
