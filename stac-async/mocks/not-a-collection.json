@@ -1,0 +1,4 @@
+{
+    "code": "NotFoundError",
+    "description": "No collection with id 'not-a-collection' found!"
+}
