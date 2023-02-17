@@ -61,7 +61,11 @@ impl ApiClient {
     /// use futures_util::stream::StreamExt;
     ///
     /// let client = ApiClient::new("https://planetarycomputer.microsoft.com/api/stac/v1").unwrap();
-    /// let search = Search::new().collection("sentinel-2-l2a").limit(1);
+    /// let search = Search {
+    ///     collections: Some(vec!["sentinel-2-l2a".to_string()]),
+    ///     limit: Some(1),
+    ///     ..Default::default()
+    /// };
     /// # tokio_test::block_on(async {
     /// let items: Vec<_> = client
     ///     .search(search)
@@ -77,12 +81,17 @@ impl ApiClient {
     pub async fn items(
         &self,
         id: &str,
-        items: impl Into<Option<&Items>>,
+        items: impl Into<Option<Items>>,
     ) -> Result<impl Stream<Item = Result<Item>>> {
         let url = self.url_builder.items(id)?;
+        let query_pairs = if let Some(items) = items.into() {
+            Some(items.into_get_items()?)
+        } else {
+            None
+        };
         let page: Option<ItemCollection> = self
             .client
-            .request(Method::GET, url.clone(), items.into(), None)
+            .request(Method::GET, url.clone(), query_pairs.as_ref(), None)
             .await?;
         if let Some(page) = page {
             Ok(stream_items(self.client.clone(), page, self.channel_buffer))
@@ -101,7 +110,7 @@ impl ApiClient {
     /// use futures_util::stream::StreamExt;
     ///
     /// let client = ApiClient::new("https://planetarycomputer.microsoft.com/api/stac/v1").unwrap();
-    /// let search = Search::new().collection("sentinel-2-l2a").limit(1);
+    /// let search = Search { collections: Some(vec!["sentinel-2-l2a".to_string()]), limit: Some(1), ..Default::default() };
     /// # tokio_test::block_on(async {
     /// let items: Vec<_> = client
     ///     .search(search)
@@ -236,7 +245,11 @@ mod tests {
             .await;
 
         let client = ApiClient::new(&server.url()).unwrap();
-        let search = Search::new().collection("sentinel-2-l2a").limit(1);
+        let search = Search {
+            collections: Some(vec!["sentinel-2-l2a".to_string()]),
+            limit: Some(1),
+            ..Default::default()
+        };
         let items: Vec<_> = client
             .search(search)
             .await
@@ -264,7 +277,6 @@ mod tests {
             server.url(),
             query
         );
-        println!("{:?}", next_link);
         page_1_body.set_link(next_link);
         let page_1 = server
             .mock("GET", "/collections/sentinel-2-l2a/items?limit=1")
@@ -280,9 +292,12 @@ mod tests {
             .await;
 
         let client = ApiClient::new(&server.url()).unwrap();
-        let items = Items::new().limit(1);
+        let items = Items {
+            limit: Some(1),
+            ..Default::default()
+        };
         let items: Vec<_> = client
-            .items("sentinel-2-l2a", Some(&items))
+            .items("sentinel-2-l2a", Some(items))
             .await
             .unwrap()
             .map(|result| result.unwrap())

@@ -74,8 +74,9 @@ impl Client {
     /// use stac_api::Search;
     /// let client = stac_async::Client::new();
     /// let href = "https://planetarycomputer.microsoft.com/api/stac/v1/search";
+    /// let search = Search { limit: Some(1), ..Default::default() };
     /// # tokio_test::block_on(async {
-    /// let items: stac_api::ItemCollection = client.post(href, &Search::new().limit(1)).await.unwrap().unwrap();
+    /// let items: stac_api::ItemCollection = client.post(href, &search).await.unwrap().unwrap();
     /// # })
     /// ```
     pub async fn post<S, R>(&self, url: impl IntoUrl, data: &S) -> Result<Option<R>, Error>
@@ -212,7 +213,13 @@ mod tests {
         let client = Client::new();
         let href = format!("{}/search", server.url());
         let _: stac_api::ItemCollection = client
-            .post(href, &Search::new().limit(1))
+            .post(
+                href,
+                &Search {
+                    limit: Some(1),
+                    ..Default::default()
+                },
+            )
             .await
             .unwrap()
             .unwrap();
