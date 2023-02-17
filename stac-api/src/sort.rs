@@ -1,6 +1,9 @@
-use std::{convert::Infallible, str::FromStr};
-
 use serde::{Deserialize, Serialize};
+use std::{
+    convert::Infallible,
+    fmt::{Display, Formatter, Result},
+    str::FromStr,
+};
 
 /// Fields by which to sort results.
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
@@ -50,38 +53,27 @@ impl Sortby {
             direction: Direction::Descending,
         }
     }
-
-    /// Creates a vector of [Sortbys](Sortby) from a comma-delimited list.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use stac_api::Sortby;
-    /// let sortbys = Sortby::from_query_param("+id,-datetime");
-    /// ```
-    pub fn from_query_param(s: &str) -> Vec<Sortby> {
-        s.split(',')
-            .filter_map(|s| {
-                if s.is_empty() {
-                    None
-                } else {
-                    Some(s.parse().unwrap()) // infallible
-                }
-            })
-            .collect()
-    }
 }
 
 impl FromStr for Sortby {
     type Err = Infallible;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    fn from_str(s: &str) -> std::result::Result<Self, Infallible> {
         if s.starts_with('+') {
             Ok(Sortby::asc(&s[1..]))
         } else if s.starts_with('-') {
             Ok(Sortby::desc(&s[1..]))
         } else {
             Ok(Sortby::asc(s))
+        }
+    }
+}
+
+impl Display for Sortby {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        match self.direction {
+            Direction::Ascending => write!(f, "{}", self.field),
+            Direction::Descending => write!(f, "-{}", self.field),
         }
     }
 }
@@ -102,21 +94,6 @@ mod tests {
     #[test]
     fn descending() {
         assert_eq!(Sortby::desc("id"), "-id".parse().unwrap());
-    }
-
-    #[test]
-    fn ordering() {
-        assert_eq!(
-            vec![
-                Sortby::asc("properties.created"),
-                Sortby::desc("properties.eo:cloud_cover"),
-                Sortby::desc("id"),
-                Sortby::asc("collection")
-            ],
-            Sortby::from_query_param(
-                "+properties.created,-properties.eo:cloud_cover,-id,collection"
-            )
-        )
     }
 
     #[test]

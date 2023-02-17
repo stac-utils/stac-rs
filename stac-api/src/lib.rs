@@ -74,7 +74,7 @@ pub use {
     fields::Fields,
     filter::Filter,
     item_collection::{Context, ItemCollection},
-    items::Items,
+    items::{GetItems, Items},
     root::Root,
     search::Search,
     sort::Sortby,

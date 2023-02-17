@@ -1,5 +1,9 @@
 use serde::{Deserialize, Serialize};
-use std::{convert::Infallible, str::FromStr};
+use std::{
+    convert::Infallible,
+    fmt::{Display, Formatter},
+    str::FromStr,
+};
 
 /// Include/exclude fields from item collections.
 ///
@@ -37,6 +41,19 @@ impl FromStr for Fields {
     }
 }
 
+impl Display for Fields {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let mut fields = Vec::new();
+        for include in &self.include {
+            fields.push(format!("{}", include));
+        }
+        for exclude in &self.exclude {
+            fields.push(format!("-{}", exclude));
+        }
+        write!(f, "{}", fields.join(","))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::Fields;
@@ -64,6 +81,22 @@ mod tests {
             "id,type,geometry,bbox,properties,links,assets"
                 .parse()
                 .unwrap()
+        );
+        assert_eq!(
+            Fields {
+                include: vec![
+                    "id".to_string(),
+                    "type".to_string(),
+                    "geometry".to_string(),
+                    "bbox".to_string(),
+                    "properties".to_string(),
+                    "links".to_string(),
+                    "assets".to_string(),
+                ],
+                exclude: Vec::new()
+            }
+            .to_string(),
+            "id,type,geometry,bbox,properties,links,assets"
         )
     }
 
@@ -75,6 +108,14 @@ mod tests {
                 exclude: vec!["geometry".to_string()]
             },
             "-geometry".parse().unwrap()
+        );
+        assert_eq!(
+            Fields {
+                include: Vec::new(),
+                exclude: vec!["geometry".to_string()]
+            }
+            .to_string(),
+            "-geometry"
         );
     }
 }
