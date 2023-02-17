@@ -1,13 +1,31 @@
+use url::Url;
+
 /// Crate-specific error type.
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
+    /// [reqwest::header::InvalidHeaderName]
+    #[error(transparent)]
+    InvalidHeaderName(#[from] reqwest::header::InvalidHeaderName),
+
+    /// [reqwest::header::InvalidHeaderValue]
+    #[error(transparent)]
+    InvalidHeaderValue(#[from] reqwest::header::InvalidHeaderValue),
+
     /// [std::io::Error]
     #[error(transparent)]
     Io(#[from] std::io::Error),
 
+    /// [http::method::InvalidMethod]
+    #[error(transparent)]
+    HttpInvalidMethod(#[from] http::method::InvalidMethod),
+
     /// [reqwest::Error]
     #[error(transparent)]
     Reqwest(#[from] reqwest::Error),
+
+    /// The endpoint was not found.
+    #[error("not found: {0}")]
+    NotFound(Url),
 
     /// [serde_json::Error]
     #[error(transparent)]
