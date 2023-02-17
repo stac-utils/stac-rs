@@ -14,9 +14,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - `Links` for `Collections`, `ItemCollection` ([#126](https://github.com/gadomski/stac-rs/pull/126))
 - `Conformance` structure ([#126](https://github.com/gadomski/stac-rs/pull/126))
 - `Default` for `Search` ([#126](https://github.com/gadomski/stac-rs/pull/126))
-- `next_url_and_search` method for `ItemCollection` ([#130](https://github.com/gadomski/stac-rs/pull/130))
 - `Clone` for `Search` and its sub structs ([#130](https://github.com/gadomski/stac-rs/pull/130))
-- Some `Search` builder methods ([#130](https://github.com/gadomski/stac-rs/pull/130))
+- `Display` for `Fields` and `Sortby` ([#133](https://github.com/gadomski/stac-rs/pull/133)])
+- `Filter` as an externally-tagged enum ([#133](https://github.com/gadomski/stac-rs/pull/133))
+- `Items` and `GetItems` for paging items ([#133](https://github.com/gadomski/stac-rs/pull/133))
 
 ### Changed
 
@@ -27,6 +28,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Removed
 
 - `Link` was removed, STAC API link attributes were added to `stac::Link` ([#126](https://github.com/gadomski/stac-rs/pull/126))
+- `Sortby::from_query_param` ([#133](https://github.com/gadomski/stac-rs/pull/133))
 
 ## [0.1.0] - 2023-01-14
 

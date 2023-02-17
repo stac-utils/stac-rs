@@ -9,7 +9,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 
 - `ApiClient` ([#130](https://github.com/gadomski/stac-rs/pull/130))
-- `Client.post` ([#130](https://github.com/gadomski/stac-rs/pull/130))
+- `Client::post` ([#130](https://github.com/gadomski/stac-rs/pull/130))
+- Item paging ([#133](https://github.com/gadomski/stac-rs/pull/133))
+- `Client::request` and `Client::request_from_link` ([#133](https://github.com/gadomski/stac-rs/pull/133))
+- Mocks for testing ([#133](https://github.com/gadomski/stac-rs/pull/133))
 
 ### Changed
 
