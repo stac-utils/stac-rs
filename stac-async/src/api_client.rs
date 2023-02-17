@@ -77,7 +77,6 @@ impl ApiClient {
     /// assert_eq!(items.len(), 1);
     /// # })
     /// ```
-    /// ```
     pub async fn items(
         &self,
         id: &str,
