@@ -68,7 +68,7 @@ impl Client {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```no_run
     /// use stac_api::Search;
     /// let client = stac_async::Client::new();
     /// let href = "https://planetarycomputer.microsoft.com/api/stac/v1/search";
@@ -138,6 +138,7 @@ impl Client {
 #[cfg(test)]
 mod tests {
     use super::Client;
+    use mockito::Server;
     use stac::{Href, Item};
     use stac_api::Search;
 
@@ -158,12 +159,20 @@ mod tests {
 
     #[tokio::test]
     async fn client_post() {
+        let mut server = Server::new_async().await;
+        let page = server
+            .mock("POST", "/search")
+            .with_body(include_str!("../mocks/page-1.json"))
+            .with_header("content-type", "application/geo+json")
+            .create_async()
+            .await;
         let client = Client::new();
-        let href = "https://planetarycomputer.microsoft.com/api/stac/v1/search";
+        let href = format!("{}/search", server.url());
         let _: stac_api::ItemCollection = client
             .post(href, &Search::new().limit(1))
             .await
             .unwrap()
             .unwrap();
+        page.assert_async().await;
     }
 }

@@ -24,5 +24,6 @@ tokio = { version = "1.23", features = ["fs", "io-util"] }
 url = "2"
 
 [dev-dependencies]
+mockito = "0.32"
 tokio = { version = "1.23", features = ["rt", "macros"] }
 tokio-test = { version = "0.4" }

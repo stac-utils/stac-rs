@@ -38,7 +38,7 @@ impl ApiClient {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```no_run
     /// # use stac_async::ApiClient;
     /// let client = ApiClient::new("https://planetarycomputer.microsoft.com/api/stac/v1").unwrap();
     /// # tokio_test::block_on(async {
@@ -54,7 +54,7 @@ impl ApiClient {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```no_run
     /// use stac_api::Search;
     /// use stac_async::ApiClient;
     /// use futures_util::stream::StreamExt;
@@ -145,21 +145,62 @@ async fn page(
 mod tests {
     use super::ApiClient;
     use futures_util::stream::StreamExt;
-    use stac_api::Search;
+    use mockito::{Matcher, Server};
+    use serde_json::json;
+    use stac::Links;
+    use stac_api::{ItemCollection, Search};
 
     #[tokio::test]
     async fn collection_not_found() {
-        let client = ApiClient::new("https://planetarycomputer.microsoft.com/api/stac/v1").unwrap();
+        let mut server = Server::new_async().await;
+        let collection = server
+            .mock("GET", "/collections/not-a-collection")
+            .with_body(include_str!("../mocks/not-a-collection.json"))
+            .with_header("content-type", "application/json")
+            .with_status(404)
+            .create_async()
+            .await;
+
+        let client = ApiClient::new(&server.url()).unwrap();
         assert!(client
             .collection("not-a-collection")
             .await
             .unwrap()
             .is_none());
+        collection.assert_async().await;
     }
 
     #[tokio::test]
     async fn search_with_paging() {
-        let client = ApiClient::new("https://planetarycomputer.microsoft.com/api/stac/v1").unwrap();
+        let mut server = Server::new_async().await;
+        let mut page_1_body: ItemCollection =
+            serde_json::from_str(include_str!("../mocks/page-1.json")).unwrap();
+        let mut next_link = page_1_body.link("next").unwrap().clone();
+        next_link.href = format!("{}/search", server.url());
+        page_1_body.set_link(next_link);
+        let page_1 = server
+            .mock("POST", "/search")
+            .match_body(Matcher::Json(json!({
+                "collections": ["sentinel-2-l2a"],
+                "limit": 1
+            })))
+            .with_body(serde_json::to_string(&page_1_body).unwrap())
+            .with_header("content-type", "application/geo+json")
+            .create_async()
+            .await;
+        let page_2 = server
+            .mock("POST", "/search")
+            .match_body(Matcher::Json(json!({
+                "collections": ["sentinel-2-l2a"],
+                "limit": 1,
+                "token": "next:S2A_MSIL2A_20230216T150721_R082_T19PHS_20230217T082924"
+            })))
+            .with_body(include_str!("../mocks/page-2.json"))
+            .with_header("content-type", "application/geo+json")
+            .create_async()
+            .await;
+
+        let client = ApiClient::new(&server.url()).unwrap();
         let search = Search::new().collection("sentinel-2-l2a").limit(1);
         let items: Vec<_> = client
             .search(search)
@@ -167,6 +208,8 @@ mod tests {
             .take(2)
             .collect()
             .await;
+        page_1.assert_async().await;
+        page_2.assert_async().await;
         assert_eq!(items.len(), 2);
         assert!(items[0]["id"] != items[1]["id"]);
     }
