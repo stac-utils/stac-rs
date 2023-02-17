@@ -168,6 +168,9 @@ fn stream_pages(
 ) -> impl Stream<Item = Result<ItemCollection>> {
     try_stream! {
         loop {
+            if page.items.is_empty() {
+                break;
+            }
             let next_link = page.link("next").cloned();
             yield page;
             if let Some(next_link) = next_link {
@@ -307,5 +310,43 @@ mod tests {
         page_2.assert_async().await;
         assert_eq!(items.len(), 2);
         assert!(items[0]["id"] != items[1]["id"]);
+    }
+
+    #[tokio::test]
+    async fn stop_on_empty_page() {
+        let mut server = Server::new_async().await;
+        let mut page_body: ItemCollection =
+            serde_json::from_str(include_str!("../mocks/items-page-1.json")).unwrap();
+        let mut next_link = page_body.link("next").unwrap().clone();
+        let url: Url = next_link.href.parse().unwrap();
+        let query = url.query().unwrap();
+        next_link.href = format!(
+            "{}/collections/sentinel-2-l2a/items?{}",
+            server.url(),
+            query
+        );
+        page_body.set_link(next_link);
+        page_body.items = vec![];
+        let page = server
+            .mock("GET", "/collections/sentinel-2-l2a/items?limit=1")
+            .with_body(serde_json::to_string(&page_body).unwrap())
+            .with_header("content-type", "application/geo+json")
+            .create_async()
+            .await;
+
+        let client = ApiClient::new(&server.url()).unwrap();
+        let items = Items {
+            limit: Some(1),
+            ..Default::default()
+        };
+        let items: Vec<_> = client
+            .items("sentinel-2-l2a", Some(items))
+            .await
+            .unwrap()
+            .map(|result| result.unwrap())
+            .collect()
+            .await;
+        page.assert_async().await;
+        assert!(items.is_empty());
     }
 }
