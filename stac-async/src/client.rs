@@ -1,7 +1,9 @@
 use crate::Error;
-use reqwest::{IntoUrl, Method, StatusCode};
+use http::header::HeaderName;
+use reqwest::{header::HeaderMap, IntoUrl, Method, StatusCode};
 use serde::{de::DeserializeOwned, Serialize};
-use stac::Href;
+use serde_json::{Map, Value};
+use stac::{Href, Link};
 
 /// A thin wrapper around [reqwest::Client].
 #[derive(Clone, Debug)]
@@ -54,7 +56,7 @@ impl Client {
     {
         let url = url.into_url()?;
         if let Some(mut value) = self
-            .request::<(), V>(Method::GET, url.clone(), None)
+            .request::<(), V>(Method::GET, url.clone(), None, None)
             .await?
         {
             value.set_href(url);
@@ -81,7 +83,7 @@ impl Client {
         S: Serialize + 'static,
         R: DeserializeOwned,
     {
-        self.request(Method::POST, url, Some(data)).await
+        self.request(Method::POST, url, Some(data), None).await
     }
 
     /// Sends a request to a url.
@@ -95,7 +97,7 @@ impl Client {
     /// let client = stac_async::Client::new();
     /// let href = "https://raw.githubusercontent.com/radiantearth/stac-spec/v1.0.0/examples/simple-item.json";
     /// # tokio_test::block_on(async {
-    /// let item = client.request::<(), Item>(Method::GET, href, None).await.unwrap().unwrap();
+    /// let item = client.request::<(), Item>(Method::GET, href, None, None).await.unwrap().unwrap();
     /// # })
     /// ```
     pub async fn request<S, R>(
@@ -103,13 +105,14 @@ impl Client {
         method: Method,
         url: impl IntoUrl,
         params: impl Into<Option<&S>>,
+        headers: impl Into<Option<HeaderMap>>,
     ) -> Result<Option<R>, Error>
     where
         S: Serialize + 'static,
         R: DeserializeOwned,
     {
         let url = url.into_url()?;
-        let request = match method {
+        let mut request = match method {
             Method::GET => {
                 let mut request = self.0.get(url);
                 if let Some(query) = params.into() {
@@ -126,12 +129,52 @@ impl Client {
             }
             _ => unimplemented!(),
         };
+        if let Some(headers) = headers.into() {
+            request = request.headers(headers);
+        }
         let response = request.send().await?;
         if response.status() == StatusCode::NOT_FOUND {
             return Ok(None);
         }
         let response = response.error_for_status()?;
         response.json().await.map_err(Error::from)
+    }
+
+    /// Builds and sends a request, as defined in a link.
+    ///
+    /// Used mostly for "next" links in pagination.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use stac::Link;
+    /// let link = Link::new("http://stac-async-rs.test/search?foo=bar", "next");
+    /// let client = stac_async::Client::new();
+    /// # tokio_test::block_on(async {
+    /// let page: stac_api::ItemCollection = client.request_from_link(link).await.unwrap().unwrap();
+    /// # })
+    /// ```
+    pub async fn request_from_link<R>(&self, link: Link) -> Result<Option<R>, Error>
+    where
+        R: DeserializeOwned,
+    {
+        let method = if let Some(method) = link.method {
+            method.parse()?
+        } else {
+            Method::GET
+        };
+        let headers = if let Some(headers) = link.headers {
+            let mut header_map = HeaderMap::new();
+            for (key, value) in headers.into_iter() {
+                let header_name: HeaderName = key.parse()?;
+                header_map.insert(header_name, value.to_string().parse()?);
+            }
+            Some(header_map)
+        } else {
+            None
+        };
+        self.request::<Map<String, Value>, R>(method, link.href, &link.body, headers)
+            .await
     }
 }
 
