@@ -50,11 +50,26 @@ impl ApiClient {
         self.client.get(url).await
     }
 
-    /// Searches an API.
+    /// Searches an API, returning a stream of items.
     ///
     /// # Examples
     ///
-    /// TODO
+    /// ```
+    /// use stac_api::Search;
+    /// use stac_async::ApiClient;
+    /// use futures_util::stream::StreamExt;
+    ///
+    /// let client = ApiClient::new("https://planetarycomputer.microsoft.com/api/stac/v1").unwrap();
+    /// let search = Search::new().collection("sentinel-2-l2a").limit(1);
+    /// # tokio_test::block_on(async {
+    /// let items: Vec<_> = client
+    ///     .search(search)
+    ///     .map(|result| result.unwrap())
+    ///     .collect()
+    ///     .await;
+    /// assert_eq!(items.len(), 1);
+    /// # })
+    /// ```
     pub fn search(&self, search: Search) -> impl Stream<Item = Result<Item>> {
         // TODO support GET
         let url = self.url_builder.search().clone();
