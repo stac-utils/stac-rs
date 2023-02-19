@@ -8,7 +8,7 @@
 //!
 //! ```
 //! # tokio_test::block_on(async {
-//! let value = stac_async::read("data/simple-item.json").await.unwrap();
+//! let item: stac::Item = stac_async::read("data/simple-item.json").await.unwrap();
 //! # })
 //! ```
 

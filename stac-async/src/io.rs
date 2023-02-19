@@ -1,10 +1,10 @@
-use crate::Error;
-use serde::Serialize;
-use stac::{Href, Value};
+use crate::{Error, Result};
+use serde::{de::DeserializeOwned, Serialize};
+use stac::Href;
 use std::path::Path;
 use url::Url;
 
-/// Reads a STAC [Value] from an href.
+/// Reads a STAC value from an href.
 ///
 /// The href can be a url or a filesystem path.
 ///
@@ -12,18 +12,20 @@ use url::Url;
 ///
 /// ```
 /// # tokio_test::block_on(async {
-/// let value = stac_async::read("data/simple-item.json").await.unwrap();
+/// let item: stac::Item = stac_async::read("data/simple-item.json").await.unwrap();
 /// # })
 /// ```
-pub async fn read(href: impl ToString) -> Result<Value, Error> {
+pub async fn read<T>(href: impl ToString) -> Result<T>
+where
+    T: DeserializeOwned + Href,
+{
     let href = href.to_string();
-    let value = read_json(&href).await?;
-    let mut value = Value::from_json(value)?;
+    let mut value: T = read_json(&href).await?;
     value.set_href(href);
     Ok(value)
 }
 
-/// Reads a [serde_json::Value] from an href.
+/// Reads any deserializable value from an href.
 ///
 /// The href can be a url or a filesystem path.
 ///
@@ -31,10 +33,13 @@ pub async fn read(href: impl ToString) -> Result<Value, Error> {
 ///
 /// ```
 /// # tokio_test::block_on(async {
-/// let value = stac_async::read_json("data/simple-item.json").await.unwrap();
+/// let item: stac::Item = stac_async::read_json("data/simple-item.json").await.unwrap();
 /// # })
 /// ```
-pub async fn read_json(href: &str) -> Result<serde_json::Value, Error> {
+pub async fn read_json<T>(href: &str) -> Result<T>
+where
+    T: DeserializeOwned,
+{
     if let Ok(url) = Url::parse(&href) {
         read_json_from_url(url).await
     } else {
@@ -52,38 +57,41 @@ pub async fn read_json(href: &str) -> Result<serde_json::Value, Error> {
 /// let value = stac_async::write_json_to_path("item.json", item).await.unwrap();
 /// # })
 /// ```
-pub async fn write_json_to_path(
-    path: impl AsRef<Path>,
-    value: impl Serialize,
-) -> Result<(), Error> {
+pub async fn write_json_to_path(path: impl AsRef<Path>, value: impl Serialize) -> Result<()> {
     let string = serde_json::to_string_pretty(&value)?;
     tokio::fs::write(path, string).await.map_err(Error::from)
 }
 
-async fn read_json_from_url(url: Url) -> Result<serde_json::Value, Error> {
+async fn read_json_from_url<T>(url: Url) -> Result<T>
+where
+    T: DeserializeOwned,
+{
     let response = reqwest::get(url).await?;
     response.json().await.map_err(Error::from)
 }
 
-async fn read_json_from_path(path: impl AsRef<Path>) -> Result<serde_json::Value, Error> {
+async fn read_json_from_path<T>(path: impl AsRef<Path>) -> Result<T>
+where
+    T: DeserializeOwned,
+{
     let string = tokio::fs::read_to_string(path).await?;
     serde_json::from_str(&string).map_err(Error::from)
 }
 
 #[cfg(test)]
 mod tests {
-    use stac::Href;
+    use stac::{Href, Item};
 
     #[tokio::test]
     async fn read_filesystem() {
-        let value = super::read("data/simple-item.json").await.unwrap();
-        assert!(value.href().unwrap().ends_with("data/simple-item.json"));
+        let item: Item = super::read("data/simple-item.json").await.unwrap();
+        assert!(item.href().unwrap().ends_with("data/simple-item.json"));
     }
 
     #[tokio::test]
     async fn read_network() {
         let href = "https://raw.githubusercontent.com/radiantearth/stac-spec/v1.0.0/examples/simple-item.json";
-        let value = super::read(href).await.unwrap();
-        assert_eq!(value.href().unwrap(), href);
+        let item: Item = super::read(href).await.unwrap();
+        assert_eq!(item.href().unwrap(), href);
     }
 }
