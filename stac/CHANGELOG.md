@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.3.2] - 2023-02-19
+
 ### Added
 
 - STAC API fields to `Link` ([#126](https://github.com/gadomski/stac-rs/pull/126)])
