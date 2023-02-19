@@ -1,4 +1,4 @@
-use crate::{Asset, Error, Href, Link, Links, Result, STAC_VERSION};
+use crate::{Asset, Assets, Error, Extensions, Href, Link, Links, Result, STAC_VERSION};
 use chrono::Utc;
 use geojson::Geometry;
 use serde::{Deserialize, Serialize};
@@ -180,6 +180,21 @@ impl Links for Item {
     }
     fn links_mut(&mut self) -> &mut Vec<Link> {
         &mut self.links
+    }
+}
+
+impl Assets for Item {
+    fn assets(&self) -> &HashMap<String, Asset> {
+        &self.assets
+    }
+    fn assets_mut(&mut self) -> &mut HashMap<String, Asset> {
+        &mut self.assets
+    }
+}
+
+impl Extensions for Item {
+    fn extensions(&self) -> Option<&[String]> {
+        self.extensions.as_deref()
     }
 }
 
