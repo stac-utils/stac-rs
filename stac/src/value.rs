@@ -1,7 +1,4 @@
-use crate::{
-    Catalog, Collection, Error, Href, Item, ItemCollection, Link, Links, Result, CATALOG_TYPE,
-    COLLECTION_TYPE, ITEM_COLLECTION_TYPE, ITEM_TYPE,
-};
+use crate::{Catalog, Collection, Error, Href, Item, ItemCollection, Link, Links, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::Map;
 use std::convert::TryFrom;
@@ -229,60 +226,10 @@ impl Links for Value {
     }
 }
 
-impl TryFrom<Value> for serde_json::Value {
-    type Error = Error;
-
-    fn try_from(value: Value) -> Result<Self> {
-        use Value::*;
-        match value {
-            Catalog(catalog) => {
-                if catalog.r#type == CATALOG_TYPE {
-                    serde_json::to_value(catalog).map_err(Error::from)
-                } else {
-                    Err(Error::IncorrectType {
-                        actual: catalog.r#type,
-                        expected: CATALOG_TYPE.to_string(),
-                    })
-                }
-            }
-            Collection(collection) => {
-                if collection.r#type == COLLECTION_TYPE {
-                    serde_json::to_value(collection).map_err(Error::from)
-                } else {
-                    Err(Error::IncorrectType {
-                        actual: collection.r#type,
-                        expected: COLLECTION_TYPE.to_string(),
-                    })
-                }
-            }
-            Item(item) => {
-                if item.r#type == ITEM_TYPE {
-                    serde_json::to_value(item).map_err(Error::from)
-                } else {
-                    Err(Error::IncorrectType {
-                        actual: item.r#type,
-                        expected: ITEM_TYPE.to_string(),
-                    })
-                }
-            }
-            ItemCollection(item_collection) => {
-                if item_collection.r#type == ITEM_COLLECTION_TYPE {
-                    serde_json::to_value(item_collection).map_err(Error::from)
-                } else {
-                    Err(Error::IncorrectType {
-                        actual: item_collection.r#type,
-                        expected: ITEM_COLLECTION_TYPE.to_string(),
-                    })
-                }
-            }
-        }
-    }
-}
-
 impl TryFrom<Value> for Map<String, serde_json::Value> {
     type Error = Error;
     fn try_from(value: Value) -> Result<Self> {
-        if let serde_json::Value::Object(object) = serde_json::Value::try_from(value)? {
+        if let serde_json::Value::Object(object) = serde_json::to_value(value)? {
             Ok(object)
         } else {
             panic!("all STAC values should serialize to a serde_json::Value::Object")
@@ -290,80 +237,9 @@ impl TryFrom<Value> for Map<String, serde_json::Value> {
     }
 }
 
-impl TryFrom<Item> for Map<String, serde_json::Value> {
-    type Error = Error;
-    fn try_from(item: Item) -> Result<Self> {
-        if let serde_json::Value::Object(object) = serde_json::Value::try_from(Value::Item(item))? {
-            Ok(object)
-        } else {
-            panic!("all STAC items should serialize to a serde_json::Value::Object")
-        }
-    }
-}
-
-impl TryFrom<Catalog> for Map<String, serde_json::Value> {
-    type Error = Error;
-    fn try_from(catalog: Catalog) -> Result<Self> {
-        if let serde_json::Value::Object(object) =
-            serde_json::Value::try_from(Value::Catalog(catalog))?
-        {
-            Ok(object)
-        } else {
-            panic!("all STAC items should serialize to a serde_json::Value::Object")
-        }
-    }
-}
-
-impl TryFrom<Collection> for Map<String, serde_json::Value> {
-    type Error = Error;
-    fn try_from(collection: Collection) -> Result<Self> {
-        if let serde_json::Value::Object(object) =
-            serde_json::Value::try_from(Value::Collection(collection))?
-        {
-            Ok(object)
-        } else {
-            panic!("all STAC items should serialize to a serde_json::Value::Object")
-        }
-    }
-}
-
-impl TryFrom<Value> for Item {
-    type Error = Error;
-    fn try_from(value: Value) -> Result<Self> {
-        if let Value::Item(item) = value {
-            Ok(item)
-        } else {
-            Err(Error::NotAnItem(value))
-        }
-    }
-}
-
-impl TryFrom<Value> for Catalog {
-    type Error = Error;
-    fn try_from(value: Value) -> Result<Self> {
-        if let Value::Catalog(catalog) = value {
-            Ok(catalog)
-        } else {
-            Err(Error::NotACatalog(value))
-        }
-    }
-}
-
-impl TryFrom<Value> for Collection {
-    type Error = Error;
-    fn try_from(value: Value) -> Result<Self> {
-        if let Value::Collection(collection) = value {
-            Ok(collection)
-        } else {
-            Err(Error::NotACollection(value))
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::Value;
-    use crate::{Catalog, Collection, Error, Item};
     use serde_json::json;
 
     #[test]
@@ -445,35 +321,5 @@ mod tests {
             "links": []
         });
         assert!(serde_json::from_value::<Value>(catalog).is_err());
-    }
-
-    #[test]
-    fn catalog_into_json_incorrect_type() {
-        let mut catalog = Catalog::new("an-id", "a description");
-        catalog.r#type = "Schmatalog".to_string();
-        assert!(matches!(
-            serde_json::Value::try_from(Value::Catalog(catalog)).unwrap_err(),
-            Error::IncorrectType { .. }
-        ));
-    }
-
-    #[test]
-    fn collection_into_json_incorrect_type() {
-        let mut collection = Collection::new("an-id", "a description");
-        collection.r#type = "Scmalection".to_string();
-        assert!(matches!(
-            serde_json::Value::try_from(Value::Collection(collection)).unwrap_err(),
-            Error::IncorrectType { .. }
-        ));
-    }
-
-    #[test]
-    fn item_into_json_incorrect_type() {
-        let mut item = Item::new("an-id");
-        item.r#type = "Item".to_string();
-        assert!(matches!(
-            serde_json::Value::try_from(Value::Item(item)).unwrap_err(),
-            Error::IncorrectType { .. }
-        ));
     }
 }
