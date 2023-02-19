@@ -1,4 +1,4 @@
-use crate::{Href, Link, Links, STAC_VERSION};
+use crate::{Error, Href, Link, Links, Result, STAC_VERSION};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
@@ -103,14 +103,25 @@ impl Links for Catalog {
     }
 }
 
-fn deserialize_type<'de, D>(deserializer: D) -> Result<String, D::Error>
+impl TryFrom<Catalog> for Map<String, Value> {
+    type Error = Error;
+    fn try_from(catalog: Catalog) -> Result<Self> {
+        if let serde_json::Value::Object(object) = serde_json::to_value(catalog)? {
+            Ok(object)
+        } else {
+            panic!("all STAC catalogs should serialize to a serde_json::Value::Object")
+        }
+    }
+}
+
+fn deserialize_type<'de, D>(deserializer: D) -> std::result::Result<String, D::Error>
 where
     D: serde::de::Deserializer<'de>,
 {
     crate::deserialize_type(deserializer, CATALOG_TYPE)
 }
 
-fn serialize_type<S>(r#type: &String, serializer: S) -> Result<S::Ok, S::Error>
+fn serialize_type<S>(r#type: &String, serializer: S) -> std::result::Result<S::Ok, S::Error>
 where
     S: serde::ser::Serializer,
 {
