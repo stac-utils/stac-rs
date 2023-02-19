@@ -23,6 +23,10 @@ const DEFAULT_LICENSE: &str = "proprietary";
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Collection {
     /// Must be set to `"Collection"` to be a valid `Collection`.
+    #[serde(
+        deserialize_with = "deserialize_type",
+        serialize_with = "serialize_type"
+    )]
     pub r#type: String,
 
     /// The STAC version the `Collection` implements.
@@ -233,6 +237,20 @@ impl Default for TemporalExtent {
             interval: vec![[None, None]],
         }
     }
+}
+
+fn deserialize_type<'de, D>(deserializer: D) -> Result<String, D::Error>
+where
+    D: serde::de::Deserializer<'de>,
+{
+    crate::deserialize_type(deserializer, COLLECTION_TYPE)
+}
+
+fn serialize_type<S>(r#type: &String, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::ser::Serializer,
+{
+    crate::serialize_type(r#type, serializer, COLLECTION_TYPE)
 }
 
 #[cfg(test)]
