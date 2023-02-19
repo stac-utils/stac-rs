@@ -179,7 +179,7 @@ impl Item {
     ///
     /// ```
     /// use stac::Item;
-    /// let item: Item = stac::read("data/simple-item.json").unwrap().try_into().unwrap();
+    /// let item: Item = stac::read("data/simple-item.json").unwrap();
     /// let link = item.collection_link().unwrap();
     /// ```
     pub fn collection_link(&self) -> Option<&Link> {

@@ -60,8 +60,7 @@ stac = { version = "0.3", features = ["set_query"]}
 let item = stac::Item::new("an-id");
 
 // Read an item from the filesystem.
-let value = stac::read("data/simple-item.json").unwrap();
-let item: stac::Item = value.try_into().unwrap();
+let item: stac::Item = stac::read("data/simple-item.json").unwrap();
 ```
 
 Please see the [documentation](https://docs.rs/stac) for more usage examples.

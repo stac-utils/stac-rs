@@ -2,11 +2,16 @@ use crate::{
     Catalog, Collection, Error, Href, Item, ItemCollection, Link, Links, Result, CATALOG_TYPE,
     COLLECTION_TYPE, ITEM_COLLECTION_TYPE, ITEM_TYPE,
 };
+use serde::{
+    de::{Error as DeError, MapAccess, Visitor},
+    Deserialize, Serialize,
+};
 use serde_json::Map;
-use std::convert::TryFrom;
+use std::{convert::TryFrom, fmt::Formatter};
 
 /// An enum that can hold any STAC object type.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(untagged)]
 pub enum Value {
     /// A STAC Item.
     Item(Item),
@@ -21,51 +26,88 @@ pub enum Value {
     ItemCollection(ItemCollection),
 }
 
-impl Value {
-    /// Converts a [serde_json::Value] to a Value.
-    ///
-    /// Uses the `type` field to determine object type.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use serde_json::json;
-    /// use stac::Value;
-    /// let catalog = json!({
-    ///     "type": "Catalog",
-    ///     "stac_version": "1.0.0",
-    ///     "id": "an-id",
-    ///     "description": "a description",
-    ///     "links": []
-    /// });
-    /// let catalog = Value::from_json(catalog).unwrap();
-    /// ```
-    pub fn from_json(value: serde_json::Value) -> Result<Value> {
-        if let Some(r#type) = value.get("type") {
-            if let Some(r#type) = r#type.as_str() {
-                match r#type {
-                    CATALOG_TYPE => serde_json::from_value::<Catalog>(value)
-                        .map(Value::Catalog)
-                        .map_err(Error::from),
-                    COLLECTION_TYPE => serde_json::from_value::<Collection>(value)
-                        .map(Value::Collection)
-                        .map_err(Error::from),
-                    ITEM_TYPE => serde_json::from_value::<Item>(value)
-                        .map(Value::Item)
-                        .map_err(Error::from),
-                    ITEM_COLLECTION_TYPE => serde_json::from_value::<ItemCollection>(value)
-                        .map(Value::ItemCollection)
-                        .map_err(Error::from),
-                    _ => Err(Error::UnknownType(r#type.to_string())),
-                }
-            } else {
-                Err(Error::InvalidTypeField(r#type.clone()))
-            }
-        } else {
-            Err(Error::MissingType)
-        }
+struct ValueVisitor;
+
+enum Type {
+    Item,
+    Catalog,
+    Collection,
+    ItemCollection,
+}
+
+impl<'de> Visitor<'de> for ValueVisitor {
+    type Value = Value;
+
+    fn expecting(&self, formatter: &mut Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("a map with a 'type' field")
     }
 
+    fn visit_map<A>(self, mut access: A) -> std::result::Result<Self::Value, A::Error>
+    where
+        A: MapAccess<'de>,
+    {
+        let mut map = Map::with_capacity(access.size_hint().unwrap_or_default());
+        let mut r#type = None;
+        while let Some((key, value)) = access.next_entry::<_, serde_json::Value>()? {
+            if key == "type" {
+                if let Some(value) = value.as_str() {
+                    r#type = match value {
+                        ITEM_TYPE => Some(Type::Item),
+                        CATALOG_TYPE => Some(Type::Catalog),
+                        COLLECTION_TYPE => Some(Type::Collection),
+                        ITEM_COLLECTION_TYPE => Some(Type::ItemCollection),
+                        _ => {
+                            return Err(DeError::unknown_variant(
+                                value,
+                                &[
+                                    ITEM_TYPE,
+                                    CATALOG_TYPE,
+                                    COLLECTION_TYPE,
+                                    ITEM_COLLECTION_TYPE,
+                                ],
+                            ))
+                        }
+                    }
+                } else {
+                    return Err(DeError::custom(&format!(
+                        "expected string for type, got: {}",
+                        value
+                    )));
+                }
+            }
+            let _ = map.insert(key, value);
+        }
+        if let Some(r#type) = r#type {
+            match r#type {
+                Type::Item => serde_json::from_value(serde_json::Value::Object(map))
+                    .map(Value::Item)
+                    .map_err(DeError::custom),
+                Type::Catalog => serde_json::from_value(serde_json::Value::Object(map))
+                    .map(Value::Catalog)
+                    .map_err(DeError::custom),
+                Type::Collection => serde_json::from_value(serde_json::Value::Object(map))
+                    .map(Value::Collection)
+                    .map_err(DeError::custom),
+                Type::ItemCollection => serde_json::from_value(serde_json::Value::Object(map))
+                    .map(Value::ItemCollection)
+                    .map_err(DeError::custom),
+            }
+        } else {
+            Err(DeError::missing_field("type"))
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for Value {
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        deserializer.deserialize_map(ValueVisitor)
+    }
+}
+
+impl Value {
     /// Returns true if this is a catalog.
     ///
     /// # Examples
@@ -213,7 +255,7 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// let value = stac::read("data/simple-item.json").unwrap();
+    /// let value: stac::Value = stac::read("data/simple-item.json").unwrap();
     /// assert_eq!(value.type_name(), "Item");
     /// ```
     pub fn type_name(&self) -> &'static str {
@@ -417,8 +459,8 @@ mod tests {
             "description": "a description",
             "links": []
         });
-        let catalog = Value::from_json(catalog).unwrap();
-        assert!(catalog.is_catalog());
+        let value: Value = serde_json::from_value(catalog).unwrap();
+        assert!(value.is_catalog());
     }
 
     #[test]
@@ -435,7 +477,7 @@ mod tests {
             },
             "links": []
         });
-        let collection = Value::from_json(collection).unwrap();
+        let collection: Value = serde_json::from_value(collection).unwrap();
         assert!(collection.is_collection());
     }
 
@@ -450,7 +492,7 @@ mod tests {
             "links": [],
             "assets": {}
         });
-        let item = Value::from_json(item).unwrap();
+        let item: Value = serde_json::from_value(item).unwrap();
         assert!(item.is_item());
     }
 
@@ -463,10 +505,7 @@ mod tests {
             "description": "a description",
             "links": []
         });
-        assert!(matches!(
-            Value::from_json(catalog).unwrap_err(),
-            Error::UnknownType(_)
-        ))
+        assert!(serde_json::from_value::<Value>(catalog).is_err());
     }
 
     #[test]
@@ -478,10 +517,7 @@ mod tests {
             "description": "a description",
             "links": []
         });
-        assert!(matches!(
-            Value::from_json(catalog).unwrap_err(),
-            Error::InvalidTypeField(_)
-        ))
+        assert!(serde_json::from_value::<Value>(catalog).is_err());
     }
 
     #[test]
@@ -492,10 +528,7 @@ mod tests {
             "description": "a description",
             "links": []
         });
-        assert!(matches!(
-            Value::from_json(catalog).unwrap_err(),
-            Error::MissingType
-        ))
+        assert!(serde_json::from_value::<Value>(catalog).is_err());
     }
 
     #[test]
@@ -505,7 +538,7 @@ mod tests {
         assert!(matches!(
             serde_json::Value::try_from(Value::Catalog(catalog)).unwrap_err(),
             Error::IncorrectType { .. }
-        ))
+        ));
     }
 
     #[test]
@@ -515,7 +548,7 @@ mod tests {
         assert!(matches!(
             serde_json::Value::try_from(Value::Collection(collection)).unwrap_err(),
             Error::IncorrectType { .. }
-        ))
+        ));
     }
 
     #[test]
@@ -525,6 +558,6 @@ mod tests {
         assert!(matches!(
             serde_json::Value::try_from(Value::Item(item)).unwrap_err(),
             Error::IncorrectType { .. }
-        ))
+        ));
     }
 }
