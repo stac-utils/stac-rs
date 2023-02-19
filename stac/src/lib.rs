@@ -143,7 +143,7 @@ mod value;
 #[cfg(feature = "jsonschema")]
 pub use validate::{Validate, Validator};
 pub use {
-    asset::Asset,
+    asset::{Asset, Assets},
     catalog::{Catalog, CATALOG_TYPE},
     collection::{Collection, Extent, Provider, SpatialExtent, TemporalExtent, COLLECTION_TYPE},
     error::Error,

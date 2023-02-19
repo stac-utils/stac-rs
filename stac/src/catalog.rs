@@ -1,4 +1,4 @@
-use crate::{Error, Href, Link, Links, Result, STAC_VERSION};
+use crate::{Error, Extensions, Href, Link, Links, Result, STAC_VERSION};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
@@ -111,6 +111,12 @@ impl TryFrom<Catalog> for Map<String, Value> {
         } else {
             panic!("all STAC catalogs should serialize to a serde_json::Value::Object")
         }
+    }
+}
+
+impl Extensions for Catalog {
+    fn extensions(&self) -> Option<&[String]> {
+        self.extensions.as_deref()
     }
 }
 
