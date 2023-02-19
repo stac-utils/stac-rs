@@ -2,15 +2,12 @@ use crate::{
     Catalog, Collection, Error, Href, Item, ItemCollection, Link, Links, Result, CATALOG_TYPE,
     COLLECTION_TYPE, ITEM_COLLECTION_TYPE, ITEM_TYPE,
 };
-use serde::{
-    de::{Error as DeError, MapAccess, Visitor},
-    Deserialize, Serialize,
-};
+use serde::{Deserialize, Serialize};
 use serde_json::Map;
-use std::{convert::TryFrom, fmt::Formatter};
+use std::convert::TryFrom;
 
 /// An enum that can hold any STAC object type.
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(untagged)]
 pub enum Value {
     /// A STAC Item.
@@ -24,87 +21,6 @@ pub enum Value {
 
     /// An ItemCollection.
     ItemCollection(ItemCollection),
-}
-
-struct ValueVisitor;
-
-enum Type {
-    Item,
-    Catalog,
-    Collection,
-    ItemCollection,
-}
-
-impl<'de> Visitor<'de> for ValueVisitor {
-    type Value = Value;
-
-    fn expecting(&self, formatter: &mut Formatter<'_>) -> std::fmt::Result {
-        formatter.write_str("a map with a 'type' field")
-    }
-
-    fn visit_map<A>(self, mut access: A) -> std::result::Result<Self::Value, A::Error>
-    where
-        A: MapAccess<'de>,
-    {
-        let mut map = Map::with_capacity(access.size_hint().unwrap_or_default());
-        let mut r#type = None;
-        while let Some((key, value)) = access.next_entry::<_, serde_json::Value>()? {
-            if key == "type" {
-                if let Some(value) = value.as_str() {
-                    r#type = match value {
-                        ITEM_TYPE => Some(Type::Item),
-                        CATALOG_TYPE => Some(Type::Catalog),
-                        COLLECTION_TYPE => Some(Type::Collection),
-                        ITEM_COLLECTION_TYPE => Some(Type::ItemCollection),
-                        _ => {
-                            return Err(DeError::unknown_variant(
-                                value,
-                                &[
-                                    ITEM_TYPE,
-                                    CATALOG_TYPE,
-                                    COLLECTION_TYPE,
-                                    ITEM_COLLECTION_TYPE,
-                                ],
-                            ))
-                        }
-                    }
-                } else {
-                    return Err(DeError::custom(&format!(
-                        "expected string for type, got: {}",
-                        value
-                    )));
-                }
-            }
-            let _ = map.insert(key, value);
-        }
-        if let Some(r#type) = r#type {
-            match r#type {
-                Type::Item => serde_json::from_value(serde_json::Value::Object(map))
-                    .map(Value::Item)
-                    .map_err(DeError::custom),
-                Type::Catalog => serde_json::from_value(serde_json::Value::Object(map))
-                    .map(Value::Catalog)
-                    .map_err(DeError::custom),
-                Type::Collection => serde_json::from_value(serde_json::Value::Object(map))
-                    .map(Value::Collection)
-                    .map_err(DeError::custom),
-                Type::ItemCollection => serde_json::from_value(serde_json::Value::Object(map))
-                    .map(Value::ItemCollection)
-                    .map_err(DeError::custom),
-            }
-        } else {
-            Err(DeError::missing_field("type"))
-        }
-    }
-}
-
-impl<'de> Deserialize<'de> for Value {
-    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        deserializer.deserialize_map(ValueVisitor)
-    }
 }
 
 impl Value {

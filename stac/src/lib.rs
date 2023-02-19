@@ -133,6 +133,7 @@ mod extensions;
 mod href;
 mod io;
 mod item;
+mod item_collection;
 pub mod link;
 pub mod media_type;
 #[cfg(feature = "jsonschema")]
@@ -149,7 +150,8 @@ pub use {
     extensions::Extensions,
     href::Href,
     io::{read, read_json},
-    item::{Item, ItemCollection, Properties, ITEM_COLLECTION_TYPE, ITEM_TYPE},
+    item::{Item, Properties, ITEM_TYPE},
+    item_collection::{ItemCollection, ITEM_COLLECTION_TYPE},
     link::{Link, Links},
     value::Value,
 };
@@ -159,6 +161,44 @@ pub const STAC_VERSION: &str = "1.0.0";
 
 /// Custom [Result](std::result::Result) type for this crate.
 pub type Result<T> = std::result::Result<T, Error>;
+
+pub(crate) fn deserialize_type<'de, D>(
+    deserializer: D,
+    expected: &str,
+) -> std::result::Result<String, D::Error>
+where
+    D: serde::de::Deserializer<'de>,
+{
+    use serde::Deserialize;
+    let r#type = String::deserialize(deserializer)?;
+    if r#type != expected {
+        Err(serde::de::Error::invalid_value(
+            serde::de::Unexpected::Str(&r#type),
+            &expected,
+        ))
+    } else {
+        Ok(r#type)
+    }
+}
+
+pub(crate) fn serialize_type<S>(
+    r#type: &String,
+    serializer: S,
+    expected: &str,
+) -> std::result::Result<S::Ok, S::Error>
+where
+    S: serde::ser::Serializer,
+{
+    use serde::Serialize;
+    if r#type != expected {
+        Err(serde::ser::Error::custom(format!(
+            "type field must be '{}', got: '{}'",
+            expected, r#type
+        )))
+    } else {
+        r#type.serialize(serializer)
+    }
+}
 
 #[cfg(test)]
 mod tests {

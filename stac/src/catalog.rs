@@ -20,6 +20,10 @@ pub const CATALOG_TYPE: &str = "Catalog";
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Catalog {
     /// Set to `"Catalog"` if this Catalog only implements the `Catalog` spec.
+    #[serde(
+        deserialize_with = "deserialize_type",
+        serialize_with = "serialize_type"
+    )]
     pub r#type: String,
 
     /// The STAC version the `Catalog` implements.
@@ -97,6 +101,20 @@ impl Links for Catalog {
     fn links_mut(&mut self) -> &mut Vec<Link> {
         &mut self.links
     }
+}
+
+fn deserialize_type<'de, D>(deserializer: D) -> Result<String, D::Error>
+where
+    D: serde::de::Deserializer<'de>,
+{
+    crate::deserialize_type(deserializer, CATALOG_TYPE)
+}
+
+fn serialize_type<S>(r#type: &String, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::ser::Serializer,
+{
+    crate::serialize_type(r#type, serializer, CATALOG_TYPE)
 }
 
 #[cfg(test)]
