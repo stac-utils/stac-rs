@@ -17,6 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Changed
 
 - Refactored to modules ([#130](https://github.com/gadomski/stac-rs/pull/130))
+- `stac_async::read` now can return anything that deserializes and implements `Href` ([#135](https://github.com/gadomski/stac-rs/pull/135))
 
 ## [0.3.0] - 2023-01-08
 

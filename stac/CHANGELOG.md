@@ -10,6 +10,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - STAC API fields to `Link` ([#126](https://github.com/gadomski/stac-rs/pull/126)])
 - `TryFrom<Value>` (and `TryFrom<Item>` and friends) for a `serde_json::Map<String, serde_json::Value>` ([#126](https://github.com/gadomski/stac-rs/pull/126), [#130](https://github.com/gadomski/stac-rs/pull/130))
+- `Deserialize` for `Value` ([#135](https://github.com/gadomski/stac-rs/pull/135))
+
+### Changed
+
+- `stac::read` now can return anything that deserializes and implements `Href` ([#135](https://github.com/gadomski/stac-rs/pull/135))
 
 ## [0.3.1] - 2023-01-13
 
