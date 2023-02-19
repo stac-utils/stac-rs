@@ -1,4 +1,5 @@
-use crate::{Error, Href, Result, Value};
+use crate::{Error, Href, Result};
+use serde::de::DeserializeOwned;
 use std::{fs::File, io::BufReader, path::Path};
 use url::Url;
 
@@ -7,25 +8,26 @@ use url::Url;
 /// # Examples
 ///
 /// ```
-/// let item = stac::read("data/simple-item.json").unwrap();
-/// assert!(item.is_item());
+/// let item: stac::Item = stac::read("data/simple-item.json").unwrap();
 /// ```
-pub fn read(href: impl ToString) -> Result<Value> {
+pub fn read<T: Href + DeserializeOwned>(href: impl ToString) -> Result<T> {
     let href = href.to_string();
-    let value = read_json(&href)?;
-    let mut value = Value::from_json(value)?;
+    let mut value: T = read_json(&href)?;
     value.set_href(href);
     Ok(value)
 }
 
-/// Reads any JSON value from an href.
+/// Reads any deserializable value from the JSON at an href.
 ///
 /// # Examples
 ///
 /// ```
-/// let value = stac::read_json("data/simple-item.json").unwrap();
+/// let value: stac::Item = stac::read_json("data/simple-item.json").unwrap();
 /// ```
-pub fn read_json(href: &str) -> Result<serde_json::Value> {
+pub fn read_json<T>(href: &str) -> Result<T>
+where
+    T: DeserializeOwned,
+{
     if let Ok(url) = Url::parse(&href) {
         read_json_from_url(url)
     } else {
@@ -33,75 +35,79 @@ pub fn read_json(href: &str) -> Result<serde_json::Value> {
     }
 }
 
-fn read_json_from_path<P: AsRef<Path>>(path: P) -> Result<serde_json::Value> {
+fn read_json_from_path<T>(path: impl AsRef<Path>) -> Result<T>
+where
+    T: DeserializeOwned,
+{
     let file = File::open(path.as_ref())?;
     let reader = BufReader::new(file);
     serde_json::from_reader(reader).map_err(Error::from)
 }
 
 #[cfg(feature = "reqwest")]
-fn read_json_from_url(url: Url) -> Result<serde_json::Value> {
+fn read_json_from_url<T>(url: Url) -> Result<T>
+where
+    T: DeserializeOwned,
+{
     let response = reqwest::blocking::get(url.clone())?;
     response.json().map_err(Error::from)
 }
 
 #[cfg(not(feature = "reqwest"))]
-fn read_json_from_url(_: Url) -> Result<serde_json::Value> {
+fn read_json_from_url<T>(_: Url) -> Result<T>
+where
+    T: DeserializeOwned,
+{
     Err(crate::Error::ReqwestNotEnabled)
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::Value;
+    use crate::{Catalog, Collection, Item, ItemCollection};
 
     macro_rules! read {
-        ($function:ident, $filename:expr, $value:pat) => {
+        ($function:ident, $filename:expr, $value:ty) => {
             #[test]
             fn $function() {
                 use crate::Href;
 
-                let value = crate::read($filename).unwrap();
-                assert!(matches!(value, $value));
+                let value: $value = crate::read($filename).unwrap();
                 assert!(value.href().is_some());
             }
         };
     }
 
-    read!(read_item_from_path, "data/simple-item.json", Value::Item(_));
-    read!(
-        read_catalog_from_path,
-        "data/catalog.json",
-        Value::Catalog(_)
-    );
+    read!(read_item_from_path, "data/simple-item.json", Item);
+    read!(read_catalog_from_path, "data/catalog.json", Catalog);
     read!(
         read_collection_from_path,
         "data/collection.json",
-        Value::Collection(_)
+        Collection
     );
     read!(
         read_item_collection_from_path,
         "examples/item-collection.json",
-        Value::ItemCollection(_)
+        ItemCollection
     );
 
     #[cfg(feature = "reqwest")]
     mod with_reqwest {
-        use crate::Value;
+        use crate::{Catalog, Collection, Item};
 
         read!(
             read_item_from_url,
             "https://raw.githubusercontent.com/radiantearth/stac-spec/master/examples/simple-item.json",
-            Value::Item(_)
+            Item
         );
         read!(
             read_catalog_from_url,
             "https://raw.githubusercontent.com/radiantearth/stac-spec/master/examples/catalog.json",
-            Value::Catalog(_)
+            Catalog
         );
         read!(
             read_collection_from_url,
             "https://raw.githubusercontent.com/radiantearth/stac-spec/master/examples/collection.json",
-            Value::Collection(_)
+            Collection
         );
     }
 
@@ -110,7 +116,7 @@ mod tests {
         #[test]
         fn read_url() {
             assert!(matches!(
-                crate::read("http://stac-rs.test/item.json").unwrap_err(),
+                crate::read::<crate::Item>("http://stac-rs.test/item.json").unwrap_err(),
                 crate::Error::ReqwestNotEnabled
             ));
         }

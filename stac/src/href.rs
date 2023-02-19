@@ -9,7 +9,7 @@
 /// use stac::{Item, Href};
 /// let item = Item::new("an-id");
 /// assert!(item.href().is_none());
-/// let item = stac::read("data/simple-item.json").unwrap();
+/// let item: Item = stac::read("data/simple-item.json").unwrap();
 /// assert!(item.href().is_some());
 /// ```
 pub trait Href {

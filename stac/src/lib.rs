@@ -42,13 +42,10 @@
 //!
 //! # Reading
 //!
-//! Synchronous reads from the filesystem are supported via [read].
-//! Read objects are returned as a [Value], which implements [TryInto] for all three object types:
+//! Synchronous reads from the filesystem are supported via [read]:
 //!
 //! ```
-//! let value = stac::read("data/simple-item.json").unwrap();
-//! assert!(value.is_item());
-//! let item: stac::Item = value.try_into().unwrap();
+//! let value: stac::Item = stac::read("data/simple-item.json").unwrap();
 //! ```
 //!
 //! If the [reqwest](https://docs.rs/reqwest/latest/reqwest/) feature is enabled, synchronous reads from urls are also supported:
@@ -57,7 +54,7 @@
 //! #[cfg(feature = "reqwest")]
 //! {
 //!     let url = "https://raw.githubusercontent.com/radiantearth/stac-spec/master/examples/simple-item.json";
-//!     let value = stac::read(url).unwrap();
+//!     let item: stac::Item = stac::read(url).unwrap();
 //! }
 //! ```
 //!
@@ -67,7 +64,7 @@
 //! #[cfg(not(feature = "reqwest"))]
 //! {
 //!     let url = "https://raw.githubusercontent.com/radiantearth/stac-spec/master/examples/simple-item.json";
-//!     let error = stac::read(url).unwrap_err();
+//!     let error = stac::read::<stac::Item>(url).unwrap_err();
 //! }
 //! ```
 //!
@@ -78,10 +75,8 @@
 //!
 //! ```
 //! use stac::{Href, Item};
-//! let value = stac::read("data/simple-item.json").unwrap();
-//! assert!(value.href().as_deref().unwrap().ends_with("data/simple-item.json"));
-//! let item: Item = value.clone().try_into().unwrap();
-//! assert_eq!(value.href(), item.href());
+//! let item: Item = stac::read("data/simple-item.json").unwrap();
+//! assert!(item.href().as_deref().unwrap().ends_with("data/simple-item.json"));
 //! ```
 //!
 //! # Validation

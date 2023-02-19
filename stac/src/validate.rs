@@ -16,8 +16,8 @@
 //!
 //! ```
 //! use stac::Validate;
-//! stac::read("data/simple-item.json").unwrap().validate().unwrap();
-//! let errors = stac::read("examples/invalid-item.json").unwrap().validate().unwrap_err();
+//! stac::read::<stac::Item>("data/simple-item.json").unwrap().validate().unwrap();
+//! let errors = stac::read::<stac::Item>("examples/invalid-item.json").unwrap().validate().unwrap_err();
 //! for error in errors {
 //!     println!("ERROR: {}", error);
 //! }
@@ -26,12 +26,12 @@
 //! If you're doing multiple validations, it is more efficient to use the [Validator] structure, which will cache any fetched schemas, including extension schemas:
 //!
 //! ```
-//! use stac::Validator;
+//! use stac::{Validator, Item, Catalog};
 //! let mut validator = Validator::new().unwrap();
-//! let item = stac::read("data/simple-item.json").unwrap();
-//! let catalog = stac::read("data/catalog.json").unwrap();
-//! validator.validate(item).unwrap();
-//! validator.validate(catalog).unwrap();
+//! let item: Item = stac::read("data/simple-item.json").unwrap();
+//! let catalog: Catalog = stac::read("data/catalog.json").unwrap();
+//! validator.validate_item(item).unwrap();
+//! validator.validate_catalog(catalog).unwrap();
 //! ```
 
 use crate::{Catalog, Collection, Error, Extensions, Item, ItemCollection, Value};
@@ -164,12 +164,12 @@ impl Validator {
     /// # Examples
     ///
     /// ```
-    /// # use stac::{Value, Validator};
+    /// # use stac::{Item, Value, Validator};
     /// let mut validator = Validator::new().unwrap();
-    /// let item = stac::read("data/simple-item.json").unwrap();
-    /// validator.validate(item).unwrap();
+    /// let item: stac::Value = stac::read("data/simple-item.json").unwrap();
+    /// validator.validate_value(item).unwrap();
     /// ```
-    pub fn validate(&mut self, value: Value) -> Result<(), Vec<Error>> {
+    pub fn validate_value(&mut self, value: Value) -> Result<(), Vec<Error>> {
         match value {
             Value::Item(item) => self.validate_item(item),
             Value::Catalog(catalog) => self.validate_catalog(catalog),
@@ -296,7 +296,7 @@ fn into_error(validation_error: ValidationError<'_>) -> Error {
 #[cfg(test)]
 mod tests {
     use super::Validate;
-    use crate::{Catalog, Collection, Item};
+    use crate::{Catalog, Collection, Item, ItemCollection};
 
     #[test]
     fn valid_item() {
@@ -371,7 +371,7 @@ mod tests {
 
     #[test]
     fn item_collection() {
-        let item_collection = crate::read("examples/item-collection.json").unwrap();
+        let item_collection: ItemCollection = crate::read("examples/item-collection.json").unwrap();
         item_collection.validate().unwrap();
     }
 }
