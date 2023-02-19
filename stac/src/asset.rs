@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
+use std::collections::HashMap;
 
 /// An Asset is an object that contains a URI to data associated with the [Item](crate::Item) that can be downloaded or streamed.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
@@ -32,6 +33,37 @@ pub struct Asset {
     /// Additional fields on the asset.
     #[serde(flatten)]
     pub additional_fields: Map<String, Value>,
+}
+
+/// Trait implemented by anything that has assets.
+///
+/// As of STAC v1.0.0, this is [Collection](crate::Collection) and [Item](crate::Item).
+pub trait Assets {
+    /// Returns a reference to this object's assets.
+    ///
+    /// # Examples
+    ///
+    /// [Item](crate::Item) has assets:
+    ///
+    /// ```
+    /// use stac::{Item, Assets};
+    /// let item: Item = stac::read("data/simple-item.json").unwrap();
+    /// assert!(!item.assets().is_empty());
+    /// ```
+    fn assets(&self) -> &HashMap<String, Asset>;
+
+    /// Returns a mut reference to this object's assets.
+    ///
+    /// # Examples
+    ///
+    /// [Item](crate::Item) has assets:
+    ///
+    /// ```
+    /// use stac::{Item, Asset, Assets};
+    /// let mut item: Item = stac::read("data/simple-item.json").unwrap();
+    /// item.assets_mut().insert("foo".to_string(), Asset::new("./asset.tif"));
+    /// ```
+    fn assets_mut(&mut self) -> &mut HashMap<String, Asset>;
 }
 
 impl Asset {

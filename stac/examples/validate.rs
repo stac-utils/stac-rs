@@ -1,4 +1,4 @@
-use stac::{Error, Validate};
+use stac::{Error, Validate, Value};
 
 fn main() {
     let args: Vec<_> = std::env::args().collect();
@@ -12,7 +12,7 @@ fn main() {
         );
         std::process::exit(1)
     }
-    let value = stac::read(&args[1]).unwrap();
+    let value: Value = stac::read(&args[1]).unwrap();
     match value.validate() {
         Ok(()) => println!("OK: {} is valid STAC!", args[1]),
         Err(errors) => {

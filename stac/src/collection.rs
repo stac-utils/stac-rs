@@ -1,4 +1,4 @@
-use crate::{Asset, Href, Link, Links, STAC_VERSION};
+use crate::{Asset, Assets, Error, Extensions, Href, Link, Links, Result, STAC_VERSION};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::collections::HashMap;
@@ -23,6 +23,10 @@ const DEFAULT_LICENSE: &str = "proprietary";
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Collection {
     /// Must be set to `"Collection"` to be a valid `Collection`.
+    #[serde(
+        deserialize_with = "deserialize_type",
+        serialize_with = "serialize_type"
+    )]
     pub r#type: String,
 
     /// The STAC version the `Collection` implements.
@@ -75,8 +79,8 @@ pub struct Collection {
     pub links: Vec<Link>,
 
     /// Dictionary of asset objects that can be downloaded, each with a unique key.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub assets: Option<HashMap<String, Asset>>,
+    #[serde(skip_serializing_if = "HashMap::is_empty", default)]
+    pub assets: HashMap<String, Asset>,
 
     /// Additional fields not part of the `Collection` specification.
     #[serde(flatten)]
@@ -172,7 +176,7 @@ impl Collection {
             extent: Extent::default(),
             summaries: None,
             links: Vec::new(),
-            assets: None,
+            assets: HashMap::new(),
             additional_fields: Map::new(),
             href: None,
         }
@@ -235,6 +239,46 @@ impl Default for TemporalExtent {
     }
 }
 
+impl Assets for Collection {
+    fn assets(&self) -> &HashMap<String, Asset> {
+        &self.assets
+    }
+    fn assets_mut(&mut self) -> &mut HashMap<String, Asset> {
+        &mut self.assets
+    }
+}
+
+impl Extensions for Collection {
+    fn extensions(&self) -> Option<&[String]> {
+        self.extensions.as_deref()
+    }
+}
+
+impl TryFrom<Collection> for Map<String, Value> {
+    type Error = Error;
+    fn try_from(collection: Collection) -> Result<Self> {
+        if let serde_json::Value::Object(object) = serde_json::to_value(collection)? {
+            Ok(object)
+        } else {
+            panic!("all STAC collections should serialize to a serde_json::Value::Object")
+        }
+    }
+}
+
+fn deserialize_type<'de, D>(deserializer: D) -> std::result::Result<String, D::Error>
+where
+    D: serde::de::Deserializer<'de>,
+{
+    crate::deserialize_type(deserializer, COLLECTION_TYPE)
+}
+
+fn serialize_type<S>(r#type: &String, serializer: S) -> std::result::Result<S::Ok, S::Error>
+where
+    S: serde::ser::Serializer,
+{
+    crate::serialize_type(r#type, serializer, COLLECTION_TYPE)
+}
+
 #[cfg(test)]
 mod tests {
     use super::{Collection, Extent, Provider};
@@ -252,7 +296,7 @@ mod tests {
             assert!(collection.providers.is_none());
             assert_eq!(collection.extent, Extent::default());
             assert!(collection.summaries.is_none());
-            assert!(collection.assets.is_none());
+            assert!(collection.assets.is_empty());
             assert_eq!(collection.r#type, "Collection");
             assert_eq!(collection.version, STAC_VERSION);
             assert!(collection.extensions.is_none());

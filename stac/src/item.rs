@@ -1,4 +1,4 @@
-use crate::{Asset, Href, Link, Links, STAC_VERSION};
+use crate::{Asset, Assets, Error, Extensions, Href, Link, Links, Result, STAC_VERSION};
 use chrono::Utc;
 use geojson::Geometry;
 use serde::{Deserialize, Serialize};
@@ -7,9 +7,6 @@ use std::collections::HashMap;
 
 /// The type field for [Items](Item).
 pub const ITEM_TYPE: &str = "Feature";
-
-/// The type field for [ItemCollections](ItemCollection).
-pub const ITEM_COLLECTION_TYPE: &str = "FeatureCollection";
 
 /// An `Item` is a GeoJSON Feature augmented with foreign members relevant to a
 /// STAC object.
@@ -21,6 +18,10 @@ pub const ITEM_COLLECTION_TYPE: &str = "FeatureCollection";
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Item {
     /// Type of the GeoJSON Object. MUST be set to `"Feature"`.
+    #[serde(
+        deserialize_with = "deserialize_type",
+        serialize_with = "serialize_type"
+    )]
     pub r#type: String,
 
     /// The STAC version the `Item` implements.
@@ -76,30 +77,6 @@ pub struct Item {
     /// Additional fields not part of the Item specification.
     #[serde(flatten)]
     pub additional_fields: Map<String, Value>,
-
-    #[serde(skip)]
-    href: Option<String>,
-}
-
-/// A [GeoJSON FeatureCollection](https://www.rfc-editor.org/rfc/rfc7946#page-12) of items.
-///
-/// While not part of the STAC specification, ItemCollections are often used to store many items in a single file.
-#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
-pub struct ItemCollection {
-    /// The type field.
-    ///
-    /// Must be set to "FeatureCollection".
-    pub r#type: String,
-
-    /// The list of [Items](Item).
-    ///
-    /// The attribute is actually "features", but we rename to "items".
-    #[serde(rename = "features")]
-    pub items: Vec<Item>,
-
-    /// List of link objects to resources and related URLs.
-    #[serde(skip_serializing_if = "Vec::is_empty", default)]
-    pub links: Vec<Link>,
 
     #[serde(skip)]
     href: Option<String>,
@@ -179,7 +156,7 @@ impl Item {
     ///
     /// ```
     /// use stac::Item;
-    /// let item: Item = stac::read("data/simple-item.json").unwrap().try_into().unwrap();
+    /// let item: Item = stac::read("data/simple-item.json").unwrap();
     /// let link = item.collection_link().unwrap();
     /// ```
     pub fn collection_link(&self) -> Option<&Link> {
@@ -206,40 +183,51 @@ impl Links for Item {
     }
 }
 
-impl From<Vec<Item>> for ItemCollection {
-    fn from(items: Vec<Item>) -> Self {
-        ItemCollection {
-            r#type: ITEM_COLLECTION_TYPE.to_string(),
-            items: items,
-            links: Vec::new(),
-            href: None,
+impl Assets for Item {
+    fn assets(&self) -> &HashMap<String, Asset> {
+        &self.assets
+    }
+    fn assets_mut(&mut self) -> &mut HashMap<String, Asset> {
+        &mut self.assets
+    }
+}
+
+impl Extensions for Item {
+    fn extensions(&self) -> Option<&[String]> {
+        self.extensions.as_deref()
+    }
+}
+
+impl TryFrom<Item> for Map<String, Value> {
+    type Error = Error;
+    fn try_from(item: Item) -> Result<Self> {
+        if let serde_json::Value::Object(object) = serde_json::to_value(item)? {
+            Ok(object)
+        } else {
+            panic!("all STAC items should serialize to a serde_json::Value::Object")
         }
     }
 }
 
-impl Href for ItemCollection {
-    fn href(&self) -> Option<&str> {
-        self.href.as_deref()
-    }
-
-    fn set_href(&mut self, href: impl ToString) {
-        self.href = Some(href.to_string())
-    }
+fn deserialize_type<'de, D>(deserializer: D) -> std::result::Result<String, D::Error>
+where
+    D: serde::de::Deserializer<'de>,
+{
+    crate::deserialize_type(deserializer, ITEM_TYPE)
 }
 
-impl Links for ItemCollection {
-    fn links(&self) -> &[Link] {
-        &self.links
-    }
-    fn links_mut(&mut self) -> &mut Vec<Link> {
-        &mut self.links
-    }
+fn serialize_type<S>(r#type: &String, serializer: S) -> std::result::Result<S::Ok, S::Error>
+where
+    S: serde::ser::Serializer,
+{
+    crate::serialize_type(r#type, serializer, ITEM_TYPE)
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{Item, ItemCollection};
+    use super::Item;
     use crate::STAC_VERSION;
+    use serde_json::Value;
 
     #[test]
     fn new() {
@@ -265,9 +253,17 @@ mod tests {
     }
 
     #[test]
-    fn item_collection_from_vec() {
-        let items = vec![Item::new("a"), Item::new("b")];
-        let _ = ItemCollection::from(items);
+    fn deserialize_invalid_type_field() {
+        let mut item: Value = crate::read_json("data/simple-item.json").unwrap();
+        item["type"] = "Item".into(); // must be "Feature"
+        assert!(serde_json::from_value::<Item>(item).is_err());
+    }
+
+    #[test]
+    fn serialize_invalid_type_field() {
+        let mut item = Item::new("an-id");
+        item.r#type = "Item".to_string(); // must be "Feature"
+        assert!(serde_json::to_value(item).is_err());
     }
 
     mod roundtrip {

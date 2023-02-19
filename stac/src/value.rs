@@ -1,12 +1,11 @@
-use crate::{
-    Catalog, Collection, Error, Href, Item, ItemCollection, Link, Links, Result, CATALOG_TYPE,
-    COLLECTION_TYPE, ITEM_COLLECTION_TYPE, ITEM_TYPE,
-};
+use crate::{Catalog, Collection, Error, Href, Item, ItemCollection, Link, Links, Result};
+use serde::{Deserialize, Serialize};
 use serde_json::Map;
 use std::convert::TryFrom;
 
 /// An enum that can hold any STAC object type.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[serde(untagged)]
 pub enum Value {
     /// A STAC Item.
     Item(Item),
@@ -22,50 +21,6 @@ pub enum Value {
 }
 
 impl Value {
-    /// Converts a [serde_json::Value] to a Value.
-    ///
-    /// Uses the `type` field to determine object type.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use serde_json::json;
-    /// use stac::Value;
-    /// let catalog = json!({
-    ///     "type": "Catalog",
-    ///     "stac_version": "1.0.0",
-    ///     "id": "an-id",
-    ///     "description": "a description",
-    ///     "links": []
-    /// });
-    /// let catalog = Value::from_json(catalog).unwrap();
-    /// ```
-    pub fn from_json(value: serde_json::Value) -> Result<Value> {
-        if let Some(r#type) = value.get("type") {
-            if let Some(r#type) = r#type.as_str() {
-                match r#type {
-                    CATALOG_TYPE => serde_json::from_value::<Catalog>(value)
-                        .map(Value::Catalog)
-                        .map_err(Error::from),
-                    COLLECTION_TYPE => serde_json::from_value::<Collection>(value)
-                        .map(Value::Collection)
-                        .map_err(Error::from),
-                    ITEM_TYPE => serde_json::from_value::<Item>(value)
-                        .map(Value::Item)
-                        .map_err(Error::from),
-                    ITEM_COLLECTION_TYPE => serde_json::from_value::<ItemCollection>(value)
-                        .map(Value::ItemCollection)
-                        .map_err(Error::from),
-                    _ => Err(Error::UnknownType(r#type.to_string())),
-                }
-            } else {
-                Err(Error::InvalidTypeField(r#type.clone()))
-            }
-        } else {
-            Err(Error::MissingType)
-        }
-    }
-
     /// Returns true if this is a catalog.
     ///
     /// # Examples
@@ -213,7 +168,7 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// let value = stac::read("data/simple-item.json").unwrap();
+    /// let value: stac::Value = stac::read("data/simple-item.json").unwrap();
     /// assert_eq!(value.type_name(), "Item");
     /// ```
     pub fn type_name(&self) -> &'static str {
@@ -271,60 +226,10 @@ impl Links for Value {
     }
 }
 
-impl TryFrom<Value> for serde_json::Value {
-    type Error = Error;
-
-    fn try_from(value: Value) -> Result<Self> {
-        use Value::*;
-        match value {
-            Catalog(catalog) => {
-                if catalog.r#type == CATALOG_TYPE {
-                    serde_json::to_value(catalog).map_err(Error::from)
-                } else {
-                    Err(Error::IncorrectType {
-                        actual: catalog.r#type,
-                        expected: CATALOG_TYPE.to_string(),
-                    })
-                }
-            }
-            Collection(collection) => {
-                if collection.r#type == COLLECTION_TYPE {
-                    serde_json::to_value(collection).map_err(Error::from)
-                } else {
-                    Err(Error::IncorrectType {
-                        actual: collection.r#type,
-                        expected: COLLECTION_TYPE.to_string(),
-                    })
-                }
-            }
-            Item(item) => {
-                if item.r#type == ITEM_TYPE {
-                    serde_json::to_value(item).map_err(Error::from)
-                } else {
-                    Err(Error::IncorrectType {
-                        actual: item.r#type,
-                        expected: ITEM_TYPE.to_string(),
-                    })
-                }
-            }
-            ItemCollection(item_collection) => {
-                if item_collection.r#type == ITEM_COLLECTION_TYPE {
-                    serde_json::to_value(item_collection).map_err(Error::from)
-                } else {
-                    Err(Error::IncorrectType {
-                        actual: item_collection.r#type,
-                        expected: ITEM_COLLECTION_TYPE.to_string(),
-                    })
-                }
-            }
-        }
-    }
-}
-
 impl TryFrom<Value> for Map<String, serde_json::Value> {
     type Error = Error;
     fn try_from(value: Value) -> Result<Self> {
-        if let serde_json::Value::Object(object) = serde_json::Value::try_from(value)? {
+        if let serde_json::Value::Object(object) = serde_json::to_value(value)? {
             Ok(object)
         } else {
             panic!("all STAC values should serialize to a serde_json::Value::Object")
@@ -332,80 +237,9 @@ impl TryFrom<Value> for Map<String, serde_json::Value> {
     }
 }
 
-impl TryFrom<Item> for Map<String, serde_json::Value> {
-    type Error = Error;
-    fn try_from(item: Item) -> Result<Self> {
-        if let serde_json::Value::Object(object) = serde_json::Value::try_from(Value::Item(item))? {
-            Ok(object)
-        } else {
-            panic!("all STAC items should serialize to a serde_json::Value::Object")
-        }
-    }
-}
-
-impl TryFrom<Catalog> for Map<String, serde_json::Value> {
-    type Error = Error;
-    fn try_from(catalog: Catalog) -> Result<Self> {
-        if let serde_json::Value::Object(object) =
-            serde_json::Value::try_from(Value::Catalog(catalog))?
-        {
-            Ok(object)
-        } else {
-            panic!("all STAC items should serialize to a serde_json::Value::Object")
-        }
-    }
-}
-
-impl TryFrom<Collection> for Map<String, serde_json::Value> {
-    type Error = Error;
-    fn try_from(collection: Collection) -> Result<Self> {
-        if let serde_json::Value::Object(object) =
-            serde_json::Value::try_from(Value::Collection(collection))?
-        {
-            Ok(object)
-        } else {
-            panic!("all STAC items should serialize to a serde_json::Value::Object")
-        }
-    }
-}
-
-impl TryFrom<Value> for Item {
-    type Error = Error;
-    fn try_from(value: Value) -> Result<Self> {
-        if let Value::Item(item) = value {
-            Ok(item)
-        } else {
-            Err(Error::NotAnItem(value))
-        }
-    }
-}
-
-impl TryFrom<Value> for Catalog {
-    type Error = Error;
-    fn try_from(value: Value) -> Result<Self> {
-        if let Value::Catalog(catalog) = value {
-            Ok(catalog)
-        } else {
-            Err(Error::NotACatalog(value))
-        }
-    }
-}
-
-impl TryFrom<Value> for Collection {
-    type Error = Error;
-    fn try_from(value: Value) -> Result<Self> {
-        if let Value::Collection(collection) = value {
-            Ok(collection)
-        } else {
-            Err(Error::NotACollection(value))
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::Value;
-    use crate::{Catalog, Collection, Error, Item};
     use serde_json::json;
 
     #[test]
@@ -417,8 +251,8 @@ mod tests {
             "description": "a description",
             "links": []
         });
-        let catalog = Value::from_json(catalog).unwrap();
-        assert!(catalog.is_catalog());
+        let value: Value = serde_json::from_value(catalog).unwrap();
+        assert!(value.is_catalog());
     }
 
     #[test]
@@ -435,7 +269,7 @@ mod tests {
             },
             "links": []
         });
-        let collection = Value::from_json(collection).unwrap();
+        let collection: Value = serde_json::from_value(collection).unwrap();
         assert!(collection.is_collection());
     }
 
@@ -450,7 +284,7 @@ mod tests {
             "links": [],
             "assets": {}
         });
-        let item = Value::from_json(item).unwrap();
+        let item: Value = serde_json::from_value(item).unwrap();
         assert!(item.is_item());
     }
 
@@ -463,10 +297,7 @@ mod tests {
             "description": "a description",
             "links": []
         });
-        assert!(matches!(
-            Value::from_json(catalog).unwrap_err(),
-            Error::UnknownType(_)
-        ))
+        assert!(serde_json::from_value::<Value>(catalog).is_err());
     }
 
     #[test]
@@ -478,10 +309,7 @@ mod tests {
             "description": "a description",
             "links": []
         });
-        assert!(matches!(
-            Value::from_json(catalog).unwrap_err(),
-            Error::InvalidTypeField(_)
-        ))
+        assert!(serde_json::from_value::<Value>(catalog).is_err());
     }
 
     #[test]
@@ -492,39 +320,6 @@ mod tests {
             "description": "a description",
             "links": []
         });
-        assert!(matches!(
-            Value::from_json(catalog).unwrap_err(),
-            Error::MissingType
-        ))
-    }
-
-    #[test]
-    fn catalog_into_json_incorrect_type() {
-        let mut catalog = Catalog::new("an-id", "a description");
-        catalog.r#type = "Schmatalog".to_string();
-        assert!(matches!(
-            serde_json::Value::try_from(Value::Catalog(catalog)).unwrap_err(),
-            Error::IncorrectType { .. }
-        ))
-    }
-
-    #[test]
-    fn collection_into_json_incorrect_type() {
-        let mut collection = Collection::new("an-id", "a description");
-        collection.r#type = "Scmalection".to_string();
-        assert!(matches!(
-            serde_json::Value::try_from(Value::Collection(collection)).unwrap_err(),
-            Error::IncorrectType { .. }
-        ))
-    }
-
-    #[test]
-    fn item_into_json_incorrect_type() {
-        let mut item = Item::new("an-id");
-        item.r#type = "Item".to_string();
-        assert!(matches!(
-            serde_json::Value::try_from(Value::Item(item)).unwrap_err(),
-            Error::IncorrectType { .. }
-        ))
+        assert!(serde_json::from_value::<Value>(catalog).is_err());
     }
 }

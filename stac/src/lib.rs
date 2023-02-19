@@ -42,13 +42,10 @@
 //!
 //! # Reading
 //!
-//! Synchronous reads from the filesystem are supported via [read].
-//! Read objects are returned as a [Value], which implements [TryInto] for all three object types:
+//! Synchronous reads from the filesystem are supported via [read]:
 //!
 //! ```
-//! let value = stac::read("data/simple-item.json").unwrap();
-//! assert!(value.is_item());
-//! let item: stac::Item = value.try_into().unwrap();
+//! let value: stac::Item = stac::read("data/simple-item.json").unwrap();
 //! ```
 //!
 //! If the [reqwest](https://docs.rs/reqwest/latest/reqwest/) feature is enabled, synchronous reads from urls are also supported:
@@ -57,7 +54,7 @@
 //! #[cfg(feature = "reqwest")]
 //! {
 //!     let url = "https://raw.githubusercontent.com/radiantearth/stac-spec/master/examples/simple-item.json";
-//!     let value = stac::read(url).unwrap();
+//!     let item: stac::Item = stac::read(url).unwrap();
 //! }
 //! ```
 //!
@@ -67,7 +64,7 @@
 //! #[cfg(not(feature = "reqwest"))]
 //! {
 //!     let url = "https://raw.githubusercontent.com/radiantearth/stac-spec/master/examples/simple-item.json";
-//!     let error = stac::read(url).unwrap_err();
+//!     let error = stac::read::<stac::Item>(url).unwrap_err();
 //! }
 //! ```
 //!
@@ -78,10 +75,8 @@
 //!
 //! ```
 //! use stac::{Href, Item};
-//! let value = stac::read("data/simple-item.json").unwrap();
-//! assert!(value.href().as_deref().unwrap().ends_with("data/simple-item.json"));
-//! let item: Item = value.clone().try_into().unwrap();
-//! assert_eq!(value.href(), item.href());
+//! let item: Item = stac::read("data/simple-item.json").unwrap();
+//! assert!(item.href().as_deref().unwrap().ends_with("data/simple-item.json"));
 //! ```
 //!
 //! # Validation
@@ -138,6 +133,7 @@ mod extensions;
 mod href;
 mod io;
 mod item;
+mod item_collection;
 pub mod link;
 pub mod media_type;
 #[cfg(feature = "jsonschema")]
@@ -147,14 +143,15 @@ mod value;
 #[cfg(feature = "jsonschema")]
 pub use validate::{Validate, Validator};
 pub use {
-    asset::Asset,
+    asset::{Asset, Assets},
     catalog::{Catalog, CATALOG_TYPE},
     collection::{Collection, Extent, Provider, SpatialExtent, TemporalExtent, COLLECTION_TYPE},
     error::Error,
     extensions::Extensions,
     href::Href,
     io::{read, read_json},
-    item::{Item, ItemCollection, Properties, ITEM_COLLECTION_TYPE, ITEM_TYPE},
+    item::{Item, Properties, ITEM_TYPE},
+    item_collection::{ItemCollection, ITEM_COLLECTION_TYPE},
     link::{Link, Links},
     value::Value,
 };
@@ -164,6 +161,44 @@ pub const STAC_VERSION: &str = "1.0.0";
 
 /// Custom [Result](std::result::Result) type for this crate.
 pub type Result<T> = std::result::Result<T, Error>;
+
+pub(crate) fn deserialize_type<'de, D>(
+    deserializer: D,
+    expected: &str,
+) -> std::result::Result<String, D::Error>
+where
+    D: serde::de::Deserializer<'de>,
+{
+    use serde::Deserialize;
+    let r#type = String::deserialize(deserializer)?;
+    if r#type != expected {
+        Err(serde::de::Error::invalid_value(
+            serde::de::Unexpected::Str(&r#type),
+            &expected,
+        ))
+    } else {
+        Ok(r#type)
+    }
+}
+
+pub(crate) fn serialize_type<S>(
+    r#type: &String,
+    serializer: S,
+    expected: &str,
+) -> std::result::Result<S::Ok, S::Error>
+where
+    S: serde::ser::Serializer,
+{
+    use serde::Serialize;
+    if r#type != expected {
+        Err(serde::ser::Error::custom(format!(
+            "type field must be '{}', got: '{}'",
+            expected, r#type
+        )))
+    } else {
+        r#type.serialize(serializer)
+    }
+}
 
 #[cfg(test)]
 mod tests {

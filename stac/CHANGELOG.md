@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+
+- `Deserialize` for `Value` ([#135](https://github.com/gadomski/stac-rs/pull/135))
+- `type` checks on (de)serialization ([#136](https://github.com/gadomski/stac-rs/pull/136))
+- `Assets` trait ([#137](https://github.com/gadomski/stac-rs/pull/137))
+
+### Changed
+
+- `stac::read` now can return anything that deserializes and implements `Href` ([#135](https://github.com/gadomski/stac-rs/pull/135))
+- `Collection::assets` is now non-optional ([#137](https://github.com/gadomski/stac-rs/pull/137))
+
 ## [0.3.2] - 2023-02-19
 
 ### Added
