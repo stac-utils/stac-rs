@@ -44,12 +44,14 @@
 
 mod api_client;
 mod client;
+mod download;
 mod error;
 mod io;
 
 pub use {
     api_client::ApiClient,
     client::Client,
+    download::{download, Download, Downloader},
     error::Error,
     io::{read, read_json, write_json_to_path},
 };
