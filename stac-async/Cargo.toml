@@ -12,6 +12,7 @@ categories = ["science", "data-structures"]
 
 [dependencies]
 async-stream = "0.3"
+async-trait = "0.1"
 futures-core = "0.3"
 futures-util = "0.3"
 http = "0.2"
@@ -26,5 +27,6 @@ url = "2"
 
 [dev-dependencies]
 mockito = "0.32"
+tempdir = "0.3"
 tokio = { version = "1.23", features = ["rt", "macros"] }
 tokio-test = "0.4"
