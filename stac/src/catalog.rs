@@ -19,17 +19,6 @@ pub const CATALOG_TYPE: &str = "Catalog";
 /// to build a searchable index.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Catalog {
-    /// Set to `"Catalog"` if this Catalog only implements the `Catalog` spec.
-    #[serde(
-        deserialize_with = "deserialize_type",
-        serialize_with = "serialize_type"
-    )]
-    pub r#type: String,
-
-    /// The STAC version the `Catalog` implements.
-    #[serde(rename = "stac_version")]
-    pub version: String,
-
     /// A list of extension identifiers the `Catalog` implements.
     #[serde(rename = "stac_extensions")]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -53,6 +42,17 @@ pub struct Catalog {
     /// Additional fields not part of the Catalog specification.
     #[serde(flatten)]
     pub additional_fields: Map<String, Value>,
+
+    /// Set to `"Catalog"` if this Catalog only implements the `Catalog` spec.
+    #[serde(
+        deserialize_with = "deserialize_type",
+        serialize_with = "serialize_type"
+    )]
+    r#type: String,
+
+    /// The STAC version the `Catalog` implements.
+    #[serde(rename = "stac_version")]
+    version: String,
 
     #[serde(skip)]
     href: Option<String>,
