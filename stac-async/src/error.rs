@@ -15,6 +15,10 @@ pub enum Error {
     #[error(transparent)]
     Io(#[from] std::io::Error),
 
+    /// [tokio::task::JoinError]
+    #[error(transparent)]
+    TokioTaskJoin(#[from] tokio::task::JoinError),
+
     /// [http::method::InvalidMethod]
     #[error(transparent)]
     HttpInvalidMethod(#[from] http::method::InvalidMethod),
