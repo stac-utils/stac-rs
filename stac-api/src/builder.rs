@@ -397,7 +397,7 @@ impl LinkBuilder {
 impl FromStr for UrlBuilder {
     type Err = ParseError;
 
-    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         UrlBuilder::new(s)
     }
 }
@@ -405,7 +405,7 @@ impl FromStr for UrlBuilder {
 impl FromStr for LinkBuilder {
     type Err = ParseError;
 
-    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         s.parse::<UrlBuilder>()
             .map(|url_builder| LinkBuilder(url_builder))
     }

@@ -139,7 +139,7 @@ fn stream_items(
     channel_buffer: usize,
 ) -> impl Stream<Item = Result<Item>> {
     let (tx, mut rx) = mpsc::channel(channel_buffer);
-    tokio::spawn(async move {
+    let handle = tokio::spawn(async move {
         let pages = stream_pages(client, page);
         pin_mut!(pages);
         while let Some(result) = pages.next().await {
@@ -159,6 +159,7 @@ fn stream_items(
                 yield item;
             }
         }
+        handle.await?;
     }
 }
 

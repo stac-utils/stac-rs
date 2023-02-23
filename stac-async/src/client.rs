@@ -168,7 +168,7 @@ impl Client {
             let mut header_map = HeaderMap::new();
             for (key, value) in headers.into_iter() {
                 let header_name: HeaderName = key.parse()?;
-                header_map.insert(header_name, value.to_string().parse()?);
+                let _ = header_map.insert(header_name, value.to_string().parse()?);
             }
             Some(header_map)
         } else {
@@ -198,7 +198,7 @@ mod tests {
     async fn client_get_404() {
         let client = Client::new();
         let href = "https://raw.githubusercontent.com/radiantearth/stac-spec/v1.0.0/examples/not-an-item.json";
-        assert!(client.get::<stac::Item>(href).await.unwrap().is_none());
+        assert!(client.get::<Item>(href).await.unwrap().is_none());
     }
 
     #[tokio::test]
