@@ -10,15 +10,6 @@ pub const ITEM_COLLECTION_TYPE: &str = "FeatureCollection";
 /// While not part of the STAC specification, ItemCollections are often used to store many items in a single file.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct ItemCollection {
-    /// The type field.
-    ///
-    /// Must be set to "FeatureCollection".
-    #[serde(
-        deserialize_with = "deserialize_type",
-        serialize_with = "serialize_type"
-    )]
-    pub r#type: String,
-
     /// The list of [Items](Item).
     ///
     /// The attribute is actually "features", but we rename to "items".
@@ -32,6 +23,15 @@ pub struct ItemCollection {
     /// Additional fields.
     #[serde(flatten)]
     pub additional_fields: Map<String, Value>,
+
+    /// The type field.
+    ///
+    /// Must be set to "FeatureCollection".
+    #[serde(
+        deserialize_with = "deserialize_type",
+        serialize_with = "serialize_type"
+    )]
+    r#type: String,
 
     #[serde(skip)]
     href: Option<String>,
