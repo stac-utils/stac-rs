@@ -235,6 +235,35 @@ pub trait Links {
         }
         Ok(())
     }
+
+    /// Removes all relative links.
+    ///
+    /// This can be useful e.g. if you're relocating a STAC object, but it
+    /// doesn't have a href, so the relative links wouldn't make any sense.
+    /// Returns all removed links.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::{Catalog, Links, Link};
+    /// let mut catalog = Catalog::new("an-id", "a description");
+    /// catalog.links.push(Link::new("./child.json", "child"));
+    /// catalog.remove_relative_links();
+    /// assert!(catalog.links.is_empty());
+    /// ```
+    fn remove_relative_links(&mut self) -> Vec<Link> {
+        let mut i = 0;
+        let mut removed = Vec::new();
+        // Replace with `drain_filter` when it is stabilized.
+        while i < self.links().len() {
+            if !self.links()[i].is_absolute() {
+                removed.push(self.links_mut().remove(i));
+            } else {
+                i += 1;
+            }
+        }
+        removed
+    }
 }
 
 impl Link {
@@ -710,6 +739,19 @@ mod tests {
                 catalog.root_link().unwrap().href,
                 "http://stac-rs.test/catalog.json"
             );
+        }
+
+        #[test]
+        fn remove_relative_links() {
+            let mut catalog = Catalog::new("an-id", "a description");
+            catalog.links.push(Link::new("./child.json", "child"));
+            catalog.links.push(Link::new("/child.json", "child"));
+            catalog
+                .links
+                .push(Link::new("http://stac-rs.test/child.json", "child"));
+            let removed = catalog.remove_relative_links();
+            assert_eq!(catalog.links.len(), 2);
+            assert_eq!(removed.len(), 1);
         }
     }
 }
