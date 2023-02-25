@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - `stac::read` now can return anything that deserializes and implements `Href` ([#135](https://github.com/gadomski/stac-rs/pull/135))
 - `Collection::assets` is now non-optional ([#137](https://github.com/gadomski/stac-rs/pull/137))
+- `type` and `version` fields on all objects are now private ([#141](https://github.com/gadomski/stac-rs/pull/141))
 
 ## [0.3.2] - 2023-02-19
 
