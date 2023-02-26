@@ -21,8 +21,11 @@ Rust implementation of the [SpatioTemporal Asset Catalog (STAC)](https://stacspe
 | **stac-async** | Asynchronous I/O with [tokio](https://tokio.rs/) | [![README](https://img.shields.io/static/v1?label=README&message=stac-async&color=informational&style=flat-square)](./stac-async/README.md) <br> [![docs.rs](https://img.shields.io/docsrs/stac-async?style=flat-square)](https://docs.rs/stac-async/latest/stac_async/) <br> [![Crates.io](https://img.shields.io/crates/v/stac-async?style=flat-square)](https://crates.io/crates/stac-async)
 | **stac-cli** | Command line interface | [![README](https://img.shields.io/static/v1?label=README&message=stac-cli&color=informational&style=flat-square)](./stac-cli/README.md) <br> [![docs.rs](https://img.shields.io/docsrs/stac-cli?style=flat-square)](https://docs.rs/stac-cli/latest/stac_cli/) <br> [![Crates.io](https://img.shields.io/crates/v/stac-cli?style=flat-square)](https://crates.io/crates/stac-cli)
 
-## Usage
+## What are you trying to do?
 
+### Use STAC data structures in your own project
+
+Use [stac](./stac/README.md).
 In your `Cargo.toml`:
 
 ```toml
@@ -30,31 +33,76 @@ In your `Cargo.toml`:
 stac = "0.3"
 ```
 
-If you're using **stac-async** for asynchronous read/write with [tokio](https://tokio.rs/):
+Then, in your project:
+
+```rust
+use stac::Item;
+let item = Item::new("an-id");
+```
+
+### Use a command line interface
+
+Install [stac-cli](./stac-cli/README.md) from crates.io:
+
+```shell
+cargo install stac-cli
+```
+
+See all the subcommands available:
+
+```shell
+stac --help
+```
+
+### Asynchronously stream STAC objects from a STAC API
+
+Use the `ApiClient` from [stac-async](./stac-async/README.md).
+In your `Cargo.toml`:
 
 ```toml
 [dependencies]
-stac = "0.3"
+stac-api = "0.1"
 stac-async = "0.3"
+futures-util = "*"
 ```
 
-If you're using [STAC API](https://github.com/radiantearth/stac-api-spec) data structures:
+Then, in your project:
+
+```rust
+use stac_async::ApiClient;
+use stac_api::Search;
+use futures_util::stream::StreamExt;
+
+let client = ApiClient::new("https://planetarycomputer.microsoft.com/api/stac/v1").unwrap();
+let search = Search {
+    collections: Some(vec!["sentinel-2-l2a".to_string()]),
+    limit: Some(1),
+    ..Default::deafult()
+};
+let items = Vec<_> = client
+    .search(search)
+    .await
+    .unwrap()
+    .map(|result| result.unwrap())
+    .collect()
+    .await;
+```
+
+### Build a STAC API server
+
+Use [stac-api](./stac-api/README.md)
 
 ```toml
 [dependencies]
 stac-api = "0.1"
 ```
 
-To install the CLI:
-
-```shell
-cargo install stac-cli
-```
+See [stac-server-rs](https://github.com/gadomski/stac-server-rs) for one example of a STAC API server built using these crates.
 
 ## Development
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for information about contributing to this project.
-Use [RELEASING.md](./RELEASING.md) as an alternate pull request template when releasing a new version.
+See [RELEASING.md](./RELEASING.md) for a checklist to use when releasing a new version.
 
 ## Ecosystem
 
