@@ -148,7 +148,7 @@ pub use {
     collection::{Collection, Extent, Provider, SpatialExtent, TemporalExtent, COLLECTION_TYPE},
     error::Error,
     extensions::Extensions,
-    href::Href,
+    href::{href_to_url, Href},
     io::{read, read_json},
     item::{Item, Properties, ITEM_TYPE},
     item_collection::{ItemCollection, ITEM_COLLECTION_TYPE},
