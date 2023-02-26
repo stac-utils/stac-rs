@@ -40,7 +40,7 @@ pub async fn read_json<T>(href: &str) -> Result<T>
 where
     T: DeserializeOwned,
 {
-    if let Ok(url) = Url::parse(&href) {
+    if let Some(url) = stac::href_to_url(href) {
         read_json_from_url(url).await
     } else {
         read_json_from_path(href).await
