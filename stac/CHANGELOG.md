@@ -11,6 +11,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - `Deserialize` for `Value` ([#135](https://github.com/gadomski/stac-rs/pull/135))
 - `type` checks on (de)serialization ([#136](https://github.com/gadomski/stac-rs/pull/136))
 - `Assets` trait ([#137](https://github.com/gadomski/stac-rs/pull/137))
+- `Link::remove_relative_hrefs` ([#142](https://github.com/gadomski/stac-rs/pull/142))
+- `stac::href_to_url` ([#142](https://github.com/gadomski/stac-rs/pull/142))
 
 ### Changed
 
