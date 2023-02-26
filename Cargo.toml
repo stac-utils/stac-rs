@@ -3,4 +3,5 @@ members = [
     "stac",
     "stac-api",
     "stac-async",
+    "stac-cli",
 ]

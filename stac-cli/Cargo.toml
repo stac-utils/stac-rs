@@ -1,0 +1,29 @@
+[package]
+name = "stac-cli"
+version = "0.0.2"
+edition = "2021"
+description = "Command line interface for stac-rs"
+documentation = "https://docs.rs/stac-cli"
+readme = "README.md"
+repository = "https://github.com/gadomski/stac-incubator-rs"
+license = "MIT OR Apache-2.0"
+keywords = ["geospatial", "stac", "metadata", "geo", "raster"]
+categories = ["science", "data-structures"]
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+console = "0.15"
+indicatif = "0.17"
+reqwest = "0.11"
+serde = "1"
+stac = { version = "0.3", features = ["jsonschema"], path = "../stac" }
+stac-async = { version = "0.3", path = "../stac-async" }
+thiserror = "1"
+tokio = { version = "1.23", features = ["macros", "rt-multi-thread"] }
+url = "2"
+
+[[bin]]
+name = "stac"
+path = "src/main.rs"
+doc = false
+test = false
