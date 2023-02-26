@@ -19,6 +19,7 @@ Rust implementation of the [SpatioTemporal Asset Catalog (STAC)](https://stacspe
 | **stac** | Core data structures and synchronous I/O | [![README](https://img.shields.io/static/v1?label=README&message=stac&color=informational&style=flat-square)](./stac/README.md) <br> [![docs.rs](https://img.shields.io/docsrs/stac?style=flat-square)](https://docs.rs/stac/latest/stac/) <br> [![Crates.io](https://img.shields.io/crates/v/stac?style=flat-square)](https://crates.io/crates/stac) |
 | **stac-api** | Data structures for the [STAC API](https://github.com/radiantearth/stac-api-spec) specification | [![README](https://img.shields.io/static/v1?label=README&message=stac-api&color=informational&style=flat-square)](./stac-api/README.md) <br> [![docs.rs](https://img.shields.io/docsrs/stac-api?style=flat-square)](https://docs.rs/stac-api/latest/stac_api/) <br> [![Crates.io](https://img.shields.io/crates/v/stac-api?style=flat-square)](https://crates.io/crates/stac-api)
 | **stac-async** | Asynchronous I/O with [tokio](https://tokio.rs/) | [![README](https://img.shields.io/static/v1?label=README&message=stac-async&color=informational&style=flat-square)](./stac-async/README.md) <br> [![docs.rs](https://img.shields.io/docsrs/stac-async?style=flat-square)](https://docs.rs/stac-async/latest/stac_async/) <br> [![Crates.io](https://img.shields.io/crates/v/stac-async?style=flat-square)](https://crates.io/crates/stac-async)
+| **stac-cli** | Command line interface | [![README](https://img.shields.io/static/v1?label=README&message=stac-cli&color=informational&style=flat-square)](./stac-cli/README.md) <br> [![docs.rs](https://img.shields.io/docsrs/stac-cli?style=flat-square)](https://docs.rs/stac-cli/latest/stac_cli/) <br> [![Crates.io](https://img.shields.io/crates/v/stac-cli?style=flat-square)](https://crates.io/crates/stac-cli)
 
 ## Usage
 
@@ -44,6 +45,12 @@ If you're using [STAC API](https://github.com/radiantearth/stac-api-spec) data s
 stac-api = "0.1"
 ```
 
+To install the CLI:
+
+```shell
+cargo install stac-cli
+```
+
 ## Development
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for information about contributing to this project.
@@ -55,7 +62,6 @@ We have a growing suite of projects in the Rust+STAC ecosystem:
 
 - [pgstac-rs](https://github.com/gadomski/pgstac-rs): Rust interface for [pgstac](https://github.com/stac-utils/pgstac), PostgreSQL schema and functions for STAC
 - [stac-server-rs](https://github.com/gadomski/stac-server-rs): A STAC API server implementation
-- [stac-incubator-rs](https://github.com/gadomski/stac-incubator-rs): Fledgling projects not yet ready to live on their own in a standalone repo
 - [pc-rs](https://github.com/gadomski/pc-rs): Small command line utility for downloading assets from the [Planetary Computer](https://planetarycomputer.microsoft.com/)
 
 ## License
