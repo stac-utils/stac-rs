@@ -13,11 +13,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Item paging ([#133](https://github.com/gadomski/stac-rs/pull/133))
 - `Client::request` and `Client::request_from_link` ([#133](https://github.com/gadomski/stac-rs/pull/133))
 - Mocks for testing ([#133](https://github.com/gadomski/stac-rs/pull/133))
+- Downloading ([#142](https://github.com/gadomski/stac-rs/pull/142))
 
 ### Changed
 
 - Refactored to modules ([#130](https://github.com/gadomski/stac-rs/pull/130))
 - `stac_async::read` now can return anything that deserializes and implements `Href` ([#135](https://github.com/gadomski/stac-rs/pull/135))
+
+### Fixed
+
+- Reading Windows hrefs ([#142](https://github.com/gadomski/stac-rs/pull/142))
 
 ## [0.3.0] - 2023-01-08
 
