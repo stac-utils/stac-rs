@@ -265,6 +265,13 @@ impl TryFrom<Collection> for Map<String, Value> {
     }
 }
 
+impl TryFrom<Map<String, Value>> for Collection {
+    type Error = serde_json::Error;
+    fn try_from(map: Map<String, Value>) -> std::result::Result<Self, Self::Error> {
+        serde_json::from_value(Value::Object(map))
+    }
+}
+
 fn deserialize_type<'de, D>(deserializer: D) -> std::result::Result<String, D::Error>
 where
     D: serde::de::Deserializer<'de>,

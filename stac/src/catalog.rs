@@ -114,6 +114,13 @@ impl TryFrom<Catalog> for Map<String, Value> {
     }
 }
 
+impl TryFrom<Map<String, Value>> for Catalog {
+    type Error = serde_json::Error;
+    fn try_from(map: Map<String, Value>) -> std::result::Result<Self, Self::Error> {
+        serde_json::from_value(Value::Object(map))
+    }
+}
+
 impl Extensions for Catalog {
     fn extensions(&self) -> Option<&[String]> {
         self.extensions.as_deref()
