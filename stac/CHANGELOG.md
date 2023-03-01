@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - `Link::remove_relative_hrefs` ([#142](https://github.com/gadomski/stac-rs/pull/142))
 - `stac::href_to_url` ([#142](https://github.com/gadomski/stac-rs/pull/142))
 - `TryFrom<Map<String, Value>>` for all three object types ([#149](https://github.com/gadomski/stac-rs/pull/149))
+- `FromIterator` for `ItemCollection` ([#151](https://github.com/gadomski/stac-rs/pull/151))
 
 ### Changed
 
