@@ -49,6 +49,12 @@ impl From<Vec<Item>> for ItemCollection {
     }
 }
 
+impl FromIterator<Item> for ItemCollection {
+    fn from_iter<I: IntoIterator<Item = Item>>(iter: I) -> Self {
+        iter.into_iter().collect::<Vec<_>>().into()
+    }
+}
+
 impl Href for ItemCollection {
     fn href(&self) -> Option<&str> {
         self.href.as_deref()
@@ -91,5 +97,11 @@ mod tests {
     fn item_collection_from_vec() {
         let items = vec![Item::new("a"), Item::new("b")];
         let _ = ItemCollection::from(items);
+    }
+
+    #[test]
+    fn item_collection_from_iter() {
+        let items = vec![Item::new("a"), Item::new("b")];
+        let _ = ItemCollection::from_iter(items.into_iter());
     }
 }
