@@ -9,6 +9,7 @@ use url::Url;
 
 const DEFAULT_FILE_NAME: &str = "download.json";
 const DEFAULT_WRITE_STAC: bool = true;
+const DEFAULT_CREATE_DIRECTORY: bool = true;
 
 /// Downloads all assets from a [Item](stac::Item) or [Collection](stac::Collection).
 ///
@@ -66,6 +67,7 @@ pub struct Downloader<T: Links + Assets + Href + Serialize + Clone> {
     stac: T,
     client: Client,
     file_name: String,
+    create_directory: bool,
     write_stac: bool,
 }
 
@@ -100,8 +102,26 @@ impl<T: Links + Assets + Href + Serialize + Clone> Downloader<T> {
             stac,
             client: Client::new(),
             file_name: file_name.unwrap_or_else(|| DEFAULT_FILE_NAME.to_string()),
+            create_directory: DEFAULT_CREATE_DIRECTORY,
             write_stac: DEFAULT_WRITE_STAC,
         })
+    }
+
+    /// Should the downloader create the output directory?
+    ///
+    /// Defaults to `true`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let item: stac::Item = stac::read("data/simple-item.json").unwrap();
+    /// let downloader = stac_async::Downloader::new(item)
+    ///     .unwrap()
+    ///     .create_directory(false);
+    /// ```
+    pub fn create_directory(mut self, create_directory: bool) -> Downloader<T> {
+        self.create_directory = create_directory;
+        self
     }
 
     /// Downloads assets to the specified directory.
@@ -120,7 +140,9 @@ impl<T: Links + Assets + Href + Serialize + Clone> Downloader<T> {
     pub async fn download(mut self, directory: impl AsRef<Path>) -> Result<T> {
         let mut join_set = JoinSet::new();
         let directory = directory.as_ref();
-        tokio::fs::create_dir_all(directory).await?;
+        if self.create_directory {
+            tokio::fs::create_dir_all(directory).await?;
+        }
         for asset_downloader in self.asset_downloaders() {
             let directory = directory.to_path_buf();
             let _ = join_set.spawn(async move { asset_downloader.download_to(directory) });
