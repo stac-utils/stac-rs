@@ -145,7 +145,7 @@ impl<T: Links + Assets + Href + Serialize + Clone> Downloader<T> {
         }
         for asset_downloader in self.asset_downloaders() {
             let directory = directory.to_path_buf();
-            let _ = join_set.spawn(async move { asset_downloader.download_to(directory) });
+            let _ = join_set.spawn(async move { asset_downloader.download(directory) });
         }
         let path = directory.join(self.file_name);
         self.stac.set_link(Link::self_(path.to_string_lossy()));
@@ -175,7 +175,7 @@ impl<T: Links + Assets + Href + Serialize + Clone> Downloader<T> {
 }
 
 impl AssetDownloader {
-    async fn download_to(mut self, directory: impl AsRef<Path>) -> Result<(String, Asset)> {
+    async fn download(mut self, directory: impl AsRef<Path>) -> Result<(String, Asset)> {
         let url = Url::parse(&self.asset.href)?;
         let file_name = url
             .path_segments()
