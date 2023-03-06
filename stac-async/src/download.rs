@@ -149,7 +149,6 @@ impl<T: Links + Assets + Href + Serialize + Clone> Downloader<T> {
         }
         let path = directory.join(self.file_name);
         self.stac.set_link(Link::self_(path.to_string_lossy()));
-        self.stac.assets_mut().clear();
         while let Some(result) = join_set.join_next().await {
             let (key, asset) = result?.await?;
             let _ = self.stac.assets_mut().insert(key, asset);
@@ -160,12 +159,11 @@ impl<T: Links + Assets + Href + Serialize + Clone> Downloader<T> {
         Ok(self.stac)
     }
 
-    fn asset_downloaders(&self) -> impl Iterator<Item = AssetDownloader> {
+    fn asset_downloaders(&mut self) -> impl Iterator<Item = AssetDownloader> + '_ {
         let client = self.client.clone();
         self.stac
-            .assets()
-            .clone()
-            .into_iter()
+            .assets_mut()
+            .drain()
             .map(move |(key, asset)| AssetDownloader {
                 key,
                 asset,
