@@ -31,6 +31,12 @@ pub enum Error {
     #[error("not found: {0}")]
     NotFound(Url),
 
+    /// [tokio::sync::mpsc::error::SendError] for [crate::download::Message].
+    #[error(transparent)]
+    TokioMpscSendDownloadMessageError(
+        #[from] tokio::sync::mpsc::error::SendError<crate::download::Message>,
+    ),
+
     /// [serde_json::Error]
     #[error(transparent)]
     SerdeJson(#[from] serde_json::Error),

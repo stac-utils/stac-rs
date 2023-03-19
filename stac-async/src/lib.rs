@@ -44,7 +44,7 @@
 
 mod api_client;
 mod client;
-mod download;
+pub mod download;
 mod error;
 mod io;
 
