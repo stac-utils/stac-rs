@@ -1,10 +1,12 @@
-use crate::Result;
+//! Download assets.
+
+use crate::{Error, Result};
 use async_trait::async_trait;
 use reqwest::Client;
 use serde::Serialize;
 use stac::{Asset, Assets, Collection, Href, Item, Link, Links, Value};
-use std::path::Path;
-use tokio::{fs::File, io::AsyncWriteExt, task::JoinSet};
+use std::path::{Path, PathBuf};
+use tokio::{fs::File, io::AsyncWriteExt, sync::mpsc::Sender, task::JoinSet};
 use url::Url;
 
 const DEFAULT_FILE_NAME: &str = "download.json";
@@ -68,14 +70,60 @@ pub struct Downloader<T: Links + Assets + Href + Serialize + Clone> {
     client: Client,
     file_name: String,
     create_directory: bool,
+    sender: Option<Sender<Message>>,
     write_stac: bool,
+}
+
+/// A message from a downloader.
+#[derive(Debug)]
+pub enum Message {
+    /// Create a download directory.
+    CreateDirectory(PathBuf),
+
+    /// Send a GET request for an asset.
+    GetAsset {
+        /// The asset downloader id.
+        id: usize,
+
+        /// The url of the asset.
+        url: Url,
+    },
+
+    /// Got a successful asset response.
+    GotAsset {
+        /// The asset downloader id.
+        id: usize,
+
+        /// The length of the asset response.
+        content_length: Option<u64>,
+    },
+
+    /// Update the number of bytes written.
+    Update {
+        /// The asset downloader id.
+        id: usize,
+
+        /// Then umber of bytes written.
+        bytes_written: usize,
+    },
+
+    /// The download is finished.
+    FinishedDownload(usize),
+
+    /// All downloads are finished.
+    FinishedAllDownloads,
+
+    /// Write the stac file to the local filesystem.
+    WriteStac(PathBuf),
 }
 
 #[derive(Debug)]
 struct AssetDownloader {
+    id: usize,
     key: String,
     asset: Asset,
     client: Client,
+    sender: Option<Sender<Message>>,
 }
 
 impl<T: Links + Assets + Href + Serialize + Clone> Downloader<T> {
@@ -103,6 +151,7 @@ impl<T: Links + Assets + Href + Serialize + Clone> Downloader<T> {
             client: Client::new(),
             file_name: file_name.unwrap_or_else(|| DEFAULT_FILE_NAME.to_string()),
             create_directory: DEFAULT_CREATE_DIRECTORY,
+            sender: None,
             write_stac: DEFAULT_WRITE_STAC,
         })
     }
@@ -124,6 +173,16 @@ impl<T: Links + Assets + Href + Serialize + Clone> Downloader<T> {
         self
     }
 
+    /// Set the sender for messages from this downloader.
+    ///
+    /// # Examples
+    ///
+    /// TODO
+    pub fn with_sender(mut self, sender: Sender<Message>) -> Downloader<T> {
+        self.sender = Some(sender);
+        self
+    }
+
     /// Downloads assets to the specified directory.
     ///
     /// Consumes this downloader, and returns the modified object.
@@ -141,57 +200,102 @@ impl<T: Links + Assets + Href + Serialize + Clone> Downloader<T> {
         let mut join_set = JoinSet::new();
         let directory = directory.as_ref();
         if self.create_directory {
+            self.send(|| Message::CreateDirectory(directory.to_path_buf()))
+                .await?;
             tokio::fs::create_dir_all(directory).await?;
         }
         for asset_downloader in self.asset_downloaders() {
             let directory = directory.to_path_buf();
             let _ = join_set.spawn(async move { asset_downloader.download(directory) });
         }
-        let path = directory.join(self.file_name);
+        let path = directory.join(&self.file_name);
         self.stac.set_link(Link::self_(path.to_string_lossy()));
         while let Some(result) = join_set.join_next().await {
+            // TODO we should allow some assets to gracefully fail, maybe?
             let (key, asset) = result?.await?;
             let _ = self.stac.assets_mut().insert(key, asset);
         }
+        self.send(|| Message::FinishedAllDownloads).await?;
         if self.write_stac {
+            self.send(|| Message::WriteStac(path.clone())).await?;
             crate::write_json_to_path(path, serde_json::to_value(self.stac.clone())?).await?;
         }
         Ok(self.stac)
     }
 
-    fn asset_downloaders(&mut self) -> impl Iterator<Item = AssetDownloader> + '_ {
-        let client = self.client.clone();
+    fn asset_downloaders(&mut self) -> Vec<AssetDownloader> {
         self.stac
             .assets_mut()
             .drain()
-            .map(move |(key, asset)| AssetDownloader {
+            .enumerate()
+            .map(|(id, (key, asset))| AssetDownloader {
+                id,
                 key,
                 asset,
-                client: client.clone(),
+                client: self.client.clone(),
+                sender: self.sender.clone(),
             })
+            .collect()
+    }
+
+    async fn send(&mut self, f: impl Fn() -> Message) -> Result<()> {
+        if let Some(sender) = &mut self.sender {
+            sender.send(f()).await.map_err(Error::from)
+        } else {
+            Ok(())
+        }
     }
 }
 
 impl AssetDownloader {
     async fn download(mut self, directory: impl AsRef<Path>) -> Result<(String, Asset)> {
+        let id = self.id;
         let url = Url::parse(&self.asset.href)?;
         let file_name = url
             .path_segments()
             .and_then(|s| s.last().map(|s| s.to_string()))
             .unwrap_or_else(|| self.key.clone());
+        self.send(|| Message::GetAsset {
+            id,
+            url: url.clone(),
+        })
+        .await?;
         let mut response = self
             .client
-            .get(self.asset.href)
+            .get(&self.asset.href)
             .send()
             .await
             .and_then(|response| response.error_for_status())?;
+        let content_length = response.content_length();
+        self.send(|| Message::GotAsset { id, content_length })
+            .await?;
         let path = directory.as_ref().join(file_name.clone());
         let mut file = File::create(path).await?;
+        let mut bytes_written = 0;
         while let Some(chunk) = response.chunk().await? {
             file.write_all(&chunk).await?;
+            bytes_written += chunk.len();
+            self.try_send(|| Message::Update { id, bytes_written });
         }
+        self.try_send(|| Message::FinishedDownload(id));
         self.asset.href = format!("./{}", file_name);
         Ok((self.key, self.asset))
+    }
+
+    async fn send(&mut self, f: impl Fn() -> Message) -> Result<()> {
+        if let Some(sender) = &mut self.sender {
+            sender.send(f()).await.map_err(Error::from)
+        } else {
+            Ok(())
+        }
+    }
+
+    /// Sometimes we want to send without erroring, e.g. during a download when
+    /// the buffer might fill up.
+    fn try_send(&mut self, f: impl Fn() -> Message) {
+        if let Some(sender) = &mut self.sender {
+            let _ = sender.try_send(f());
+        }
     }
 }
 
