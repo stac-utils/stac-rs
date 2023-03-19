@@ -13,7 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Item paging ([#133](https://github.com/gadomski/stac-rs/pull/133))
 - `Client::request` and `Client::request_from_link` ([#133](https://github.com/gadomski/stac-rs/pull/133))
 - Mocks for testing ([#133](https://github.com/gadomski/stac-rs/pull/133))
-- Downloading ([#142](https://github.com/gadomski/stac-rs/pull/142))
+- Downloading ([#142](https://github.com/gadomski/stac-rs/pull/142), [#152](https://github.com/gadomski/stac-rs/pull/152))
 
 ### Changed
 
