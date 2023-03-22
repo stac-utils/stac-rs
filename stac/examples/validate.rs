@@ -7,9 +7,7 @@ fn main() {
             "ERROR: wrong number of arguments (expected 2, got {})",
             args.len()
         );
-        eprintln!(
-            "USAGE: cargo run --example validate --feature jsonschema example/invalid-item.json"
-        );
+        eprintln!("USAGE: cargo run --example validate example/invalid-item.json");
         std::process::exit(1)
     }
     let value: Value = stac::read(&args[1]).unwrap();
