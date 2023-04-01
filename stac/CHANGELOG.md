@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.4.0] - 2023-04-01
+
 ### Added
 
 - `Deserialize` for `Value` ([#135](https://github.com/gadomski/stac-rs/pull/135))
@@ -210,7 +212,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 Initial release.
 
-[Unreleased]: https://github.com/gadomski/stac-rs/compare/stac-v0.3.1...main
+[Unreleased]: https://github.com/gadomski/stac-rs/compare/stac-v0.4.0...main
+[0.4.0]: https://github.com/gadomski/stac-rs/compare/stac-v0.3.2...stac-v0.4.0
 [0.3.2]: https://github.com/gadomski/stac-rs/compare/stac-v0.3.1...stac-v0.3.2
 [0.3.1]: https://github.com/gadomski/stac-rs/compare/stac-v0.3.0...stac-v0.3.1
 [0.3.0]: https://github.com/gadomski/stac-rs/compare/v0.2.0...stac-v0.3.0

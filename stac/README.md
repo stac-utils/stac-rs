@@ -14,7 +14,7 @@ To use the library in your project:
 
 ```toml
 [dependencies]
-stac = "0.3"
+stac = "0.4"
 ```
 
 ### Features
@@ -27,7 +27,7 @@ The `jsonschema` feature enables validation against [json-schema](https://json-s
 
 ```toml
 [dependencies]
-stac = { version = "0.3", features = ["jsonschema"]}
+stac = { version = "0.4", features = ["jsonschema"]}
 ```
 
 The `jsonschema` feature also enables the `reqwest` feature.
@@ -38,7 +38,7 @@ If you'd like to use the library with `reqwest` for blocking remote reads:
 
 ```toml
 [dependencies]
-stac = { version = "0.3", features = ["reqwest"]}
+stac = { version = "0.4", features = ["reqwest"]}
 ```
 
 If `reqwest` is not enabled, `stac::read` will throw an error if you try to read from a url.
@@ -50,7 +50,7 @@ It is behind a feature because it adds a dependency, [serde_urlencoded](https://
 To enable:
 
 ```toml
-stac = { version = "0.3", features = ["set_query"]}
+stac = { version = "0.4", features = ["set_query"]}
 ```
 
 ## Examples
