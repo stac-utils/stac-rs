@@ -12,5 +12,6 @@ Moved over from [stac-incubator-rs](https://github.com/gadomski/stac-incubator-r
 ### Added
 
 - Downloading ([#142](https://github.com/gadomski/stac-rs/pull/142), [#152](https://github.com/gadomski/stac-rs/pull/152))
+- Validation ([#155](https://github.com/gadomski/stac-rs/pull/155))
 
 [Unreleased]: https://github.com/gadomski/stac-rs/tree/main
