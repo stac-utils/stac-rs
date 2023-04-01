@@ -1,8 +1,13 @@
+use stac::Value;
 use url::Url;
 
 /// Crate-specific error type.
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
+    /// Cannot download assets for the given value.
+    #[error("cannot download")]
+    CannotDownload(Value),
+
     /// [reqwest::header::InvalidHeaderName]
     #[error(transparent)]
     InvalidHeaderName(#[from] reqwest::header::InvalidHeaderName),
