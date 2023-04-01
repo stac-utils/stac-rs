@@ -27,13 +27,14 @@ const DEFAULT_CREATE_DIRECTORY: bool = true;
 /// # })
 /// ```
 pub async fn download(href: impl ToString, directory: impl AsRef<Path>) -> Result<Value> {
-    match crate::read(href).await? {
+    let value = crate::read(href).await?;
+    match value {
         Value::Item(item) => item.download(directory).await.map(|item| Value::Item(item)),
         Value::Collection(collection) => collection
             .download(directory)
             .await
             .map(|collection| Value::Collection(collection)),
-        _ => unimplemented!(),
+        _ => Err(Error::CannotDownload(value)),
     }
 }
 

@@ -41,14 +41,14 @@ impl Command {
                 create_directory,
             } => {
                 use Value::*;
-                match stac_async::read(href).await? {
+                let value: Value = stac_async::read(href).await?;
+                match value {
                     Collection(collection) => {
-                        crate::download(collection, directory, create_directory).await?
+                        crate::download(collection, directory, create_directory).await
                     }
-                    Item(item) => crate::download(item, directory, create_directory).await?,
-                    _ => unimplemented!(),
+                    Item(item) => crate::download(item, directory, create_directory).await,
+                    _ => Err(Error::CannotDownload(value)),
                 }
-                Ok(())
             }
             Validate { href } => {
                 let value: Value = stac_async::read(href).await?;
