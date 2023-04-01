@@ -2,18 +2,15 @@
 
 ## Checklist
 
-1. Determine which packages you're releasing. While its not required, its
-probably safest to release most or all of the packages at the same time -- use
-your best judgement.
-2. Create a release branch.
-    - If you're only releasing one version (e.g. for a bugfix), name it `release/{package name}-{version}`, e.g. `release/stac-v1.2.3`.
-    - If you're releasing multiple versions, just use the date, e.g. `release/2023-02-26`.
-3. Determine each package's next version, and update their `Cargo.toml` files accordingly.
-4. Scan each README for references to version numbers, and update any that are needed.
-5. Update each package's CHANGELOG with a new section for the new version. Don't forget to update the links at the bottom, too.
-6. Test the release with `cargo release`. By default, this does a dry-run, so it won't actually do anything. If you're _not_ releasing every package, specify the packages you want with the `-p` flag.
-7. Use the normal pull request workflow to merge your branch.
-8. Once merged, run `cargo release --execute` to do the release. Use the same `-p` flags as you did during the dry run.
+1. Determine which package you're releasing. Only release one package at a time.
+2. Determine the package's next version
+3. Create a release branch named `release/{package name}-{version}`, e.g. `release/stac-v1.2.3`.
+4. Update the package's `Cargo.toml` file accordingly, and update the other packages' `Cargo.toml` if they depend on this package.
+5. Scan the package's README for references to version numbers, and update any that are needed.
+6. Update the package's CHANGELOG with a new section for the new version. Don't forget to update the links at the bottom, too.
+7. Test the release with `cargo release -p {package name}`. By default, this does a dry-run, so it won't actually do anything.
+8. Use the normal pull request workflow to merge your branch.
+9. Once merged, run `cargo release --execute` to do the release. Use the same `-p` flags as you did during the dry run.
 
 ## After-the-fact releases
 
