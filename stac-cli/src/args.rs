@@ -1,6 +1,6 @@
-use crate::Result;
+use crate::{Error, Result};
 use clap::{Parser, Subcommand};
-use stac::Value;
+use stac::{Validate, Value};
 use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
@@ -23,6 +23,12 @@ pub enum Command {
         #[arg(short, long, default_value_t = true)]
         create_directory: bool,
     },
+
+    /// Validate a STAC object using json-schema validation.
+    Validate {
+        /// The href of the STAC object.
+        href: String,
+    },
 }
 
 impl Command {
@@ -43,6 +49,29 @@ impl Command {
                     _ => unimplemented!(),
                 }
                 Ok(())
+            }
+            Validate { href } => {
+                let value: Value = stac_async::read(href).await?;
+                let result = {
+                    let value = value.clone();
+                    // TODO when https://github.com/gadomski/stac-rs/issues/118
+                    // is fixed, switch to using async validation.
+                    tokio::task::spawn_blocking(move || value.validate()).await?
+                };
+                if let Err(err) = result {
+                    for err in err {
+                        match err {
+                            stac::Error::ValidationError(err) => {
+                                println!("Validation error at {}: {}", err.instance_path, err)
+                            }
+                            _ => println!("{}", err),
+                        }
+                    }
+                    Err(Error::InvalidValue(value))
+                } else {
+                    println!("OK!");
+                    Ok(())
+                }
             }
         }
     }

@@ -1,10 +1,14 @@
 use crate::download::Progress;
+use stac::Value;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum Error {
     #[error(transparent)]
     Io(#[from] std::io::Error),
+
+    #[error("invalid STAC")]
+    InvalidValue(Value),
 
     #[error(transparent)]
     ProgressSend(#[from] tokio::sync::mpsc::error::SendError<Progress>),
@@ -18,6 +22,7 @@ pub enum Error {
 
 impl Error {
     pub fn return_code(&self) -> i32 {
-        unimplemented!()
+        // TODO make these codes more meaningful
+        1
     }
 }
