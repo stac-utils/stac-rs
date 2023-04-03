@@ -1,6 +1,6 @@
 [package]
 name = "stac-api"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Pete Gadomski <pete.gadomski@gmail.com>"]
 edition = "2021"
 description = "Rust library for the SpatioTemporal Asset Catalog (STAC) API specification"

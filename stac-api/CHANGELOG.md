@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.2.0] - 2023-04-03
+
 ### Added
 
 - `From<Vec<Collection>>` for `Collections` ([#124](https://github.com/gadomski/stac-rs/pull/124))
@@ -34,5 +36,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 Initial release
 
-[unreleased]: https://github.com/gadomski/stac-rs/compare/stac-api-v0.1.0...main
+[unreleased]: https://github.com/gadomski/stac-rs/compare/stac-api-v0.2.0...main
+[0.2.0]: https://github.com/gadomski/stac-rs/compare/stac-api-v0.1.0...stac-api-v0.2.0
 [0.1.0]: https://github.com/gadomski/stac-rs/releases/tag/stac-api-v0.1.0
