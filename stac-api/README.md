@@ -16,7 +16,7 @@ To use the library in your project:
 
 ```toml
 [dependencies]
-stac-api = "0.1"
+stac-api = "0.2"
 ```
 
 ## Examples
