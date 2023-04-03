@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.4.0] - 2023-04-03
+
 ### Added
 
 - `ApiClient` ([#130](https://github.com/gadomski/stac-rs/pull/130))
@@ -32,6 +34,7 @@ No changes.
 
 Initial release of **stac-async**.
 
-[Unreleased]: https://github.com/gadomski/stac-rs/compare/stac-async-v0.3.0...main
+[Unreleased]: https://github.com/gadomski/stac-rs/compare/stac-async-v0.4.0...main
+[0.4.0]: https://github.com/gadomski/stac-rs/compare/stac-async-v0.3.0...stac-async-v0.4.0
 [0.3.0]: https://github.com/gadomski/stac-rs/compare/stac-async-v0.2.0...stac-async-v0.3.0
 [0.2.0]: https://github.com/gadomski/stac-rs/releases/tag/stac-async-v0.2.0
