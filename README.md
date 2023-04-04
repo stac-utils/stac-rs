@@ -30,7 +30,7 @@ In your `Cargo.toml`:
 
 ```toml
 [dependencies]
-stac = "0.3"
+stac = "0.4"
 ```
 
 Then, in your project:
@@ -61,8 +61,8 @@ In your `Cargo.toml`:
 
 ```toml
 [dependencies]
-stac-api = "0.1"
-stac-async = "0.3"
+stac-api = "0.2"
+stac-async = "0.4"
 futures-util = "*"
 ```
 
@@ -94,7 +94,7 @@ Use [stac-api](./stac-api/README.md)
 
 ```toml
 [dependencies]
-stac-api = "0.1"
+stac-api = "0.2"
 ```
 
 See [stac-server-rs](https://github.com/gadomski/stac-server-rs) for one example of a STAC API server built using these crates.
