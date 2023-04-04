@@ -24,7 +24,7 @@ To use our [command-line interface (CLI)](./stac-cli/README.md), first install R
 Then:
 
 ```shell
-cargo install --git https://github.com/gadomski/stac-rs
+cargo install stac-cli
 ```
 
 You can download assets from a STAC item:
