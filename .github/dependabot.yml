@@ -1,0 +1,22 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "cargo"
+    directory: "/stac"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "cargo"
+    directory: "/stac-api"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "cargo"
+    directory: "/stac-async"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "cargo"
+    directory: "/stac-cli"
+    schedule:
+      interval: "weekly"
