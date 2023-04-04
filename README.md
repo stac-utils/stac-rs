@@ -1,8 +1,5 @@
 # stac-rs
 
-<!-- Allow html tags -->
-<!-- markdownlint-disable MD033 -->
-
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/gadomski/stac-rs/ci.yml?branch=main&style=for-the-badge)](https://github.com/gadomski/stac-rs/actions/workflows/ci.yml)
 ![Crates.io](https://img.shields.io/crates/l/stac?style=for-the-badge)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?style=for-the-badge)](./CODE_OF_CONDUCT)
@@ -21,83 +18,78 @@ Rust implementation of the [SpatioTemporal Asset Catalog (STAC)](https://stacspe
 | **stac-async** | Asynchronous I/O with [tokio](https://tokio.rs/) | [![README](https://img.shields.io/static/v1?label=README&message=stac-async&color=informational&style=flat-square)](./stac-async/README.md) <br> [![docs.rs](https://img.shields.io/docsrs/stac-async?style=flat-square)](https://docs.rs/stac-async/latest/stac_async/) <br> [![Crates.io](https://img.shields.io/crates/v/stac-async?style=flat-square)](https://crates.io/crates/stac-async)
 | **stac-cli** | Command line interface | [![README](https://img.shields.io/static/v1?label=README&message=stac-cli&color=informational&style=flat-square)](./stac-cli/README.md) <br> [![docs.rs](https://img.shields.io/docsrs/stac-cli?style=flat-square)](https://docs.rs/stac-cli/latest/stac_cli/) <br> [![Crates.io](https://img.shields.io/crates/v/stac-cli?style=flat-square)](https://crates.io/crates/stac-cli)
 
-## What are you trying to do?
+## Usage
 
-### Use STAC data structures in your own project
+To use our [command-line interface (CLI)](./stac-cli/README.md), first install Rust, e.g. with [rustup](https://rustup.rs/).
+Then:
 
-Use [stac](./stac/README.md).
-In your `Cargo.toml`:
+```shell
+cargo install --git https://github.com/gadomski/stac-rs
+```
+
+You can download assets from a STAC item:
+
+```shell
+stac download https://raw.githubusercontent.com/radiantearth/stac-spec/master/examples/simple-item.json .
+```
+
+To see a full list of available commands:
+
+```shell
+stac --help
+```
+
+### Rust API
+
+To use our Rust API:
 
 ```toml
 [dependencies]
 stac = "0.4"
 ```
 
-Then, in your project:
+Then:
 
 ```rust
 use stac::Item;
 let item = Item::new("an-id");
 ```
 
-### Use a command line interface
+See [the documentation](https://docs.rs/stac) for more.
 
-Install [stac-cli](./stac-cli/README.md) from crates.io:
+### Async
 
-```shell
-cargo install stac-cli
-```
-
-See all the subcommands available:
-
-```shell
-stac --help
-```
-
-### Asynchronously stream STAC objects from a STAC API
-
-Use the `ApiClient` from [stac-async](./stac-async/README.md).
-In your `Cargo.toml`:
+If you're doing async:
 
 ```toml
 [dependencies]
-stac-api = "0.2"
+stac = "0.4"
 stac-async = "0.4"
-futures-util = "*"
 ```
 
-Then, in your project:
+Then:
 
 ```rust
-use stac_async::ApiClient;
-use stac_api::Search;
-use futures_util::stream::StreamExt;
-
-let client = ApiClient::new("https://planetarycomputer.microsoft.com/api/stac/v1").unwrap();
-let search = Search {
-    collections: Some(vec!["sentinel-2-l2a".to_string()]),
-    limit: Some(1),
-    ..Default::deafult()
-};
-let items = Vec<_> = client
-    .search(search)
-    .await
-    .unwrap()
-    .map(|result| result.unwrap())
-    .collect()
-    .await;
+use stac::Item;
+let href = "https://raw.githubusercontent.com/radiantearth/stac-spec/master/examples/simple-item.json";
+let item = stac_async::read(href).await.unwrap();
 ```
 
-### Build a STAC API server
+See [the documentation](https://docs.rs/stac-async) for more.
 
-Use [stac-api](./stac-api/README.md)
+### STAC API
+
+The [STAC API](https://github.com/radiantearth/stac-api-spec) is related to the core [STAC specification](https://github.com/radiantearth/stac-api), and describes how a server should respond to requests for STAC data.
+To use our STAC API data structures:
 
 ```toml
 [dependencies]
 stac-api = "0.2"
 ```
 
-See [stac-server-rs](https://github.com/gadomski/stac-server-rs) for one example of a STAC API server built using these crates.
+See [the documentation](https://docs.rs/stac-api) for more.
+
+A full server implementation is beyond scope for this repository, but we've built one over at [stac-server-rs](https://github.com/gadomski/stac-server-rs).
 
 ## Development
 
@@ -106,7 +98,7 @@ See [RELEASING.md](./RELEASING.md) for a checklist to use when releasing a new v
 
 ## Ecosystem
 
-We have a growing suite of projects in the Rust+STAC ecosystem:
+Here's some related projects that use this repo:
 
 - [pgstac-rs](https://github.com/gadomski/pgstac-rs): Rust interface for [pgstac](https://github.com/stac-utils/pgstac), PostgreSQL schema and functions for STAC
 - [stac-server-rs](https://github.com/gadomski/stac-server-rs): A STAC API server implementation
@@ -116,3 +108,5 @@ We have a growing suite of projects in the Rust+STAC ecosystem:
 
 **stac-rs** is dual-licensed under both the MIT license and the Apache license (Version 2.0).
 See [LICENSE-APACHE](./LICENSE-APACHE) and [LICENSE-MIT](./LICENSE-MIT) for details.
+
+<!-- markdownlint-disable-file MD033 -->
