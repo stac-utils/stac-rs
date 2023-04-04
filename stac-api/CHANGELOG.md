@@ -17,7 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - `Conformance` structure ([#126](https://github.com/gadomski/stac-rs/pull/126))
 - `Default` for `Search` ([#126](https://github.com/gadomski/stac-rs/pull/126))
 - `Clone` for `Search` and its sub structs ([#130](https://github.com/gadomski/stac-rs/pull/130))
-- `Display` for `Fields` and `Sortby` ([#133](https://github.com/gadomski/stac-rs/pull/133)])
+- `Display` for `Fields` and `Sortby` ([#133](https://github.com/gadomski/stac-rs/pull/133))
 - `Filter` as an externally-tagged enum ([#133](https://github.com/gadomski/stac-rs/pull/133))
 - `Items` and `GetItems` for paging items ([#133](https://github.com/gadomski/stac-rs/pull/133))
 
