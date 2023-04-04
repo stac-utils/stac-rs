@@ -15,7 +15,7 @@ Install rust.
 Once you do:
 
 ```sh
-cargo install stac-cl
+cargo install stac-cli
 ```
 
 ## Usage
