@@ -51,7 +51,11 @@ impl ApiClient {
         self.client.get(url).await
     }
 
-    /// Returns a stream of items belonging to a collection.
+    /// Returns a stream of items belonging to a collection, using the [items
+    /// endpoint](https://github.com/radiantearth/stac-api-spec/tree/main/ogcapi-features#collection-items-collectionscollectioniditems).
+    ///
+    /// The `items` argument can be used to filter, sort, and otherwise
+    /// configure the request.
     ///
     /// # Examples
     ///
@@ -82,7 +86,7 @@ impl ApiClient {
         id: &str,
         items: impl Into<Option<Items>>,
     ) -> Result<impl Stream<Item = Result<Item>>> {
-        let url = self.url_builder.items(id)?;
+        let url = self.url_builder.items(id)?; // TODO HATEOS
         let items = if let Some(items) = items.into() {
             Some(items.into_get_items()?)
         } else {

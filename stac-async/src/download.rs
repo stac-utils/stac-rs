@@ -178,7 +178,27 @@ impl<T: Links + Assets + Href + Serialize + Clone> Downloader<T> {
     ///
     /// # Examples
     ///
-    /// TODO
+    /// ```no_run
+    /// use tokio::sync::mpsc;
+    /// use stac_async::Downloader;
+    /// use stac::Item;
+    ///
+    /// let (tx, mut rx)  = mpsc::channel(100);
+    /// let item: Item = stac::read("data/simple-item.json").unwrap();
+    /// let downloader = Downloader::new(item)
+    ///     .unwrap()
+    ///     .with_sender(tx);
+    ///
+    /// # tokio_test::block_on(async {
+    /// tokio::spawn(async move {
+    ///     downloader.download(".").await.unwrap()
+    /// });
+    ///
+    /// while let Some(message) = rx.recv().await {
+    ///     dbg!(message);
+    /// }
+    /// # })
+    /// ```
     pub fn with_sender(mut self, sender: Sender<Message>) -> Downloader<T> {
         self.sender = Some(sender);
         self
