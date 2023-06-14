@@ -264,6 +264,24 @@ pub trait Links {
         }
         removed
     }
+
+    /// Removes and returns all structural links.
+    ///
+    /// Useful if you're, e.g., going to re-populate the structural links as a
+    /// part of serving items with a STAC API.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::{Catalog, Links, Link};
+    /// let mut catalog = Catalog::new("an-id", "a description");
+    /// catalog.links.push(Link::self_("http://stac.test/catalog.json"));
+    /// catalog.remove_structural_links();
+    /// assert!(catalog.links.is_empty());
+    /// ```
+    fn remove_structural_links(&mut self) {
+        self.links_mut().retain(|link| !link.is_structural())
+    }
 }
 
 impl Link {
@@ -556,6 +574,9 @@ impl Link {
     /// Returns true if this link is structural (i.e. not child, parent, item,
     /// root, or self).
     ///
+    /// Also includes some API structural link types such as "data",
+    /// "conformance", "items", and "search".
+    ///
     /// # Examples
     ///
     /// ```
@@ -567,7 +588,20 @@ impl Link {
     /// let link = Link::new("an-href", "not-a-root");
     /// assert!(!link.is_structural());
     pub fn is_structural(&self) -> bool {
-        self.is_child() || self.is_item() || self.is_parent() || self.is_root() || self.is_self()
+        self.is_child()
+            || self.is_item()
+            || self.is_parent()
+            || self.is_root()
+            || self.is_self()
+            || self.is_collection()
+            || self.rel == "data"
+            || self.rel == "conformance"
+            || self.rel == "items"
+            || self.rel == "search"
+            || self.rel == "service-desc"
+            || self.rel == "service-doc"
+            || self.rel == "next"
+            || self.rel == "prev"
     }
 
     /// Returns true if this link's href is an absolute path or url.

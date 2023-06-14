@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+
+- `Links::remove_structural_links`, and more rel types to `Link::is_structural` ([#170](https://github.com/gadomski/stac-rs/pull/170))
+
 ## [0.4.0] - 2023-04-01
 
 ### Added
