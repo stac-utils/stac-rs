@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Conformance URIs ([#170](https://github.com/gadomski/stac-rs/pull/170))
+
+### Changed
+
+- Don't serialize a missing context in an `ItemCollection` ([#170](https://github.com/gadomski/stac-rs/pull/170))
+
+### Removed
+
+- `LinkBuilder` ([#170](https://github.com/gadomski/stac-rs/pull/170))
+
 ## [0.2.0] - 2023-04-03
 
 ### Added

@@ -3,7 +3,6 @@
 //! This crate **is**:
 //!
 //! - Data structures
-//! - Link building
 //!
 //! This crate **is not**:
 //!
@@ -24,32 +23,13 @@
 //!
 //! ```
 //! use stac::Catalog;
-//! use stac_api::{Root, Conformance};
+//! use stac_api::{Root, Conformance, CORE_URI};
 //! let root = Root {
 //!     catalog: Catalog::new("an-id", "a description"),
 //!     conformance: Conformance {
-//!         conforms_to: vec!["https://api.stacspec.org/v1.0.0-rc.2/core".to_string()]
+//!         conforms_to: vec![CORE_URI.to_string()]
 //!     },
 //! };
-//! ```
-//!
-//! # Build links
-//!
-//! The [LinkBuilder] structure can build links to parts of a STAC API.
-//! A [LinkBuilder] is created from a root href:
-//!
-//! ```
-//! use stac_api::LinkBuilder;
-//! let link_builder: LinkBuilder = "http://stac-api-rs.test/api/v1".parse().unwrap();
-//! ```
-//!
-//! Link builders provide a variety of methods for building links to all parts of a STAC API:
-//!
-//! ```
-//! # use stac_api::LinkBuilder;
-//! # let link_builder: LinkBuilder = "http://stac-api-rs.test/api/v1".parse().unwrap();
-//! let link = link_builder.collection_to_items("a-collection-id").unwrap();
-//! assert_eq!(link.href, "http://stac-api-rs.test/api/v1/collections/a-collection-id/items");
 //! ```
 
 #![deny(
@@ -82,7 +62,6 @@
     unused_results
 )]
 
-mod builder;
 mod collections;
 mod conformance;
 mod error;
@@ -93,11 +72,13 @@ mod items;
 mod root;
 mod search;
 mod sort;
+mod url_builder;
 
 pub use {
-    builder::{LinkBuilder, UrlBuilder},
     collections::Collections,
-    conformance::Conformance,
+    conformance::{
+        Conformance, COLLECTIONS_URI, CORE_URI, FEATURES_URI, GEOJSON_URI, OGC_API_FEATURES_URI,
+    },
     error::Error,
     fields::Fields,
     filter::Filter,
@@ -106,6 +87,7 @@ pub use {
     root::Root,
     search::Search,
     sort::Sortby,
+    url_builder::UrlBuilder,
 };
 
 /// Crate-specific result type.

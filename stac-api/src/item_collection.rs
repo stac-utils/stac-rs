@@ -34,6 +34,7 @@ pub struct ItemCollection {
     /// The search-related metadata for the [ItemCollection].
     ///
     /// Part of the [context extension](https://github.com/stac-api-extensions/context).
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub context: Option<Context>,
 
     /// Additional fields.
