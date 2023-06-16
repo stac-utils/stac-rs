@@ -618,31 +618,6 @@ impl Link {
     pub fn is_absolute(&self) -> bool {
         is_absolute(&self.href)
     }
-
-    /// Sets a link's href's query to anything serializable by [serde_urlencoded].
-    ///
-    /// Raises an error if the href is not parseable as a url. Requires the
-    /// `set_query` feature to be enabled.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use stac::Link;
-    /// let mut link = Link::new("http://stac-rs.test/", "a-rel");
-    /// link.set_query([("foo", "bar")]).unwrap();
-    /// assert_eq!(link.href, "http://stac-rs.test/?foo=bar");
-    /// ```
-    #[cfg(feature = "set_query")]
-    pub fn set_query<Q>(&mut self, query: Q) -> Result<()>
-    where
-        Q: Serialize,
-    {
-        let mut url: Url = self.href.parse()?;
-        let query = serde_urlencoded::to_string(query)?;
-        url.set_query(Some(&query));
-        self.href = url.to_string();
-        Ok(())
-    }
 }
 
 fn is_absolute(href: &str) -> bool {
