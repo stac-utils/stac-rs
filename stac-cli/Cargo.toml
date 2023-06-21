@@ -16,8 +16,9 @@ console = "0.15"
 indicatif = "0.17"
 reqwest = "0.11"
 serde = "1"
-stac = { version = "0.4", features = ["jsonschema"], path = "../stac" }
+stac = { version = "0.4", path = "../stac" }
 stac-async = { version = "0.4", path = "../stac-async" }
+stac-validate = { version = "0.1", path = "../stac-validate" }
 thiserror = "1"
 tokio = { version = "1.23", features = ["macros", "rt-multi-thread"] }
 url = "2"

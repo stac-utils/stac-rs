@@ -17,50 +17,43 @@ To use the library in your project:
 stac = "0.4"
 ```
 
-### Features
+## Examples
 
-There are three opt-in features: `jsonschema`, `reqwest`, and `set_query`.
+```rust
+use stac::Item;
 
-#### jsonschema
+// Creates an item from scratch.
+let item = Item::new("an-id");
 
-The `jsonschema` feature enables validation against [json-schema](https://json-schema.org/) definitions:
-
-```toml
-[dependencies]
-stac = { version = "0.4", features = ["jsonschema"]}
+// Reads an item from the filesystem.
+let item: Item = stac::read("data/simple-item.json").unwrap();
 ```
 
-The `jsonschema` feature also enables the `reqwest` feature.
+Please see the [documentation](https://docs.rs/stac) for more usage examples.
 
-#### reqwest
+## Features
 
-If you'd like to use the library with `reqwest` for blocking remote reads:
+There is one opt-in feature, `reqwest`, for blocking remote reads:
 
 ```toml
 [dependencies]
 stac = { version = "0.4", features = ["reqwest"]}
 ```
 
-If `reqwest` is not enabled, `stac::read` will throw an error if you try to read from a url.
-
-#### set_query
-
-The `set_query` feature adds a single method to `Link`.
-It is behind a feature because it adds a dependency, [serde_urlencoded](https://crates.io/crates/serde_urlencoded).
-To enable:
-
-```toml
-stac = { version = "0.4", features = ["set_query"]}
-```
-
-## Examples
+Then:
 
 ```rust
-// Create an item from scratch.
-let item = stac::Item::new("an-id");
-
-// Read an item from the filesystem.
-let item: stac::Item = stac::read("data/simple-item.json").unwrap();
+let href = "https://raw.githubusercontent.com/radiantearth/stac-spec/master/examples/simple-item.json";
+#[cfg(feature = "reqwest")]
+let item: stac::Item = stac::read(href).unwrap();
 ```
 
-Please see the [documentation](https://docs.rs/stac) for more usage examples.
+If `reqwest` is not enabled, `stac::read` will throw an error if you try to read from a url.
+
+```rust
+let href = "https://raw.githubusercontent.com/radiantearth/stac-spec/master/examples/simple-item.json";
+#[cfg(not(feature = "reqwest"))]
+let err = stac::read::<stac::Item>(href).unwrap_err();
+```
+
+For non-blocking IO, use the [**stac-async**](https://crates.io/crates/stac-async) crate.

@@ -1,0 +1,29 @@
+# stac-rs
+
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/gadomski/stac-rs/ci.yml?branch=main&style=for-the-badge)](https://github.com/gadomski/stac-rs/actions/workflows/ci.yml)
+[![docs.rs](https://img.shields.io/docsrs/stac-validate?style=for-the-badge)](https://docs.rs/stac-validate/latest/stac-validate/)
+[![Crates.io](https://img.shields.io/crates/v/stac-validate?style=for-the-badge)](https://crates.io/crates/stac-validate)
+![Crates.io](https://img.shields.io/crates/l/stac-validate?style=for-the-badge)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?style=for-the-badge)](./CODE_OF_CONDUCT)
+
+Validate [STAC](https://stacspec.org/) with [jsonschema](https://json-schema.org/).
+
+## Usage
+
+To use the library in your project:
+
+```toml
+[dependencies]
+stac = "0.4"
+stac-validate = "0.1"
+```
+
+## Examples
+
+```rust
+use stac_validate::Validate;
+let item: stac::Item = stac::read("data/simple-item.json").unwrap();
+item.validate().unwrap();
+```
+
+Please see the [documentation](https://docs.rs/stac-validate) for more usage examples.

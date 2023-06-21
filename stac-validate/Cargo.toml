@@ -1,0 +1,16 @@
+[package]
+name = "stac-validate"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+jsonschema = "0.17"
+reqwest = "0.11"
+serde = "1"
+serde_json = "1"
+stac = { version = "0.4", path = "../stac" }
+thiserror = "1"
+url = "2"
+
+[dev-dependencies]
+geojson = "0.24"

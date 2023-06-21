@@ -78,21 +78,6 @@
 //! let item: Item = stac::read("data/simple-item.json").unwrap();
 //! assert!(item.href().as_deref().unwrap().ends_with("data/simple-item.json"));
 //! ```
-//!
-//! # Validation
-//!
-//! If the `jsonschema` feature is enabled, objects can be validated against their [json-schema](https://json-schema.org/) definitions:
-//!
-//! ```
-//! #[cfg(feature = "jsonschema")]
-//! {
-//!     use stac::{Item, Validate};
-//!     let item = Item::new("an-id");
-//!     item.validate().unwrap();
-//! }
-//! ```
-//!
-//! See the `validate` module for more examples.
 
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 #![deny(
@@ -136,12 +121,8 @@ mod item;
 mod item_collection;
 pub mod link;
 pub mod media_type;
-#[cfg(feature = "jsonschema")]
-pub mod validate;
 mod value;
 
-#[cfg(feature = "jsonschema")]
-pub use validate::{Validate, Validator};
 pub use {
     asset::{Asset, Assets},
     catalog::{Catalog, CATALOG_TYPE},

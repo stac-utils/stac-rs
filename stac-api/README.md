@@ -22,10 +22,15 @@ stac-api = "0.2"
 ## Examples
 
 ```rust
+use stac_api::{Root, Conformance, CORE_URI};
+use stac::Catalog;
+
 // Build the root (landing page) endpoint.
-let root = stac_api::Root {
-    catalog: stac::Catalog::new("an-id", "a description"),
-    conformsTo: vec!["https://api.stacspec.org/v1.0.0-rc.2/core".to_string()],
+let root = Root {
+    catalog: Catalog::new("an-id", "a description"),
+    conformance: Conformance {
+        conforms_to: vec![CORE_URI.to_string()],
+    }
 };
 ```
 

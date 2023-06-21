@@ -1,5 +1,6 @@
 use crate::{Asset, Assets, Error, Extensions, Href, Link, Links, Result, STAC_VERSION};
 use chrono::Utc;
+use geo::BoundingRect;
 use geojson::Geometry;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
@@ -162,6 +163,34 @@ impl Item {
     pub fn collection_link(&self) -> Option<&Link> {
         self.links.iter().find(|link| link.is_collection())
     }
+
+    /// Sets this item's geometry.
+    ///
+    /// Also sets this item's bounding box.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::Item;
+    /// use geojson::{Geometry, Value};
+    ///
+    /// let mut item = Item::new("an-id");
+    /// item.set_geometry(Some(Geometry::new(Value::Point(vec![-105.1, 41.1]))));
+    /// assert_eq!(item.bbox.unwrap(), vec![-105.1, 41.1, -105.1, 41.1]);
+    /// ```
+    pub fn set_geometry(&mut self, geometry: impl Into<Option<Geometry>>) {
+        self.geometry = geometry.into();
+        self.bbox = self
+            .geometry
+            .as_ref()
+            .and_then(|geometry| geo::Geometry::try_from(geometry).ok())
+            .and_then(|geometry| geometry.bounding_rect())
+            .map(|rect| {
+                let min = rect.min();
+                let max = rect.max();
+                vec![min.x, min.y, max.x, max.y]
+            })
+    }
 }
 
 impl Href for Item {
@@ -234,6 +263,7 @@ where
 mod tests {
     use super::Item;
     use crate::STAC_VERSION;
+    use geojson::Geometry;
     use serde_json::Value;
 
     #[test]
@@ -271,6 +301,25 @@ mod tests {
         let mut item = Item::new("an-id");
         item.r#type = "Item".to_string(); // must be "Feature"
         assert!(serde_json::to_value(item).is_err());
+    }
+
+    #[test]
+    fn set_geometry_sets_bbox() {
+        let mut item = Item::new("an-id");
+        item.set_geometry(Some(Geometry::new(geojson::Value::Point(vec![
+            -105.1, 41.1,
+        ]))));
+        assert_eq!(item.bbox, Some(vec![-105.1, 41.1, -105.1, 41.1]));
+    }
+
+    #[test]
+    fn set_geometry_clears_bbox() {
+        let mut item = Item::new("an-id");
+        item.set_geometry(Some(Geometry::new(geojson::Value::Point(vec![
+            -105.1, 41.1,
+        ]))));
+        item.set_geometry(None);
+        assert_eq!(item.bbox, None);
     }
 
     mod roundtrip {

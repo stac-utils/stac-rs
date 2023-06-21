@@ -4,4 +4,5 @@ members = [
     "stac-api",
     "stac-async",
     "stac-cli",
+    "stac-validate",
 ]

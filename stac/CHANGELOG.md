@@ -9,10 +9,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 
 - `Links::remove_structural_links`, and more rel types to `Link::is_structural` ([#170](https://github.com/gadomski/stac-rs/pull/170))
+- `Item::set_geometry` ([#172](https://github.com/gadomski/stac-rs/pull/172))
 
 ### Removed
 
 - `Link::set_query` ([#171](https://github.com/gadomski/stac-rs/pull/171))
+- `jsonschema` feature (it's now in its own crate, **stac-validate**) ([#172](https://github.com/gadomski/stac-rs/pull/172))
 
 ## [0.4.0] - 2023-04-01
 

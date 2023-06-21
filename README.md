@@ -14,6 +14,7 @@ Rust implementation of the [SpatioTemporal Asset Catalog (STAC)](https://stacspe
 | Crate | Description | |
 | ----- | ---- | --------- |
 | **stac** | Core data structures and synchronous I/O | [![README](https://img.shields.io/static/v1?label=README&message=stac&color=informational&style=flat-square)](./stac/README.md) <br> [![docs.rs](https://img.shields.io/docsrs/stac?style=flat-square)](https://docs.rs/stac/latest/stac/) <br> [![Crates.io](https://img.shields.io/crates/v/stac?style=flat-square)](https://crates.io/crates/stac) |
+| **stac-validate** | Validate STAC data structures with [jsonschema](https://json-schema.org/) | [![README](https://img.shields.io/static/v1?label=README&message=stac-validate&color=informational&style=flat-square)](./stac-validate/README.md) <br> [![docs.rs](https://img.shields.io/docsrs/stac-validate?style=flat-square)](https://docs.rs/stac-validate/latest/stac-validate/) <br> [![Crates.io](https://img.shields.io/crates/v/stac-validate?style=flat-square)](https://crates.io/crates/stac-validate) |
 | **stac-api** | Data structures for the [STAC API](https://github.com/radiantearth/stac-api-spec) specification | [![README](https://img.shields.io/static/v1?label=README&message=stac-api&color=informational&style=flat-square)](./stac-api/README.md) <br> [![docs.rs](https://img.shields.io/docsrs/stac-api?style=flat-square)](https://docs.rs/stac-api/latest/stac_api/) <br> [![Crates.io](https://img.shields.io/crates/v/stac-api?style=flat-square)](https://crates.io/crates/stac-api)
 | **stac-async** | Asynchronous I/O with [tokio](https://tokio.rs/) | [![README](https://img.shields.io/static/v1?label=README&message=stac-async&color=informational&style=flat-square)](./stac-async/README.md) <br> [![docs.rs](https://img.shields.io/docsrs/stac-async?style=flat-square)](https://docs.rs/stac-async/latest/stac_async/) <br> [![Crates.io](https://img.shields.io/crates/v/stac-async?style=flat-square)](https://crates.io/crates/stac-async)
 | **stac-cli** | Command line interface | [![README](https://img.shields.io/static/v1?label=README&message=stac-cli&color=informational&style=flat-square)](./stac-cli/README.md) <br> [![docs.rs](https://img.shields.io/docsrs/stac-cli?style=flat-square)](https://docs.rs/stac-cli/latest/stac_cli/) <br> [![Crates.io](https://img.shields.io/crates/v/stac-cli?style=flat-square)](https://crates.io/crates/stac-cli)
@@ -39,57 +40,7 @@ To see a full list of available commands:
 stac --help
 ```
 
-### Rust API
-
-To use our Rust API:
-
-```toml
-[dependencies]
-stac = "0.4"
-```
-
-Then:
-
-```rust
-use stac::Item;
-let item = Item::new("an-id");
-```
-
-See [the documentation](https://docs.rs/stac) for more.
-
-### Async
-
-If you're doing async:
-
-```toml
-[dependencies]
-stac = "0.4"
-stac-async = "0.4"
-```
-
-Then:
-
-```rust
-use stac::Item;
-let href = "https://raw.githubusercontent.com/radiantearth/stac-spec/master/examples/simple-item.json";
-let item = stac_async::read(href).await.unwrap();
-```
-
-See [the documentation](https://docs.rs/stac-async) for more.
-
-### STAC API
-
-The [STAC API](https://github.com/radiantearth/stac-api-spec) is related to the core [STAC specification](https://github.com/radiantearth/stac-api), and describes how a server should respond to requests for STAC data.
-To use our STAC API data structures:
-
-```toml
-[dependencies]
-stac-api = "0.2"
-```
-
-See [the documentation](https://docs.rs/stac-api) for more.
-
-A full server implementation is beyond scope for this repository, but we've built one over at [stac-server-rs](https://github.com/gadomski/stac-server-rs).
+The other crates in this repository are libraries — see their respective READMEs and documentation for details on their usage.
 
 ## Development
 
@@ -102,7 +53,6 @@ Here's some related projects that use this repo:
 
 - [pgstac-rs](https://github.com/gadomski/pgstac-rs): Rust interface for [pgstac](https://github.com/stac-utils/pgstac), PostgreSQL schema and functions for STAC
 - [stac-server-rs](https://github.com/gadomski/stac-server-rs): A STAC API server implementation
-- [pc-rs](https://github.com/gadomski/pc-rs): Small command line utility for downloading assets from the [Planetary Computer](https://planetarycomputer.microsoft.com/)
 
 ## License
 
