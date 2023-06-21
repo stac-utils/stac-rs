@@ -26,7 +26,7 @@ pub trait Href {
 ///
 /// Otherwise, returns `None`. This is useful for determining whether
 /// a given href should be opened with a local filesystem reader or
-/// [reqwest].
+/// [reqwest](https://docs.rs/reqwest/latest/reqwest/).
 ///
 /// # Examples
 ///

@@ -1,6 +1,7 @@
 use crate::{Error, Result};
 use clap::{Parser, Subcommand};
-use stac::{Validate, Value};
+use stac::Value;
+use stac_validate::Validate;
 use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
@@ -54,23 +55,23 @@ impl Command {
                 let value: Value = stac_async::read(href).await?;
                 let result = {
                     let value = value.clone();
-                    // TODO when https://github.com/gadomski/stac-rs/issues/118
-                    // is fixed, switch to using async validation.
                     tokio::task::spawn_blocking(move || value.validate()).await?
                 };
-                if let Err(err) = result {
-                    for err in err {
-                        match err {
-                            stac::Error::ValidationError(err) => {
-                                println!("Validation error at {}: {}", err.instance_path, err)
-                            }
-                            _ => println!("{}", err),
-                        }
+                match result {
+                    Ok(()) => {
+                        println!("OK!");
+                        Ok(())
                     }
-                    Err(Error::InvalidValue(value))
-                } else {
-                    println!("OK!");
-                    Ok(())
+                    Err(stac_validate::Error::Validation(errors)) => {
+                        for err in &errors {
+                            println!("Validation error at {}: {}", err.instance_path, err)
+                        }
+                        Err(stac_validate::Error::Validation(errors).into())
+                    }
+                    Err(err) => {
+                        println!("Error while validating: {}", err);
+                        Err(err.into())
+                    }
                 }
             }
         }

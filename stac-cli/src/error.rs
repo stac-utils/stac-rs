@@ -20,6 +20,9 @@ pub enum Error {
     StacAsync(#[from] stac_async::Error),
 
     #[error(transparent)]
+    StacValidate(#[from] stac_validate::Error),
+
+    #[error(transparent)]
     TokioJoinError(#[from] tokio::task::JoinError),
 }
 

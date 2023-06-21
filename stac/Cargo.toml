@@ -11,13 +11,12 @@ keywords = ["geospatial", "stac", "metadata", "geo", "raster"]
 categories = ["science", "data-structures"]
 
 [features]
-jsonschema = ["dep:jsonschema", "reqwest"]
 reqwest = ["dep:reqwest"]
 
 [dependencies]
 chrono = "0.4"
+geo = "0.25"
 geojson = "0.24"
-jsonschema = { version = "0.17", optional = true, features = ["resolve-http"], default-features = false }
 reqwest = { version = "0.11", optional = true, features = ["json", "blocking"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
@@ -26,10 +25,6 @@ url = "2"
 
 [dev-dependencies]
 assert-json-diff = "2"
-
-[[example]]
-name = "validate"
-required-features = ["jsonschema"]
 
 [package.metadata.docs.rs]
 all-features = true
