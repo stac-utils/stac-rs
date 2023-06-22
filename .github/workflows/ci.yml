@@ -37,4 +37,4 @@ jobs:
       - name: Set up Rust cache
         uses: Swatinem/rust-cache@v2
       - name: Doc
-        run: cargo doc
+        run: cargo doc --all-features
