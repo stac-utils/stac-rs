@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.5.0] - 2023-06-27
+
 ### Added
 
 - `Links::remove_structural_links`, and more rel types to `Link::is_structural` ([#170](https://github.com/gadomski/stac-rs/pull/170))
@@ -222,7 +224,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 Initial release.
 
-[Unreleased]: https://github.com/gadomski/stac-rs/compare/stac-v0.4.0...main
+[Unreleased]: https://github.com/gadomski/stac-rs/compare/stac-v0.5.0...main
+[0.5.0]: https://github.com/gadomski/stac-rs/compare/stac-v0.4.0...stac-v0.5.0
 [0.4.0]: https://github.com/gadomski/stac-rs/compare/stac-v0.3.2...stac-v0.4.0
 [0.3.2]: https://github.com/gadomski/stac-rs/compare/stac-v0.3.1...stac-v0.3.2
 [0.3.1]: https://github.com/gadomski/stac-rs/compare/stac-v0.3.0...stac-v0.3.1
