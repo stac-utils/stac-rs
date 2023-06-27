@@ -19,7 +19,7 @@ http = "0.2"
 reqwest = { version ="0.11", features = ["json"] }
 serde = "1"
 serde_json = "1"
-stac = { version = "0.4", path = "../stac" }
+stac = { version = "0.5", path = "../stac" }
 stac-api = { version = "0.2", path = "../stac-api" }
 thiserror = "1"
 tokio = { version = "1.23", features = ["fs", "io-util"] }
