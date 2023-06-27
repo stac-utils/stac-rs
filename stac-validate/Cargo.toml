@@ -1,7 +1,14 @@
 [package]
 name = "stac-validate"
 version = "0.1.0"
+authors = ["Pete Gadomski <pete.gadomski@gmail.com>"]
 edition = "2021"
+description = "Validate STAC objects with jsonschema"
+homepage = "https://github.com/gadomski/stac-rs"
+repository = "https://github.com/gadomski/stac-rs"
+license = "MIT OR Apache-2.0"
+keywords = ["geospatial", "stac", "metadata", "geo", "raster"]
+categories = ["science", "data-structures"]
 
 [dependencies]
 jsonschema = "0.17"
