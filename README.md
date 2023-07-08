@@ -11,7 +11,7 @@ Rust implementation of the [SpatioTemporal Asset Catalog (STAC)](https://stacspe
 <img src="https://rustacean.net/assets/rustacean-orig-noshadow.svg" height=100>
 </p>
 
-| Crate | Description | |
+| Crate | Description | Badges |
 | ----- | ---- | --------- |
 | [stac](./stac/README.md) | Core data structures and synchronous I/O | [![docs.rs](https://img.shields.io/docsrs/stac?style=flat-square)](https://docs.rs/stac/latest/stac/) <br> [![Crates.io](https://img.shields.io/crates/v/stac?style=flat-square)](https://crates.io/crates/stac) |
 | [stac-validate](./stac-validate/README.md) | Validate STAC data structures with [jsonschema](https://json-schema.org/) | [![docs.rs](https://img.shields.io/docsrs/stac-validate?style=flat-square)](https://docs.rs/stac-validate/latest/stac-validate/) <br> [![Crates.io](https://img.shields.io/crates/v/stac-validate?style=flat-square)](https://crates.io/crates/stac-validate) |
