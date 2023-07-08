@@ -20,6 +20,7 @@ pub const GEOJSON_URI: &str = "http://www.opengis.net/spec/ogcapi-features-1/1.0
 /// implementations - and not "just" a specific API / server, the server has to
 /// declare the conformance classes it implements and conforms to.
 #[derive(Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 pub struct Conformance {
     /// The conformance classes it implements and conforms to.
     #[serde(rename = "conformsTo")]

@@ -18,6 +18,7 @@ pub const CATALOG_TYPE: &str = "Catalog";
 /// Their purpose is discovery: to be browsed by people or be crawled by clients
 /// to build a searchable index.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 pub struct Catalog {
     /// A list of extension identifiers the `Catalog` implements.
     #[serde(rename = "stac_extensions")]

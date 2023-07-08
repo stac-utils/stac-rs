@@ -83,6 +83,7 @@ pub struct Item {
 
 /// Additional metadata fields can be added to the GeoJSON Object Properties.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 pub struct Geometry {
     /// The geometry type.
     pub r#type: String,

@@ -8,6 +8,7 @@ use std::collections::HashMap;
 /// This is a lot like [Search](crate::Search), but without intersects, ids, and
 /// collections.
 #[derive(Clone, Default, Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 pub struct Items {
     /// The maximum number of results to return (page size).
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -58,6 +59,7 @@ pub struct Items {
 /// This is a lot like [Search](crate::Search), but without intersects, ids, and
 /// collections.
 #[derive(Clone, Default, Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 pub struct GetItems {
     /// The maximum number of results to return (page size).
     #[serde(skip_serializing_if = "Option::is_none")]

@@ -33,7 +33,7 @@ Please see the [documentation](https://docs.rs/stac) for more usage examples.
 
 ## Features
 
-There are two opt-in features.
+There are three opt-in features.
 
 ### reqwest
 
@@ -86,4 +86,14 @@ let mut item = Item::new("an-id");
     item.set_geometry(geometry).unwrap();
     assert!(item.bbox.is_some());
 }
+```
+
+### schemars
+
+`schemars` allows for [jsonschema](https://json-schema.org/) generation from STAC objects.
+This is mostly useful for auto-generating OpenAPI documentation for STAC APIs.
+
+```toml
+[dependencies]
+stac = { version = "0.5", features = ["schemars"]}
 ```

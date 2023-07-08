@@ -4,6 +4,7 @@ use std::collections::HashMap;
 
 /// An Asset is an object that contains a URI to data associated with the [Item](crate::Item) that can be downloaded or streamed.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 pub struct Asset {
     /// URI to the asset object.
     ///
