@@ -37,7 +37,7 @@ There is one opt-in feature, `reqwest`, for blocking remote reads:
 
 ```toml
 [dependencies]
-stac = { version = "0.4", features = ["reqwest"]}
+stac = { version = "0.5", features = ["reqwest"]}
 ```
 
 Then:
