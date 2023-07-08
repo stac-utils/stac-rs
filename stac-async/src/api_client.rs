@@ -60,19 +60,18 @@ impl ApiClient {
     /// # Examples
     ///
     /// ```no_run
-    /// use stac_api::Search;
+    /// use stac_api::Items;
     /// use stac_async::ApiClient;
     /// use futures_util::stream::StreamExt;
     ///
     /// let client = ApiClient::new("https://planetarycomputer.microsoft.com/api/stac/v1").unwrap();
-    /// let search = Search {
-    ///     collections: Some(vec!["sentinel-2-l2a".to_string()]),
+    /// let items = Items {
     ///     limit: Some(1),
     ///     ..Default::default()
     /// };
     /// # tokio_test::block_on(async {
     /// let items: Vec<_> = client
-    ///     .search(search)
+    ///     .items("sentinel-2-l2a", items)
     ///     .await
     ///     .unwrap()
     ///     .map(|result| result.unwrap())
