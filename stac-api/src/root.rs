@@ -24,6 +24,7 @@ use stac::Catalog;
 ///     URI is listed then the service must implement all of the required
 ///     capabilities.
 #[derive(Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 pub struct Root {
     /// The [stac::Catalog].
     #[serde(flatten)]

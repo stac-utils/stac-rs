@@ -4,6 +4,7 @@ use serde_json::{Map, Value};
 /// The language of the filter expression.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(tag = "filter-lang", content = "filter")]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 pub enum Filter {
     /// `cql2-text`
     #[serde(rename = "cql2-text")]

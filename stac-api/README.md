@@ -19,6 +19,14 @@ To use the library in your project:
 stac-api = "0.2"
 ```
 
+**stac-api** has one optional feature, `schemars`, which can be used to generate [jsonschema](https://json-schema.org/) documents for the API structures.
+This is useful for auto-generating OpenAPI documentation:
+
+```toml
+[dependencies]
+stac-api = { version = "0.2", features = ["schemars"] }
+```
+
 ## Examples
 
 ```rust

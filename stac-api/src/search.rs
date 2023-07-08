@@ -1,10 +1,11 @@
 use crate::{Fields, Filter, Sortby};
-use geojson::Geometry;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
+use stac::Geometry;
 
 /// The core parameters for STAC search are defined by OAFeat, and STAC adds a few parameters for convenience.
 #[derive(Clone, Default, Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 pub struct Search {
     /// The maximum number of results to return (page size).
     #[serde(skip_serializing_if = "Option::is_none")]

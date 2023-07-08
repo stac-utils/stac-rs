@@ -14,6 +14,7 @@ use std::{
 /// specification provides a mechanism for clients to request that servers to
 /// explicitly include or exclude certain fields.
 #[derive(Clone, Debug, Serialize, Deserialize, Default, PartialEq)]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 pub struct Fields {
     /// Fields to include.
     #[serde(skip_serializing_if = "Vec::is_empty")]

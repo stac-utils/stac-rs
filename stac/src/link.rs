@@ -32,6 +32,7 @@ pub const COLLECTION_REL: &str = "collection";
 /// crate](https://github.com/gadomski/stac-rs/stac-api), but in this case it
 /// was simpler to include these attributes in the base [Link] rather to create a new one.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 pub struct Link {
     /// The actual link in the format of an URL.
     ///
