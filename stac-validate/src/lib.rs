@@ -83,7 +83,8 @@ mod tests {
     #[test]
     fn item_with_geometry() {
         let mut item = Item::new("an-id");
-        item.set_geometry(Geometry::new(Value::Point(vec![-105.1, 40.1])));
+        item.set_geometry(Geometry::new(Value::Point(vec![-105.1, 40.1])))
+            .unwrap();
         item.validate().unwrap();
     }
 

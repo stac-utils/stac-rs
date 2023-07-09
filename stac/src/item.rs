@@ -1,7 +1,5 @@
 use crate::{Asset, Assets, Error, Extensions, Href, Link, Links, Result, STAC_VERSION};
 use chrono::Utc;
-use geo::BoundingRect;
-use geojson::Geometry;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::collections::HashMap;
@@ -81,6 +79,20 @@ pub struct Item {
 
     #[serde(skip)]
     href: Option<String>,
+}
+
+/// Additional metadata fields can be added to the GeoJSON Object Properties.
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+pub struct Geometry {
+    /// The geometry type.
+    pub r#type: String,
+
+    /// The other geometry attributes.
+    ///
+    /// `GeometryCollection` doesn't have a `coordinates` member, so we must
+    /// capture everything in a flat, generic array.
+    #[serde(flatten)]
+    pub attributes: Map<String, Value>,
 }
 
 /// Additional metadata fields can be added to the GeoJSON Object Properties.
@@ -178,10 +190,12 @@ impl Item {
     /// item.set_geometry(Some(Geometry::new(Value::Point(vec![-105.1, 41.1]))));
     /// assert_eq!(item.bbox.unwrap(), vec![-105.1, 41.1, -105.1, 41.1]);
     /// ```
-    pub fn set_geometry(&mut self, geometry: impl Into<Option<Geometry>>) {
-        self.geometry = geometry.into();
-        self.bbox = self
-            .geometry
+    #[cfg(feature = "geo")]
+    pub fn set_geometry(&mut self, geometry: impl Into<Option<geojson::Geometry>>) -> Result<()> {
+        use geo::BoundingRect;
+
+        let geometry = geometry.into();
+        self.bbox = geometry
             .as_ref()
             .and_then(|geometry| geo::Geometry::try_from(geometry).ok())
             .and_then(|geometry| geometry.bounding_rect())
@@ -189,7 +203,9 @@ impl Item {
                 let min = rect.min();
                 let max = rect.max();
                 vec![min.x, min.y, max.x, max.y]
-            })
+            });
+        self.geometry = serde_json::from_value(serde_json::to_value(geometry)?)?;
+        Ok(())
     }
 }
 
@@ -263,7 +279,6 @@ where
 mod tests {
     use super::Item;
     use crate::STAC_VERSION;
-    use geojson::Geometry;
     use serde_json::Value;
 
     #[test]
@@ -304,21 +319,27 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "geo")]
     fn set_geometry_sets_bbox() {
+        use geojson::Geometry;
         let mut item = Item::new("an-id");
         item.set_geometry(Some(Geometry::new(geojson::Value::Point(vec![
             -105.1, 41.1,
-        ]))));
+        ]))))
+        .unwrap();
         assert_eq!(item.bbox, Some(vec![-105.1, 41.1, -105.1, 41.1]));
     }
 
     #[test]
+    #[cfg(feature = "geo")]
     fn set_geometry_clears_bbox() {
+        use geojson::Geometry;
         let mut item = Item::new("an-id");
         item.set_geometry(Some(Geometry::new(geojson::Value::Point(vec![
             -105.1, 41.1,
-        ]))));
-        item.set_geometry(None);
+        ]))))
+        .unwrap();
+        item.set_geometry(None).unwrap();
         assert_eq!(item.bbox, None);
     }
 
