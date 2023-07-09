@@ -1,4 +1,4 @@
-use crate::{Error, Fields, Filter, Result, Sortby};
+use crate::{Error, Fields, Filter, Result, Search, Sortby};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::collections::HashMap;
@@ -104,28 +104,45 @@ pub struct GetItems {
 }
 
 impl Items {
-    /// Converts this items structure into a [GetItems].
-    ///
-    /// Used as query parameters in a GET request.
+    /// Converts this items object to a search in the given collection.
     ///
     /// # Examples
     ///
     /// ```
-    /// # use stac_api::{Items, GetItems, Fields};
+    /// use stac_api::Items;
     /// let items = Items {
-    ///     fields: Some(Fields {
-    ///         include: vec!["foo".to_string()],
-    ///         exclude: vec!["bar".to_string()],
-    ///     }),
+    ///     datetime: Some("2023".to_string()),
     ///     ..Default::default()
     /// };
-    /// let get_items = items.into_get_items().unwrap();
-    /// assert_eq!(get_items.fields.unwrap(), "foo,-bar");
-    pub fn into_get_items(self) -> Result<GetItems> {
-        if let Some(query) = self.query {
+    /// let search = items.into_search("collection-id");
+    /// assert_eq!(search.collections.unwrap(), vec!["collection-id"]);
+    /// ```
+    pub fn into_search(self, collection_id: impl ToString) -> Search {
+        Search {
+            limit: self.limit,
+            bbox: self.bbox,
+            datetime: self.datetime,
+            intersects: None,
+            ids: None,
+            collections: Some(vec![collection_id.to_string()]),
+            fields: self.fields,
+            sortby: self.sortby,
+            filter_crs: self.filter_crs,
+            filter: self.filter,
+            query: self.query,
+            additional_fields: self.additional_fields,
+        }
+    }
+}
+
+impl TryFrom<Items> for GetItems {
+    type Error = Error;
+
+    fn try_from(items: Items) -> Result<GetItems> {
+        if let Some(query) = items.query {
             return Err(Error::CannotConvertQueryToString(query));
         }
-        let filter = if let Some(filter) = self.filter {
+        let filter = if let Some(filter) = items.filter {
             match filter {
                 Filter::Cql2Json(json) => return Err(Error::CannotConvertCql2JsonToString(json)),
                 Filter::Cql2Text(text) => Some(text),
@@ -134,30 +151,157 @@ impl Items {
             None
         };
         Ok(GetItems {
-            limit: self.limit.map(|n| n.to_string()),
-            bbox: self.bbox.map(|bbox| {
+            limit: items.limit.map(|n| n.to_string()),
+            bbox: items.bbox.map(|bbox| {
                 bbox.into_iter()
                     .map(|n| n.to_string())
                     .collect::<Vec<_>>()
                     .join(",")
             }),
-            datetime: self.datetime,
-            fields: self.fields.map(|fields| fields.to_string()),
-            sortby: self.sortby.map(|sortby| {
+            datetime: items.datetime,
+            fields: items.fields.map(|fields| fields.to_string()),
+            sortby: items.sortby.map(|sortby| {
                 sortby
                     .into_iter()
                     .map(|s| s.to_string())
                     .collect::<Vec<_>>()
                     .join(",")
             }),
-            filter_crs: self.filter_crs,
+            filter_crs: items.filter_crs,
             filter_lang: filter.as_ref().map(|_| "cql2-text".to_string()),
             filter: filter,
-            additional_fields: self
+            additional_fields: items
                 .additional_fields
                 .into_iter()
                 .map(|(key, value)| (key, value.to_string()))
                 .collect(),
         })
+    }
+}
+
+impl TryFrom<GetItems> for Items {
+    type Error = Error;
+
+    fn try_from(get_items: GetItems) -> Result<Items> {
+        let bbox = if let Some(value) = get_items.bbox {
+            let mut bbox = Vec::new();
+            for s in value.split(",") {
+                bbox.push(s.parse()?)
+            }
+            Some(bbox)
+        } else {
+            None
+        };
+
+        let sortby = if let Some(value) = get_items.sortby {
+            let mut sortby = Vec::new();
+            for s in value.split(",") {
+                sortby.push(s.parse().expect("infallible"));
+            }
+            Some(sortby)
+        } else {
+            None
+        };
+
+        Ok(Items {
+            limit: get_items.limit.map(|limit| limit.parse()).transpose()?,
+            bbox,
+            datetime: get_items.datetime,
+            fields: get_items
+                .fields
+                .map(|fields| fields.parse().expect("infallible")),
+            sortby,
+            filter_crs: get_items.filter_crs,
+            filter: get_items.filter.map(Filter::Cql2Text),
+            query: None,
+            additional_fields: get_items
+                .additional_fields
+                .into_iter()
+                .map(|(key, value)| (key, Value::String(value)))
+                .collect(),
+        })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{GetItems, Items};
+    use crate::{sort::Direction, Fields, Filter, Sortby};
+    use serde_json::{Map, Value};
+    use std::collections::HashMap;
+
+    #[test]
+    fn get_items_try_from_items() {
+        let mut additional_fields = HashMap::new();
+        let _ = additional_fields.insert("token".to_string(), "foobar".to_string());
+
+        let get_items = GetItems {
+            limit: Some("42".to_string()),
+            bbox: Some("-1,-2,1,2".to_string()),
+            datetime: Some("2023".to_string()),
+            fields: Some("+foo,-bar".to_string()),
+            sortby: Some("-foo".to_string()),
+            filter_crs: None,
+            filter_lang: Some("cql2-text".to_string()),
+            filter: Some("dummy text".to_string()),
+            additional_fields,
+        };
+
+        let items: Items = get_items.try_into().unwrap();
+        assert_eq!(items.limit.unwrap(), 42);
+        assert_eq!(items.bbox.unwrap(), vec![-1.0, -2.0, 1.0, 2.0]);
+        assert_eq!(items.datetime.unwrap(), "2023");
+        assert_eq!(
+            items.fields.unwrap(),
+            Fields {
+                include: vec!["foo".to_string()],
+                exclude: vec!["bar".to_string()],
+            }
+        );
+        assert_eq!(
+            items.sortby.unwrap(),
+            vec![Sortby {
+                field: "foo".to_string(),
+                direction: Direction::Descending,
+            }]
+        );
+        assert_eq!(
+            items.filter.unwrap(),
+            Filter::Cql2Text("dummy text".to_string())
+        );
+        assert_eq!(items.additional_fields["token"], "foobar");
+    }
+
+    #[test]
+    fn items_try_from_get_items() {
+        let mut additional_fields = Map::new();
+        let _ = additional_fields.insert("token".to_string(), Value::String("foobar".to_string()));
+
+        let items = Items {
+            limit: Some(42),
+            bbox: Some(vec![-1.0, -2.0, 1.0, 2.0]),
+            datetime: Some("2023".to_string()),
+            fields: Some(Fields {
+                include: vec!["foo".to_string()],
+                exclude: vec!["bar".to_string()],
+            }),
+            sortby: Some(vec![Sortby {
+                field: "foo".to_string(),
+                direction: Direction::Descending,
+            }]),
+            filter_crs: None,
+            filter: Some(Filter::Cql2Text("dummy text".to_string())),
+            query: None,
+            additional_fields,
+        };
+
+        let get_items: GetItems = items.try_into().unwrap();
+        assert_eq!(get_items.limit.unwrap(), "42");
+        assert_eq!(get_items.bbox.unwrap(), "-1,-2,1,2");
+        assert_eq!(get_items.datetime.unwrap(), "2023");
+        assert_eq!(get_items.fields.unwrap(), "foo,-bar");
+        assert_eq!(get_items.sortby.unwrap(), "-foo");
+        assert_eq!(get_items.filter.unwrap(), "dummy text");
+        assert_eq!(get_items.additional_fields["token"], "\"foobar\"");
     }
 }

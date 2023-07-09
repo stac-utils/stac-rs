@@ -10,14 +10,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Conformance URIs ([#170](https://github.com/gadomski/stac-rs/pull/170))
 - `schemars` feature ([#177](https://github.com/gadomski/stac-rs/pull/177))
+- `PartialEq` to `Filter` ([#179](https://github.com/gadomski/stac-rs/pull/179))
+- `TryFrom` to go between `Items` and `GetItems` ([#179](https://github.com/gadomski/stac-rs/pull/179))
 
 ### Changed
 
 - Don't serialize a missing context in an `ItemCollection` ([#170](https://github.com/gadomski/stac-rs/pull/170))
 
+### Fixed
+
+- Strip plus sign from fields ([#179](https://github.com/gadomski/stac-rs/pull/179))
+
 ### Removed
 
 - `LinkBuilder` ([#170](https://github.com/gadomski/stac-rs/pull/170))
+- `Items.into_get_items` ([#179](https://github.com/gadomski/stac-rs/pull/179))
 
 ## [0.2.0] - 2023-04-03
 
