@@ -33,7 +33,11 @@ Please see the [documentation](https://docs.rs/stac) for more usage examples.
 
 ## Features
 
-There is one opt-in feature, `reqwest`, for blocking remote reads:
+There are two opt-in features.
+
+### reqwest
+
+`reqwest` enables blocking remote reads:
 
 ```toml
 [dependencies]
@@ -57,3 +61,29 @@ let err = stac::read::<stac::Item>(href).unwrap_err();
 ```
 
 For non-blocking IO, use the [**stac-async**](https://crates.io/crates/stac-async) crate.
+
+### geo
+
+To use [geojson](https://docs.rs/geojson) and [geo](https://docs.rs/geo) to add some extra geo-enabled methods:
+
+```toml
+[dependencies]
+stac = { version = "0.5", features = ["geo"] }
+```
+
+Then, you can set an item's geometry and bounding box at the same time:
+
+```rust
+use stac::Item;
+use geojson::{Geometry, Value};
+
+let geometry = Geometry::new(Value::Point(vec![
+    -105.1, 41.1,
+]));
+let mut item = Item::new("an-id");
+#[cfg(feature = "geo")]
+{
+    item.set_geometry(geometry).unwrap();
+    assert!(item.bbox.is_some());
+}
+```

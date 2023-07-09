@@ -11,12 +11,13 @@ keywords = ["geospatial", "stac", "metadata", "geo", "raster"]
 categories = ["science", "data-structures"]
 
 [features]
+geo = ["dep:geo", "dep:geojson"]
 reqwest = ["dep:reqwest"]
 
 [dependencies]
 chrono = "0.4"
-geo = "0.25"
-geojson = "0.24"
+geo = { version = "0.25", optional = true }
+geojson = { version = "0.24", optional = true }
 reqwest = { version = "0.11", optional = true, features = ["json", "blocking"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
