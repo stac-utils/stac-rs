@@ -14,6 +14,14 @@ pub enum Error {
     #[error("cannot convert cql2-json to strings")]
     CannotConvertCql2JsonToString(Map<String, Value>),
 
+    /// [std::num::ParseIntError]
+    #[error(transparent)]
+    ParseIntError(#[from] std::num::ParseIntError),
+
+    /// [std::num::ParseFloatError]
+    #[error(transparent)]
+    ParseFloatError(#[from] std::num::ParseFloatError),
+
     /// [serde_json::Error]
     #[error(transparent)]
     SerdeJson(#[from] serde_json::Error),

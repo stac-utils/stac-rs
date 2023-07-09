@@ -34,6 +34,8 @@ impl FromStr for Fields {
         for field in s.split(",").filter(|s| !s.is_empty()) {
             if field.starts_with('-') {
                 exclude.push(field[1..].to_string());
+            } else if field.starts_with("+") {
+                include.push(field[1..].to_string());
             } else {
                 include.push(field.to_string());
             }
@@ -62,6 +64,17 @@ mod tests {
     #[test]
     fn empty() {
         assert_eq!(Fields::default(), "".parse().unwrap());
+    }
+
+    #[test]
+    fn plus() {
+        assert_eq!(
+            Fields {
+                include: vec!["foo".to_string()],
+                exclude: Vec::new(),
+            },
+            "+foo".parse().unwrap()
+        );
     }
 
     #[test]

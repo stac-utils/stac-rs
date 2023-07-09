@@ -4,7 +4,7 @@ use futures_core::stream::Stream;
 use futures_util::{pin_mut, StreamExt};
 use reqwest::Method;
 use stac::{Collection, Links};
-use stac_api::{Item, ItemCollection, Items, Search, UrlBuilder};
+use stac_api::{GetItems, Item, ItemCollection, Items, Search, UrlBuilder};
 use tokio::sync::mpsc;
 
 const DEFAULT_CHANNEL_BUFFER: usize = 4;
@@ -87,7 +87,7 @@ impl ApiClient {
     ) -> Result<impl Stream<Item = Result<Item>>> {
         let url = self.url_builder.items(id)?; // TODO HATEOS
         let items = if let Some(items) = items.into() {
-            Some(items.into_get_items()?)
+            Some(GetItems::try_from(items)?)
         } else {
             None
         };
