@@ -3,6 +3,7 @@ use url::Url;
 
 /// Crate-specific error type.
 #[derive(Debug, thiserror::Error)]
+#[non_exhaustive]
 pub enum Error {
     /// Cannot download assets for the given value.
     #[error("cannot download")]

@@ -5,6 +5,7 @@ use url::Url;
 
 /// Crate-specific error type.
 #[derive(Debug, Error)]
+#[non_exhaustive]
 pub enum Error {
     /// Cannot resolve schemas with a json-schema scheme.
     #[error("cannot resolve json-schema scheme: {0}")]

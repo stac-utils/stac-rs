@@ -4,6 +4,7 @@ use thiserror::Error;
 
 /// Error enum for crate-specific errors.
 #[derive(Error, Debug)]
+#[non_exhaustive]
 pub enum Error {
     /// [chrono::ParseError]
     #[error(transparent)]

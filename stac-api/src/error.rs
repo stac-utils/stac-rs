@@ -3,6 +3,7 @@ use thiserror::Error;
 
 /// Crate-specific error enum.
 #[derive(Debug, Error)]
+#[non_exhaustive]
 pub enum Error {
     /// Queries cannot be converted to strings.
     #[error("cannot convert queries to strings")]
