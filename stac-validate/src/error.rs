@@ -42,7 +42,7 @@ pub enum Error {
     #[error("validation errors")]
     Validation(Vec<ValidationError<'static>>),
 
-    /// [jsonschema::ValidationError<'static>]
+    /// [jsonschema::ValidationError]
     #[error(transparent)]
     JSONSchemaValidation(#[from] ValidationError<'static>),
 }
