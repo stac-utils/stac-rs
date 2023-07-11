@@ -113,8 +113,11 @@
 mod asset;
 mod catalog;
 mod collection;
+pub mod datetime;
 mod error;
 mod extensions;
+#[cfg(feature = "geo")]
+pub mod geo;
 mod href;
 mod io;
 mod item;
