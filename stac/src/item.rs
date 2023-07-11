@@ -1,5 +1,5 @@
 use crate::{Asset, Assets, Error, Extensions, Href, Link, Links, Result, STAC_VERSION};
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::collections::HashMap;
@@ -208,6 +208,127 @@ impl Item {
         self.geometry = serde_json::from_value(serde_json::to_value(geometry)?)?;
         Ok(())
     }
+
+    /// Returns true if this item's geometry intersects the provided bounding box.
+    ///
+    /// TODO support three dimensional bounding boxes.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::Item;
+    /// use geojson::{Geometry, Value};
+    ///
+    /// let mut item = Item::new("an-id");
+    /// item.set_geometry(Some(Geometry::new(Value::Point(vec![-105.1, 41.1]))));
+    /// assert!(item.intersects_bbox(vec![-106.0, 41.0, -105.0, 42.0]).unwrap());
+    /// ```
+    #[cfg(feature = "geo")]
+    pub fn intersects_bbox(&self, bbox: Vec<f64>) -> Result<bool> {
+        use geo::{coord, Intersects, Rect};
+
+        if bbox.len() != 4 {
+            // TODO support three dimensional
+            return Err(Error::InvalidBbox(bbox));
+        }
+
+        if let Some(geometry) = self.geometry.clone() {
+            let geometry: geo::Geometry = geometry.try_into()?;
+            let bbox = Rect::new(
+                coord! { x: bbox[0], y: bbox[1] },
+                coord! { x: bbox[2], y: bbox[3] },
+            );
+            Ok(geometry.intersects(&bbox))
+        } else {
+            Ok(false)
+        }
+    }
+
+    /// Returns true if this item's datetime (or start and end datetimes)
+    /// intersects the provided datetime.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::Item;
+    /// let mut item = Item::new("an-id");
+    /// item.properties.datetime = Some("2023-07-11T12:00:00Z".to_string());
+    /// assert!(item.intersects_datetime("2023-07-11T00:00:00Z/2023-07-12T00:00:00Z").unwrap());
+    /// ```
+    pub fn intersects_datetime(&self, datetime: &str) -> Result<bool> {
+        let (start, end) = if datetime.contains("/") {
+            let mut iter = datetime.split("/");
+            let start = iter
+                .next()
+                .ok_or_else(|| Error::InvalidDatetime(datetime.to_string()))
+                .and_then(|s| {
+                    if s == ".." {
+                        Ok(None)
+                    } else {
+                        DateTime::parse_from_rfc3339(s)
+                            .map(|datetime| Some(datetime))
+                            .map_err(Error::from)
+                    }
+                })?;
+            let end = iter
+                .next()
+                .ok_or_else(|| Error::InvalidDatetime(datetime.to_string()))
+                .and_then(|s| {
+                    if s == ".." {
+                        Ok(None)
+                    } else {
+                        DateTime::parse_from_rfc3339(s)
+                            .map(Some)
+                            .map_err(Error::from)
+                    }
+                })?;
+            if iter.next().is_some() {
+                return Err(Error::InvalidDatetime(datetime.to_string()));
+            }
+            (start, end)
+        } else {
+            let datetime = DateTime::parse_from_rfc3339(datetime).map(Some)?;
+            (datetime, datetime)
+        };
+        let item_datetime = self
+            .properties
+            .datetime
+            .as_ref()
+            .map(|s| DateTime::parse_from_rfc3339(s))
+            .transpose()?;
+        let item_start = self
+            .properties
+            .additional_fields
+            .get("start_datetime")
+            .and_then(|value| value.as_str())
+            .map(|s| DateTime::parse_from_rfc3339(&s))
+            .transpose()?
+            .or(item_datetime);
+        let item_end = self
+            .properties
+            .additional_fields
+            .get("end_datetime")
+            .and_then(|value| value.as_str())
+            .map(|s| DateTime::parse_from_rfc3339(&s))
+            .transpose()?
+            .or(item_datetime);
+        let mut intersects = true;
+        if let Some(start) = start {
+            if let Some(item_end) = item_end {
+                if item_end < start {
+                    intersects = false;
+                }
+            }
+        }
+        if let Some(end) = end {
+            if let Some(item_start) = item_start {
+                if item_start > end {
+                    intersects = false;
+                }
+            }
+        }
+        Ok(intersects)
+    }
 }
 
 impl Href for Item {
@@ -259,6 +380,16 @@ impl TryFrom<Map<String, Value>> for Item {
     type Error = serde_json::Error;
     fn try_from(map: Map<String, Value>) -> std::result::Result<Self, Self::Error> {
         serde_json::from_value(Value::Object(map))
+    }
+}
+
+#[cfg(feature = "geo")]
+impl TryFrom<Geometry> for geo::Geometry {
+    type Error = Error;
+    fn try_from(geometry: Geometry) -> Result<geo::Geometry> {
+        serde_json::from_value::<geojson::Geometry>(serde_json::to_value(geometry)?)?
+            .try_into()
+            .map_err(Error::from)
     }
 }
 
@@ -342,6 +473,45 @@ mod tests {
         .unwrap();
         item.set_geometry(None).unwrap();
         assert_eq!(item.bbox, None);
+    }
+
+    #[test]
+    #[cfg(feature = "geo")]
+    fn insersects_bbox() {
+        use geojson::Geometry;
+        let mut item = Item::new("an-id");
+        item.set_geometry(Some(Geometry::new(geojson::Value::Point(vec![
+            -105.1, 41.1,
+        ]))))
+        .unwrap();
+        assert!(item
+            .intersects_bbox(vec![-106.0, 41.0, -105.0, 42.0])
+            .unwrap());
+    }
+
+    #[test]
+    fn intersects_datetime() {
+        let mut item = Item::new("an-id");
+        item.properties.datetime = Some("2023-07-11T12:00:00Z".to_string());
+        assert!(item.intersects_datetime("2023-07-11T12:00:00Z").unwrap());
+        assert!(item
+            .intersects_datetime("2023-07-11T00:00:00Z/2023-07-12T00:00:00Z")
+            .unwrap());
+        assert!(item.intersects_datetime("../2023-07-12T00:00:00Z").unwrap());
+        assert!(item.intersects_datetime("2023-07-11T00:00:00Z/..").unwrap());
+        assert!(!item
+            .intersects_datetime("2023-07-12T00:00:00Z/2023-07-13T00:00:00Z")
+            .unwrap());
+        item.properties.datetime = None;
+        let _ = item
+            .properties
+            .additional_fields
+            .insert("start_datetime".to_string(), "2023-07-11T11:00:00Z".into());
+        let _ = item
+            .properties
+            .additional_fields
+            .insert("end_datetime".to_string(), "2023-07-11T13:00:00Z".into());
+        assert!(item.intersects_datetime("2023-07-11T12:00:00Z").unwrap());
     }
 
     mod roundtrip {

@@ -5,6 +5,15 @@ use thiserror::Error;
 /// Error enum for crate-specific errors.
 #[derive(Error, Debug)]
 pub enum Error {
+    /// [chrono::ParseError]
+    #[error(transparent)]
+    ChronoParse(#[from] chrono::ParseError),
+
+    /// [geojson::Error]
+    #[cfg(feature = "geo")]
+    #[error(transparent)]
+    Geojson(#[from] geojson::Error),
+
     /// [std::io::Error]
     #[error(transparent)]
     Io(#[from] std::io::Error),
@@ -21,6 +30,14 @@ pub enum Error {
         /// The expected value.
         expected: String,
     },
+
+    /// This vector is not a valid bounding box.
+    #[error("invalid bbox: {0:?}")]
+    InvalidBbox(Vec<f64>),
+
+    /// This string is not a valid datetime interval.
+    #[error("invalid datetime: {0}")]
+    InvalidDatetime(String),
 
     /// Returned when there is not a `type` field on a STAC object
     #[error("no \"type\" field in the JSON object")]
