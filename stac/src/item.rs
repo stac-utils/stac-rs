@@ -1,5 +1,5 @@
 use crate::{Asset, Assets, Error, Extensions, Href, Link, Links, Result, STAC_VERSION};
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, FixedOffset, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::collections::HashMap;
@@ -221,23 +221,16 @@ impl Item {
     ///
     /// let mut item = Item::new("an-id");
     /// item.set_geometry(Some(Geometry::new(Value::Point(vec![-105.1, 41.1]))));
-    /// assert!(item.intersects_bbox(vec![-106.0, 41.0, -105.0, 42.0]).unwrap());
+    /// let bbox = stac::geo::bbox(&vec![-106.0, 41.0, -105.0, 42.0]).unwrap();
+    /// assert!(item.intersects_bbox(bbox).unwrap());
     /// ```
     #[cfg(feature = "geo")]
-    pub fn intersects_bbox(&self, bbox: Vec<f64>) -> Result<bool> {
-        use geo::{coord, Intersects, Rect};
-
-        if bbox.len() != 4 {
-            // TODO support three dimensional
-            return Err(Error::InvalidBbox(bbox));
-        }
+    pub fn intersects_bbox(&self, bbox: geo::Rect) -> Result<bool> {
+        // TODO support three dimensional
+        use geo::Intersects;
 
         if let Some(geometry) = self.geometry.clone() {
             let geometry: geo::Geometry = geometry.try_into()?;
-            let bbox = Rect::new(
-                coord! { x: bbox[0], y: bbox[1] },
-                coord! { x: bbox[2], y: bbox[3] },
-            );
             Ok(geometry.intersects(&bbox))
         } else {
             Ok(false)
@@ -253,43 +246,14 @@ impl Item {
     /// use stac::Item;
     /// let mut item = Item::new("an-id");
     /// item.properties.datetime = Some("2023-07-11T12:00:00Z".to_string());
-    /// assert!(item.intersects_datetime("2023-07-11T00:00:00Z/2023-07-12T00:00:00Z").unwrap());
+    /// let (start, end) = stac::datetime::parse("2023-07-11T00:00:00Z/2023-07-12T00:00:00Z").unwrap();
+    /// assert!(item.intersects_datetimes(start, end).unwrap());
     /// ```
-    pub fn intersects_datetime(&self, datetime: &str) -> Result<bool> {
-        let (start, end) = if datetime.contains("/") {
-            let mut iter = datetime.split("/");
-            let start = iter
-                .next()
-                .ok_or_else(|| Error::InvalidDatetime(datetime.to_string()))
-                .and_then(|s| {
-                    if s == ".." {
-                        Ok(None)
-                    } else {
-                        DateTime::parse_from_rfc3339(s)
-                            .map(|datetime| Some(datetime))
-                            .map_err(Error::from)
-                    }
-                })?;
-            let end = iter
-                .next()
-                .ok_or_else(|| Error::InvalidDatetime(datetime.to_string()))
-                .and_then(|s| {
-                    if s == ".." {
-                        Ok(None)
-                    } else {
-                        DateTime::parse_from_rfc3339(s)
-                            .map(Some)
-                            .map_err(Error::from)
-                    }
-                })?;
-            if iter.next().is_some() {
-                return Err(Error::InvalidDatetime(datetime.to_string()));
-            }
-            (start, end)
-        } else {
-            let datetime = DateTime::parse_from_rfc3339(datetime).map(Some)?;
-            (datetime, datetime)
-        };
+    pub fn intersects_datetimes(
+        &self,
+        start: Option<DateTime<FixedOffset>>,
+        end: Option<DateTime<FixedOffset>>,
+    ) -> Result<bool> {
         let item_datetime = self
             .properties
             .datetime
@@ -485,7 +449,7 @@ mod tests {
         ]))))
         .unwrap();
         assert!(item
-            .intersects_bbox(vec![-106.0, 41.0, -105.0, 42.0])
+            .intersects_bbox(crate::geo::bbox(&vec![-106.0, 41.0, -105.0, 42.0]).unwrap())
             .unwrap());
     }
 
@@ -493,15 +457,18 @@ mod tests {
     fn intersects_datetime() {
         let mut item = Item::new("an-id");
         item.properties.datetime = Some("2023-07-11T12:00:00Z".to_string());
-        assert!(item.intersects_datetime("2023-07-11T12:00:00Z").unwrap());
-        assert!(item
-            .intersects_datetime("2023-07-11T00:00:00Z/2023-07-12T00:00:00Z")
-            .unwrap());
-        assert!(item.intersects_datetime("../2023-07-12T00:00:00Z").unwrap());
-        assert!(item.intersects_datetime("2023-07-11T00:00:00Z/..").unwrap());
-        assert!(!item
-            .intersects_datetime("2023-07-12T00:00:00Z/2023-07-13T00:00:00Z")
-            .unwrap());
+        for datetime in [
+            "2023-07-11T12:00:00Z",
+            "2023-07-11T00:00:00Z/2023-07-12T00:00:00Z",
+            "../2023-07-12T00:00:00Z",
+            "2023-07-11T00:00:00Z/..",
+        ] {
+            let (start, end) = crate::datetime::parse(datetime).unwrap();
+            assert!(item.intersects_datetimes(start, end).unwrap());
+        }
+        let (start, end) =
+            crate::datetime::parse("2023-07-12T00:00:00Z/2023-07-13T00:00:00Z").unwrap();
+        assert!(!item.intersects_datetimes(start, end).unwrap());
         item.properties.datetime = None;
         let _ = item
             .properties
@@ -511,7 +478,8 @@ mod tests {
             .properties
             .additional_fields
             .insert("end_datetime".to_string(), "2023-07-11T13:00:00Z".into());
-        assert!(item.intersects_datetime("2023-07-11T12:00:00Z").unwrap());
+        let (start, end) = crate::datetime::parse("2023-07-11T12:00:00Z").unwrap();
+        assert!(item.intersects_datetimes(start, end).unwrap());
     }
 
     mod roundtrip {

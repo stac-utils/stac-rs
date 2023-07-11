@@ -10,7 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - `geo` feature ([#178](https://github.com/gadomski/stac-rs/pull/178))
 - `schemars` feature ([#177](https://github.com/gadomski/stac-rs/pull/177))
-- `intersects_bbox` and `intersects_datetime` for `Item` ([#180](https://github.com/gadomski/stac-rs/pull/180))
+- `intersects_bbox` and `intersects_datetimes` for `Item` ([#180](https://github.com/gadomski/stac-rs/pull/180), [#182](https://github.com/gadomski/stac-rs/pull/182))
+- `geo` and `datetime` modules ([#182](https://github.com/gadomski/stac-rs/pull/182))
 
 ### Changed
 
