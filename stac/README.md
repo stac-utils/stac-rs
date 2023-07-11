@@ -74,15 +74,16 @@ stac = { version = "0.5", features = ["geo"] }
 Then, you can set an item's geometry and bounding box at the same time:
 
 ```rust
-use stac::Item;
-use geojson::{Geometry, Value};
-
-let geometry = Geometry::new(Value::Point(vec![
-    -105.1, 41.1,
-]));
-let mut item = Item::new("an-id");
 #[cfg(feature = "geo")]
 {
+    use stac::Item;
+    use geojson::{Geometry, Value};
+
+    let geometry = Geometry::new(Value::Point(vec![
+        -105.1, 41.1,
+    ]));
+    let mut item = Item::new("an-id");
+
     item.set_geometry(geometry).unwrap();
     assert!(item.bbox.is_some());
 }
