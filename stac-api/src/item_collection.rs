@@ -97,3 +97,17 @@ impl Links for ItemCollection {
         &mut self.links
     }
 }
+
+impl Default for ItemCollection {
+    fn default() -> Self {
+        ItemCollection {
+            r#type: "FeatureCollection".to_string(),
+            items: Vec::new(),
+            links: Vec::new(),
+            number_matched: None,
+            number_returned: None,
+            context: None,
+            additional_fields: Map::default(),
+        }
+    }
+}
