@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - `schemars` feature ([#177](https://github.com/gadomski/stac-rs/pull/177))
 - `PartialEq` to `Filter` ([#179](https://github.com/gadomski/stac-rs/pull/179))
 - `TryFrom` to go between `Items` and `GetItems` ([#179](https://github.com/gadomski/stac-rs/pull/179))
+- `Default` for `ItemCollection` ([#183](https://github.com/gadomski/stac-rs/pull/183))
 
 ### Changed
 
