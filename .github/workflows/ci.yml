@@ -18,7 +18,7 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Rust cache
         uses: Swatinem/rust-cache@v2
       - name: Format
@@ -33,7 +33,7 @@ jobs:
     env:
       RUSTDOCFLAGS: -Dwarnings
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Rust cache
         uses: Swatinem/rust-cache@v2
       - name: Doc

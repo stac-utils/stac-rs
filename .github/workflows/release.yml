@@ -16,7 +16,7 @@ jobs:
   x84_64-apple-darwin:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Build
         run: cargo build -p stac-cli --release --all-features
       - name: Archive
