@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.5.1] - 2023-09-14
+
 ### Added
 
 - `geo` feature ([#178](https://github.com/gadomski/stac-rs/pull/178))
@@ -237,7 +239,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 Initial release.
 
-[Unreleased]: https://github.com/gadomski/stac-rs/compare/stac-v0.5.0...main
+[Unreleased]: https://github.com/gadomski/stac-rs/compare/stac-v0.5.1...main
+[0.5.1]: https://github.com/gadomski/stac-rs/compare/stac-v0.5.0...stac-v0.5.1
 [0.5.0]: https://github.com/gadomski/stac-rs/compare/stac-v0.4.0...stac-v0.5.0
 [0.4.0]: https://github.com/gadomski/stac-rs/compare/stac-v0.3.2...stac-v0.4.0
 [0.3.2]: https://github.com/gadomski/stac-rs/compare/stac-v0.3.1...stac-v0.3.2
