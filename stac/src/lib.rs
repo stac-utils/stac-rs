@@ -146,7 +146,11 @@ pub const STAC_VERSION: &str = "1.0.0";
 /// Custom [Result](std::result::Result) type for this crate.
 pub type Result<T> = std::result::Result<T, Error>;
 
-pub(crate) fn deserialize_type<'de, D>(
+/// Utility function to deserialize the type field on an object.
+///
+/// Use this, via a wrapper function, in `#[serde(deserialize_with)]`.  See
+/// [Item] for one example.
+pub fn deserialize_type<'de, D>(
     deserializer: D,
     expected: &str,
 ) -> std::result::Result<String, D::Error>
@@ -165,7 +169,11 @@ where
     }
 }
 
-pub(crate) fn serialize_type<S>(
+/// Utility function to serialize the type field on an object.
+///
+/// Use this, via a wrapper function, in `#[serde(serialize_with)]`.  See [Item]
+/// for one example.
+pub fn serialize_type<S>(
     r#type: &String,
     serializer: S,
     expected: &str,

@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - `schemars` feature ([#177](https://github.com/gadomski/stac-rs/pull/177))
 - `intersects_bbox` and `intersects_datetimes` for `Item` ([#180](https://github.com/gadomski/stac-rs/pull/180), [#182](https://github.com/gadomski/stac-rs/pull/182))
 - `geo` and `datetime` modules ([#182](https://github.com/gadomski/stac-rs/pull/182))
+- `(de)serialize_type` to the public interface ([#187](https://github.com/gadomski/stac-rs/pull/187))
 
 ### Changed
 
