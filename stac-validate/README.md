@@ -1,6 +1,6 @@
 # stac-validate
 
-[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/gadomski/stac-rs/ci.yml?branch=main&style=for-the-badge)](https://github.com/gadomski/stac-rs/actions/workflows/ci.yml)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/stac-utils/stac-rs/ci.yml?branch=main&style=for-the-badge)](https://github.com/stac-utils/stac-rs/actions/workflows/ci.yml)
 [![docs.rs](https://img.shields.io/docsrs/stac-validate?style=for-the-badge)](https://docs.rs/stac-validate/latest/stac-validate/)
 [![Crates.io](https://img.shields.io/crates/v/stac-validate?style=for-the-badge)](https://crates.io/crates/stac-validate)
 ![Crates.io](https://img.shields.io/crates/l/stac-validate?style=for-the-badge)

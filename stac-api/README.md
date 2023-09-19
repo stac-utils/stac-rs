@@ -1,6 +1,6 @@
 # stac-api
 
-[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/gadomski/stac-rs/ci.yml?branch=main&style=for-the-badge)](https://github.com/gadomski/stac-rs/actions/workflows/ci.yml)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/stac-utils/stac-rs/ci.yml?branch=main&style=for-the-badge)](https://github.com/stac-utils/stac-rs/actions/workflows/ci.yml)
 [![docs.rs](https://img.shields.io/docsrs/stac-api?style=for-the-badge)](https://docs.rs/stac-api/latest/stac_api/)
 [![Crates.io](https://img.shields.io/crates/v/stac-api?style=for-the-badge)](https://crates.io/crates/stac-api)
 ![Crates.io](https://img.shields.io/crates/l/stac-api?style=for-the-badge)

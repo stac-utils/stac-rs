@@ -1,4 +1,4 @@
-//! Asynchronous I/O for [STAC](https://stacspec.org/), built on [stac-rs](https://github.com/gadomski/stac-rs)
+//! Asynchronous I/O for [STAC](https://stacspec.org/), built on [stac-rs](https://github.com/stac-utils/stac-rs)
 //!
 //! # Examples
 //!

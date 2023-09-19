@@ -28,5 +28,5 @@ This may change in the future as the packages mature.
 
 ## Release notes
 
-We do not currently publish release notes (<https://github.com/gadomski/stac-rs/releases>).
+We do not currently publish release notes (<https://github.com/stac-utils/stac-rs/releases>).
 This may change in the near future as **stac** (in particular) becomes more mature and is used by more downstream packages.
