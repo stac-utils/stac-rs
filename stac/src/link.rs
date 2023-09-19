@@ -29,7 +29,7 @@ pub const COLLECTION_REL: &str = "collection";
 /// This link structure includes a few fields from the [STAC API
 /// specification](https://github.com/radiantearth/stac-api-spec/tree/main/item-search#pagination).
 /// Generally we keep STAC API structures in the [stac-api
-/// crate](https://github.com/gadomski/stac-rs/stac-api), but in this case it
+/// crate](https://github.com/stac-utils/stac-rs/stac-api), but in this case it
 /// was simpler to include these attributes in the base [Link] rather to create a new one.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 #[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]

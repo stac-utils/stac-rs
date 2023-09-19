@@ -1,6 +1,6 @@
 # stac-rs
 
-[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/gadomski/stac-rs/ci.yml?branch=main&style=for-the-badge)](https://github.com/gadomski/stac-rs/actions/workflows/ci.yml)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/stac-utils/stac-rs/ci.yml?branch=main&style=for-the-badge)](https://github.com/stac-utils/stac-rs/actions/workflows/ci.yml)
 ![Crates.io](https://img.shields.io/crates/l/stac?style=for-the-badge)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?style=for-the-badge)](./CODE_OF_CONDUCT)
 
@@ -51,7 +51,7 @@ See [RELEASING.md](./RELEASING.md) for a checklist to use when releasing a new v
 
 Here's some related projects that use this repo:
 
-- [pgstac-rs](https://github.com/gadomski/pgstac-rs): Rust interface for [pgstac](https://github.com/stac-utils/pgstac), PostgreSQL schema and functions for STAC
+- [pgstac-rs](https://github.com/stac-utils/pgstac-rs): Rust interface for [pgstac](https://github.com/stac-utils/pgstac), PostgreSQL schema and functions for STAC
 - [stac-server-rs](https://github.com/gadomski/stac-server-rs): A STAC API server implementation
 
 ## License
