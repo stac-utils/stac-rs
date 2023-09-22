@@ -16,6 +16,7 @@ console = "0.15"
 indicatif = "0.17"
 reqwest = "0.11"
 serde = "1"
+serde_json = "1"
 stac = { version = "0.5", path = "../stac" }
 stac-async = { version = "0.4", path = "../stac-async" }
 stac-validate = { version = "0.1", path = "../stac-validate" }
