@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- Better error messages for `stac validate` ([#190](https://github.com/stac-utils/stac-rs/pull/190))
+
 ## [0.0.3] - 2023-04-04
 
 Moved over from [stac-incubator-rs](https://github.com/gadomski/stac-incubator-rs) ([#142](https://github.com/stac-utils/stac-rs/pull/142))
