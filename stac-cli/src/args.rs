@@ -52,7 +52,7 @@ impl Command {
                 }
             }
             Validate { href } => {
-                let value: Value = stac_async::read(href).await?;
+                let value: serde_json::Value = stac_async::read_json(&href).await?;
                 let result = {
                     let value = value.clone();
                     tokio::task::spawn_blocking(move || value.validate()).await?
