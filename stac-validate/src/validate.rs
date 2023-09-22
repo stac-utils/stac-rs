@@ -145,3 +145,25 @@ impl ValidateCore for ItemCollection {
         validator.validate_item_collection(value)
     }
 }
+
+impl Validate for Value {}
+
+impl ValidateCore for Value {
+    fn validate_core_json(value: &Value, validator: &Validator) -> Result<()> {
+        if let Some(type_) = value.get("type") {
+            if let Some(type_) = type_.as_str() {
+                match type_ {
+                    "Feature" => validator.validate_item(value),
+                    "Collection" => validator.validate_collection(value),
+                    "Catalog" => validator.validate_catalog(value),
+                    "FeatureCollection" => validator.validate_item_collection(value),
+                    _ => Err(stac::Error::UnknownType(type_.to_string()).into()),
+                }
+            } else {
+                Err(stac::Error::InvalidTypeField(type_.clone()).into())
+            }
+        } else {
+            Err(stac::Error::MissingType.into())
+        }
+    }
+}
