@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.3.0] - 2023-09-25
+
 ### Added
 
 - Conformance URIs ([#170](https://github.com/stac-utils/stac-rs/pull/170))
@@ -57,6 +59,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 Initial release
 
-[unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-api-v0.2.0...main
+[unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-api-v0.3.0...main
+[0.3.0]: https://github.com/stac-utils/stac-rs/compare/stac-api-v0.2.0...stac-api-v0.3.0
 [0.2.0]: https://github.com/stac-utils/stac-rs/compare/stac-api-v0.1.0...stac-api-v0.2.0
 [0.1.0]: https://github.com/stac-utils/stac-rs/releases/tag/stac-api-v0.1.0
