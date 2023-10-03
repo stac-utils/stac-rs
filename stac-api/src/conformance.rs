@@ -16,6 +16,9 @@ pub const OGC_API_FEATURES_URI: &str =
 /// The GeoJSON spec conformance uri.
 pub const GEOJSON_URI: &str = "http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/geojson";
 
+/// The item search conformance uri.
+pub const ITEM_SEARCH_URI: &str = "https://api.stacspec.org/v1.0.0/item-search";
+
 /// To support "generic" clients that want to access multiple OGC API Features
 /// implementations - and not "just" a specific API / server, the server has to
 /// declare the conformance classes it implements and conforms to.
