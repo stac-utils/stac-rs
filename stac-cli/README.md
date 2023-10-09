@@ -33,12 +33,3 @@ Validate a STAC item:
 ```shell
 stac validate https://raw.githubusercontent.com/radiantearth/stac-spec/master/examples/simple-item.json
 ```
-
-### Download
-
-Download all the assets of a STAC item.
-The STAC item will be written out, with its assets updated to point to the locally downloaded assets.
-
-```shell
-stac download https://raw.githubusercontent.com/radiantearth/stac-spec/master/examples/simple-item.json .
-```

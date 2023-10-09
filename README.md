@@ -28,10 +28,14 @@ Then:
 cargo install stac-cli
 ```
 
-You can download assets from a STAC item:
+Validate a STAC Item:
 
 ```shell
-stac download https://raw.githubusercontent.com/radiantearth/stac-spec/master/examples/simple-item.json .
+$ stac validate https://raw.githubusercontent.com/radiantearth/stac-spec/master/examples/simple-item.json
+OK!
+$ stac validate stac-cli/tests/data/collection-bad-temporal.json 
+Validation error at /extent/temporal: [["2020-12-11T22:38:32.125Z","2020-12-14T18:02:31.437Z"]] is not of type "object"
+ERROR: validation errors
 ```
 
 To see a full list of available commands:

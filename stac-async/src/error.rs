@@ -1,14 +1,9 @@
-use stac::Value;
 use url::Url;
 
 /// Crate-specific error type.
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
 pub enum Error {
-    /// Cannot download assets for the given value.
-    #[error("cannot download")]
-    CannotDownload(Value),
-
     /// [reqwest::header::InvalidHeaderName]
     #[error(transparent)]
     InvalidHeaderName(#[from] reqwest::header::InvalidHeaderName),
@@ -36,12 +31,6 @@ pub enum Error {
     /// The endpoint was not found.
     #[error("not found: {0}")]
     NotFound(Url),
-
-    /// [tokio::sync::mpsc::error::SendError] for [crate::download::Message].
-    #[error(transparent)]
-    TokioMpscSendDownloadMessageError(
-        #[from] tokio::sync::mpsc::error::SendError<crate::download::Message>,
-    ),
 
     /// [serde_json::Error]
     #[error(transparent)]
