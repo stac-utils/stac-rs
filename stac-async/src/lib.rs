@@ -23,16 +23,6 @@
 //! let item = items.next().await.unwrap().unwrap();
 //! # })
 //! ```
-//!
-//! Download assets from an item:
-//!
-//! ```no_run
-//! use stac_async::Download;
-//! # tokio_test::block_on(async {
-//! let item: stac::Item = stac_async::read("data/simple-item.json").await.unwrap();
-//! item.download("target-directory").await.unwrap();
-//! # })
-//! ```
 
 #![deny(
     elided_lifetimes_in_paths,
@@ -66,14 +56,12 @@
 
 mod api_client;
 mod client;
-pub mod download;
 mod error;
 mod io;
 
 pub use {
     api_client::ApiClient,
     client::Client,
-    download::{download, Download, Downloader},
     error::Error,
     io::{read, read_json, write_json_to_path},
 };

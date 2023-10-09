@@ -1,10 +1,8 @@
 mod args;
-mod download;
 mod error;
 
 pub use {
     args::{Args, Command},
-    download::download,
     error::Error,
 };
 

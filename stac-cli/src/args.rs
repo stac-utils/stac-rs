@@ -1,8 +1,6 @@
-use crate::{Error, Result};
+use crate::Result;
 use clap::{Parser, Subcommand};
-use stac::Value;
 use stac_validate::Validate;
-use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -13,19 +11,6 @@ pub struct Args {
 
 #[derive(Debug, Subcommand)]
 pub enum Command {
-    /// Download assets.
-    Download {
-        /// The href of the STAC object.
-        href: String,
-
-        /// Assets will be downloaded to this directory.
-        directory: PathBuf,
-
-        /// If the directory does not exist, should be it be created?
-        #[arg(short, long, default_value_t = true)]
-        create_directory: bool,
-    },
-
     /// Validate a STAC object using json-schema validation.
     Validate {
         /// The href of the STAC object.
@@ -37,21 +22,6 @@ impl Command {
     pub async fn execute(self) -> Result<()> {
         use Command::*;
         match self {
-            Download {
-                href,
-                directory,
-                create_directory,
-            } => {
-                use Value::*;
-                let value: Value = stac_async::read(href).await?;
-                match value {
-                    Collection(collection) => {
-                        crate::download(collection, directory, create_directory).await
-                    }
-                    Item(item) => crate::download(item, directory, create_directory).await,
-                    _ => Err(Error::CannotDownload(value)),
-                }
-            }
             Validate { href } => {
                 let value: serde_json::Value = stac_async::read_json(&href).await?;
                 let result = {
