@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Sort ([#197](https://github.com/stac-utils/stac-rs/pull/197))
+
 ### Removed
 
 - Downloading (use [stac-asset](https://github.com/stac-utils/stac-asset) instead) ([#194](https://github.com/stac-utils/stac-rs/pull/194))
