@@ -26,6 +26,14 @@ Use the cli `--help` flag to see all available options:
 stac --help
 ```
 
+### Validate
+
+Validate a STAC item:
+
+```shell
+stac validate https://raw.githubusercontent.com/radiantearth/stac-spec/master/examples/simple-item.json
+```
+
 ### Download
 
 Download all the assets of a STAC item.
