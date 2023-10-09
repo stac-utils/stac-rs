@@ -23,6 +23,17 @@ const DEFAULT_LICENSE: &str = "proprietary";
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 #[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 pub struct Collection {
+    /// Must be set to `"Collection"` to be a valid `Collection`.
+    #[serde(
+        deserialize_with = "deserialize_type",
+        serialize_with = "serialize_type"
+    )]
+    r#type: String,
+
+    /// The STAC version the `Collection` implements.
+    #[serde(rename = "stac_version")]
+    version: String,
+
     /// A list of extension identifiers the `Collection` implements.
     #[serde(rename = "stac_extensions")]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -75,17 +86,6 @@ pub struct Collection {
     /// Additional fields not part of the `Collection` specification.
     #[serde(flatten)]
     pub additional_fields: Map<String, Value>,
-
-    /// Must be set to `"Collection"` to be a valid `Collection`.
-    #[serde(
-        deserialize_with = "deserialize_type",
-        serialize_with = "serialize_type"
-    )]
-    r#type: String,
-
-    /// The STAC version the `Collection` implements.
-    #[serde(rename = "stac_version")]
-    version: String,
 
     #[serde(skip)]
     href: Option<String>,

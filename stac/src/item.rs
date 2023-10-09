@@ -16,6 +16,17 @@ pub const ITEM_TYPE: &str = "Feature";
 /// (e.g., satellite imagery, derived data, DEMs).
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Item {
+    /// Type of the GeoJSON Object. MUST be set to `"Feature"`.
+    #[serde(
+        deserialize_with = "deserialize_type",
+        serialize_with = "serialize_type"
+    )]
+    r#type: String,
+
+    /// The STAC version the `Item` implements.
+    #[serde(rename = "stac_version")]
+    version: String,
+
     /// A list of extensions the `Item` implements.
     #[serde(rename = "stac_extensions")]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -65,17 +76,6 @@ pub struct Item {
     /// Additional fields not part of the Item specification.
     #[serde(flatten)]
     pub additional_fields: Map<String, Value>,
-
-    /// Type of the GeoJSON Object. MUST be set to `"Feature"`.
-    #[serde(
-        deserialize_with = "deserialize_type",
-        serialize_with = "serialize_type"
-    )]
-    r#type: String,
-
-    /// The STAC version the `Item` implements.
-    #[serde(rename = "stac_version")]
-    version: String,
 
     #[serde(skip)]
     href: Option<String>,

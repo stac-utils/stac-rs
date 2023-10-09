@@ -33,3 +33,11 @@ Validate a STAC item:
 ```shell
 stac validate https://raw.githubusercontent.com/radiantearth/stac-spec/master/examples/simple-item.json
 ```
+
+### Sort
+
+Sort the fields of a STAC item into the order they're specified in the spec:
+
+```shell
+stac sort https://raw.githubusercontent.com/radiantearth/stac-spec/master/examples/simple-item.json
+```
