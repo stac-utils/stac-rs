@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.1.1] - 2023-10-09
+
 ### Added
 
 - Validation for `serde_json::Value` ([#190](https://github.com/stac-utils/stac-rs/pull/190))
@@ -14,5 +16,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 Initial release.
 
-[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-validate-v0.1.0...main
+[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-validate-v0.1.1...main
+[0.1.1]: https://github.com/stac-utils/stac-rs/compare/stac-validate-v0.1.0..stac-validate-v0.1.1
 [0.1.0]: https://github.com/stac-utils/stac-rs/releases/tag/stac-validate-v0.1.0

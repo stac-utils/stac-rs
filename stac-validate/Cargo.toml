@@ -1,6 +1,6 @@
 [package]
 name = "stac-validate"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Pete Gadomski <pete.gadomski@gmail.com>"]
 edition = "2021"
 description = "Validate STAC objects with jsonschema"
