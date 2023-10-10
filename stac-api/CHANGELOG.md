@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 
 - Item search conformance URI ([#193](https://github.com/stac-utils/stac-rs/pull/193))
+- `GetSearch` ([#198](https://github.com/stac-utils/stac-rs/pull/198))
 
 ## [0.3.0] - 2023-09-25
 
