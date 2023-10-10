@@ -14,8 +14,11 @@ const ITEM_COLLECTION_TYPE: &str = "FeatureCollection";
 #[derive(Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 pub struct ItemCollection {
-    /// Always "FeatureCollection" to provide compatibility with GeoJSON.
-    pub r#type: String,
+    #[serde(
+        deserialize_with = "deserialize_type",
+        serialize_with = "serialize_type"
+    )]
+    r#type: String,
 
     /// A possibly-empty array of Item objects.
     #[serde(rename = "features")]
@@ -110,4 +113,18 @@ impl Default for ItemCollection {
             additional_fields: Map::default(),
         }
     }
+}
+
+fn deserialize_type<'de, D>(deserializer: D) -> std::result::Result<String, D::Error>
+where
+    D: serde::de::Deserializer<'de>,
+{
+    stac::deserialize_type(deserializer, ITEM_COLLECTION_TYPE)
+}
+
+fn serialize_type<S>(r#type: &String, serializer: S) -> std::result::Result<S::Ok, S::Error>
+where
+    S: serde::ser::Serializer,
+{
+    stac::serialize_type(r#type, serializer, ITEM_COLLECTION_TYPE)
 }

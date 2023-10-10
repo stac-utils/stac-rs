@@ -1,4 +1,4 @@
-//! Rust implementation of the STAC API specification.
+//! Rust implementation of the [STAC API](https://github.com/radiantearth/stac-api-spec) specification.
 //!
 //! This crate **is**:
 //!
@@ -8,7 +8,7 @@
 //!
 //! - A server implementation
 //!
-//! For a STAC API server written in Rust, based on this crate, see
+//! For a STAC API server written in Rust based on this crate, see
 //! [stac-server-rs](http://github.com/gadomski/stac-server-rs).
 //!
 //! # Data structures
@@ -86,7 +86,7 @@ pub use {
     item_collection::{Context, ItemCollection},
     items::{GetItems, Items},
     root::Root,
-    search::Search,
+    search::{GetSearch, Search},
     sort::Sortby,
     url_builder::UrlBuilder,
 };
