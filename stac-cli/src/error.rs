@@ -11,6 +11,12 @@ pub enum Error {
     InvalidValue(Value),
 
     #[error(transparent)]
+    SerdeJson(#[from] serde_json::Error),
+
+    #[error(transparent)]
+    StacApi(#[from] stac_api::Error),
+
+    #[error(transparent)]
     StacAsync(#[from] stac_async::Error),
 
     #[error(transparent)]
