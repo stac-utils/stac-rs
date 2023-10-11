@@ -6,10 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.3.2] - 2023-10-11
+
+### Added
+
+- `GetSearch` ([#198](https://github.com/stac-utils/stac-rs/pull/198))
+
+## [0.3.1] - 2023-10-03
+
 ### Added
 
 - Item search conformance URI ([#193](https://github.com/stac-utils/stac-rs/pull/193))
-- `GetSearch` ([#198](https://github.com/stac-utils/stac-rs/pull/198))
 
 ## [0.3.0] - 2023-09-25
 
@@ -64,7 +71,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 Initial release
 
-[unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-api-v0.3.0...main
+[unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-api-v0.3.2...main
+[0.3.2]: https://github.com/stac-utils/stac-rs/compare/stac-api-v0.3.1...stac-api-v0.3.2
+[0.3.1]: https://github.com/stac-utils/stac-rs/compare/stac-api-v0.3.0...stac-api-v0.3.1
 [0.3.0]: https://github.com/stac-utils/stac-rs/compare/stac-api-v0.2.0...stac-api-v0.3.0
 [0.2.0]: https://github.com/stac-utils/stac-rs/compare/stac-api-v0.1.0...stac-api-v0.2.0
 [0.1.0]: https://github.com/stac-utils/stac-rs/releases/tag/stac-api-v0.1.0
