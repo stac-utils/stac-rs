@@ -1,6 +1,6 @@
 [package]
 name = "stac-cli"
-version = "0.0.4"
+version = "0.0.5"
 edition = "2021"
 description = "Command line interface for stac-rs"
 documentation = "https://docs.rs/stac-cli"
