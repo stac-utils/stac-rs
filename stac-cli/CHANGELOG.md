@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 
 - Sort ([#197](https://github.com/stac-utils/stac-rs/pull/197))
+- Search ([#200](https://github.com/stac-utils/stac-rs/pull/200))
 
 ### Removed
 

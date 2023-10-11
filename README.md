@@ -38,6 +38,16 @@ Validation error at /extent/temporal: [["2020-12-11T22:38:32.125Z","2020-12-14T1
 ERROR: validation errors
 ```
 
+Search a STAC API:
+
+```shell
+stac search https://earth-search.aws.element84.com/v1 \
+    -c sentinel-2-l2a \
+    --max-items 1 \
+    --sortby='-properties.datetime' \
+    --intersects '{"type":"Point","coordinates":[-105.1019,40.1672]}'
+```
+
 To see a full list of available commands:
 
 ```shell
