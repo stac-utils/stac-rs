@@ -19,4 +19,14 @@ impl Item {
     fn set_id(&mut self, id: String) {
         self.0.id = id;
     }
+
+    #[getter]
+    fn version(&self) -> &str {
+        &self.0.version
+    }
+
+    #[getter]
+    fn extensions(&self) -> &[&str] {
+        &self.0.extensions
+    }
 }
