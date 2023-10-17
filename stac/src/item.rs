@@ -209,29 +209,31 @@ impl Item {
         Ok(())
     }
 
-    /// Returns true if this item's geometry intersects the provided bounding box.
-    ///
-    /// TODO support three dimensional bounding boxes.
+    /// Returns true if this item's geometry intersects the provided geojson geometry.
     ///
     /// # Examples
     ///
     /// ```
     /// use stac::Item;
     /// use geojson::{Geometry, Value};
+    /// use geo::{Rect, coord};
     ///
     /// let mut item = Item::new("an-id");
     /// item.set_geometry(Some(Geometry::new(Value::Point(vec![-105.1, 41.1]))));
-    /// let bbox = stac::geo::bbox(&vec![-106.0, 41.0, -105.0, 42.0]).unwrap();
-    /// assert!(item.intersects_bbox(bbox).unwrap());
+    /// let intersects = Rect::new(
+    ///     coord! { x: -106.0, y: 40.0 },
+    ///     coord! { x: -105.0, y: 42.0 },
+    /// );
+    /// assert!(item.intersects(&intersects).unwrap());
     /// ```
     #[cfg(feature = "geo")]
-    pub fn intersects_bbox(&self, bbox: geo::Rect) -> Result<bool> {
-        // TODO support three dimensional
-        use geo::Intersects;
-
+    pub fn intersects<T>(&self, intersects: &T) -> Result<bool>
+    where
+        T: geo::Intersects<geo::Geometry>,
+    {
         if let Some(geometry) = self.geometry.clone() {
             let geometry: geo::Geometry = geometry.try_into()?;
-            Ok(geometry.intersects(&bbox))
+            Ok(intersects.intersects(&geometry))
         } else {
             Ok(false)
         }
@@ -441,7 +443,7 @@ mod tests {
 
     #[test]
     #[cfg(feature = "geo")]
-    fn insersects_bbox() {
+    fn insersects() {
         use geojson::Geometry;
         let mut item = Item::new("an-id");
         item.set_geometry(Some(Geometry::new(geojson::Value::Point(vec![
@@ -449,7 +451,7 @@ mod tests {
         ]))))
         .unwrap();
         assert!(item
-            .intersects_bbox(crate::geo::bbox(&vec![-106.0, 41.0, -105.0, 42.0]).unwrap())
+            .intersects(&crate::geo::bbox(&vec![-106.0, 41.0, -105.0, 42.0]).unwrap())
             .unwrap());
     }
 

@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+
+- `Item.intersects` ([#202](https://github.com/stac-utils/stac-rs/pull/202))
+
+### Removed
+
+- `Item.intersects_bbox` ([#202](https://github.com/stac-utils/stac-rs/pull/202))
+
 ## [0.5.1] - 2023-09-14
 
 ### Added
