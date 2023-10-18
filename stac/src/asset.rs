@@ -31,6 +31,26 @@ pub struct Asset {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub roles: Option<Vec<String>>,
 
+    /// Creation date and time of the corresponding data, in UTC.
+    ///
+    /// This identifies the creation time of the data.
+    ///
+    /// This is a [common
+    /// metadata](https://github.com/radiantearth/stac-spec/blob/master/item-spec/common-metadata.md)
+    /// field.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub created: Option<String>,
+
+    /// Date and time the metadata was updated last, in UTC.
+    ///
+    /// This identifies the updated time of the data.
+    ///
+    /// This is a [common
+    /// metadata](https://github.com/radiantearth/stac-spec/blob/master/item-spec/common-metadata.md)
+    /// field.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub updated: Option<String>,
+
     /// Additional fields on the asset.
     #[serde(flatten)]
     pub additional_fields: Map<String, Value>,
@@ -84,6 +104,8 @@ impl Asset {
             description: None,
             r#type: None,
             roles: None,
+            created: None,
+            updated: None,
             additional_fields: Map::new(),
         }
     }

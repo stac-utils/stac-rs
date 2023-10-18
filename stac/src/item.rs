@@ -105,6 +105,64 @@ pub struct Properties {
     /// requires `start_datetime` and `end_datetime` from common metadata to be set.
     pub datetime: Option<String>,
 
+    /// The first or start date and time for the Item, in UTC.
+    ///
+    /// It is formatted as date-time according to RFC 3339, section 5.6.
+    ///
+    /// This is a [common
+    /// metadata](https://github.com/radiantearth/stac-spec/blob/master/item-spec/common-metadata.md)
+    /// field.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub start_datetime: Option<String>,
+
+    /// The last or end date and time for the Item, in UTC.
+    ///
+    /// It is formatted as date-time according to RFC 3339, section 5.6.
+    ///
+    /// This is a [common
+    /// metadata](https://github.com/radiantearth/stac-spec/blob/master/item-spec/common-metadata.md)
+    /// field.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub end_datetime: Option<String>,
+
+    /// A human readable title describing the Item.
+    ///
+    /// This is a [common
+    /// metadata](https://github.com/radiantearth/stac-spec/blob/master/item-spec/common-metadata.md)
+    /// field.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub title: Option<String>,
+
+    /// Detailed multi-line description to fully explain the Item.
+    ///
+    /// CommonMark 0.29 syntax MAY be used for rich text representation.
+    ///
+    /// This is a [common
+    /// metadata](https://github.com/radiantearth/stac-spec/blob/master/item-spec/common-metadata.md)
+    /// field.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+
+    /// Creation date and time of the corresponding data, in UTC.
+    ///
+    /// This identifies the creation time of the metadata.
+    ///
+    /// This is a [common
+    /// metadata](https://github.com/radiantearth/stac-spec/blob/master/item-spec/common-metadata.md)
+    /// field.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub created: Option<String>,
+
+    /// Date and time the metadata was updated last, in UTC.
+    ///
+    /// This identifies the updated time of the metadata.
+    ///
+    /// This is a [common
+    /// metadata](https://github.com/radiantearth/stac-spec/blob/master/item-spec/common-metadata.md)
+    /// field.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub updated: Option<String>,
+
     /// Additional fields on the properties.
     #[serde(flatten)]
     pub additional_fields: Map<String, Value>,
@@ -114,6 +172,12 @@ impl Default for Properties {
     fn default() -> Properties {
         Properties {
             datetime: Some(Utc::now().to_rfc3339()),
+            start_datetime: None,
+            end_datetime: None,
+            title: None,
+            description: None,
+            created: None,
+            updated: None,
             additional_fields: Map::new(),
         }
     }
