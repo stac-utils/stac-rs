@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 
 - `Item.intersects` ([#202](https://github.com/stac-utils/stac-rs/pull/202))
+- Common metadata fields ([#203](https://github.com/stac-utils/stac-rs/pull/203))
 
 ### Removed
 
