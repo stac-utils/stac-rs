@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Validation for the collections endpoint ([#208](https://github.com/stac-utils/stac-rs/pull/208))
+
 ## [0.0.5] - 2023-10-11
 
 ### Added

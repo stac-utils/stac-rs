@@ -24,6 +24,9 @@ pub enum Error {
 
     #[error(transparent)]
     TokioJoinError(#[from] tokio::task::JoinError),
+
+    #[error("many validation errors")]
+    ValidationGroup(Vec<stac_validate::Error>),
 }
 
 impl Error {
