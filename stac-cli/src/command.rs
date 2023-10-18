@@ -83,9 +83,15 @@ pub enum Command {
         compact: bool,
     },
 
-    /// Validates a STAC object using json-schema validation.
+    /// Validates a STAC object or API endpoint using json-schema validation.
     Validate {
-        /// The href of the STAC object.
+        /// The href of the STAC object or endpoint.
+        ///
+        /// The validator will make some decisions depending on what type of
+        /// data is returned from the href. If it's a STAC Catalog, Collection,
+        /// or Item, that object will be validated. If its a collections
+        /// endpoint from a STAC API, all collections will be validated.
+        /// Additional behavior TBD.
         href: String,
     },
 }
