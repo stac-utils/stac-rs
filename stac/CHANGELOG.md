@@ -11,9 +11,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - `Item.intersects` ([#202](https://github.com/stac-utils/stac-rs/pull/202))
 - Common metadata fields ([#203](https://github.com/stac-utils/stac-rs/pull/203))
 
-### Removed
+### Deprecated
 
-- `Item.intersects_bbox` ([#202](https://github.com/stac-utils/stac-rs/pull/202))
+- `Item.intersects_bbox` ([#204](https://github.com/stac-utils/stac-rs/pull/204))
 
 ## [0.5.1] - 2023-09-14
 

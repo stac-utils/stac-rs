@@ -303,6 +303,34 @@ impl Item {
         }
     }
 
+    /// Returns true if this item's geometry intersects the provided bounding box.
+    ///
+    /// DEPRECATED Use `intersects` instead.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::Item;
+    /// use geojson::{Geometry, Value};
+    ///
+    /// let mut item = Item::new("an-id");
+    /// item.set_geometry(Some(Geometry::new(Value::Point(vec![-105.1, 41.1]))));
+    /// let bbox = stac::geo::bbox(&vec![-106.0, 41.0, -105.0, 42.0]).unwrap();
+    /// assert!(item.intersects_bbox(bbox).unwrap());
+    /// ```
+    #[cfg(feature = "geo")]
+    #[deprecated(since = "0.5.2", note = "Use intersects instead")]
+    pub fn intersects_bbox(&self, bbox: geo::Rect) -> Result<bool> {
+        use geo::Intersects;
+
+        if let Some(geometry) = self.geometry.clone() {
+            let geometry: geo::Geometry = geometry.try_into()?;
+            Ok(geometry.intersects(&bbox))
+        } else {
+            Ok(false)
+        }
+    }
+
     /// Returns true if this item's datetime (or start and end datetimes)
     /// intersects the provided datetime.
     ///
