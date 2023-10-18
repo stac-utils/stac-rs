@@ -123,6 +123,29 @@ pub struct GetSearch {
     pub additional_fields: HashMap<String, String>,
 }
 
+impl Search {
+    /// Validates this search.
+    ///
+    /// E.g. the search is invalid if both bbox and intersects are specified.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac_api::Search;
+    /// let mut search = Search { bbox: Some(vec![-180.0, -90.0, 180.0, 80.0]), ..Default::default() };
+    /// search.validate().unwrap();
+    /// search.intersects = Some(stac::Geometry::point(0., 0.));
+    /// let _ = search.validate().unwrap_err();
+    /// ```
+    pub fn validate(&self) -> Result<()> {
+        if self.bbox.is_some() & self.intersects.is_some() {
+            Err(Error::SearchHasBboxAndIntersects(self.clone()))
+        } else {
+            Ok(())
+        }
+    }
+}
+
 impl TryFrom<Search> for GetSearch {
     type Error = Error;
 

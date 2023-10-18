@@ -1,4 +1,4 @@
-use crate::{Asset, Assets, Error, Extensions, Href, Link, Links, Result, STAC_VERSION};
+use crate::{Asset, Assets, Error, Extensions, Geometry, Href, Link, Links, Result, STAC_VERSION};
 use chrono::{DateTime, FixedOffset, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
@@ -83,27 +83,70 @@ pub struct Item {
 
 /// Additional metadata fields can be added to the GeoJSON Object Properties.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
-#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
-pub struct Geometry {
-    /// The geometry type.
-    pub r#type: String,
-
-    /// The other geometry attributes.
-    ///
-    /// `GeometryCollection` doesn't have a `coordinates` member, so we must
-    /// capture everything in a flat, generic array.
-    #[serde(flatten)]
-    pub attributes: Map<String, Value>,
-}
-
-/// Additional metadata fields can be added to the GeoJSON Object Properties.
-#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Properties {
     /// The searchable date and time of the assets, which must be in UTC.
     ///
     /// It is formatted according to RFC 3339, section 5.6. null is allowed, but
     /// requires `start_datetime` and `end_datetime` from common metadata to be set.
     pub datetime: Option<String>,
+
+    /// The first or start date and time for the Item, in UTC.
+    ///
+    /// It is formatted as date-time according to RFC 3339, section 5.6.
+    ///
+    /// This is a [common
+    /// metadata](https://github.com/radiantearth/stac-spec/blob/master/item-spec/common-metadata.md)
+    /// field.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub start_datetime: Option<String>,
+
+    /// The last or end date and time for the Item, in UTC.
+    ///
+    /// It is formatted as date-time according to RFC 3339, section 5.6.
+    ///
+    /// This is a [common
+    /// metadata](https://github.com/radiantearth/stac-spec/blob/master/item-spec/common-metadata.md)
+    /// field.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub end_datetime: Option<String>,
+
+    /// A human readable title describing the Item.
+    ///
+    /// This is a [common
+    /// metadata](https://github.com/radiantearth/stac-spec/blob/master/item-spec/common-metadata.md)
+    /// field.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub title: Option<String>,
+
+    /// Detailed multi-line description to fully explain the Item.
+    ///
+    /// CommonMark 0.29 syntax MAY be used for rich text representation.
+    ///
+    /// This is a [common
+    /// metadata](https://github.com/radiantearth/stac-spec/blob/master/item-spec/common-metadata.md)
+    /// field.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+
+    /// Creation date and time of the corresponding data, in UTC.
+    ///
+    /// This identifies the creation time of the metadata.
+    ///
+    /// This is a [common
+    /// metadata](https://github.com/radiantearth/stac-spec/blob/master/item-spec/common-metadata.md)
+    /// field.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub created: Option<String>,
+
+    /// Date and time the metadata was updated last, in UTC.
+    ///
+    /// This identifies the updated time of the metadata.
+    ///
+    /// This is a [common
+    /// metadata](https://github.com/radiantearth/stac-spec/blob/master/item-spec/common-metadata.md)
+    /// field.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub updated: Option<String>,
 
     /// Additional fields on the properties.
     #[serde(flatten)]
@@ -114,6 +157,12 @@ impl Default for Properties {
     fn default() -> Properties {
         Properties {
             datetime: Some(Utc::now().to_rfc3339()),
+            start_datetime: None,
+            end_datetime: None,
+            title: None,
+            description: None,
+            created: None,
+            updated: None,
             additional_fields: Map::new(),
         }
     }
@@ -209,9 +258,39 @@ impl Item {
         Ok(())
     }
 
+    /// Returns true if this item's geometry intersects the provided geojson geometry.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::Item;
+    /// use geojson::{Geometry, Value};
+    /// use geo::{Rect, coord};
+    ///
+    /// let mut item = Item::new("an-id");
+    /// item.set_geometry(Some(Geometry::new(Value::Point(vec![-105.1, 41.1]))));
+    /// let intersects = Rect::new(
+    ///     coord! { x: -106.0, y: 40.0 },
+    ///     coord! { x: -105.0, y: 42.0 },
+    /// );
+    /// assert!(item.intersects(&intersects).unwrap());
+    /// ```
+    #[cfg(feature = "geo")]
+    pub fn intersects<T>(&self, intersects: &T) -> Result<bool>
+    where
+        T: geo::Intersects<geo::Geometry>,
+    {
+        if let Some(geometry) = self.geometry.clone() {
+            let geometry: geo::Geometry = geometry.try_into()?;
+            Ok(intersects.intersects(&geometry))
+        } else {
+            Ok(false)
+        }
+    }
+
     /// Returns true if this item's geometry intersects the provided bounding box.
     ///
-    /// TODO support three dimensional bounding boxes.
+    /// DEPRECATED Use `intersects` instead.
     ///
     /// # Examples
     ///
@@ -225,8 +304,8 @@ impl Item {
     /// assert!(item.intersects_bbox(bbox).unwrap());
     /// ```
     #[cfg(feature = "geo")]
+    #[deprecated(since = "0.5.2", note = "Use intersects instead")]
     pub fn intersects_bbox(&self, bbox: geo::Rect) -> Result<bool> {
-        // TODO support three dimensional
         use geo::Intersects;
 
         if let Some(geometry) = self.geometry.clone() {
@@ -347,16 +426,6 @@ impl TryFrom<Map<String, Value>> for Item {
     }
 }
 
-#[cfg(feature = "geo")]
-impl TryFrom<Geometry> for geo::Geometry {
-    type Error = Error;
-    fn try_from(geometry: Geometry) -> Result<geo::Geometry> {
-        serde_json::from_value::<geojson::Geometry>(serde_json::to_value(geometry)?)?
-            .try_into()
-            .map_err(Error::from)
-    }
-}
-
 fn deserialize_type<'de, D>(deserializer: D) -> std::result::Result<String, D::Error>
 where
     D: serde::de::Deserializer<'de>,
@@ -441,7 +510,7 @@ mod tests {
 
     #[test]
     #[cfg(feature = "geo")]
-    fn insersects_bbox() {
+    fn insersects() {
         use geojson::Geometry;
         let mut item = Item::new("an-id");
         item.set_geometry(Some(Geometry::new(geojson::Value::Point(vec![
@@ -449,7 +518,7 @@ mod tests {
         ]))))
         .unwrap();
         assert!(item
-            .intersects_bbox(crate::geo::bbox(&vec![-106.0, 41.0, -105.0, 42.0]).unwrap())
+            .intersects(&crate::geo::bbox(&vec![-106.0, 41.0, -105.0, 42.0]).unwrap())
             .unwrap());
     }
 

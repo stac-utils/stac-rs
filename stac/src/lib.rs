@@ -118,6 +118,7 @@ mod error;
 mod extensions;
 #[cfg(feature = "geo")]
 pub mod geo;
+mod geometry;
 mod href;
 mod io;
 mod item;
@@ -132,9 +133,10 @@ pub use {
     collection::{Collection, Extent, Provider, SpatialExtent, TemporalExtent, COLLECTION_TYPE},
     error::Error,
     extensions::Extensions,
+    geometry::Geometry,
     href::{href_to_url, Href},
     io::{read, read_json},
-    item::{Geometry, Item, Properties, ITEM_TYPE},
+    item::{Item, Properties, ITEM_TYPE},
     item_collection::{ItemCollection, ITEM_COLLECTION_TYPE},
     link::{Link, Links},
     value::Value,

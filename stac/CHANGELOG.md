@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+
+- `Geometry::point` ([#206](https://github.com/stac-utils/stac-rs/pull/206))
+
+## [0.5.2] - 2023-10-18
+
+### Added
+
+- `Item.intersects` ([#202](https://github.com/stac-utils/stac-rs/pull/202))
+- Common metadata fields ([#203](https://github.com/stac-utils/stac-rs/pull/203))
+
+### Deprecated
+
+- `Item.intersects_bbox` ([#204](https://github.com/stac-utils/stac-rs/pull/204))
+
 ## [0.5.1] - 2023-09-14
 
 ### Added
@@ -239,7 +254,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 Initial release.
 
-[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-v0.5.1...main
+[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-v0.5.2...main
+[0.5.2]: https://github.com/stac-utils/stac-rs/compare/stac-v0.5.1...stac-v0.5.2
 [0.5.1]: https://github.com/stac-utils/stac-rs/compare/stac-v0.5.0...stac-v0.5.1
 [0.5.0]: https://github.com/stac-utils/stac-rs/compare/stac-v0.4.0...stac-v0.5.0
 [0.4.0]: https://github.com/stac-utils/stac-rs/compare/stac-v0.3.2...stac-v0.4.0
