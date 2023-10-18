@@ -1,3 +1,4 @@
+use crate::Search;
 use serde_json::{Map, Value};
 use thiserror::Error;
 
@@ -22,6 +23,10 @@ pub enum Error {
     /// [std::num::ParseFloatError]
     #[error(transparent)]
     ParseFloatError(#[from] std::num::ParseFloatError),
+
+    /// A search has both bbox and intersects.
+    #[error("search has bbox and intersects")]
+    SearchHasBboxAndIntersects(Search),
 
     /// [serde_json::Error]
     #[error(transparent)]
