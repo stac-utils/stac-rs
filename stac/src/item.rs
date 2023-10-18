@@ -1,4 +1,4 @@
-use crate::{Asset, Assets, Error, Extensions, Href, Link, Links, Result, STAC_VERSION};
+use crate::{Asset, Assets, Error, Extensions, Geometry, Href, Link, Links, Result, STAC_VERSION};
 use chrono::{DateTime, FixedOffset, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
@@ -79,21 +79,6 @@ pub struct Item {
 
     #[serde(skip)]
     href: Option<String>,
-}
-
-/// Additional metadata fields can be added to the GeoJSON Object Properties.
-#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
-#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
-pub struct Geometry {
-    /// The geometry type.
-    pub r#type: String,
-
-    /// The other geometry attributes.
-    ///
-    /// `GeometryCollection` doesn't have a `coordinates` member, so we must
-    /// capture everything in a flat, generic array.
-    #[serde(flatten)]
-    pub attributes: Map<String, Value>,
 }
 
 /// Additional metadata fields can be added to the GeoJSON Object Properties.
@@ -438,16 +423,6 @@ impl TryFrom<Map<String, Value>> for Item {
     type Error = serde_json::Error;
     fn try_from(map: Map<String, Value>) -> std::result::Result<Self, Self::Error> {
         serde_json::from_value(Value::Object(map))
-    }
-}
-
-#[cfg(feature = "geo")]
-impl TryFrom<Geometry> for geo::Geometry {
-    type Error = Error;
-    fn try_from(geometry: Geometry) -> Result<geo::Geometry> {
-        serde_json::from_value::<geojson::Geometry>(serde_json::to_value(geometry)?)?
-            .try_into()
-            .map_err(Error::from)
     }
 }
 
