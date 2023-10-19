@@ -1,7 +1,7 @@
 use crate::{Error, Fields, Filter, GetItems, Items, Result, Sortby};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use stac::Geometry;
+use stac::{Geometry, Item};
 use std::collections::HashMap;
 
 /// The core parameters for STAC search are defined by OAFeat, and STAC adds a few parameters for convenience.
@@ -124,6 +124,32 @@ pub struct GetSearch {
 }
 
 impl Search {
+    /// Creates a new, empty search.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac_api::Search;
+    ///
+    /// let search = Search::new();
+    /// ```
+    pub fn new() -> Search {
+        Search::default()
+    }
+
+    /// Sets the ids field of this search.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac_api::Search;
+    /// let search = Search::new().ids(vec!["an-id".to_string()]);
+    /// ```
+    pub fn ids(mut self, ids: impl Into<Option<Vec<String>>>) -> Search {
+        self.ids = ids.into();
+        self
+    }
+
     /// Validates this search.
     ///
     /// E.g. the search is invalid if both bbox and intersects are specified.
@@ -142,6 +168,217 @@ impl Search {
             Err(Error::SearchHasBboxAndIntersects(self.clone()))
         } else {
             Ok(())
+        }
+    }
+
+    /// Returns true if this item matches this search.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::Item;
+    /// use stac_api::Search;
+    ///
+    /// let item = Item::new("an-id");
+    /// assert!(Search::new().matches(&item).unwrap());
+    /// assert!(!Search::new().ids(vec!["not-the-id".to_string()]).matches(&item).unwrap());
+    /// ```
+    #[cfg(feature = "geo")]
+    pub fn matches(&self, item: &Item) -> Result<bool> {
+        Ok(self.collection_matches(item)
+            & self.id_matches(item)
+            & self.bbox_matches(item)?
+            & self.intersects_matches(item)?
+            & self.datetime_matches(item)?
+            & self.query_matches(item)?
+            & self.filter_matches(item)?)
+    }
+
+    /// Returns true if this item's collection matches this search.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac_api::Search;
+    /// use stac::Item;
+    ///
+    /// let mut search = Search::new();
+    /// let mut item = Item::new("item-id");
+    /// assert!(search.collection_matches(&item));
+    /// search.collections = Some(vec!["collection-id".to_string()]);
+    /// assert!(!search.collection_matches(&item));
+    /// item.collection = Some("collection-id".to_string());
+    /// assert!(search.collection_matches(&item));
+    /// item.collection = Some("another-collection-id".to_string());
+    /// assert!(!search.collection_matches(&item));
+    /// ```
+    pub fn collection_matches(&self, item: &Item) -> bool {
+        if let Some(collections) = self.collections.as_ref() {
+            if let Some(collection) = item.collection.as_ref() {
+                collections.contains(collection)
+            } else {
+                false
+            }
+        } else {
+            true
+        }
+    }
+
+    /// Returns true if this item's id matches this search.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac_api::Search;
+    /// use stac::Item;
+    ///
+    /// let mut search = Search::new();
+    /// let mut item = Item::new("item-id");
+    /// assert!(search.id_matches(&item));
+    /// search.ids = Some(vec!["item-id".to_string()]);
+    /// assert!(search.id_matches(&item));
+    /// search.ids = Some(vec!["another-id".to_string()]);
+    /// assert!(!search.id_matches(&item));
+    /// ```
+    pub fn id_matches(&self, item: &Item) -> bool {
+        if let Some(ids) = self.ids.as_ref() {
+            ids.contains(&item.id)
+        } else {
+            true
+        }
+    }
+
+    /// Returns true if this item's geometry matches this search's bbox.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #[cfg(feature = "geo")]
+    /// # {
+    /// use stac_api::Search;
+    /// use stac::Item;
+    /// use geojson::{Geometry, Value};
+    ///
+    /// let mut search = Search::new();
+    /// let mut item = Item::new("item-id");
+    /// assert!(search.bbox_matches(&item).unwrap());
+    /// search.bbox = Some(vec![-110.0, 40.0, -100.0, 50.0]);
+    /// assert!(!search.bbox_matches(&item).unwrap());
+    /// item.set_geometry(Geometry::new(Value::Point(vec![-105.1, 41.1])));
+    /// assert!(search.bbox_matches(&item).unwrap());
+    /// # }
+    /// ```
+    #[cfg(feature = "geo")]
+    pub fn bbox_matches(&self, item: &Item) -> Result<bool> {
+        if let Some(bbox) = self.bbox.as_ref() {
+            let bbox = stac::geo::bbox(bbox)?;
+            item.intersects(&bbox).map_err(Error::from)
+        } else {
+            Ok(true)
+        }
+    }
+
+    /// Returns true if this item's geometry matches this search's intersects.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #[cfg(feature = "geo")]
+    /// # {
+    /// use stac_api::Search;
+    /// use stac::Item;
+    /// use geojson::{Geometry, Value};
+    ///
+    /// let mut search = Search::new();
+    /// let mut item = Item::new("item-id");
+    /// assert!(search.intersects_matches(&item).unwrap());
+    /// search.intersects = Some(stac::Geometry::point(-105.1, 41.1));
+    /// assert!(!search.intersects_matches(&item).unwrap());
+    /// item.set_geometry(Geometry::new(Value::Point(vec![-105.1, 41.1])));
+    /// assert!(search.intersects_matches(&item).unwrap());
+    /// # }
+    /// ```
+    #[cfg(feature = "geo")]
+    pub fn intersects_matches(&self, item: &Item) -> Result<bool> {
+        if let Some(intersects) = self.intersects.clone() {
+            let intersects: geo::Geometry = intersects.try_into()?;
+            item.intersects(&intersects).map_err(Error::from)
+        } else {
+            Ok(true)
+        }
+    }
+
+    /// Returns true if this item's datetime matches this search.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac_api::Search;
+    /// use stac::Item;
+    ///
+    /// let mut search = Search::new();
+    /// let mut item = Item::new("item-id");  // default datetime is now
+    /// assert!(search.datetime_matches(&item).unwrap());
+    /// search.datetime = Some("../2023-10-09T00:00:00Z".to_string());
+    /// assert!(!search.datetime_matches(&item).unwrap());
+    /// item.properties.datetime = Some("2023-10-08T00:00:00Z".to_string());
+    /// assert!(search.datetime_matches(&item).unwrap());
+    /// ```
+    pub fn datetime_matches(&self, item: &Item) -> Result<bool> {
+        if let Some(datetime) = self.datetime.as_ref() {
+            item.intersects_datetime_str(datetime).map_err(Error::from)
+        } else {
+            Ok(true)
+        }
+    }
+
+    /// Returns true if this item's matches this search query.
+    ///
+    /// Currently unsupported, always raises an error if query is set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac_api::Search;
+    /// use stac::Item;
+    ///
+    /// let mut search = Search::new();
+    /// let mut item = Item::new("item-id");
+    /// assert!(search.query_matches(&item).unwrap());
+    /// search.query = Some(Default::default());
+    /// assert!(search.query_matches(&item).is_err());
+    /// ```
+    pub fn query_matches(&self, _: &Item) -> Result<bool> {
+        if let Some(_) = self.query.as_ref() {
+            // TODO implement
+            Err(Error::Unimplemented("query"))
+        } else {
+            Ok(true)
+        }
+    }
+
+    /// Returns true if this item matches this search's filter.
+    ///
+    /// Currently unsupported, always raises an error if filter is set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac_api::Search;
+    /// use stac::Item;
+    ///
+    /// let mut search = Search::new();
+    /// let mut item = Item::new("item-id");
+    /// assert!(search.filter_matches(&item).unwrap());
+    /// search.filter = Some(Default::default());
+    /// assert!(search.filter_matches(&item).is_err());
+    /// ```
+    pub fn filter_matches(&self, _: &Item) -> Result<bool> {
+        if let Some(_) = self.filter.as_ref() {
+            // TODO implement
+            Err(Error::Unimplemented("filter"))
+        } else {
+            Ok(true)
         }
     }
 }

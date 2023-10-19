@@ -36,6 +36,10 @@ pub enum Error {
     #[error(transparent)]
     SerdeUrlencodedSer(#[from] serde_urlencoded::ser::Error),
 
+    /// [stac::Error]
+    #[error(transparent)]
+    Stac(#[from] stac::Error),
+
     /// [std::num::TryFromIntError]
     #[error(transparent)]
     TryFromInt(#[from] std::num::TryFromIntError),
@@ -43,4 +47,8 @@ pub enum Error {
     /// [url::ParseError]
     #[error(transparent)]
     UrlParse(#[from] url::ParseError),
+
+    /// This functionality is not yet implemented.
+    #[error("this functionality is not yet implemented: {0}")]
+    Unimplemented(&'static str),
 }

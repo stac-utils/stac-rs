@@ -8,7 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Added
 
-- `Search.validate` ([#206](https://github.com/stac-utils/stac-rs/pull/206))
+- `Search::validate` ([#206](https://github.com/stac-utils/stac-rs/pull/206))
+- `geo` feature, `Search::matches` and sub-methods, `Search::new`, `Search::ids`, `Default` for `Filter`, `Error::Stac`, and `Error::Unimplemented` ([#209](https://github.com/stac-utils/stac-rs/pull/209))
 
 ## [0.3.2] - 2023-10-11
 

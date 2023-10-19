@@ -316,6 +316,22 @@ impl Item {
         }
     }
 
+    /// Returns true if this item's datetime (or start and end datetime)
+    /// intersects the provided datetime string.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::Item;
+    /// let mut item = Item::new("an-id");
+    /// item.properties.datetime = Some("2023-07-11T12:00:00Z".to_string());
+    /// assert!(item.intersects_datetime_str("2023-07-11T00:00:00Z/2023-07-12T00:00:00Z").unwrap());
+    /// ```
+    pub fn intersects_datetime_str(&self, datetime: &str) -> Result<bool> {
+        let (start, end) = crate::datetime::parse(datetime)?;
+        self.intersects_datetimes(start, end)
+    }
+
     /// Returns true if this item's datetime (or start and end datetimes)
     /// intersects the provided datetime.
     ///

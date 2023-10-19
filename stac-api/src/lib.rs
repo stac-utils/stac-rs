@@ -104,6 +104,9 @@ pub type Result<T> = std::result::Result<T, Error>;
 /// servers to explicitly include or exclude certain fields.
 pub type Item = serde_json::Map<String, serde_json::Value>;
 
+#[cfg(test)]
+use geojson as _;
+
 // From https://github.com/rust-lang/cargo/issues/383#issuecomment-720873790,
 // may they be forever blessed.
 #[cfg(doctest)]

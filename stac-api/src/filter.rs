@@ -15,6 +15,12 @@ pub enum Filter {
     Cql2Json(Map<String, Value>),
 }
 
+impl Default for Filter {
+    fn default() -> Self {
+        Filter::Cql2Json(Default::default())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::Filter;
