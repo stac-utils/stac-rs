@@ -9,17 +9,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 
 - `Geometry::point` ([#206](https://github.com/stac-utils/stac-rs/pull/206))
+- `Item::intersects_datetime_str` ([#209](https://github.com/stac-utils/stac-rs/pull/209))
 
 ## [0.5.2] - 2023-10-18
 
 ### Added
 
-- `Item.intersects` ([#202](https://github.com/stac-utils/stac-rs/pull/202))
+- `Item::intersects` ([#202](https://github.com/stac-utils/stac-rs/pull/202))
 - Common metadata fields ([#203](https://github.com/stac-utils/stac-rs/pull/203))
 
 ### Deprecated
 
-- `Item.intersects_bbox` ([#204](https://github.com/stac-utils/stac-rs/pull/204))
+- `Item::intersects_bbox` ([#204](https://github.com/stac-utils/stac-rs/pull/204))
 
 ## [0.5.1] - 2023-09-14
 
