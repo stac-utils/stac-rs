@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use serde_json::{Map, Value};
+use serde_json::{json, Map, Value};
 
 #[cfg(feature = "geo")]
 use crate::{Error, Result};
@@ -31,12 +31,36 @@ impl Geometry {
     /// let geometry = Geometry::point(-108.0, 42.0);
     /// ```
     pub fn point(x: f64, y: f64) -> Geometry {
-        use serde_json::json;
-
         let mut attributes = Map::new();
         let _ = attributes.insert("coordinates".to_string(), json!([x, y]));
         Geometry {
             r#type: "Point".to_string(),
+            attributes,
+        }
+    }
+
+    /// Creates a geometry.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::Geometry;
+    /// let geometry = Geometry::rect(-108.0, 42.0, -107.0, 43.0);
+    /// ```
+    pub fn rect(xmin: f64, ymin: f64, xmax: f64, ymax: f64) -> Geometry {
+        let mut attributes = Map::new();
+        let _ = attributes.insert(
+            "coordinates".to_string(),
+            json!([[
+                [xmin, ymin],
+                [xmax, ymin],
+                [xmax, ymax],
+                [xmin, ymax],
+                [xmin, ymin]
+            ]]),
+        );
+        Geometry {
+            r#type: "Polygon".to_string(),
             attributes,
         }
     }
@@ -52,16 +76,29 @@ impl TryFrom<Geometry> for geo::Geometry {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "geo"))]
 mod tests {
+    use geo::{algorithm::orient::Direction, Orient, Point, Polygon, Rect};
+
     #[test]
-    #[cfg(feature = "geo")]
     fn point() {
         let point = super::Geometry::point(-108.0, 42.0);
         let geometry: geo::Geometry = point.try_into().unwrap();
+        assert_eq!(geometry, geo::Geometry::Point(Point::new(-108.0, 42.0)));
+    }
+
+    #[test]
+    fn rect() {
+        let rect = super::Geometry::rect(-108.0, 42.0, -107.0, 43.0);
+        let geometry: geo::Geometry = rect.try_into().unwrap();
         assert_eq!(
-            geometry,
-            geo::Geometry::Point(geo::Point::new(-108.0, 42.0))
+            Polygon::try_from(geometry).unwrap(),
+            Rect::new(
+                geo::coord! { x: -108.0, y: 42.0 },
+                geo::coord! { x: -107.0, y: 43.0 },
+            )
+            .to_polygon()
+            .orient(Direction::Default)
         );
     }
 }
