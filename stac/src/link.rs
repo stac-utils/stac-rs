@@ -677,16 +677,6 @@ mod tests {
         assert!(value.get("title").is_none());
     }
 
-    #[test]
-    #[cfg(feature = "set_query")]
-    fn set_query_pair() {
-        let mut link = Link::new("http://stac-rs.test/an-href", "a-rel");
-        link.set_query([("foo", "bar")]).unwrap();
-        assert_eq!(link.href, "http://stac-rs.test/an-href?foo=bar");
-        link.set_query([("baz", "boz")]).unwrap();
-        assert_eq!(link.href, "http://stac-rs.test/an-href?baz=boz");
-    }
-
     mod links {
         use crate::{Catalog, Item, Link, Links};
 
