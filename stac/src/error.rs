@@ -73,11 +73,6 @@ pub enum Error {
     #[error(transparent)]
     SerdeJson(#[from] serde_json::Error),
 
-    /// [serde_urlencoded::ser::Error]
-    #[cfg(feature = "set_query")]
-    #[error(transparent)]
-    SerdeUrlencodedSer(#[from] serde_urlencoded::ser::Error),
-
     /// Returned when the `type` field of a STAC object does not equal `"Feature"`, `"Catalog"`, or `"Collection"`.
     #[error("unknown \"type\": {0}")]
     UnknownType(String),
