@@ -237,6 +237,31 @@ pub trait Links {
         Ok(())
     }
 
+    /// Makes all absolute links relative with respect to an href.
+    ///
+    /// If they do not share a root, the link will be made absolute.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::{Links, Catalog, Error, Href};
+    ///
+    /// let mut catalog: stac::Catalog = stac::read("data/catalog.json").unwrap();
+    /// assert!(!catalog.root_link().unwrap().is_absolute());
+    /// catalog.make_relative_links_absolute("data/catalog.json").unwrap();
+    /// assert!(catalog.root_link().unwrap().is_absolute());
+    /// catalog.make_absolute_links_relative("data/catalog.json").unwrap();
+    /// assert!(catalog.root_link().unwrap().is_relative());
+    /// ```
+    fn make_absolute_links_relative(&mut self, href: impl ToString) -> Result<()> {
+        let href = make_absolute(href.to_string(), None)?;
+        for link in self.links_mut() {
+            let absolute_link_href = make_absolute(std::mem::take(&mut link.href), Some(&href))?;
+            link.href = make_relative(&absolute_link_href, &href);
+        }
+        Ok(())
+    }
+
     /// Removes all relative links.
     ///
     /// This can be useful e.g. if you're relocating a STAC object, but it
@@ -608,6 +633,21 @@ impl Link {
     pub fn is_absolute(&self) -> bool {
         is_absolute(&self.href)
     }
+
+    /// Returns true if this link's href is a relative path.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::Link;
+    ///
+    /// assert!(!Link::new("/a/local/path/item.json", "rel").is_relative());
+    /// assert!(!Link::new("http://stac-rs.test/item.json", "rel").is_relative());
+    /// assert!(Link::new("./not/an/absolute/path", "rel").is_relative());
+    /// ```
+    pub fn is_relative(&self) -> bool {
+        !is_absolute(&self.href)
+    }
 }
 
 fn is_absolute(href: &str) -> bool {
@@ -636,6 +676,69 @@ fn make_absolute(href: String, base: Option<&str>) -> Result<String> {
             .map(|p| p.to_string_lossy().into_owned())
             .map_err(Error::from)
     }
+}
+
+fn make_relative(href: &str, base: &str) -> String {
+    // Cribbed from `Url::make_relative`
+    let mut relative = String::new();
+
+    fn extract_path_filename(s: &str) -> (&str, &str) {
+        let last_slash_idx = s.rfind('/').unwrap_or(0);
+        let (path, filename) = s.split_at(last_slash_idx);
+        if filename.is_empty() {
+            (path, "")
+        } else {
+            (path, &filename[1..])
+        }
+    }
+
+    let (base_path, base_filename) = extract_path_filename(base);
+    let (href_path, href_filename) = extract_path_filename(href);
+
+    let mut base_path = base_path.split('/').peekable();
+    let mut href_path = href_path.split('/').peekable();
+
+    while base_path.peek().is_some() && base_path.peek() == href_path.peek() {
+        let _ = base_path.next();
+        let _ = href_path.next();
+    }
+
+    for base_path_segment in base_path {
+        if base_path_segment.is_empty() {
+            break;
+        }
+
+        if !relative.is_empty() {
+            relative.push('/');
+        }
+
+        relative.push_str("..");
+    }
+
+    for href_path_segment in href_path {
+        if relative.is_empty() {
+            relative.push_str("./");
+        } else {
+            relative.push('/');
+        }
+
+        relative.push_str(href_path_segment);
+    }
+
+    if !relative.is_empty() || base_filename != href_filename {
+        if href_filename.is_empty() {
+            relative.push('/');
+        } else {
+            if relative.is_empty() {
+                relative.push_str("./");
+            } else {
+                relative.push('/');
+            }
+            relative.push_str(href_filename);
+        }
+    }
+
+    relative
 }
 
 fn normalize_path(path: &str) -> String {
@@ -728,6 +831,32 @@ mod tests {
                 catalog.root_link().unwrap().href,
                 "http://stac-rs.test/catalog.json"
             );
+        }
+
+        #[test]
+        fn make_absolute_links_relative_path() {
+            let mut catalog: Catalog = crate::read("data/catalog.json").unwrap();
+            catalog
+                .make_relative_links_absolute("data/catalog.json")
+                .unwrap();
+            catalog.make_absolute_links_relative("data/").unwrap();
+            for link in catalog.links() {
+                if !link.is_self() {
+                    assert!(link.is_relative(), "{}", link.href);
+                }
+            }
+        }
+
+        #[test]
+        fn make_absolute_links_relative_url() {
+            let mut catalog: Catalog = crate::read("data/catalog.json").unwrap();
+            catalog
+                .make_relative_links_absolute("http://stac-rs.test/catalog.json")
+                .unwrap();
+            catalog
+                .make_absolute_links_relative("http://stac-rs.test/")
+                .unwrap();
+            assert_eq!(catalog.root_link().unwrap().href, "./catalog.json");
         }
 
         #[test]
