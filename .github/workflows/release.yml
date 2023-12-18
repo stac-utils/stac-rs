@@ -25,7 +25,7 @@ jobs:
           tar czvf $ARCHIVE_FILE -C target/release stac
           shasum -a 256 $ARCHIVE_FILE > $ARCHIVE_FILE.sha256
       - name: Upload
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: binaries
           path: |
