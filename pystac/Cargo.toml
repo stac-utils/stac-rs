@@ -1,0 +1,12 @@
+[package]
+name = "pystac"
+version = "0.0.1"
+edition = "2021"
+
+[lib]
+name = "pystac_rs"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = "0.20.0"
+stac = { version = "0.5", path = "../stac" }
