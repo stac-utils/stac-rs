@@ -14,7 +14,7 @@ categories = ["science", "data-structures"]
 clap = { version = "4", features = ["derive"] }
 console = "0.15"
 indicatif = "0.17"
-reqwest = "0.11"
+reqwest = "0.12"
 serde = "1"
 serde_json = "1"
 stac = { version = "0.5", path = "../stac" }
