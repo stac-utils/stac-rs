@@ -28,8 +28,24 @@ impl ApiClient {
     /// ```
     pub fn new(url: &str) -> Result<ApiClient> {
         // TODO support HATEOS (aka look up the urls from the root catalog)
+        ApiClient::with_client(Client::new(), url)
+    }
+
+    /// Creates a new API client with the given [Client].
+    ///
+    /// Useful if you want to customize the behavior of the underlying `Client`,
+    /// as documented in [Client::new].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac_async::{Client, ApiClient};
+    /// let client = Client::new();
+    /// let api_client = ApiClient::with_client(client, "https://earth-search.aws.element84.com/v1/").unwrap();
+    /// ```
+    pub fn with_client(client: Client, url: &str) -> Result<ApiClient> {
         Ok(ApiClient {
-            client: Client::new(),
+            client,
             channel_buffer: DEFAULT_CHANNEL_BUFFER,
             url_builder: UrlBuilder::new(url)?,
         })
