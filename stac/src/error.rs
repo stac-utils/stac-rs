@@ -80,9 +80,4 @@ pub enum Error {
     /// [url::ParseError]
     #[error(transparent)]
     Url(#[from] url::ParseError),
-
-    /// [jsonschema::ValidationError], but owned.
-    #[cfg(feature = "jsonschema")]
-    #[error(transparent)]
-    ValidationError(#[from] jsonschema::ValidationError<'static>),
 }
