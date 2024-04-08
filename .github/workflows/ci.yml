@@ -10,11 +10,10 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
+  test:
     strategy:
       fail-fast: true
       matrix:
-        flags: ["", "--all-features"]
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
@@ -24,10 +23,23 @@ jobs:
       - name: Format
         run: cargo fmt --verbose
       - name: Build
-        run: cargo build --verbose ${{ matrix.flags }}
-      - name: Run tests
-        run: cargo test --verbose ${{ matrix.flags }}
-
+        run: cargo build --verbose --all-features
+      - name: Test
+        run: cargo test --verbose --all-features
+  test-stac:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        flags: ["", "--features geo", "--features reqwest", "--features schemars"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Rust cache
+        uses: Swatinem/rust-cache@v2
+      - name: Build
+        run: cargo build --verbose -p stac ${{ matrix.flags }}
+      - name: Test
+        run: cargo test --verbose -p stac ${{ matrix.flags }}
   doc:
     runs-on: ubuntu-latest
     env:
