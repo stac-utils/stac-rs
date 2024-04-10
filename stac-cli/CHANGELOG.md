@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+
+- `stac validate` can take from stdin ([#236](https://github.com/stac-utils/stac-rs/pull/236))
+
 ## [0.0.6] - 2023-10-18
 
 ### Added
