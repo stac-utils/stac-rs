@@ -18,6 +18,16 @@ Once you do:
 cargo install stac-cli
 ```
 
+### Features
+
+There is one opt-in feature, `gdal`:
+
+```shell
+cargo install stac-cli -F gdal
+```
+
+This will enable the projection and raster extensions for created items.
+
 ## Usage
 
 Use the cli `--help` flag to see all available options:

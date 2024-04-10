@@ -10,6 +10,9 @@ license = "MIT OR Apache-2.0"
 keywords = ["geospatial", "stac", "metadata", "geo", "raster"]
 categories = ["science", "data-structures"]
 
+[features]
+gdal = ["stac/gdal"]
+
 [dependencies]
 clap = { version = "4", features = ["derive"] }
 console = "0.15"

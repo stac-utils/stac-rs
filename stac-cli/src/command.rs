@@ -36,6 +36,12 @@ pub enum Command {
         /// Use compact representation for the output.
         #[arg(short, long)]
         compact: bool,
+
+        /// Don't use GDAL for item creation.
+        ///
+        /// Automatically set to true if this crate is compiled without GDAL.
+        #[arg(long)]
+        disable_gdal: bool,
     },
 
     /// Searches a STAC API.
@@ -143,9 +149,21 @@ impl Command {
                 role,
                 allow_relative_paths,
                 compact,
+                mut disable_gdal,
             } => {
                 let id = id.unwrap_or_else(|| infer_id(&href));
-                crate::commands::item(id, href, key, role, allow_relative_paths, compact)
+                if !cfg!(feature = "gdal") {
+                    disable_gdal = true;
+                }
+                crate::commands::item(
+                    id,
+                    href,
+                    key,
+                    role,
+                    allow_relative_paths,
+                    compact,
+                    disable_gdal,
+                )
             }
             Search {
                 href,

@@ -112,16 +112,20 @@
     unused_import_braces,
     unused_lifetimes,
     unused_qualifications,
-    unused_results
+    unused_results,
+    warnings
 )]
 
 mod asset;
+mod bounds;
 mod catalog;
 mod collection;
 pub mod datetime;
 mod error;
 pub mod extensions;
 mod fields;
+#[cfg(feature = "gdal")]
+pub mod gdal;
 #[cfg(feature = "geo")]
 pub mod geo;
 mod geometry;
@@ -135,6 +139,7 @@ mod value;
 
 pub use {
     asset::{Asset, Assets},
+    bounds::Bounds,
     catalog::{Catalog, CATALOG_TYPE},
     collection::{Collection, Extent, Provider, SpatialExtent, TemporalExtent, COLLECTION_TYPE},
     error::Error,
@@ -247,3 +252,7 @@ mod readme {
 
     external_doc_test!(include_str!("../README.md"));
 }
+
+/// We only use gdal-sys for the build script.
+#[cfg(feature = "gdal")]
+use gdal_sys as _;

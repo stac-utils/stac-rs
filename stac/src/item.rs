@@ -165,6 +165,11 @@ pub struct Builder {
     id: String,
     canonicalize_paths: bool,
     assets: HashMap<String, Asset>,
+    enable_gdal: bool,
+    #[cfg(feature = "gdal")]
+    force_statistics: bool, // TODO add builder method
+    #[cfg(feature = "gdal")]
+    is_approx_statistics_ok: bool, // TODO add builder method
 }
 
 impl Builder {
@@ -181,6 +186,11 @@ impl Builder {
             id: id.to_string(),
             canonicalize_paths: true,
             assets: HashMap::new(),
+            enable_gdal: cfg!(feature = "gdal"),
+            #[cfg(feature = "gdal")]
+            force_statistics: false,
+            #[cfg(feature = "gdal")]
+            is_approx_statistics_ok: true,
         }
     }
 
@@ -212,6 +222,22 @@ impl Builder {
         self
     }
 
+    /// Enable or disable GDAL processing of asset files.
+    ///
+    /// If this crate is _not_ compiled with the `gdal` flag and this value is
+    /// `true`, an error will be thrown.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::item::Builder;
+    /// let builder = Builder::new("an-id").enable_gdal(false);
+    /// ```
+    pub fn enable_gdal(mut self, enable_gdal: bool) -> Builder {
+        self.enable_gdal = enable_gdal;
+        self
+    }
+
     /// Creates an [Item] by consuming this builder.
     ///
     /// # Examples
@@ -232,6 +258,16 @@ impl Builder {
                     .into_owned();
             }
             let _ = item.assets.insert(key, asset);
+        }
+        if self.enable_gdal {
+            #[cfg(feature = "gdal")]
+            crate::gdal::update_item(
+                &mut item,
+                self.force_statistics,
+                self.is_approx_statistics_ok,
+            )?;
+            #[cfg(not(feature = "gdal"))]
+            return Err(Error::GdalNotEnabled);
         }
         Ok(item)
     }
@@ -555,7 +591,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::{Builder, Item};
-    use crate::{Asset, STAC_VERSION};
+    use crate::{extensions::Raster, Asset, Extensions, STAC_VERSION};
     use serde_json::Value;
 
     #[test]
@@ -707,5 +743,18 @@ mod tests {
             .unwrap();
         let asset = item.assets.get("data").unwrap();
         assert_eq!(asset.roles, vec!["data"]);
+    }
+
+    #[test]
+    fn builder_uses_gdal() {
+        let item = Builder::new("an-id")
+            .asset("data", "assets/dataset.tif")
+            .into_item()
+            .unwrap();
+        if cfg!(feature = "gdal") {
+            assert!(item.has_extension::<Raster>());
+        } else {
+            assert!(!item.has_extension::<Raster>());
+        }
     }
 }
