@@ -1,4 +1,4 @@
-use crate::{Asset, Assets, Error, Extensions, Href, Link, Links, Result, STAC_VERSION};
+use crate::{Asset, Assets, Error, Extensions, Fields, Href, Link, Links, Result, STAC_VERSION};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::collections::HashMap;
@@ -36,8 +36,9 @@ pub struct Collection {
 
     /// A list of extension identifiers the `Collection` implements.
     #[serde(rename = "stac_extensions")]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub extensions: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
+    pub extensions: Vec<String>,
 
     /// Identifier for the `Collection` that is unique across the provider.
     pub id: String,
@@ -171,7 +172,7 @@ impl Collection {
         Collection {
             r#type: COLLECTION_TYPE.to_string(),
             version: STAC_VERSION.to_string(),
-            extensions: None,
+            extensions: Vec::new(),
             id: id.to_string(),
             title: None,
             description: description.to_string(),
@@ -253,9 +254,21 @@ impl Assets for Collection {
     }
 }
 
+impl Fields for Collection {
+    fn fields(&self) -> &Map<String, Value> {
+        &self.additional_fields
+    }
+    fn fields_mut(&mut self) -> &mut Map<String, Value> {
+        &mut self.additional_fields
+    }
+}
+
 impl Extensions for Collection {
-    fn extensions(&self) -> Option<&[String]> {
-        self.extensions.as_deref()
+    fn extensions(&self) -> &Vec<String> {
+        &self.extensions
+    }
+    fn extensions_mut(&mut self) -> &mut Vec<String> {
+        &mut self.extensions
     }
 }
 
@@ -311,7 +324,7 @@ mod tests {
             assert!(collection.assets.is_empty());
             assert_eq!(collection.r#type, "Collection");
             assert_eq!(collection.version, STAC_VERSION);
-            assert!(collection.extensions.is_none());
+            assert!(collection.extensions.is_empty());
             assert_eq!(collection.id, "an-id");
             assert!(collection.links.is_empty());
         }
