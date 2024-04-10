@@ -60,6 +60,10 @@ pub enum Error {
     #[error("value is not a collection")]
     NotACollection(Value),
 
+    /// This value is not an object.
+    #[error("not an object")]
+    NotAnObject(serde_json::Value),
+
     /// Returned when trying to read from a url but the `reqwest` feature is not enabled.
     #[error("reqwest is not enabled")]
     ReqwestNotEnabled,

@@ -1,4 +1,6 @@
-use crate::{Asset, Assets, Error, Extensions, Geometry, Href, Link, Links, Result, STAC_VERSION};
+use crate::{
+    Asset, Assets, Error, Extensions, Fields, Geometry, Href, Link, Links, Result, STAC_VERSION,
+};
 use chrono::{DateTime, FixedOffset, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
@@ -29,8 +31,9 @@ pub struct Item {
 
     /// A list of extensions the `Item` implements.
     #[serde(rename = "stac_extensions")]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub extensions: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
+    pub extensions: Vec<String>,
 
     /// Provider identifier.
     ///
@@ -185,7 +188,7 @@ impl Item {
         Item {
             r#type: ITEM_TYPE.to_string(),
             version: STAC_VERSION.to_string(),
-            extensions: None,
+            extensions: Vec::new(),
             id: id.to_string(),
             geometry: None,
             bbox: None,
@@ -418,9 +421,21 @@ impl Assets for Item {
     }
 }
 
+impl Fields for Item {
+    fn fields(&self) -> &Map<String, Value> {
+        &self.properties.additional_fields
+    }
+    fn fields_mut(&mut self) -> &mut Map<String, Value> {
+        &mut self.properties.additional_fields
+    }
+}
+
 impl Extensions for Item {
-    fn extensions(&self) -> Option<&[String]> {
-        self.extensions.as_deref()
+    fn extensions(&self) -> &Vec<String> {
+        &self.extensions
+    }
+    fn extensions_mut(&mut self) -> &mut Vec<String> {
+        &mut self.extensions
     }
 }
 
@@ -471,7 +486,7 @@ mod tests {
         assert!(item.collection.is_none());
         assert_eq!(item.r#type, "Feature");
         assert_eq!(item.version, STAC_VERSION);
-        assert!(item.extensions.is_none());
+        assert!(item.extensions.is_empty());
         assert_eq!(item.id, "an-id");
         assert!(item.links.is_empty());
     }

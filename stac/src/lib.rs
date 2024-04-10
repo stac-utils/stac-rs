@@ -78,6 +78,11 @@
 //! let item: Item = stac::read("data/simple-item.json").unwrap();
 //! assert!(item.href().as_deref().unwrap().ends_with("data/simple-item.json"));
 //! ```
+//!
+//! # Extensions
+//!
+//! STAC is intentionally designed with a minimal core and flexible extension mechanism to support a broad set of use cases.
+//! See [the extensions module](extensions) for more information.
 
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 #![deny(
@@ -115,7 +120,8 @@ mod catalog;
 mod collection;
 pub mod datetime;
 mod error;
-mod extensions;
+pub mod extensions;
+mod fields;
 #[cfg(feature = "geo")]
 pub mod geo;
 mod geometry;
@@ -132,7 +138,8 @@ pub use {
     catalog::{Catalog, CATALOG_TYPE},
     collection::{Collection, Extent, Provider, SpatialExtent, TemporalExtent, COLLECTION_TYPE},
     error::Error,
-    extensions::Extensions,
+    extensions::{Extension, Extensions},
+    fields::Fields,
     geometry::Geometry,
     href::{href_to_url, Href},
     io::{read, read_json},
@@ -207,7 +214,17 @@ mod tests {
 
                 let file = File::open($filename).unwrap();
                 let buf_reader = BufReader::new(file);
-                let before: Value = serde_json::from_reader(buf_reader).unwrap();
+                let mut before: Value = serde_json::from_reader(buf_reader).unwrap();
+                if let Some(object) = before.as_object_mut() {
+                    if object
+                        .get("stac_extensions")
+                        .and_then(|value| value.as_array())
+                        .map(|array| array.is_empty())
+                        .unwrap_or_default()
+                    {
+                        let _ = object.remove("stac_extensions");
+                    }
+                }
                 let object: $object = serde_json::from_value(before.clone()).unwrap();
                 let after = serde_json::to_value(object).unwrap();
                 assert_json_eq!(before, after);
