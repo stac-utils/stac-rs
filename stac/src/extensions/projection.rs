@@ -7,7 +7,7 @@ use serde_json::{Map, Value};
 use super::Extension;
 
 /// The projection extension fields.
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize, Default, PartialEq, Clone)]
 pub struct Projection {
     /// EPSG code of the datasource
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -45,13 +45,83 @@ pub struct Projection {
 }
 
 /// This object represents the centroid of the Item Geometry.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Centroid {
     /// The latitude of the centroid.
     pub lat: f64,
 
     /// The longitude of the centroid.
     pub lon: f64,
+}
+
+impl Projection {
+    /// Returns this projection's bounds in WGS84.
+    ///
+    /// Requires one of the crs fields to be set (epsg, wkt2, or projjson) as well as a bbox.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::extensions::Projection;
+    /// let projection = Projection {
+    ///     epsg: Some(32621),
+    ///     bbox: Some(vec![
+    ///         373185.0,
+    ///         8019284.949381611,
+    ///         639014.9492102272,
+    ///         8286015.0
+    ///     ]),
+    ///     ..Default::default()
+    /// };
+    /// let bounds = projection.wgs84_bounds().unwrap().unwrap();
+    /// ```
+    #[cfg(feature = "gdal")]
+    pub fn wgs84_bounds(&self) -> crate::Result<Option<crate::Bounds>> {
+        use gdal::spatial_ref::{CoordTransform, SpatialRef};
+
+        if let Some(bbox) = self.bbox.as_ref() {
+            if bbox.len() != 4 {
+                return Ok(None);
+            }
+            if let Some(spatial_ref) = self.spatial_ref()? {
+                let wgs84 = SpatialRef::from_epsg(4326)?;
+                let coord_transform = CoordTransform::new(&spatial_ref, &wgs84)?;
+                let bounds =
+                    coord_transform.transform_bounds(&[bbox[0], bbox[1], bbox[2], bbox[3]], 21)?;
+                let round = |n: f64| (n * 10_000_000.).round() / 10_000_000.;
+                Ok(Some(crate::Bounds::new(
+                    round(bounds[0]),
+                    round(bounds[1]),
+                    round(bounds[2]),
+                    round(bounds[3]),
+                )))
+            } else {
+                Ok(None)
+            }
+        } else {
+            Ok(None)
+        }
+    }
+
+    #[cfg(feature = "gdal")]
+    fn spatial_ref(&self) -> crate::Result<Option<gdal::spatial_ref::SpatialRef>> {
+        use crate::Error;
+        use gdal::spatial_ref::SpatialRef;
+
+        if let Some(epsg) = self.epsg {
+            SpatialRef::from_epsg(epsg.try_into()?)
+                .map(Some)
+                .map_err(Error::from)
+        } else if let Some(wkt) = self.wkt2.as_ref() {
+            SpatialRef::from_wkt(&wkt).map(Some).map_err(Error::from)
+        } else if let Some(projjson) = self.projjson.clone() {
+            SpatialRef::from_definition(&serde_json::to_string(&Value::Object(projjson))?)
+                .map(Some)
+                .map_err(Error::from)
+        } else {
+            Ok(None)
+        }
+    }
 }
 
 impl Extension for Projection {

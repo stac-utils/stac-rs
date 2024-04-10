@@ -84,7 +84,7 @@ pub struct Band {
 /// Indicates whether a pixel value should be assumed
 /// to represent a sampling over the region of the pixel or a point sample
 /// at the center of the pixel.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum Sampling {
     /// The pixel value is a sampling over the region.
@@ -95,7 +95,7 @@ pub enum Sampling {
 }
 
 /// The data type gives information about the values in the file.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum DataType {
     /// 8-bit integer
@@ -194,4 +194,41 @@ pub struct Histogram {
 impl Extension for Raster {
     const IDENTIFIER: &'static str = "https://stac-extensions.github.io/raster/v1.1.0/schema.json";
     const PREFIX: &'static str = "raster";
+}
+
+#[cfg(feature = "gdal")]
+impl From<gdal::raster::GdalDataType> for DataType {
+    fn from(value: gdal::raster::GdalDataType) -> Self {
+        use gdal::raster::GdalDataType;
+
+        match value {
+            GdalDataType::Unknown => DataType::Other,
+            #[cfg(gdal_has_int8)]
+            GdalDataType::Int8 => DataType::Int8,
+            GdalDataType::Int16 => DataType::Int16,
+            GdalDataType::Int32 => DataType::Int32,
+            #[cfg(gdal_has_int64)]
+            GdalDataType::Int64 => DataType::Int64,
+            GdalDataType::UInt8 => DataType::UInt8,
+            GdalDataType::UInt16 => DataType::UInt16,
+            GdalDataType::UInt32 => DataType::UInt32,
+            #[cfg(gdal_has_uint64)]
+            GdalDataType::UInt64 => DataType::UInt64,
+            GdalDataType::Float32 => DataType::Float32,
+            GdalDataType::Float64 => DataType::Float64,
+        }
+    }
+}
+
+#[cfg(feature = "gdal")]
+impl From<gdal::raster::StatisticsAll> for Statistics {
+    fn from(value: gdal::raster::StatisticsAll) -> Self {
+        Statistics {
+            minimum: Some(value.min),
+            maximum: Some(value.max),
+            mean: Some(value.mean),
+            stddev: Some(value.std_dev),
+            valid_percent: None,
+        }
+    }
 }

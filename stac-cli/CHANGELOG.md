@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 
 - `stac validate` can take from stdin ([#236](https://github.com/stac-utils/stac-rs/pull/236))
+- `stac item` to create items ([#237](https://github.com/stac-utils/stac-rs/pull/237))
+- The `gdal` feature ([#232](https://github.com/stac-utils/stac-rs/pull/232))
 
 ## [0.0.6] - 2023-10-18
 

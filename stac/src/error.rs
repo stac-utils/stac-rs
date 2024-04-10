@@ -10,6 +10,15 @@ pub enum Error {
     #[error(transparent)]
     ChronoParse(#[from] chrono::ParseError),
 
+    /// [gdal::errors::GdalError]
+    #[cfg(feature = "gdal")]
+    #[error(transparent)]
+    GdalError(#[from] gdal::errors::GdalError),
+
+    /// GDAL is not enabled.
+    #[error("gdal is not enabled")]
+    GdalNotEnabled,
+
     /// [geojson::Error]
     #[cfg(feature = "geo")]
     #[error(transparent)]
@@ -76,6 +85,10 @@ pub enum Error {
     /// [serde_json::Error]
     #[error(transparent)]
     SerdeJson(#[from] serde_json::Error),
+
+    /// [std::num::TryFromIntError]
+    #[error(transparent)]
+    TryFromInt(#[from] std::num::TryFromIntError),
 
     /// Returned when the `type` field of a STAC object does not equal `"Feature"`, `"Catalog"`, or `"Collection"`.
     #[error("unknown \"type\": {0}")]

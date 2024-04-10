@@ -33,7 +33,7 @@ Please see the [documentation](https://docs.rs/stac) for more usage examples.
 
 ## Features
 
-There are three opt-in features.
+There are four opt-in features.
 
 ### reqwest
 
@@ -61,6 +61,27 @@ let err = stac::read::<stac::Item>(href).unwrap_err();
 ```
 
 For non-blocking IO, use the [**stac-async**](https://crates.io/crates/stac-async) crate.
+
+### gdal
+
+To use [GDAL](https://gdal.org) to create items with projection and raster band information, you'll need GDAL installed on your system:
+
+```toml
+[dependencies]
+stac = { version = "0.5", features = ["gdal"] }
+```
+
+Then, items created from rasters will include the projection and raster extensions:
+
+```rust
+#[cfg(feature = "gdal")]
+{
+    use stac::{extensions::{Raster, Projection}, Extensions, item::Builder};
+    let item = Builder::new("an-id").asset("data", "assets/dataset_geo.tif").into_item().unwrap();
+    assert!(item.has_extension::<Projection>());
+    assert!(item.has_extension::<Raster>());
+}
+```
 
 ### geo
 

@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - The projection and raster extensions, the `Extension` trait, and the `Fields` trait ([#234](https://github.com/stac-utils/stac-rs/pull/234))
 - `stac::item::Builder` ([#237](https://github.com/stac-utils/stac-rs/pull/237))
+- The `gdal` feature ([#232](https://github.com/stac-utils/stac-rs/pull/232))
+- `Bounds` ([#232](https://github.com/stac-utils/stac-rs/pull/232))
 
 ### Changed
 

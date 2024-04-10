@@ -30,7 +30,7 @@
 //! assert!(item.has_extension::<Projection>());
 //!
 //! // Get extension information
-//! let mut projection: Projection = item.extension().unwrap();
+//! let mut projection: Projection = item.extension().unwrap().unwrap();
 //! println!("epsg: {}", projection.epsg.unwrap());
 //!
 //! // Set extension information
@@ -121,16 +121,36 @@ pub trait Extensions: Fields {
 
     /// Gets an extension's data.
     ///
+    /// Returns `Ok(None)` if the object doesn't have the given extension.
+    ///
     /// # Examples
     ///
     /// ```
     /// use stac::{Item, extensions::{Projection, Extensions}};
     /// let item: Item = stac::read("data/extensions-collection/proj-example/proj-example.json").unwrap();
-    /// let projection: Projection = item.extension().unwrap();
+    /// let projection: Projection = item.extension().unwrap().unwrap();
     /// assert_eq!(projection.epsg.unwrap(), 32614);
     /// ```
-    fn extension<E: Extension>(&self) -> Result<E> {
-        self.fields_with_prefix(E::PREFIX)
+    fn extension<E: Extension>(&self) -> Result<Option<E>> {
+        if self.has_extension::<E>() {
+            self.fields_with_prefix(E::PREFIX).map(|v| Some(v))
+        } else {
+            Ok(None)
+        }
+    }
+
+    /// Adds an extension's identifer to this object.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::{Item, extensions::{Projection, Extensions}};
+    /// let mut item = Item::new("an-id");
+    /// item.add_extension::<Projection>();
+    /// ```
+    fn add_extension<E: Extension>(&mut self) {
+        self.extensions_mut().push(E::IDENTIFIER.to_string());
+        self.extensions_mut().dedup();
     }
 
     /// Sets an extension's data and adds its schema to this object's `extensions`.
@@ -148,6 +168,7 @@ pub trait Extensions: Fields {
     fn set_extension<E: Extension>(&mut self, extension: E) -> Result<()> {
         self.remove_extension::<E>();
         self.extensions_mut().push(E::IDENTIFIER.to_string());
+        self.extensions_mut().dedup();
         self.set_fields_with_prefix(E::PREFIX, extension)
     }
 

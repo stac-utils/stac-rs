@@ -28,13 +28,30 @@ jobs:
           - "-p stac-async"
           - "-p stac-cli"
           - "-p stac-validate"
-          - "--all-features"
     steps:
       - uses: actions/checkout@v4
       - name: Set up Rust cache
         uses: Swatinem/rust-cache@v2
       - name: Test
         run: cargo test ${{ matrix.args }}
+  ubuntu-with-gdal:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: 
+        args:
+          - "-p stac -p stac-cli -F gdal"
+          - "--all-features"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Rust cache
+        uses: Swatinem/rust-cache@v2
+      - name: Install GDAL
+        run: |
+          sudo apt-get update
+          sudo apt-get install libgdal-dev
+      - name: Test
+        run: cargo test ${{ matrix.args }}
+    
   windows:
     runs-on: windows-latest
     steps:
@@ -42,7 +59,7 @@ jobs:
       - name: Set up Rust cache
         uses: Swatinem/rust-cache@v2
       - name: Test
-        run: cargo test --all-features
+        run: cargo test
   macos:
     runs-on: macos-latest
     steps:
@@ -50,7 +67,7 @@ jobs:
       - name: Set up Rust cache
         uses: Swatinem/rust-cache@v2
       - name: Test
-        run: cargo test --all-features
+        run: cargo test
   fmt:
     runs-on: ubuntu-latest
     steps:
@@ -68,5 +85,9 @@ jobs:
       - uses: actions/checkout@v4
       - name: Set up Rust cache
         uses: Swatinem/rust-cache@v2
+      - name: Install GDAL
+        run: |
+          sudo apt-get update
+          sudo apt-get install libgdal-dev
       - name: Doc
         run: cargo doc --all-features
