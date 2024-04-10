@@ -60,6 +60,10 @@ pub enum Error {
     #[error("value is not a collection")]
     NotACollection(Value),
 
+    /// This value is not an object.
+    #[error("not an object")]
+    NotAnObject(serde_json::Value),
+
     /// Returned when trying to read from a url but the `reqwest` feature is not enabled.
     #[error("reqwest is not enabled")]
     ReqwestNotEnabled,
@@ -80,9 +84,4 @@ pub enum Error {
     /// [url::ParseError]
     #[error(transparent)]
     Url(#[from] url::ParseError),
-
-    /// [jsonschema::ValidationError], but owned.
-    #[cfg(feature = "jsonschema")]
-    #[error(transparent)]
-    ValidationError(#[from] jsonschema::ValidationError<'static>),
 }

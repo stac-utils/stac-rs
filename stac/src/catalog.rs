@@ -1,4 +1,4 @@
-use crate::{Error, Extensions, Href, Link, Links, Result, STAC_VERSION};
+use crate::{Error, Extensions, Fields, Href, Link, Links, Result, STAC_VERSION};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
@@ -33,8 +33,9 @@ pub struct Catalog {
 
     /// A list of extension identifiers the `Catalog` implements.
     #[serde(rename = "stac_extensions")]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub extensions: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
+    pub extensions: Vec<String>,
 
     /// Identifier for the `Catalog`.
     pub id: String,
@@ -74,7 +75,7 @@ impl Catalog {
         Catalog {
             r#type: CATALOG_TYPE.to_string(),
             version: STAC_VERSION.to_string(),
-            extensions: None,
+            extensions: Vec::new(),
             id: id.to_string(),
             title: None,
             description: description.to_string(),
@@ -122,9 +123,21 @@ impl TryFrom<Map<String, Value>> for Catalog {
     }
 }
 
+impl Fields for Catalog {
+    fn fields(&self) -> &Map<String, Value> {
+        &self.additional_fields
+    }
+    fn fields_mut(&mut self) -> &mut Map<String, Value> {
+        &mut self.additional_fields
+    }
+}
+
 impl Extensions for Catalog {
-    fn extensions(&self) -> Option<&[String]> {
-        self.extensions.as_deref()
+    fn extensions(&self) -> &Vec<String> {
+        &self.extensions
+    }
+    fn extensions_mut(&mut self) -> &mut Vec<String> {
+        &mut self.extensions
     }
 }
 
@@ -154,7 +167,7 @@ mod tests {
         assert_eq!(catalog.description, "a description");
         assert_eq!(catalog.r#type, "Catalog");
         assert_eq!(catalog.version, STAC_VERSION);
-        assert!(catalog.extensions.is_none());
+        assert!(catalog.extensions.is_empty());
         assert_eq!(catalog.id, "an-id");
         assert!(catalog.links.is_empty());
     }

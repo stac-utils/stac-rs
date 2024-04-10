@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+
+- The projection and raster extensions, the `Extension` trait, and the `Fields` trait ([#234](https://github.com/stac-utils/stac-rs/pull/234))
+
+### Changed
+
+- The `extensions` attribute of catalogs, collections, and items is now non-optional ([#234](https://github.com/stac-utils/stac-rs/pull/234))
+
 ## [0.5.3] - 2024-04-07
 
 ### Added

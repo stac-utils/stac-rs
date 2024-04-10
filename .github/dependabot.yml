@@ -20,3 +20,7 @@ updates:
     directory: "/stac-cli"
     schedule:
       interval: "weekly"
+  - package-ecosystem: "cargo"
+    directory: "/stac-validate"
+    schedule:
+      interval: "weekly"
