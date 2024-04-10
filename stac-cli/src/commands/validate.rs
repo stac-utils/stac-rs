@@ -1,8 +1,13 @@
 use crate::{Error, Result};
+use serde_json::Value;
 use stac_validate::{Validate, Validator};
 
-pub async fn validate(href: &str) -> Result<()> {
-    let value: serde_json::Value = stac_async::read_json(href).await?;
+pub async fn validate(href: Option<&str>) -> Result<()> {
+    let value: Value = if let Some(href) = href {
+        stac_async::read_json(href).await?
+    } else {
+        serde_json::from_reader(std::io::stdin())?
+    };
     if let Some(map) = value.as_object() {
         if map.contains_key("type") {
             let value = value.clone();

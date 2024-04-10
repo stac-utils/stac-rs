@@ -92,7 +92,9 @@ pub enum Command {
         /// or Item, that object will be validated. If its a collections
         /// endpoint from a STAC API, all collections will be validated.
         /// Additional behavior TBD.
-        href: String,
+        ///
+        /// If this is not provided, will read from standard input.
+        href: Option<String>,
     },
 }
 
@@ -135,7 +137,7 @@ impl Command {
                 crate::commands::search(&href, search, max_items, stream, !(compact | stream)).await
             }
             Sort { href, compact } => crate::commands::sort(&href, compact).await,
-            Validate { href } => crate::commands::validate(&href).await,
+            Validate { href } => crate::commands::validate(href.as_deref()).await,
         }
     }
 }
