@@ -9,10 +9,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 
 - The projection and raster extensions, the `Extension` trait, and the `Fields` trait ([#234](https://github.com/stac-utils/stac-rs/pull/234))
+- `stac::item::Builder` ([#237](https://github.com/stac-utils/stac-rs/pull/237))
 
 ### Changed
 
 - The `extensions` attribute of catalogs, collections, and items is now non-optional ([#234](https://github.com/stac-utils/stac-rs/pull/234))
+- The `roles` attribute of assets is now non-optional ([#237](https://github.com/stac-utils/stac-rs/pull/237))
 
 ## [0.5.3] - 2024-04-07
 

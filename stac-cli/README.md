@@ -26,6 +26,14 @@ Use the cli `--help` flag to see all available options:
 stac --help
 ```
 
+### Item
+
+Create a STAC Item from an href:
+
+```shell
+stac item https://storage.googleapis.com/open-cogs/stac-examples/20201211_223832_CS2.tif
+```
+
 ### Search
 
 Search a STAC API:

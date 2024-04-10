@@ -1,10 +1,13 @@
+//! STAC Items.
+
 use crate::{
     Asset, Assets, Error, Extensions, Fields, Geometry, Href, Link, Links, Result, STAC_VERSION,
 };
 use chrono::{DateTime, FixedOffset, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use std::collections::HashMap;
+use std::{collections::HashMap, path::Path};
+use url::Url;
 
 /// The type field for [Items](Item).
 pub const ITEM_TYPE: &str = "Feature";
@@ -154,6 +157,84 @@ pub struct Properties {
     /// Additional fields on the properties.
     #[serde(flatten)]
     pub additional_fields: Map<String, Value>,
+}
+
+/// Builder for a STAC Item.
+#[derive(Debug)]
+pub struct Builder {
+    id: String,
+    canonicalize_paths: bool,
+    assets: HashMap<String, Asset>,
+}
+
+impl Builder {
+    /// Creates a new builder.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::item::Builder;
+    /// let builder = Builder::new("an-id");
+    /// ```
+    pub fn new(id: impl ToString) -> Builder {
+        Builder {
+            id: id.to_string(),
+            canonicalize_paths: true,
+            assets: HashMap::new(),
+        }
+    }
+
+    /// Set to false to not canonicalize paths.
+    ///
+    /// Useful if you want relative paths, or the files don't actually exist.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::item::Builder;
+    /// let builder = Builder::new("an-id").canonicalize_paths(false);
+    /// ```
+    pub fn canonicalize_paths(mut self, canonicalize_paths: bool) -> Builder {
+        self.canonicalize_paths = canonicalize_paths;
+        self
+    }
+
+    /// Adds an asset by href to this builder.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::item::Builder;
+    /// let builder = Builder::new("an-id").asset("data", "assets/dataset.tif");
+    /// ```
+    pub fn asset(mut self, key: impl ToString, asset: impl Into<Asset>) -> Builder {
+        let _ = self.assets.insert(key.to_string(), asset.into());
+        self
+    }
+
+    /// Creates an [Item] by consuming this builder.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::item::Builder;
+    /// let builder = Builder::new("an-id").asset("data", "assets/dataset.tif");
+    /// let item = builder.into_item().unwrap();
+    /// assert_eq!(item.assets.len(), 1);
+    /// ```
+    pub fn into_item(self) -> Result<Item> {
+        let mut item = Item::new(self.id);
+        for (key, mut asset) in self.assets {
+            if Url::parse(&asset.href).is_err() && self.canonicalize_paths {
+                asset.href = Path::new(&asset.href)
+                    .canonicalize()?
+                    .to_string_lossy()
+                    .into_owned();
+            }
+            let _ = item.assets.insert(key, asset);
+        }
+        Ok(item)
+    }
 }
 
 impl Default for Properties {
@@ -473,8 +554,8 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::Item;
-    use crate::STAC_VERSION;
+    use super::{Builder, Item};
+    use crate::{Asset, STAC_VERSION};
     use serde_json::Value;
 
     #[test]
@@ -595,5 +676,36 @@ mod tests {
             "data/extensions-collection/proj-example/proj-example.json",
             Item
         );
+    }
+
+    #[test]
+    fn builder() {
+        let builder = Builder::new("an-id").asset("data", "assets/dataset.tif");
+        let item = builder.into_item().unwrap();
+        assert_eq!(item.assets.len(), 1);
+        let asset = item.assets.get("data").unwrap();
+        assert!(asset
+            .href
+            .ends_with(&format!("assets{}dataset.tif", std::path::MAIN_SEPARATOR)));
+    }
+
+    #[test]
+    fn builder_relative_paths() {
+        let builder = Builder::new("an-id")
+            .canonicalize_paths(false)
+            .asset("data", "assets/dataset.tif");
+        let item = builder.into_item().unwrap();
+        let asset = item.assets.get("data").unwrap();
+        assert_eq!(asset.href, "assets/dataset.tif");
+    }
+
+    #[test]
+    fn builder_asset_roles() {
+        let item = Builder::new("an-id")
+            .asset("data", Asset::new("assets/dataset.tif").role("data"))
+            .into_item()
+            .unwrap();
+        let asset = item.assets.get("data").unwrap();
+        assert_eq!(asset.roles, vec!["data"]);
     }
 }

@@ -127,7 +127,7 @@ pub mod geo;
 mod geometry;
 mod href;
 mod io;
-mod item;
+pub mod item;
 mod item_collection;
 pub mod link;
 pub mod media_type;

@@ -29,8 +29,9 @@ pub struct Asset {
     pub r#type: Option<String>,
 
     /// The semantic roles of the asset, similar to the use of rel in [Links](crate::Link).
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub roles: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
+    pub roles: Vec<String>,
 
     /// Creation date and time of the corresponding data, in UTC.
     ///
@@ -107,12 +108,29 @@ impl Asset {
             title: None,
             description: None,
             r#type: None,
-            roles: None,
+            roles: Vec::new(),
             created: None,
             updated: None,
             additional_fields: Map::new(),
             extensions: Vec::new(),
         }
+    }
+
+    /// Adds a role to this asset, returning the modified asset.
+    ///
+    /// Useful for builder patterns.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::Asset;
+    /// let asset = Asset::new("asset/dataset.tif").role("data");
+    /// assert_eq!(asset.roles, vec!["data"]);
+    /// ```
+    pub fn role(mut self, role: impl ToString) -> Asset {
+        self.roles.push(role.to_string());
+        self.roles.dedup();
+        self
     }
 }
 
@@ -134,6 +152,18 @@ impl Extensions for Asset {
     }
 }
 
+impl From<String> for Asset {
+    fn from(value: String) -> Self {
+        Asset::new(value)
+    }
+}
+
+impl<'a> From<&'a str> for Asset {
+    fn from(value: &'a str) -> Self {
+        Asset::new(value)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::Asset;
@@ -145,7 +175,7 @@ mod tests {
         assert!(asset.title.is_none());
         assert!(asset.description.is_none());
         assert!(asset.r#type.is_none());
-        assert!(asset.roles.is_none());
+        assert!(asset.roles.is_empty());
     }
 
     #[test]

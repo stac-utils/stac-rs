@@ -17,6 +17,9 @@ pub enum Error {
     StacApi(#[from] stac_api::Error),
 
     #[error(transparent)]
+    Stac(#[from] stac::Error),
+
+    #[error(transparent)]
     StacAsync(#[from] stac_async::Error),
 
     #[error(transparent)]
