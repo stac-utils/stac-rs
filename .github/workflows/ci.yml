@@ -2,44 +2,64 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   pull_request:
-    branches: [main]
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   CARGO_TERM_COLOR: always
+  CARGO_TERM_VERBOSE: true
 
 jobs:
-  test:
-    strategy:
-      fail-fast: true
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Rust cache
-        uses: Swatinem/rust-cache@v2
-      - name: Format
-        run: cargo fmt --verbose
-      - name: Build
-        run: cargo build --verbose --all-features
-      - name: Test
-        run: cargo test --verbose --all-features
-  test-stac:
+  ubuntu:
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: true
-      matrix:
-        flags: ["", "--features geo", "--features reqwest", "--features schemars"]
+      matrix: 
+        args:
+          - "-p stac"
+          - "-p stac -F reqwest"
+          - "-p stac-api"
+          - "-p stac -p stac-api -F geo"
+          - "-p stac -p stac-api -F schemars"
+          - "-p stac-async"
+          - "-p stac-cli"
+          - "-p stac-validate"
+          - "--all-features"
     steps:
       - uses: actions/checkout@v4
       - name: Set up Rust cache
         uses: Swatinem/rust-cache@v2
-      - name: Build
-        run: cargo build --verbose -p stac ${{ matrix.flags }}
       - name: Test
-        run: cargo test --verbose -p stac ${{ matrix.flags }}
+        run: cargo test ${{ matrix.args }}
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Rust cache
+        uses: Swatinem/rust-cache@v2
+      - name: Test
+        run: cargo test --all-features
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Rust cache
+        uses: Swatinem/rust-cache@v2
+      - name: Test
+        run: cargo test --all-features
+  fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Rust cache
+        uses: Swatinem/rust-cache@v2
+      - name: Fmt
+        run: cargo fmt
+
   doc:
     runs-on: ubuntu-latest
     env:
