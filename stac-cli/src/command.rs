@@ -116,7 +116,9 @@ pub enum Command {
     /// Sorts the fields of STAC object.
     Sort {
         /// The href of the STAC object.
-        href: String,
+        ///
+        /// If this is not provided, will read from standard input.
+        href: Option<String>,
 
         /// If true, don't pretty-print the output
         #[arg(short, long)]
@@ -199,7 +201,7 @@ impl Command {
                 let search = get_search.try_into()?;
                 crate::commands::search(&href, search, max_items, stream, !(compact | stream)).await
             }
-            Sort { href, compact } => crate::commands::sort(&href, compact).await,
+            Sort { href, compact } => crate::commands::sort(href.as_deref(), compact).await,
             Validate { href } => crate::commands::validate(href.as_deref()).await,
         }
     }
