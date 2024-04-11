@@ -37,7 +37,7 @@ pub struct Projection {
 
     /// Number of pixels in Y and X directions for the default grid
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub shape: Option<Vec<f64>>,
+    pub shape: Option<Vec<usize>>,
 
     /// The affine transformation coefficients for the default grid
     #[serde(skip_serializing_if = "Option::is_none")]
