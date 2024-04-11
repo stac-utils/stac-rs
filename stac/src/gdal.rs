@@ -2,12 +2,16 @@
 
 use crate::{
     extensions::{
+        projection::Centroid,
         raster::{Band, Raster, Statistics},
         Projection,
     },
     Asset, Bounds, Extensions, Geometry, Item, Result,
 };
-use gdal::Dataset;
+use gdal::{
+    spatial_ref::{CoordTransform, SpatialRef},
+    Dataset,
+};
 
 /// Update an [Item] using GDAL.
 ///
@@ -82,7 +86,17 @@ fn update_asset(
     let dataset = Dataset::open(&asset.href)?;
     let mut spatial_resolution = None;
     let mut projection = Projection::default();
+    let (width, height) = dataset.raster_size();
+    projection.shape = Some(vec![height, width]);
     if let Ok(geo_transform) = dataset.geo_transform() {
+        projection.transform = Some(vec![
+            geo_transform[1],
+            geo_transform[2],
+            geo_transform[0],
+            geo_transform[4],
+            geo_transform[5],
+            geo_transform[3],
+        ]);
         spatial_resolution = Some((geo_transform[1].abs() + geo_transform[5].abs()) / 2.0);
         let (width, height) = dataset.raster_size();
         let width = width as f64;
@@ -117,6 +131,17 @@ fn update_asset(
                 .ok()
                 .and_then(|s| serde_json::from_str(&s).ok());
         }
+        if let Some(bbox) = projection.bbox.as_ref() {
+            let mut x = [(bbox[0] + bbox[2]) / 2.];
+            let mut y = [(bbox[1] + bbox[3]) / 2.];
+            let coord_transform = CoordTransform::new(&spatial_ref, &SpatialRef::from_epsg(4326)?)?;
+            coord_transform.transform_coords(&mut x, &mut y, &mut [])?;
+            let round = |n: f64| (n * 10_000_000.).round() / 10_000_000.;
+            projection.centroid = Some(Centroid {
+                lat: round(x[0]),
+                lon: round(y[0]),
+            });
+        }
     }
     let count = dataset.raster_count();
     let mut bands = Vec::with_capacity(count.try_into()?);
@@ -143,7 +168,7 @@ fn update_asset(
 #[cfg(test)]
 mod tests {
     use crate::{
-        extensions::{raster::DataType, Projection, Raster},
+        extensions::{projection::Centroid, raster::DataType, Projection, Raster},
         item::Builder,
         Extensions,
     };
@@ -202,5 +227,24 @@ mod tests {
             projection.bbox.unwrap(),
             vec![373185.0, 8019284.949381611, 639014.9492102272, 8286015.0]
         );
+        assert_eq!(projection.shape.unwrap(), vec![2667, 2658]);
+        assert_eq!(
+            projection.transform.unwrap(),
+            vec![
+                100.01126757344893,
+                0.0,
+                373185.0,
+                0.0,
+                -100.01126757344893,
+                8286015.0,
+            ]
+        );
+        assert_eq!(
+            projection.centroid.unwrap(),
+            Centroid {
+                lon: -56.8079473,
+                lat: 73.4675736,
+            }
+        )
     }
 }
