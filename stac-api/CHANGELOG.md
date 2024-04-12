@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - `Conformance` builder functions ([#247](https://github.com/stac-utils/stac-rs/pull/247))
 - Un-serialized pagination members to `ItemCollection` ([#247](https://github.com/stac-utils/stac-rs/pull/247))
 - `stac::Fields` for `Search` and `Items` ([#247](https://github.com/stac-utils/stac-rs/pull/247))
+- `Items::valid` and `Search::valid` ([#244](https://github.com/stac-utils/stac-rs/pull/244))
 
 ### Changed
 
@@ -19,6 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Removed
 
 - `schemars` feature ([#245](https://github.com/stac-utils/stac-rs/pull/245))
+- `Search::validate` ([#244](https://github.com/stac-utils/stac-rs/pull/244))
 
 ## [0.3.3] - 2024-04-07
 

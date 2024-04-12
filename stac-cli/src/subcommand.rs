@@ -103,6 +103,20 @@ pub enum Subcommand {
         stream: bool,
     },
 
+    /// Serves a STAC API.
+    ///
+    /// By default, uses a basic memory backend, which is not suitable for
+    /// production. To use the pgstac backend, pass the pgstac connection string
+    /// to the `--pgstac` argument.
+    Serve {
+        /// Hrefs of STAC collections and items to load before starting the server.
+        href: Vec<String>,
+
+        /// The pgstac connection string.
+        #[arg(long)]
+        pgstac: Option<String>,
+    },
+
     /// Sorts the fields of STAC object.
     Sort {
         /// The href of the STAC object.

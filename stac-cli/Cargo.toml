@@ -11,19 +11,25 @@ keywords = ["geospatial", "stac", "metadata", "geo", "raster"]
 categories = ["science", "data-structures"]
 
 [features]
-default = ["gdal"]
+default = ["gdal", "pgstac"]
 gdal = ["stac/gdal"]
+pgstac = ["dep:pgstac", "stac-server/pgstac"]
 
 [dependencies]
+axum = "0.7"
 clap = { version = "4", features = ["derive"] }
 console = "0.15"
 indicatif = "0.17"
+pgstac = { version = "0.0.6", path = "../pgstac", optional = true }
 reqwest = "0.12"
 serde = "1"
 serde_json = "1"
 stac = { version = "0.6", path = "../stac" }
 stac-api = { version = "0.3", path = "../stac-api" }
 stac-async = { version = "0.5", path = "../stac-async" }
+stac-server = { version = "0.1", path = "../stac-server", features = [
+    "memory-item-search",
+] }
 stac-validate = { version = "0.1", path = "../stac-validate" }
 thiserror = "1"
 tokio = { version = "1.23", features = ["macros", "rt-multi-thread"] }

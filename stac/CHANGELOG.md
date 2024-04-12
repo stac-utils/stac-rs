@@ -6,9 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+
+- `Link::method` and `Link::body` ([#244](https://github.com/stac-utils/stac-rs/pull/244))
+
 ### Changed
 
-- Use `geojson::Geometry` instead of a crate-specific `Geometry` type([#245](https://github.com/stac-utils/stac-rs/pull/245))
+- Use `geojson::Geometry` instead of a crate-specific `Geometry` type ([#245](https://github.com/stac-utils/stac-rs/pull/245))
 
 ### Removed
 

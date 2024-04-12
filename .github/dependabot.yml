@@ -9,6 +9,10 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "cargo"
+    directory: "/pgstac"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "cargo"
     directory: "/stac-api"
     schedule:
       interval: "weekly"
@@ -18,6 +22,10 @@ updates:
       interval: "weekly"
   - package-ecosystem: "cargo"
     directory: "/stac-cli"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "cargo"
+    directory: "/stac-server"
     schedule:
       interval: "weekly"
   - package-ecosystem: "cargo"

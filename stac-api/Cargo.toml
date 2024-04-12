@@ -14,6 +14,7 @@ categories = ["science", "data-structures", "web-programming"]
 geo = ["dep:geo", "stac/geo"]
 
 [dependencies]
+chrono = "0.4"
 geo = { version = "0.28", optional = true }
 geojson = "0.24"
 serde = "1"

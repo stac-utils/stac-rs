@@ -647,6 +647,42 @@ impl Link {
     pub fn is_relative(&self) -> bool {
         !is_absolute(&self.href)
     }
+
+    /// Sets the method attribute on this link.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::Link;
+    /// let link = Link::new("href", "rel").method("GET");
+    /// ```
+    pub fn method(mut self, method: impl ToString) -> Link {
+        self.method = Some(method.to_string());
+        self
+    }
+
+    /// Sets the body attribute on this link.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::Link;
+    /// use serde_json::json;
+    ///
+    /// let link = Link::new("href", "rel").body(json!({"foo": "bar"})).unwrap();
+    /// ```
+    pub fn body<T: Serialize>(mut self, body: T) -> Result<Link> {
+        match serde_json::to_value(body)? {
+            Value::Object(body) => {
+                self.body = Some(body);
+                Ok(self)
+            }
+            value => Err(Error::IncorrectType {
+                actual: value.to_string(),
+                expected: "object".to_string(),
+            }),
+        }
+    }
 }
 
 fn is_absolute(href: &str) -> bool {

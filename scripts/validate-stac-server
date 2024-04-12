@@ -1,0 +1,34 @@
+#!/usr/bin/env sh
+
+set -e
+
+args="stac-server/data/sentinel-2/*"
+build_args="--no-default-features"
+
+if [ $# -eq 1 ]; then
+    if [ "$1" = "--pgstac" ]; then
+        args="$args --pgstac postgres://username:password@localhost/postgis"
+        build_args="$build_args -F pgstac"
+    else
+        echo "Unknown argument: $1"
+        exit 1
+    fi
+fi
+
+cargo build -p stac-cli $build_args
+cargo run $build_args -- serve $args &
+server_pid=$!
+echo "server_pid=$server_pid"
+set +e
+scripts/wait-for-it.sh localhost:7822 && \
+    stac-api-validator \
+        --root-url http://localhost:7822 \
+        --conformance core \
+        --conformance features \
+        --conformance item-search \
+        --collection sentinel-2-c1-l2a \
+        --geometry '{"type":"Point","coordinates":[-105.07,40.08]}'
+status=$?
+set -e
+kill $server_pid
+exit $status

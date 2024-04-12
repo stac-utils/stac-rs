@@ -1,4 +1,5 @@
 use crate::Search;
+use chrono::{DateTime, FixedOffset};
 use serde_json::{Map, Value};
 use thiserror::Error;
 
@@ -16,13 +17,25 @@ pub enum Error {
     #[error("cannot convert cql2-json to strings")]
     CannotConvertCql2JsonToString(Map<String, Value>),
 
+    /// [chrono::ParseError]
+    #[error(transparent)]
+    ChronoParse(#[from] chrono::ParseError),
+
     /// [geojson::Error]
     #[error(transparent)]
     GeoJson(#[from] geojson::Error),
 
+    /// An empty datetime interval.
+    #[error("empty datetime interval")]
+    EmptyDatetimeInterval,
+
     /// Some functionality requires a certain optional feature to be enabled.
     #[error("feature not enabled: {0}")]
     FeatureNotEnabled(&'static str),
+
+    /// Invalid bounding box.
+    #[error("invalid bbox ({0:?}): {1}")]
+    InvalidBbox(Vec<f64>, &'static str),
 
     /// [std::num::ParseIntError]
     #[error(transparent)]
@@ -47,6 +60,10 @@ pub enum Error {
     /// [stac::Error]
     #[error(transparent)]
     Stac(#[from] stac::Error),
+
+    /// The start time is after the end time.
+    #[error("start ({0}) is after end ({1})")]
+    StartIsAfterEnd(DateTime<FixedOffset>, DateTime<FixedOffset>),
 
     /// [std::num::TryFromIntError]
     #[error(transparent)]

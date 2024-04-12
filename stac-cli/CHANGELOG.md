@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+
+- `stac serve` ([#244](https://github.com/stac-utils/stac-rs/pull/244))
+
 ## [0.0.8] - 2024-04-22
 
 ### Added

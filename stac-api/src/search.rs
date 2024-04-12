@@ -77,9 +77,9 @@ impl Search {
         self
     }
 
-    /// Validates this search.
+    /// Returns an error if this search is invalid, e.g. if both bbox and intersects are specified.
     ///
-    /// E.g. the search is invalid if both bbox and intersects are specified.
+    /// Returns the search unchanged if it is valid.
     ///
     /// # Examples
     ///
@@ -89,15 +89,16 @@ impl Search {
     ///
     /// let mut search = Search::default();
     /// search.items.bbox =  Some(vec![-180.0, -90.0, 180.0, 80.0]);
-    /// search.validate().unwrap();
+    /// search = search.valid().unwrap();
     /// search.intersects = Some(Geometry::new(Value::Point(vec![0.0, 0.0])));
-    /// let _ = search.validate().unwrap_err();
+    /// search.valid().unwrap_err();
     /// ```
-    pub fn validate(&self) -> Result<()> {
+    pub fn valid(mut self) -> Result<Search> {
+        self.items = self.items.valid()?;
         if self.items.bbox.is_some() & self.intersects.is_some() {
             Err(Error::SearchHasBboxAndIntersects(self.clone()))
         } else {
-            Ok(())
+            Ok(self)
         }
     }
 
