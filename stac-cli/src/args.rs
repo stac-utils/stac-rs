@@ -5,8 +5,10 @@ use serde_json::json;
 use stac::{item::Builder, Asset, Value};
 use stac_api::{GetItems, GetSearch, Item, ItemCollection};
 use stac_async::ApiClient;
+use stac_server::{Api, Backend, MemoryBackend};
 use stac_validate::Validate;
 use std::path::Path;
+use tokio::net::TcpListener;
 use tokio_stream::StreamExt;
 use url::Url;
 
@@ -77,6 +79,7 @@ impl Args {
                 )
                 .await
             }
+            Serve { href, pgstac } => self.serve(&href, pgstac.as_deref()).await,
             Sort { href } => self.sort(href.as_deref()).await,
             Validate { href } => self.validate(href.as_deref()).await,
         };
@@ -221,6 +224,41 @@ impl Args {
             let item_collection = ItemCollection::new(items)?;
             self.println(item_collection)?;
         }
+        Ok(())
+    }
+
+    #[allow(unused_variables)] // for `pgstac` if we don't compile with it
+    async fn serve(&self, hrefs: &[String], pgstac: Option<&str>) -> Result<()> {
+        let root = "http://127.0.0.1:7822";
+        let addr = "127.0.0.1:7822";
+        if let Some(pgstac) = pgstac {
+            #[cfg(feature = "pgstac")]
+            {
+                let mut backend = stac_server::PgstacBackend::new_from_stringlike(pgstac).await?;
+                if !hrefs.is_empty() {
+                    backend.add_from_hrefs(hrefs).await?;
+                }
+                let api = Api::new(backend, root)?;
+                let router = stac_server::routes::from_api(api);
+                let listener = TcpListener::bind(addr).await.unwrap();
+                println!("Serving a STAC API at {} using a pgstac backend", root);
+                axum::serve(listener, router).await.unwrap();
+            }
+            #[cfg(not(feature = "pgstac"))]
+            return Err(Error::Custom(format!(
+                "stac-cli is not compiled with pgstac support"
+            )));
+        } else {
+            let mut backend = MemoryBackend::new();
+            if !hrefs.is_empty() {
+                backend.add_from_hrefs(hrefs).await?;
+            }
+            let api = Api::new(backend, root)?;
+            let router = stac_server::routes::from_api(api);
+            let listener = TcpListener::bind(addr).await.unwrap();
+            println!("Serving a STAC API at {} using a memory backend", root);
+            axum::serve(listener, router).await.unwrap();
+        };
         Ok(())
     }
 

@@ -22,6 +22,9 @@ pub enum Error {
     StacAsync(#[from] stac_async::Error),
 
     #[error(transparent)]
+    StacServer(#[from] stac_server::Error),
+
+    #[error(transparent)]
     StacValidate(#[from] stac_validate::Error),
 
     #[error(transparent)]

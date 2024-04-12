@@ -1,4 +1,5 @@
 use crate::{Error, Fields, Filter, Result, Search, Sortby};
+use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use stac::Item;
@@ -100,6 +101,62 @@ pub struct GetItems {
 }
 
 impl Items {
+    /// Runs a set of validity checks on this query and returns an error if it is invalid.
+    ///
+    /// Returns the items, unchanged, if it is valid.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac_api::Items;
+    ///
+    /// let items = Items::default().valid().unwrap();
+    /// ```
+    pub fn valid(self) -> Result<Items> {
+        if let Some(bbox) = self.bbox.as_ref() {
+            if bbox.len() == 4 {
+                if bbox[1] > bbox[3] {
+                    return Err(Error::InvalidBbox(
+                        bbox.clone(),
+                        "min latitude is greater than max latitude",
+                    ));
+                }
+            } else if bbox.len() == 6 {
+                if bbox[1] > bbox[4] {
+                    return Err(Error::InvalidBbox(
+                        bbox.clone(),
+                        "min latitude is greater than max latitude",
+                    ));
+                }
+            } else {
+                return Err(Error::InvalidBbox(
+                    bbox.clone(),
+                    "invalid number of coordinates",
+                ));
+            }
+        }
+        if let Some(datetime) = self.datetime.as_deref() {
+            if let Some((start, end)) = datetime.split_once('/') {
+                let (start, end) = (
+                    maybe_parse_from_rfc3339(start)?,
+                    maybe_parse_from_rfc3339(end)?,
+                );
+                if let Some(start) = start {
+                    if let Some(end) = end {
+                        if end < start {
+                            return Err(Error::StartIsAfterEnd(start, end));
+                        }
+                    }
+                } else if end.is_none() {
+                    return Err(Error::EmptyDatetimeInterval);
+                }
+            } else {
+                let _ = maybe_parse_from_rfc3339(datetime)?;
+            }
+        }
+        Ok(self)
+    }
+
     /// Returns true if this items structure matches the given item.
     ///
     /// # Examples
@@ -347,6 +404,16 @@ impl stac::Fields for Items {
     }
     fn fields_mut(&mut self) -> &mut Map<String, Value> {
         &mut self.additional_fields
+    }
+}
+
+fn maybe_parse_from_rfc3339(s: &str) -> Result<Option<DateTime<FixedOffset>>> {
+    if s.is_empty() || s == ".." {
+        Ok(None)
+    } else {
+        DateTime::parse_from_rfc3339(s)
+            .map(Some)
+            .map_err(Error::from)
     }
 }
 
