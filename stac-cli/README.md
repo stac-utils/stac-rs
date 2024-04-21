@@ -6,68 +6,47 @@
 ![Crates.io](https://img.shields.io/crates/l/stac-cli?style=for-the-badge)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?style=for-the-badge)](./CODE_OF_CONDUCT)
 
-Command line interface to [stac-rs](https://github.com/stac-utils/stac-rs).
+Command Line Interface (CLI) for [STAC](https://stacspec.org/) built with [stac-rs](https://github.com/stac-utils/stac-rs).
+
+![stac-cli gif](./img/stac-cli.gif)
 
 ## Installation
 
-Install rust.
-[rustup](https://rustup.rs/) works well.
-Once you do:
+Install rust, e.g. with [rustup](https://rustup.rs/).
+Then:
 
 ```sh
 cargo install stac-cli
 ```
 
-### Features
+### Homebrew
 
-There is one opt-in feature, `gdal`:
+If you use [homebrew](https://brew.sh/), you can use [gadomski's](https://github.com/gadomski/) tap to install:
 
 ```shell
-cargo install stac-cli -F gdal
+brew install gadomski/gadomski/stac
 ```
-
-This will enable the projection and raster extensions for created items.
 
 ## Usage
 
-Use the cli `--help` flag to see all available options:
+**stac-cli** provides the following subcommands:
+
+- `stac item`: create STAC items and combine them into item collections
+- `stac search`: search STAC APIs
+- `stac sort`: sort the fields of STAC items, catalogs, and collections
+- `stac validate`: validate STAC items, catalogs, and collections using [json-schema](https://json-schema.org/)
+
+Use the `--help` flag to see all available options for the CLI and the subcommands:
+
+## Features
+
+By default, the CLI builds w/ [GDAL](https://gdal.org) support, which requires that GDAL is installed on your system.
+If you don't want to use GDAL, you can disable the default features:
 
 ```shell
-stac --help
+cargo install stac-cli --no-default-features
 ```
 
-### Item
+## Other info
 
-Create a STAC Item from an href:
-
-```shell
-stac item https://storage.googleapis.com/open-cogs/stac-examples/20201211_223832_CS2.tif
-```
-
-### Search
-
-Search a STAC API:
-
-```shell
-stac search https://earth-search.aws.element84.com/v1 \
-    -c sentinel-2-l2a \
-    --max-items 1 \
-    --sortby='-properties.datetime' \
-    --intersects '{"type":"Point","coordinates":[-105.1019,40.1672]}'
-```
-
-### Validate
-
-Validate a STAC item:
-
-```shell
-stac validate https://raw.githubusercontent.com/radiantearth/stac-spec/master/examples/simple-item.json
-```
-
-### Sort
-
-Sort the fields of a STAC item into the order they're specified in the spec:
-
-```shell
-stac sort https://raw.githubusercontent.com/radiantearth/stac-spec/master/examples/simple-item.json
-```
+This crate is part of the [stac-rs](https://github.com/stac-utils/stac-rs) monorepo, see its README for contributing and license information.

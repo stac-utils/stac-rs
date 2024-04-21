@@ -15,7 +15,7 @@ env:
   CARGO_TERM_VERBOSE: true
 
 jobs:
-  ubuntu:
+  test-ubuntu:
     runs-on: ubuntu-latest
     strategy:
       matrix: 
@@ -26,7 +26,7 @@ jobs:
           - "-p stac -p stac-api -F geo"
           - "-p stac -p stac-api -F schemars"
           - "-p stac-async"
-          - "-p stac-cli"
+          - "-p stac-cli --no-default-features"
           - "-p stac-validate"
     steps:
       - uses: actions/checkout@v4
@@ -34,13 +34,8 @@ jobs:
         uses: Swatinem/rust-cache@v2
       - name: Test
         run: cargo test ${{ matrix.args }}
-  ubuntu-with-gdal:
+  test-ubuntu-with-gdal:
     runs-on: ubuntu-latest
-    strategy:
-      matrix: 
-        args:
-          - "-p stac -p stac-cli -F gdal"
-          - "--all-features"
     steps:
       - uses: actions/checkout@v4
       - name: Set up Rust cache
@@ -50,24 +45,35 @@ jobs:
           sudo apt-get update
           sudo apt-get install libgdal-dev
       - name: Test
-        run: cargo test ${{ matrix.args }}
-    
-  windows:
+        run: cargo test -p stac -p stac-cli  # gdal is default for stac-cli
+  test-windows:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - name: Set up Rust cache
         uses: Swatinem/rust-cache@v2
       - name: Test
-        run: cargo test
-  macos:
+        run: cargo test --no-default-features -F reqwest -F geo -F schemars
+  test-macos:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
       - name: Set up Rust cache
         uses: Swatinem/rust-cache@v2
       - name: Test
-        run: cargo test
+        run: cargo test --no-default-features -F reqwest -F geo -F schemars
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Rust cache
+        uses: Swatinem/rust-cache@v2
+      - name: Install GDAL
+        run: |
+          sudo apt-get update
+          sudo apt-get install libgdal-dev
+      - name: Build
+        run: cargo build --all-features
   fmt:
     runs-on: ubuntu-latest
     steps:
@@ -76,7 +82,6 @@ jobs:
         uses: Swatinem/rust-cache@v2
       - name: Fmt
         run: cargo fmt
-
   doc:
     runs-on: ubuntu-latest
     env:

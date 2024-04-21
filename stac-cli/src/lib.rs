@@ -1,8 +1,7 @@
 mod args;
-mod command;
-mod commands;
 mod error;
+mod subcommand;
 
-pub use {args::Args, command::Command, error::Error};
+pub use {args::Args, error::Error, subcommand::Subcommand};
 
 pub type Result<T> = std::result::Result<T, Error>;
