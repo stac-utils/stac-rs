@@ -59,7 +59,7 @@ pub trait Validate: ValidateCore {
 /// If your STAC object is the same version as [stac::STAC_VERSION], this will
 /// be a quick, cheap operation, since the schemas are stored in the library.
 pub trait ValidateCore: Serialize {
-    /// Validate a [serde_json::Value] agasint a specific STAC jsonschema.
+    /// Validate a [serde_json::Value] against a specific STAC jsonschema.
     ///
     /// #  Examples
     ///

@@ -27,3 +27,7 @@ item.validate().unwrap();
 ```
 
 Please see the [documentation](https://docs.rs/stac-validate) for more usage examples.
+
+## Other info
+
+This crate is part of the [stac-rs](https://github.com/stac-utils/stac-rs) monorepo, see its README for contributing and license information.

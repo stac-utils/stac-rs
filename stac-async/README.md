@@ -27,3 +27,7 @@ let value: stac::Item = tokio_test::block_on(async {
 ```
 
 Please see the [documentation](https://docs.rs/stac-async) for more usage examples.
+
+## Other info
+
+This crate is part of the [stac-rs](https://github.com/stac-utils/stac-rs) monorepo, see its README for contributing and license information.

@@ -1,14 +1,13 @@
-use stac::Value;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
 #[non_exhaustive]
 pub enum Error {
+    #[error("{0}")]
+    Custom(String),
+
     #[error(transparent)]
     Io(#[from] std::io::Error),
-
-    #[error("invalid STAC")]
-    InvalidValue(Value),
 
     #[error(transparent)]
     SerdeJson(#[from] serde_json::Error),
@@ -27,13 +26,10 @@ pub enum Error {
 
     #[error(transparent)]
     TokioJoinError(#[from] tokio::task::JoinError),
-
-    #[error("many validation errors")]
-    ValidationGroup(Vec<stac_validate::Error>),
 }
 
 impl Error {
-    pub fn return_code(&self) -> i32 {
+    pub fn code(&self) -> i32 {
         // TODO make these codes more meaningful
         1
     }

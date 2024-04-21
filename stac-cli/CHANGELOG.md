@@ -11,6 +11,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - `stac sort` can take stdin ([#241](https://github.com/stac-utils/stac-rs/pull/241))
 
+### Changed
+
+- Re-organized the CLI code architecture ([#243](https://github.com/stac-utils/stac-rs/pull/243))
+
 ## [0.0.7] - 2024-04-11
 
 ### Added

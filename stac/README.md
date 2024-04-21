@@ -119,3 +119,7 @@ This is mostly useful for auto-generating OpenAPI documentation for STAC APIs.
 [dependencies]
 stac = { version = "0.6", features = ["schemars"]}
 ```
+
+## Other info
+
+This crate is part of the [stac-rs](https://github.com/stac-utils/stac-rs) monorepo, see its README for contributing and license information.
