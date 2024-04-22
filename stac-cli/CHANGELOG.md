@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.0.8] - 2024-04-22
+
 ### Added
 
 - `stac sort` can take stdin ([#241](https://github.com/stac-utils/stac-rs/pull/241))
@@ -55,7 +57,8 @@ Moved over from [stac-incubator-rs](https://github.com/gadomski/stac-incubator-r
 - Downloading ([#142](https://github.com/stac-utils/stac-rs/pull/142), [#152](https://github.com/stac-utils/stac-rs/pull/152))
 - Validation ([#155](https://github.com/stac-utils/stac-rs/pull/155))
 
-[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-cli-v0.0.7..main
+[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-cli-v0.0.8..main
+[0.0.8]: https://github.com/stac-utils/stac-rs/compare/stac-cli-v0.0.7..stac-cli-v0.0.8
 [0.0.7]: https://github.com/stac-utils/stac-rs/compare/stac-cli-v0.0.6..stac-cli-v0.0.7
 [0.0.6]: https://github.com/stac-utils/stac-rs/compare/stac-cli-v0.0.5..stac-cli-v0.0.6
 [0.0.5]: https://github.com/stac-utils/stac-rs/compare/stac-cli-v0.0.4..stac-cli-v0.0.5
