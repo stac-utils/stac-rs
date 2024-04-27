@@ -8,7 +8,7 @@ Command Line Interface (CLI) and Rust libraries for the [SpatioTemporal Asset Ca
 
 - Use [stac-cli](./stac-cli/README.md) to query a STAC API, create and validate STAC items, and do other awesome stuff on the command line.
 - Use the core [stac](./stac/README.md) library to incorporate STAC data structures (`Item`, `Catalog`, and `Collection`) in another Rust application.
-- Use [stac-async](./stac-async/README.md) to build a more complicated application that uses async Rust via [tokio](https://tokio.rs/).
+- Use [stac-async](./stac-async/README.md) to build an application that uses async Rust via [tokio](https://tokio.rs/).
 
 ## Crates
 
