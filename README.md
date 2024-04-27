@@ -31,7 +31,6 @@ See [RELEASING.md](./RELEASING.md) for a checklist to use when releasing a new v
 
 Here's some related projects that use this repo:
 
-- [pgstac-rs](https://github.com/stac-utils/pgstac-rs): Rust interface for [pgstac](https://github.com/stac-utils/pgstac), PostgreSQL schema and functions for STAC
 - [stac-server-rs](https://github.com/gadomski/stac-server-rs): A STAC API server implementation
 
 ## License
