@@ -12,11 +12,10 @@ categories = ["science", "data-structures", "web-programming"]
 
 [features]
 geo = ["dep:geo", "stac/geo"]
-schemars = ["dep:schemars", "stac/schemars"]
 
 [dependencies]
 geo = { version = "0.28", optional = true }
-schemars = { version = "0.8", optional = true }
+geojson = "0.24"
 serde = "1"
 serde_json = "1"
 serde_urlencoded = "0.7"

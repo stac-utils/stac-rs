@@ -16,6 +16,10 @@ pub enum Error {
     #[error("cannot convert cql2-json to strings")]
     CannotConvertCql2JsonToString(Map<String, Value>),
 
+    /// [geojson::Error]
+    #[error(transparent)]
+    GeoJson(#[from] geojson::Error),
+
     /// [std::num::ParseIntError]
     #[error(transparent)]
     ParseIntError(#[from] std::num::ParseIntError),

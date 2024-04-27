@@ -24,7 +24,6 @@ jobs:
           - "-p stac -F reqwest"
           - "-p stac-api"
           - "-p stac -p stac-api -F geo"
-          - "-p stac -p stac-api -F schemars"
           - "-p stac-async"
           - "-p stac-cli --no-default-features"
           - "-p stac-validate"
@@ -53,7 +52,7 @@ jobs:
       - name: Set up Rust cache
         uses: Swatinem/rust-cache@v2
       - name: Test
-        run: cargo test --no-default-features -F reqwest -F geo -F schemars
+        run: cargo test --no-default-features -F reqwest -F geo
   test-macos:
     runs-on: macos-latest
     steps:
@@ -61,7 +60,7 @@ jobs:
       - name: Set up Rust cache
         uses: Swatinem/rust-cache@v2
       - name: Test
-        run: cargo test --no-default-features -F reqwest -F geo -F schemars
+        run: cargo test --no-default-features -F reqwest -F geo
   build:
     runs-on: ubuntu-latest
     steps:

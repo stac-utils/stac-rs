@@ -21,7 +21,6 @@ const DEFAULT_LICENSE: &str = "proprietary";
 /// contains all the required fields is a valid STAC `Collection` and also a valid
 /// STAC `Catalog`.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
-#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 pub struct Collection {
     /// Must be set to `"Collection"` to be a valid `Collection`.
     #[serde(
@@ -99,7 +98,6 @@ pub struct Collection {
 /// data offered by this `Collection`. May also include information about the
 /// final storage provider hosting the data.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
-#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 pub struct Provider {
     /// The name of the organization or the individual.
     pub name: String,
@@ -129,7 +127,6 @@ pub struct Provider {
 
 /// The object describes the spatio-temporal extents of the [Collection](crate::Collection).
 #[derive(Debug, Default, Serialize, Deserialize, PartialEq, Clone)]
-#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 pub struct Extent {
     /// Spatial extents covered by the `Collection`.
     pub spatial: SpatialExtent,
@@ -143,7 +140,6 @@ pub struct Extent {
 
 /// The object describes the spatial extents of the Collection.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
-#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 pub struct SpatialExtent {
     /// Potential spatial extents covered by the Collection.
     pub bbox: Vec<Vec<f64>>,
@@ -151,7 +147,6 @@ pub struct SpatialExtent {
 
 /// The object describes the temporal extents of the Collection.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
-#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 pub struct TemporalExtent {
     /// Potential temporal extents covered by the Collection.
     pub interval: Vec<[Option<String>; 2]>,

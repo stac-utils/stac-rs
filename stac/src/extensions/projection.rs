@@ -1,10 +1,9 @@
 //! The Projection extension.
 
-use crate::Geometry;
+use super::Extension;
+use geojson::Geometry;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-
-use super::Extension;
 
 /// The projection extension fields.
 #[derive(Debug, Serialize, Deserialize, Default, PartialEq, Clone)]

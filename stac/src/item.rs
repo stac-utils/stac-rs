@@ -1,9 +1,8 @@
 //! STAC Items.
 
-use crate::{
-    Asset, Assets, Error, Extensions, Fields, Geometry, Href, Link, Links, Result, STAC_VERSION,
-};
+use crate::{Asset, Assets, Error, Extensions, Fields, Href, Link, Links, Result, STAC_VERSION};
 use chrono::{DateTime, FixedOffset, Utc};
+use geojson::Geometry;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::{collections::HashMap, path::Path};
@@ -361,7 +360,7 @@ impl Item {
     /// assert_eq!(item.bbox.unwrap(), vec![-105.1, 41.1, -105.1, 41.1]);
     /// ```
     #[cfg(feature = "geo")]
-    pub fn set_geometry(&mut self, geometry: impl Into<Option<geojson::Geometry>>) -> Result<()> {
+    pub fn set_geometry(&mut self, geometry: impl Into<Option<Geometry>>) -> Result<()> {
         use geo::BoundingRect;
 
         let geometry = geometry.into();

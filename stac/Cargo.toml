@@ -12,9 +12,8 @@ categories = ["science", "data-structures"]
 
 [features]
 gdal = ["dep:gdal", "dep:gdal-sys", "dep:log"]
-geo = ["dep:geo", "dep:geojson"]
+geo = ["dep:geo"]
 reqwest = ["dep:reqwest"]
-schemars = ["dep:schemars"]
 
 [dependencies]
 chrono = "0.4"
@@ -25,10 +24,9 @@ gdal-sys = { version = "0.9", optional = true, features = [
     "bindgen",
 ] } # we use bindgen b/c the gdal crate doesn't support GDAL 3.8 as of this writing, and we depend on gdal-sys for build script usage
 geo = { version = "0.28", optional = true }
-geojson = { version = "0.24", optional = true }
+geojson = { version = "0.24" }
 log = { version = "0.4", optional = true }
 reqwest = { version = "0.12", optional = true, features = ["json", "blocking"] }
-schemars = { version = "0.8", optional = true }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
 thiserror = "1"

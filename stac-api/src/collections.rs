@@ -4,7 +4,6 @@ use stac::{Collection, Link, Links};
 
 /// Object containing an array of collections and an array of links.
 #[derive(Debug, Serialize, Deserialize)]
-#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 pub struct Collections {
     /// The [Collection] objects in the [stac::Catalog].
     pub collections: Vec<Collection>,
