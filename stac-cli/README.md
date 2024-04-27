@@ -40,7 +40,7 @@ Use the `--help` flag to see all available options for the CLI and the subcomman
 
 ## Features
 
-By default, the CLI builds w/ [GDAL](https://gdal.org) support, which requires that GDAL is installed on your system.
+By default, the CLI builds w/ [GDAL](https://gdal.org) support, and will error if GDAL is not installed on your system.
 If you don't want to use GDAL, you can disable the default features:
 
 ```shell
