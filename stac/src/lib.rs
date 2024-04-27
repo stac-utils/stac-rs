@@ -128,7 +128,6 @@ mod fields;
 pub mod gdal;
 #[cfg(feature = "geo")]
 pub mod geo;
-mod geometry;
 mod href;
 mod io;
 pub mod item;
@@ -145,7 +144,6 @@ pub use {
     error::Error,
     extensions::{Extension, Extensions},
     fields::Fields,
-    geometry::Geometry,
     href::{href_to_url, Href},
     io::{read, read_json},
     item::{Item, Properties, ITEM_TYPE},

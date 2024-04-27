@@ -6,7 +6,7 @@ use crate::{
         raster::{Band, Raster, Statistics},
         Projection,
     },
-    Asset, Bounds, Extensions, Geometry, Item, Result,
+    Asset, Bounds, Extensions, Item, Result,
 };
 use gdal::{
     spatial_ref::{CoordTransform, SpatialRef},
@@ -50,12 +50,7 @@ pub fn update_item(
         }
     }
     if bounds.is_valid() {
-        item.geometry = Some(Geometry::rect(
-            bounds.xmin,
-            bounds.ymin,
-            bounds.xmax,
-            bounds.ymax,
-        ));
+        item.geometry = Some(bounds.to_geometry());
         item.bbox = Some(vec![bounds.xmin, bounds.ymin, bounds.xmax, bounds.ymax]);
     }
     if has_projection {

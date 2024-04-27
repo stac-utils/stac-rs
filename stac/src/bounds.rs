@@ -1,3 +1,5 @@
+use geojson::{Geometry, Value};
+
 /// Two-dimensional bounds.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Bounds {
@@ -61,6 +63,29 @@ impl Bounds {
         self.ymin = self.ymin.min(other.ymin);
         self.xmax = self.xmax.max(other.xmax);
         self.ymax = self.ymax.max(other.ymax);
+    }
+
+    /// Converts this bounds to a [Geometry](geojson::Geometry).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::Bounds;
+    /// let bounds = Bounds::new(1., 1., 2., 2.);
+    /// let geomtry = bounds.to_geometry();
+    /// ```
+    pub fn to_geometry(&self) -> Geometry {
+        Geometry {
+            bbox: None,
+            value: Value::Polygon(vec![vec![
+                vec![self.xmin, self.ymin],
+                vec![self.xmax, self.ymin],
+                vec![self.xmax, self.ymax],
+                vec![self.xmax, self.ymax],
+                vec![self.xmin, self.ymin],
+            ]]),
+            foreign_members: None,
+        }
     }
 }
 

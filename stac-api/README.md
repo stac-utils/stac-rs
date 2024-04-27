@@ -19,20 +19,12 @@ To use the library in your project:
 stac-api = "0.3"
 ```
 
-**stac-api** has two optional features.
+**stac-api** has one optional feature.
 `geo` enables `Search::match`:
 
 ```toml
 [dependencies]
 stac-api = { version = "0.3", features = ["geo"] }
-```
-
-`schemars`, can be used to generate [jsonschema](https://json-schema.org/) documents for the API structures.
-This is useful for auto-generating OpenAPI documentation:
-
-```toml
-[dependencies]
-stac-api = { version = "0.3", features = ["schemars"] }
 ```
 
 ## Examples

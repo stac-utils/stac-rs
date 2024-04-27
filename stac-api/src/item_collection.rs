@@ -12,7 +12,6 @@ const ITEM_COLLECTION_TYPE: &str = "FeatureCollection";
 /// not be. Defined by the [itemcollection
 /// fragment](https://github.com/radiantearth/stac-api-spec/blob/main/fragments/itemcollection/README.md).
 #[derive(Debug, Serialize, Deserialize)]
-#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 pub struct ItemCollection {
     #[serde(
         deserialize_with = "deserialize_type",
@@ -50,7 +49,6 @@ pub struct ItemCollection {
 ///
 /// Part of the [context extension](https://github.com/stac-api-extensions/context).
 #[derive(Debug, Serialize, Deserialize)]
-#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 pub struct Context {
     /// The count of results returned by this response. Equal to the cardinality
     /// of features array.

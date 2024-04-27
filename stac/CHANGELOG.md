@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- Use `geojson::Geometry` instead of a crate-specific `Geometry` type([#245](https://github.com/stac-utils/stac-rs/pull/245))
+
+### Removed
+
+- `schemars` feature ([#245](https://github.com/stac-utils/stac-rs/pull/245))
+
 ## [0.6.0] - 2024-04-11
 
 ### Added

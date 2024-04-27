@@ -7,7 +7,6 @@ use std::{
 
 /// Fields by which to sort results.
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
-#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 pub struct Sortby {
     /// The field to sort by.
     pub field: String,
@@ -17,7 +16,6 @@ pub struct Sortby {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
-#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 pub enum Direction {
     #[serde(rename = "asc")]
     Ascending,

@@ -1,12 +1,12 @@
 use crate::{Error, Fields, Filter, GetItems, Items, Result, Sortby};
+use geojson::Geometry;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use stac::{Geometry, Item};
+use stac::Item;
 use std::collections::HashMap;
 
 /// The core parameters for STAC search are defined by OAFeat, and STAC adds a few parameters for convenience.
 #[derive(Clone, Default, Debug, Serialize, Deserialize)]
-#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 pub struct Search {
     /// The maximum number of results to return (page size).
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -68,7 +68,6 @@ pub struct Search {
 
 /// GET parameters for the item search endpoint.
 #[derive(Clone, Default, Debug, Serialize, Deserialize)]
-#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 pub struct GetSearch {
     /// The maximum number of results to return (page size).
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -158,9 +157,11 @@ impl Search {
     ///
     /// ```
     /// use stac_api::Search;
+    /// use geojson::{Geometry, Value};
+    ///
     /// let mut search = Search { bbox: Some(vec![-180.0, -90.0, 180.0, 80.0]), ..Default::default() };
     /// search.validate().unwrap();
-    /// search.intersects = Some(stac::Geometry::point(0., 0.));
+    /// search.intersects = Some(Geometry::new(Value::Point(vec![0.0, 0.0])));
     /// let _ = search.validate().unwrap_err();
     /// ```
     pub fn validate(&self) -> Result<()> {
@@ -292,7 +293,7 @@ impl Search {
     /// let mut search = Search::new();
     /// let mut item = Item::new("item-id");
     /// assert!(search.intersects_matches(&item).unwrap());
-    /// search.intersects = Some(stac::Geometry::point(-105.1, 41.1));
+    /// search.intersects = Some(Geometry::new(Value::Point(vec![-105.1, 41.1])));
     /// assert!(!search.intersects_matches(&item).unwrap());
     /// item.set_geometry(Geometry::new(Value::Point(vec![-105.1, 41.1])));
     /// assert!(search.intersects_matches(&item).unwrap());

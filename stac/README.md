@@ -33,7 +33,7 @@ Please see the [documentation](https://docs.rs/stac) for more usage examples.
 
 ## Features
 
-There are four opt-in features.
+There are a few opt-in features.
 
 ### reqwest
 
@@ -108,16 +108,6 @@ Then, you can set an item's geometry and bounding box at the same time:
     item.set_geometry(geometry).unwrap();
     assert!(item.bbox.is_some());
 }
-```
-
-### schemars
-
-`schemars` allows for [jsonschema](https://json-schema.org/) generation from STAC objects.
-This is mostly useful for auto-generating OpenAPI documentation for STAC APIs.
-
-```toml
-[dependencies]
-stac = { version = "0.6", features = ["schemars"]}
 ```
 
 ## Other info
