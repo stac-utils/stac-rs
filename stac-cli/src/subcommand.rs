@@ -68,9 +68,9 @@ pub enum Subcommand {
         #[arg(long)]
         intersects: Option<String>,
 
-        /// Array of Item ids to return.
+        /// Comma-delimited list of one ore more Item ids to return.
         #[arg(short, long)]
-        ids: Option<Vec<String>>,
+        ids: Option<String>,
 
         /// Comma-delimited list of one or more Collection IDs that each matching Item must be in.
         #[arg(short, long)]

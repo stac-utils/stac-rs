@@ -41,11 +41,11 @@ pub struct GetSearch {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub intersects: Option<String>,
 
-    /// Array of Item ids to return.
+    /// Comma-delimited list of Item ids to return.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub ids: Option<Vec<String>>,
+    pub ids: Option<String>,
 
-    /// Comma-separated list of one or more Collection IDs that each matching Item must be in.
+    /// Comma-delimited list of one or more Collection IDs that each matching Item must be in.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub collections: Option<String>,
 }
@@ -222,10 +222,11 @@ impl TryFrom<Search> for GetSearch {
             .map(|intersects| serde_json::to_string(&intersects))
             .transpose()?;
         let collections = search.collections.map(|collections| collections.join(","));
+        let ids = search.ids.map(|ids| ids.join(","));
         Ok(GetSearch {
             items: get_items,
-            intersects: intersects,
-            ids: search.ids,
+            intersects,
+            ids,
             collections,
         })
     }
@@ -243,11 +244,14 @@ impl TryFrom<GetSearch> for Search {
         let collections = get_search
             .collections
             .map(|collections| collections.split(',').map(|s| s.to_string()).collect());
+        let ids = get_search
+            .ids
+            .map(|ids| ids.split(',').map(|s| s.to_string()).collect());
         Ok(Search {
             items,
-            intersects: intersects,
-            ids: get_search.ids,
-            collections: collections,
+            intersects,
+            ids,
+            collections,
         })
     }
 }
