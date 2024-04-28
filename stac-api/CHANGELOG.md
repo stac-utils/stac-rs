@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+
+- `Conformance` builder functions ([#247](https://github.com/stac-utils/stac-rs/pull/247))
+- Un-serialized pagination members to `ItemCollection` ([#247](https://github.com/stac-utils/stac-rs/pull/247))
+- `stac::Fields` for `Search` and `Items` ([#247](https://github.com/stac-utils/stac-rs/pull/247))
+
+### Changed
+
+- Consolidate duplicated fields between `Items` and `Search` ([#247](https://github.com/stac-utils/stac-rs/pull/247))
+
 ### Removed
 
 - `schemars` feature ([#245](https://github.com/stac-utils/stac-rs/pull/245))
@@ -89,3 +99,5 @@ Initial release
 [0.3.0]: https://github.com/stac-utils/stac-rs/compare/stac-api-v0.2.0...stac-api-v0.3.0
 [0.2.0]: https://github.com/stac-utils/stac-rs/compare/stac-api-v0.1.0...stac-api-v0.2.0
 [0.1.0]: https://github.com/stac-utils/stac-rs/releases/tag/stac-api-v0.1.0
+
+<!-- markdownlint-disable-file MD024 -->

@@ -3,7 +3,7 @@ use clap::Parser;
 use serde::{de::DeserializeOwned, Serialize};
 use serde_json::json;
 use stac::{item::Builder, Asset, Value};
-use stac_api::{GetSearch, Item, ItemCollection};
+use stac_api::{GetItems, GetSearch, Item, ItemCollection};
 use stac_async::ApiClient;
 use stac_validate::Validate;
 use std::path::Path;
@@ -164,7 +164,7 @@ impl Args {
         datetime: &Option<String>,
         intersects: &Option<String>,
         ids: &Option<Vec<String>>,
-        collections: &Option<Vec<String>>,
+        collections: &Option<String>,
         fields: &Option<String>,
         sortby: &Option<String>,
         filter_crs: &Option<String>,
@@ -172,19 +172,22 @@ impl Args {
         filter: &Option<String>,
         stream: bool,
     ) -> Result<()> {
-        let get_search = GetSearch {
+        let get_items = GetItems {
             limit: limit.clone(),
             bbox: bbox.clone(),
             datetime: datetime.clone(),
-            intersects: intersects.clone(),
-            ids: ids.clone(),
-            collections: collections.clone(),
             fields: fields.clone(),
             sortby: sortby.clone(),
             filter_crs: filter_crs.clone(),
             filter_lang: filter_lang.clone(),
             filter: filter.clone(),
             additional_fields: Default::default(),
+        };
+        let get_search = GetSearch {
+            intersects: intersects.clone(),
+            ids: ids.clone(),
+            collections: collections.clone(),
+            items: get_items,
         };
         let search = get_search.try_into()?;
         let client = ApiClient::new(href)?;

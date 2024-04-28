@@ -544,10 +544,8 @@ mod tests {
         client.add_item(item.clone()).await.unwrap();
         item.id = "another-id".to_string();
         client.add_item(item).await.unwrap();
-        let search = Search {
-            limit: Some(1),
-            ..Default::default()
-        };
+        let mut search = Search::default();
+        search.items.limit = Some(1);
         let page = client.search(search).await.unwrap();
         assert_eq!(page.features.len(), 1);
         assert_eq!(page.context.limit.unwrap(), 1);
@@ -561,15 +559,13 @@ mod tests {
         item.collection = Some("collection-id".to_string());
         item.geometry = Some(longmont());
         client.add_item(item.clone()).await.unwrap();
-        let search = Search {
-            bbox: Some(vec![-106., 40., -105., 41.]),
-            ..Default::default()
-        };
-        assert_eq!(client.search(search).await.unwrap().features.len(), 1);
-        let search = Search {
-            bbox: Some(vec![-106., 41., -105., 42.]),
-            ..Default::default()
-        };
+        let mut search = Search::default();
+        search.items.bbox = Some(vec![-106., 40., -105., 41.]);
+        assert_eq!(
+            client.search(search.clone()).await.unwrap().features.len(),
+            1
+        );
+        search.items.bbox = Some(vec![-106., 41., -105., 42.]);
         assert!(client.search(search).await.unwrap().features.is_empty());
     }
 
@@ -582,15 +578,13 @@ mod tests {
         item.geometry = Some(longmont());
         item.properties.datetime = Some("2023-01-07T00:00:00Z".to_string());
         client.add_item(item.clone()).await.unwrap();
-        let search = Search {
-            datetime: Some("2023-01-07T00:00:00Z".to_string()),
-            ..Default::default()
-        };
-        assert_eq!(client.search(search).await.unwrap().features.len(), 1);
-        let search = Search {
-            datetime: Some("2023-01-08T00:00:00Z".to_string()),
-            ..Default::default()
-        };
+        let mut search = Search::default();
+        search.items.datetime = Some("2023-01-07T00:00:00Z".to_string());
+        assert_eq!(
+            client.search(search.clone()).await.unwrap().features.len(),
+            1
+        );
+        search.items.datetime = Some("2023-01-08T00:00:00Z".to_string());
         assert!(client.search(search).await.unwrap().features.is_empty());
     }
 
@@ -650,10 +644,8 @@ mod tests {
         item.id = "another-id".to_string();
         item.properties.datetime = Some("2023-01-07T00:00:00Z".to_string());
         client.add_item(item).await.unwrap();
-        let mut search = Search {
-            limit: Some(1),
-            ..Default::default()
-        };
+        let mut search = Search::default();
+        search.items.limit = Some(1);
         let page = client.search(search.clone()).await.unwrap();
         assert_eq!(page.features[0]["id"], "an-id");
         search
@@ -682,13 +674,11 @@ mod tests {
             .additional_fields
             .insert("bar".into(), 43.into());
         client.add_item(item).await.unwrap();
-        let search = Search {
-            fields: Some(Fields {
-                include: vec!["properties.foo".to_string()],
-                exclude: vec!["properties.bar".to_string()],
-            }),
-            ..Default::default()
-        };
+        let mut search = Search::default();
+        search.items.fields = Some(Fields {
+            include: vec!["properties.foo".to_string()],
+            exclude: vec!["properties.bar".to_string()],
+        });
         let page = client.search(search).await.unwrap();
         let item = &page.features[0];
         assert!(item["properties"].as_object().unwrap().get("foo").is_some());
@@ -705,18 +695,13 @@ mod tests {
         client.add_item(item.clone()).await.unwrap();
         item.id = "b".to_string();
         client.add_item(item).await.unwrap();
-        let search = Search {
-            sortby: Some(vec![Sortby::asc("id")]),
-            ..Default::default()
-        };
-        let page = client.search(search).await.unwrap();
+        let mut search = Search::default();
+        search.items.sortby = Some(vec![Sortby::asc("id")]);
+        let page = client.search(search.clone()).await.unwrap();
         assert_eq!(page.features[0]["id"], "a");
         assert_eq!(page.features[1]["id"], "b");
 
-        let search = Search {
-            sortby: Some(vec![Sortby::desc("id")]),
-            ..Default::default()
-        };
+        search.items.sortby = Some(vec![Sortby::desc("id")]);
         let page = client.search(search).await.unwrap();
         assert_eq!(page.features[0]["id"], "b");
         assert_eq!(page.features[1]["id"], "a");
@@ -741,10 +726,8 @@ mod tests {
         let mut filter = Map::new();
         filter.insert("op".into(), "=".into());
         filter.insert("args".into(), json!([{"property": "foo"}, 42]));
-        let search = Search {
-            filter: Some(Filter::Cql2Json(filter)),
-            ..Default::default()
-        };
+        let mut search = Search::default();
+        search.items.filter = Some(Filter::Cql2Json(filter));
         let page = client.search(search).await.unwrap();
         assert_eq!(page.features.len(), 1);
     }
@@ -767,10 +750,8 @@ mod tests {
         client.add_item(item).await.unwrap();
         let mut query = Map::new();
         query.insert("foo".into(), json!({"eq": 42}));
-        let search = Search {
-            query: Some(query),
-            ..Default::default()
-        };
+        let mut search = Search::default();
+        search.items.query = Some(query);
         let page = client.search(search).await.unwrap();
         assert_eq!(page.features.len(), 1);
     }

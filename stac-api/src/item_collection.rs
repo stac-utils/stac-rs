@@ -43,6 +43,34 @@ pub struct ItemCollection {
     /// Additional fields.
     #[serde(flatten)]
     pub additional_fields: Map<String, Value>,
+
+    /// Optional pagination information for the next page.
+    ///
+    /// This is not part of the specification, but can be used to hold arbitrary
+    /// pagination information (tokens) to later be turned into links.
+    #[serde(skip)]
+    pub next: Option<Map<String, Value>>,
+
+    /// Optional pagination information for the previous page.
+    ///
+    /// This is not part of the specification, but can be used to hold arbitrary
+    /// pagination information (tokens) to later be turned into links.
+    #[serde(skip)]
+    pub prev: Option<Map<String, Value>>,
+
+    /// Optional pagination information for the first page.
+    ///
+    /// This is not part of the specification, but can be used to hold arbitrary
+    /// pagination information (tokens) to later be turned into links.
+    #[serde(skip)]
+    pub first: Option<Map<String, Value>>,
+
+    /// Optional pagination information for the last page.
+    ///
+    /// This is not part of the specification, but can be used to hold arbitrary
+    /// pagination information (tokens) to later be turned into links.
+    #[serde(skip)]
+    pub last: Option<Map<String, Value>>,
 }
 
 /// The search-related metadata for the [ItemCollection].
@@ -86,6 +114,10 @@ impl ItemCollection {
             number_returned: Some(number_returned.try_into()?),
             context: None,
             additional_fields: Map::new(),
+            next: None,
+            prev: None,
+            first: None,
+            last: None,
         })
     }
 }
@@ -109,6 +141,10 @@ impl Default for ItemCollection {
             number_returned: None,
             context: None,
             additional_fields: Map::default(),
+            next: None,
+            prev: None,
+            first: None,
+            last: None,
         }
     }
 }
