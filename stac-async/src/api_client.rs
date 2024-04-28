@@ -128,7 +128,8 @@ impl ApiClient {
     /// use futures_util::stream::StreamExt;
     ///
     /// let client = ApiClient::new("https://planetarycomputer.microsoft.com/api/stac/v1").unwrap();
-    /// let search = Search { collections: Some(vec!["sentinel-2-l2a".to_string()]), limit: Some(1), ..Default::default() };
+    /// let mut search = Search { collections: Some(vec!["sentinel-2-l2a".to_string()]), ..Default::default() };
+    /// search.items.limit = Some(1);
     /// # tokio_test::block_on(async {
     /// let items: Vec<_> = client
     ///     .search(search)
@@ -267,11 +268,11 @@ mod tests {
             .await;
 
         let client = ApiClient::new(&server.url()).unwrap();
-        let search = Search {
+        let mut search = Search {
             collections: Some(vec!["sentinel-2-l2a".to_string()]),
-            limit: Some(1),
             ..Default::default()
         };
+        search.items.limit = Some(1);
         let items: Vec<_> = client
             .search(search)
             .await

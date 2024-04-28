@@ -20,6 +20,10 @@ pub enum Error {
     #[error(transparent)]
     GeoJson(#[from] geojson::Error),
 
+    /// Some functionality requires a certain optional feature to be enabled.
+    #[error("feature not enabled: {0}")]
+    FeatureNotEnabled(&'static str),
+
     /// [std::num::ParseIntError]
     #[error(transparent)]
     ParseIntError(#[from] std::num::ParseIntError),

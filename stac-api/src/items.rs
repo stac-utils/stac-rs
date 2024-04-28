@@ -1,12 +1,10 @@
 use crate::{Error, Fields, Filter, Result, Search, Sortby};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
+use stac::Item;
 use std::collections::HashMap;
 
 /// Parameters for the items endpoint from STAC API - Features.
-///
-/// This is a lot like [Search](crate::Search), but without intersects, ids, and
-/// collections.
 #[derive(Clone, Default, Debug, Serialize, Deserialize)]
 pub struct Items {
     /// The maximum number of results to return (page size).
@@ -102,6 +100,136 @@ pub struct GetItems {
 }
 
 impl Items {
+    /// Returns true if this items structure matches the given item.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac_api::Items;
+    /// use stac::Item;
+    ///
+    /// assert!(Items::default().matches(&Item::new("an-id")).unwrap());
+    /// ```
+    pub fn matches(&self, item: &Item) -> Result<bool> {
+        Ok(self.bbox_matches(item)?
+            & self.datetime_matches(item)?
+            & self.query_matches(item)?
+            & self.filter_matches(item)?)
+    }
+
+    /// Returns true if this item's geometry matches this search's bbox.
+    ///
+    /// If **stac-api** is not built with the `geo` feature, this will return an error.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #[cfg(feature = "geo")]
+    /// # {
+    /// use stac_api::Search;
+    /// use stac::Item;
+    /// use geojson::{Geometry, Value};
+    ///
+    /// let mut search = Search::new();
+    /// let mut item = Item::new("item-id");
+    /// assert!(search.bbox_matches(&item).unwrap());
+    /// search.bbox = Some(vec![-110.0, 40.0, -100.0, 50.0]);
+    /// assert!(!search.bbox_matches(&item).unwrap());
+    /// item.set_geometry(Geometry::new(Value::Point(vec![-105.1, 41.1])));
+    /// assert!(search.bbox_matches(&item).unwrap());
+    /// # }
+    /// ```
+    #[allow(unused_variables)]
+    pub fn bbox_matches(&self, item: &Item) -> Result<bool> {
+        if let Some(bbox) = self.bbox.as_ref() {
+            #[cfg(feature = "geo")]
+            {
+                let bbox = stac::geo::bbox(bbox)?;
+                item.intersects(&bbox).map_err(Error::from)
+            }
+            #[cfg(not(feature = "geo"))]
+            {
+                Err(Error::FeatureNotEnabled("geo"))
+            }
+        } else {
+            Ok(true)
+        }
+    }
+
+    /// Returns true if this item's datetime matches this items structure.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac_api::Search;
+    /// use stac::Item;
+    ///
+    /// let mut search = Search::new();
+    /// let mut item = Item::new("item-id");  // default datetime is now
+    /// assert!(search.datetime_matches(&item).unwrap());
+    /// search.datetime = Some("../2023-10-09T00:00:00Z".to_string());
+    /// assert!(!search.datetime_matches(&item).unwrap());
+    /// item.properties.datetime = Some("2023-10-08T00:00:00Z".to_string());
+    /// assert!(search.datetime_matches(&item).unwrap());
+    /// ```
+    pub fn datetime_matches(&self, item: &Item) -> Result<bool> {
+        if let Some(datetime) = self.datetime.as_ref() {
+            item.intersects_datetime_str(datetime).map_err(Error::from)
+        } else {
+            Ok(true)
+        }
+    }
+
+    /// Returns true if this item's matches this search query.
+    ///
+    /// Currently unsupported, always raises an error if query is set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac_api::Search;
+    /// use stac::Item;
+    ///
+    /// let mut search = Search::new();
+    /// let mut item = Item::new("item-id");
+    /// assert!(search.query_matches(&item).unwrap());
+    /// search.query = Some(Default::default());
+    /// assert!(search.query_matches(&item).is_err());
+    /// ```
+    pub fn query_matches(&self, _: &Item) -> Result<bool> {
+        if let Some(_) = self.query.as_ref() {
+            // TODO implement
+            Err(Error::Unimplemented("query"))
+        } else {
+            Ok(true)
+        }
+    }
+
+    /// Returns true if this item matches this search's filter.
+    ///
+    /// Currently unsupported, always raises an error if filter is set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac_api::Search;
+    /// use stac::Item;
+    ///
+    /// let mut search = Search::new();
+    /// let mut item = Item::new("item-id");
+    /// assert!(search.filter_matches(&item).unwrap());
+    /// search.filter = Some(Default::default());
+    /// assert!(search.filter_matches(&item).is_err());
+    /// ```
+    pub fn filter_matches(&self, _: &Item) -> Result<bool> {
+        if let Some(_) = self.filter.as_ref() {
+            // TODO implement
+            Err(Error::Unimplemented("filter"))
+        } else {
+            Ok(true)
+        }
+    }
+
     /// Converts this items object to a search in the given collection.
     ///
     /// # Examples
@@ -117,18 +245,10 @@ impl Items {
     /// ```
     pub fn into_search(self, collection_id: impl ToString) -> Search {
         Search {
-            limit: self.limit,
-            bbox: self.bbox,
-            datetime: self.datetime,
+            items: self,
             intersects: None,
             ids: None,
             collections: Some(vec![collection_id.to_string()]),
-            fields: self.fields,
-            sortby: self.sortby,
-            filter_crs: self.filter_crs,
-            filter: self.filter,
-            query: self.query,
-            additional_fields: self.additional_fields,
         }
     }
 }
@@ -218,6 +338,15 @@ impl TryFrom<GetItems> for Items {
                 .map(|(key, value)| (key, Value::String(value)))
                 .collect(),
         })
+    }
+}
+
+impl stac::Fields for Items {
+    fn fields(&self) -> &Map<String, Value> {
+        &self.additional_fields
+    }
+    fn fields_mut(&mut self) -> &mut Map<String, Value> {
+        &mut self.additional_fields
     }
 }
 

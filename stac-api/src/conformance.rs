@@ -28,3 +28,52 @@ pub struct Conformance {
     #[serde(rename = "conformsTo")]
     pub conforms_to: Vec<String>,
 }
+
+impl Conformance {
+    /// Creates a new conformance structure with only the core conformance class.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac_api::Conformance;
+    /// let conformance = Conformance::new();
+    /// ```
+    pub fn new() -> Conformance {
+        Conformance {
+            conforms_to: vec![CORE_URI.to_string()],
+        }
+    }
+
+    /// Adds
+    /// [ogcapi-features](https://github.com/radiantearth/stac-api-spec/tree/release/v1.0.0/ogcapi-features)
+    /// conformance classes.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac_api::Conformance;
+    /// let conformance = Conformance::new().ogcapi_features();
+    /// ```
+    pub fn ogcapi_features(mut self) -> Conformance {
+        self.conforms_to.push(FEATURES_URI.to_string());
+        self.conforms_to.push(COLLECTIONS_URI.to_string());
+        self.conforms_to.push(OGC_API_FEATURES_URI.to_string());
+        self.conforms_to.push(GEOJSON_URI.to_string());
+        self
+    }
+
+    /// Adds
+    /// [item search](https://github.com/radiantearth/stac-api-spec/tree/release/v1.0.0/item-search)
+    /// conformance class.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac_api::Conformance;
+    /// let conformance = Conformance::new().item_search();
+    /// ```
+    pub fn item_search(mut self) -> Conformance {
+        self.conforms_to.push(ITEM_SEARCH_URI.to_string());
+        self
+    }
+}

@@ -72,9 +72,9 @@ pub enum Subcommand {
         #[arg(short, long)]
         ids: Option<Vec<String>>,
 
-        /// Array of one or more Collection IDs that each matching Item must be in.
+        /// Comma-delimited list of one or more Collection IDs that each matching Item must be in.
         #[arg(short, long)]
-        collections: Option<Vec<String>>,
+        collections: Option<String>,
 
         /// Include/exclude fields from item collections.
         #[arg(long)]
