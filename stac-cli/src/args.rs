@@ -163,7 +163,7 @@ impl Args {
         bbox: &Option<String>,
         datetime: &Option<String>,
         intersects: &Option<String>,
-        ids: &Option<Vec<String>>,
+        ids: &Option<String>,
         collections: &Option<String>,
         fields: &Option<String>,
         sortby: &Option<String>,
