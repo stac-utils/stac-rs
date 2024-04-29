@@ -2,6 +2,13 @@
 name = "stac-server"
 version = "0.1.0"
 edition = "2021"
+authors = ["Pete Gadomski <pete.gadomski@gmail.com>"]
+description = "SpatioTemporal Asset Catalog (STAC) API server"
+homepage = "https://github.com/stac-utils/stac-rs"
+repository = "https://github.com/stac-utils/stac-rs"
+license = "MIT OR Apache-2.0"
+keywords = ["geospatial", "stac", "metadata", "geo", "raster"]
+categories = ["science", "data-structures"]
 
 [features]
 default = ["axum", "memory-item-search"]
