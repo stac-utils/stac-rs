@@ -16,7 +16,7 @@ To use the library in your project:
 
 ```toml
 [dependencies]
-stac-api = "0.3"
+stac-api = "0.4"
 ```
 
 **stac-api** has one optional feature.

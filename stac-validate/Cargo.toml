@@ -1,6 +1,6 @@
 [package]
 name = "stac-validate"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Pete Gadomski <pete.gadomski@gmail.com>"]
 edition = "2021"
 description = "Validate STAC objects with jsonschema"
@@ -15,10 +15,10 @@ jsonschema = "0.17"
 reqwest = { version = "0.12", features = ["blocking", "json"] }
 serde = "1"
 serde_json = "1"
-stac = { version = "0.6", path = "../stac" }
+stac = { version = "0.7", path = "../stac" }
 thiserror = "1"
 url = "2"
 
 [dev-dependencies]
 geojson = "0.24"
-stac = { version = "0.6", path = "../stac", features = ["geo"] }
+stac = { version = "0.7", path = "../stac", features = ["geo"] }

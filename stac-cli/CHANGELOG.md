@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.1.0] - 2024-04-29
+
 ### Added
 
 - `stac serve` ([#244](https://github.com/stac-utils/stac-rs/pull/244))
@@ -61,10 +63,13 @@ Moved over from [stac-incubator-rs](https://github.com/gadomski/stac-incubator-r
 - Downloading ([#142](https://github.com/stac-utils/stac-rs/pull/142), [#152](https://github.com/stac-utils/stac-rs/pull/152))
 - Validation ([#155](https://github.com/stac-utils/stac-rs/pull/155))
 
-[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-cli-v0.0.8..main
+[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-cli-v0.1.0..main
+[0.1.0]: https://github.com/stac-utils/stac-rs/compare/stac-cli-v0.0.8..stac-cli-v0.1.0
 [0.0.8]: https://github.com/stac-utils/stac-rs/compare/stac-cli-v0.0.7..stac-cli-v0.0.8
 [0.0.7]: https://github.com/stac-utils/stac-rs/compare/stac-cli-v0.0.6..stac-cli-v0.0.7
 [0.0.6]: https://github.com/stac-utils/stac-rs/compare/stac-cli-v0.0.5..stac-cli-v0.0.6
 [0.0.5]: https://github.com/stac-utils/stac-rs/compare/stac-cli-v0.0.4..stac-cli-v0.0.5
 [0.0.4]: https://github.com/stac-utils/stac-rs/compare/stac-cli-v0.0.3..stac-cli-v0.0.4
 [0.0.3]: https://github.com/stac-utils/stac-rs/tree/stac-cli-v0.0.3
+
+<!-- markdownlint-disable-file MD024 -->
