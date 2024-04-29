@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.7.0] - 2024-04-29
+
 ### Added
 
 - `Link::method` and `Link::body` ([#244](https://github.com/stac-utils/stac-rs/pull/244))
@@ -283,7 +285,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 Initial release.
 
-[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-v0.6.0...main
+[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-v0.7.0...main
+[0.7.0]: https://github.com/stac-utils/stac-rs/compare/stac-v0.6.0...stac-v0.7.0
 [0.6.0]: https://github.com/stac-utils/stac-rs/compare/stac-v0.5.3...stac-v0.6.0
 [0.5.3]: https://github.com/stac-utils/stac-rs/compare/stac-v0.5.2...stac-v0.5.3
 [0.5.2]: https://github.com/stac-utils/stac-rs/compare/stac-v0.5.1...stac-v0.5.2

@@ -33,6 +33,7 @@ brew install gadomski/gadomski/stac
 
 - `stac item`: create STAC items and combine them into item collections
 - `stac search`: search STAC APIs
+- `stac serve`: serve a STAC API
 - `stac sort`: sort the fields of STAC items, catalogs, and collections
 - `stac validate`: validate STAC items, catalogs, and collections using [json-schema](https://json-schema.org/)
 

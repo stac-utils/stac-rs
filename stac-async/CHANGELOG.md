@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.5.1]
+
+### Changed
+
+- Updated **stac** and **stac-api** dependencies
+
 ## [0.5.0]
 
 ### Added
@@ -50,9 +56,12 @@ No changes.
 
 Initial release of **stac-async**.
 
-[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-async-v0.5.0...main
+[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-async-v0.5.1...main
+[0.5.1]: https://github.com/stac-utils/stac-rs/compare/stac-async-v0.5.0...stac-async-v0.5.1
 [0.5.0]: https://github.com/stac-utils/stac-rs/compare/stac-async-v0.4.1...stac-async-v0.5.0
 [0.4.1]: https://github.com/stac-utils/stac-rs/compare/stac-async-v0.4.0...stac-async-v0.4.1
 [0.4.0]: https://github.com/stac-utils/stac-rs/compare/stac-async-v0.3.0...stac-async-v0.4.0
 [0.3.0]: https://github.com/stac-utils/stac-rs/compare/stac-async-v0.2.0...stac-async-v0.3.0
 [0.2.0]: https://github.com/stac-utils/stac-rs/releases/tag/stac-async-v0.2.0
+
+<!-- markdownlint-disable-file MD024 -->

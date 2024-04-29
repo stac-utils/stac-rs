@@ -12,8 +12,7 @@ Asynchronous I/O for the [SpatioTemporal Asset Catalog (STAC)](https://stacspec.
 
 ```toml
 [dependencies]
-stac = "0.6"
-stac-async = "0.4"
+stac-async = "0.5"
 ```
 
 ## Examples

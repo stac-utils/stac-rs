@@ -14,7 +14,7 @@ To use the library in your project:
 
 ```toml
 [dependencies]
-stac = "0.6"
+stac = "0.7"
 ```
 
 ## Examples
@@ -41,7 +41,7 @@ There are a few opt-in features.
 
 ```toml
 [dependencies]
-stac = { version = "0.6", features = ["reqwest"]}
+stac = { version = "0.7", features = ["reqwest"]}
 ```
 
 Then:
@@ -68,7 +68,7 @@ To use [GDAL](https://gdal.org) to create items with projection and raster band 
 
 ```toml
 [dependencies]
-stac = { version = "0.6", features = ["gdal"] }
+stac = { version = "0.7", features = ["gdal"] }
 ```
 
 Then, items created from rasters will include the projection and raster extensions:
@@ -89,7 +89,7 @@ To use [geojson](https://docs.rs/geojson) and [geo](https://docs.rs/geo) to add 
 
 ```toml
 [dependencies]
-stac = { version = "0.6", features = ["geo"] }
+stac = { version = "0.7", features = ["geo"] }
 ```
 
 Then, you can set an item's geometry and bounding box at the same time:
