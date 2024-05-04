@@ -139,7 +139,7 @@ pub trait Extensions: Fields {
         }
     }
 
-    /// Adds an extension's identifer to this object.
+    /// Adds an extension's identifier to this object.
     ///
     /// # Examples
     ///
