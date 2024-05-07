@@ -270,7 +270,7 @@ impl Extensions for Collection {
 impl TryFrom<Collection> for Map<String, Value> {
     type Error = Error;
     fn try_from(collection: Collection) -> Result<Self> {
-        if let serde_json::Value::Object(object) = serde_json::to_value(collection)? {
+        if let Value::Object(object) = serde_json::to_value(collection)? {
             Ok(object)
         } else {
             panic!("all STAC collections should serialize to a serde_json::Value::Object")

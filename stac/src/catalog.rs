@@ -107,7 +107,7 @@ impl Links for Catalog {
 impl TryFrom<Catalog> for Map<String, Value> {
     type Error = Error;
     fn try_from(catalog: Catalog) -> Result<Self> {
-        if let serde_json::Value::Object(object) = serde_json::to_value(catalog)? {
+        if let Value::Object(object) = serde_json::to_value(catalog)? {
             Ok(object)
         } else {
             panic!("all STAC catalogs should serialize to a serde_json::Value::Object")
