@@ -558,7 +558,7 @@ impl Extensions for Item {
 impl TryFrom<Item> for Map<String, Value> {
     type Error = Error;
     fn try_from(item: Item) -> Result<Self> {
-        if let serde_json::Value::Object(object) = serde_json::to_value(item)? {
+        if let Value::Object(object) = serde_json::to_value(item)? {
             Ok(object)
         } else {
             panic!("all STAC items should serialize to a serde_json::Value::Object")
