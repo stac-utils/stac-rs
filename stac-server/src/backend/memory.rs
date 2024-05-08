@@ -89,12 +89,9 @@ impl Backend for MemoryBackend {
 
     async fn item(&self, collection_id: &str, item_id: &str) -> Result<Option<Item>> {
         let items = self.items.read().unwrap();
-        Ok(items.get(collection_id).and_then(|items| {
-            items
-                .iter()
-                .find(|item| item.id == item_id)
-                .map(|item| item.clone())
-        }))
+        Ok(items
+            .get(collection_id)
+            .and_then(|items| items.iter().find(|item| item.id == item_id).cloned()))
     }
 
     async fn search(&self, mut search: Search) -> Result<ItemCollection> {
@@ -140,5 +137,11 @@ impl Backend for MemoryBackend {
             item_collection.prev = Some(prev);
         }
         Ok(item_collection)
+    }
+}
+
+impl Default for MemoryBackend {
+    fn default() -> Self {
+        Self::new()
     }
 }

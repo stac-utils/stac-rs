@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+
+- `impl Default for Client` ([#252](https://github.com/stac-utils/stac-rs/pull/252))
+
 ## [0.5.1]
 
 ### Changed

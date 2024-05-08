@@ -77,3 +77,9 @@ impl Conformance {
         self
     }
 }
+
+impl Default for Conformance {
+    fn default() -> Self {
+        Self::new()
+    }
+}

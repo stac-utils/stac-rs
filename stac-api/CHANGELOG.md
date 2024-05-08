@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+
+- `impl Default for Conformance` ([#252](https://github.com/stac-utils/stac-rs/pull/252))
+
 ## [0.4.0] - 2024-04-29
 
 ### Added

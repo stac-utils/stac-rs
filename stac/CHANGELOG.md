@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+
+- `stac::datetime::Interval` ([#252](https://github.com/stac-utils/stac-rs/pull/252))
+
 ### Fixed
 
 - Removed unnecessary qualifications ([#251](https://github.com/stac-utils/stac-rs/pull/251))
