@@ -36,8 +36,8 @@ pub fn update_item(
     let mut has_projection = false;
     let mut projections = Vec::new();
     let mut bounds = Bounds::default();
-    for mut asset in item.assets.values_mut() {
-        update_asset(&mut asset, force_statistics, is_approx_statistics_ok)?;
+    for asset in item.assets.values_mut() {
+        update_asset(asset, force_statistics, is_approx_statistics_ok)?;
         if let Some(projection) = asset.extension::<Projection>()? {
             has_projection = true;
             if let Some(asset_bounds) = projection.wgs84_bounds()? {

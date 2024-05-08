@@ -12,6 +12,7 @@ use tokio::net::TcpListener;
 use tokio_stream::StreamExt;
 use url::Url;
 
+/// CLI arguments.
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 pub struct Args {
@@ -25,6 +26,7 @@ pub struct Args {
 }
 
 impl Args {
+    /// Executes the subcommand.
     pub async fn execute(self) -> i32 {
         use Subcommand::*;
         let result = match &self.subcommand {
@@ -79,7 +81,7 @@ impl Args {
                 )
                 .await
             }
-            Serve { href, pgstac } => self.serve(&href, pgstac.as_deref()).await,
+            Serve { href, pgstac } => self.serve(href, pgstac.as_deref()).await,
             Sort { href } => self.sort(href.as_deref()).await,
             Validate { href } => self.validate(href.as_deref()).await,
         };
@@ -92,6 +94,7 @@ impl Args {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn item(
         &self,
         href_or_id: &str,
@@ -158,6 +161,7 @@ impl Args {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     async fn api_search(
         &self,
         href: &str,
@@ -245,9 +249,9 @@ impl Args {
                 axum::serve(listener, router).await.unwrap();
             }
             #[cfg(not(feature = "pgstac"))]
-            return Err(Error::Custom(format!(
-                "stac-cli is not compiled with pgstac support"
-            )));
+            return Err(Error::Custom(
+                "stac-cli is not compiled with pgstac support".to_string(),
+            ));
         } else {
             let mut backend = MemoryBackend::new();
             if !hrefs.is_empty() {
@@ -313,9 +317,9 @@ impl Args {
             Ok(())
         } else {
             self.println(errors)?;
-            Err(Error::Custom(format!(
-                "one or more errors during validation"
-            )))
+            Err(Error::Custom(
+                "one or more errors during validation".to_string(),
+            ))
         }
     }
 

@@ -153,8 +153,8 @@ impl<B: Backend> Api<B> {
         let mut collections: Collections = self.backend.collections().await?.into();
         collections.set_link(Link::root(&self.root).json());
         collections.set_link(Link::self_(self.url("/collections")?).json());
-        for mut collection in collections.collections.iter_mut() {
-            self.set_collection_links(&mut collection)?;
+        for collection in collections.collections.iter_mut() {
+            self.set_collection_links(collection)?;
         }
         Ok(collections)
     }
@@ -207,7 +207,7 @@ impl<B: Backend> Api<B> {
             let items_url = self.url(&format!("/collections/{}/items", collection_id))?;
             item_collection.set_link(Link::root(&self.root).json());
             item_collection.set_link(Link::self_(items_url.clone()).geojson());
-            item_collection.set_link(Link::collection(&collection_url).json());
+            item_collection.set_link(Link::collection(collection_url).json());
             if let Some(next) = item_collection.next.take() {
                 item_collection.set_link(self.pagination_link(
                     items_url.clone(),
@@ -226,8 +226,8 @@ impl<B: Backend> Api<B> {
                     &Method::GET,
                 )?);
             }
-            for mut item in item_collection.items.iter_mut() {
-                self.set_item_links(&mut item)?;
+            for item in item_collection.items.iter_mut() {
+                self.set_item_links(item)?;
             }
             Ok(Some(item_collection))
         } else {
@@ -301,8 +301,8 @@ impl<B: Backend> Api<B> {
             item_collection
                 .set_link(self.pagination_link(search_url, search, prev, "prev", &method)?);
         }
-        for mut item in item_collection.items.iter_mut() {
-            self.set_item_links(&mut item)?;
+        for item in item_collection.items.iter_mut() {
+            self.set_item_links(item)?;
         }
         Ok(item_collection)
     }

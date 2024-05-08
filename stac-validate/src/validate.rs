@@ -36,7 +36,7 @@ pub trait Validate: ValidateCore {
     /// ```
     fn validate_with_validator(&self, validator: &mut Validator) -> Result<()> {
         let value = serde_json::to_value(self)?;
-        let mut errors = match Self::validate_core_json(&value, &validator) {
+        let mut errors = match Self::validate_core_json(&value, validator) {
             Ok(()) => Vec::new(),
             Err(Error::Validation(errors)) => errors,
             Err(err) => return Err(err),
@@ -96,7 +96,7 @@ impl Validate for Item {}
 
 impl ValidateCore for Item {
     fn validate_core_json(value: &Value, validator: &Validator) -> Result<()> {
-        validator.validate_item(&value)
+        validator.validate_item(value)
     }
 }
 
@@ -104,7 +104,7 @@ impl Validate for Catalog {}
 
 impl ValidateCore for Catalog {
     fn validate_core_json(value: &Value, validator: &Validator) -> Result<()> {
-        validator.validate_catalog(&value)
+        validator.validate_catalog(value)
     }
 }
 
@@ -112,7 +112,7 @@ impl Validate for Collection {}
 
 impl ValidateCore for Collection {
     fn validate_core_json(value: &Value, validator: &Validator) -> Result<()> {
-        validator.validate_collection(&value)
+        validator.validate_collection(value)
     }
 }
 

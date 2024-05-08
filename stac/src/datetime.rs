@@ -3,6 +3,9 @@
 use crate::{Error, Result};
 use chrono::{DateTime, FixedOffset};
 
+/// A start and end datetime.
+pub type Interval = (Option<DateTime<FixedOffset>>, Option<DateTime<FixedOffset>>);
+
 /// Parse a datetime or datetime interval into a start and end datetime.
 ///
 /// Returns `None` to indicate an open interval.
@@ -14,11 +17,9 @@ use chrono::{DateTime, FixedOffset};
 /// assert!(start.is_some());
 /// assert!(end.is_none());
 /// ```
-pub fn parse(
-    datetime: &str,
-) -> Result<(Option<DateTime<FixedOffset>>, Option<DateTime<FixedOffset>>)> {
-    if datetime.contains("/") {
-        let mut iter = datetime.split("/");
+pub fn parse(datetime: &str) -> Result<Interval> {
+    if datetime.contains('/') {
+        let mut iter = datetime.split('/');
         let start = iter
             .next()
             .ok_or_else(|| Error::InvalidDatetime(datetime.to_string()))
@@ -44,7 +45,7 @@ fn parse_one(s: &str) -> Result<Option<DateTime<FixedOffset>>> {
         Ok(None)
     } else {
         DateTime::parse_from_rfc3339(s)
-            .map(|datetime| Some(datetime))
+            .map(Some)
             .map_err(Error::from)
     }
 }

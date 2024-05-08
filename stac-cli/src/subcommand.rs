@@ -1,4 +1,6 @@
+/// A CLI subcommand.
 #[derive(Debug, clap::Subcommand)]
+#[allow(clippy::large_enum_variant)]
 pub enum Subcommand {
     /// Creates a STAC Item.
     Item {

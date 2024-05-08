@@ -58,7 +58,7 @@ fn read_json_from_url<T>(_: Url) -> Result<T>
 where
     T: DeserializeOwned,
 {
-    Err(crate::Error::ReqwestNotEnabled)
+    Err(Error::ReqwestNotEnabled)
 }
 
 #[cfg(test)]

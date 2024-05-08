@@ -254,7 +254,7 @@ impl Items {
     /// assert!(search.query_matches(&item).is_err());
     /// ```
     pub fn query_matches(&self, _: &Item) -> Result<bool> {
-        if let Some(_) = self.query.as_ref() {
+        if self.query.as_ref().is_some() {
             // TODO implement
             Err(Error::Unimplemented("query"))
         } else {
@@ -279,7 +279,7 @@ impl Items {
     /// assert!(search.filter_matches(&item).is_err());
     /// ```
     pub fn filter_matches(&self, _: &Item) -> Result<bool> {
-        if let Some(_) = self.filter.as_ref() {
+        if self.filter.as_ref().is_some() {
             // TODO implement
             Err(Error::Unimplemented("filter"))
         } else {
@@ -344,7 +344,7 @@ impl TryFrom<Items> for GetItems {
             }),
             filter_crs: items.filter_crs,
             filter_lang: filter.as_ref().map(|_| "cql2-text".to_string()),
-            filter: filter,
+            filter,
             additional_fields: items
                 .additional_fields
                 .into_iter()
@@ -360,7 +360,7 @@ impl TryFrom<GetItems> for Items {
     fn try_from(get_items: GetItems) -> Result<Items> {
         let bbox = if let Some(value) = get_items.bbox {
             let mut bbox = Vec::new();
-            for s in value.split(",") {
+            for s in value.split(',') {
                 bbox.push(s.parse()?)
             }
             Some(bbox)
@@ -370,7 +370,7 @@ impl TryFrom<GetItems> for Items {
 
         let sortby = if let Some(value) = get_items.sortby {
             let mut sortby = Vec::new();
-            for s in value.split(",") {
+            for s in value.split(',') {
                 sortby.push(s.parse().expect("infallible"));
             }
             Some(sortby)

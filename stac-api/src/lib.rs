@@ -32,6 +32,7 @@
 //! };
 //! ```
 
+#![cfg_attr(docsrs, feature(doc_auto_cfg))]
 #![deny(
     elided_lifetimes_in_paths,
     explicit_outlives_requirements,
@@ -59,7 +60,8 @@
     unused_import_braces,
     unused_lifetimes,
     unused_qualifications,
-    unused_results
+    unused_results,
+    warnings
 )]
 
 mod collections;

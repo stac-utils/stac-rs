@@ -59,10 +59,10 @@ impl FromStr for Sortby {
     type Err = Infallible;
 
     fn from_str(s: &str) -> std::result::Result<Self, Infallible> {
-        if s.starts_with('+') {
-            Ok(Sortby::asc(&s[1..]))
-        } else if s.starts_with('-') {
-            Ok(Sortby::desc(&s[1..]))
+        if let Some(s) = s.strip_prefix('+') {
+            Ok(Sortby::asc(s))
+        } else if let Some(s) = s.strip_prefix('-') {
+            Ok(Sortby::desc(s))
         } else {
             Ok(Sortby::asc(s))
         }

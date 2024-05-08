@@ -686,7 +686,7 @@ impl Link {
 }
 
 fn is_absolute(href: &str) -> bool {
-    Url::parse(&href).is_ok() || href.starts_with('/')
+    Url::parse(href).is_ok() || href.starts_with('/')
 }
 
 fn make_absolute(href: String, base: Option<&str>) -> Result<String> {

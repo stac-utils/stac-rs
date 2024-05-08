@@ -124,7 +124,7 @@ impl Validator {
                 for extension in extensions {
                     if let Some(extension) = extension.as_str() {
                         if let Some(schema) = self.extension_schemas.get(extension) {
-                            match self.validate_extension(&value, &schema) {
+                            match self.validate_extension(value, schema) {
                                 Ok(()) => {}
                                 Err(Error::Validation(extension_errors)) => {
                                     errors.extend(extension_errors)
@@ -149,7 +149,7 @@ impl Validator {
                 }
                 for handle in handles {
                     let (href, schema) = handle.join().unwrap()?;
-                    match self.validate_extension(&value, &schema) {
+                    match self.validate_extension(value, &schema) {
                         Ok(()) => {}
                         Err(Error::Validation(extension_errors)) => errors.extend(extension_errors),
                         Err(error) => {
@@ -175,6 +175,12 @@ impl Validator {
         extension
             .validate(value)
             .map_err(Error::from_validation_errors)
+    }
+}
+
+impl Default for Validator {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

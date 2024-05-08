@@ -41,7 +41,7 @@ impl From<Vec<Item>> for ItemCollection {
     fn from(items: Vec<Item>) -> Self {
         ItemCollection {
             r#type: ITEM_COLLECTION_TYPE.to_string(),
-            items: items,
+            items,
             links: Vec::new(),
             additional_fields: Map::new(),
             href: None,

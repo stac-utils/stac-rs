@@ -13,15 +13,11 @@ categories = ["science", "data-structures"]
 [features]
 default = ["gdal", "pgstac"]
 gdal = ["stac/gdal"]
-pgstac = ["dep:pgstac", "stac-server/pgstac"]
+pgstac = ["stac-server/pgstac"]
 
 [dependencies]
 axum = "0.7"
 clap = { version = "4", features = ["derive"] }
-console = "0.15"
-indicatif = "0.17"
-pgstac = { version = "0.1", path = "../pgstac", optional = true }
-reqwest = "0.12"
 serde = "1"
 serde_json = "1"
 stac = { version = "0.7", path = "../stac" }
@@ -35,7 +31,6 @@ thiserror = "1"
 tokio = { version = "1.23", features = ["macros", "rt-multi-thread"] }
 tokio-stream = "0.1"
 tracing = "0.1"
-tracing-subscriber = "0.3"
 url = "2"
 
 [dev-dependencies]

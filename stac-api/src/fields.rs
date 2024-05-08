@@ -30,11 +30,11 @@ impl FromStr for Fields {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut include = Vec::new();
         let mut exclude = Vec::new();
-        for field in s.split(",").filter(|s| !s.is_empty()) {
-            if field.starts_with('-') {
-                exclude.push(field[1..].to_string());
-            } else if field.starts_with("+") {
-                include.push(field[1..].to_string());
+        for field in s.split(',').filter(|s| !s.is_empty()) {
+            if let Some(field) = field.strip_prefix('-') {
+                exclude.push(field.to_string());
+            } else if let Some(field) = field.strip_prefix('+') {
+                include.push(field.to_string());
             } else {
                 include.push(field.to_string());
             }
@@ -47,7 +47,7 @@ impl Display for Fields {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let mut fields = Vec::new();
         for include in &self.include {
-            fields.push(format!("{}", include));
+            fields.push(include.to_string());
         }
         for exclude in &self.exclude {
             fields.push(format!("-{}", exclude));

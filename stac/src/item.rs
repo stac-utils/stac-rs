@@ -479,7 +479,7 @@ impl Item {
             .additional_fields
             .get("start_datetime")
             .and_then(|value| value.as_str())
-            .map(|s| DateTime::parse_from_rfc3339(&s))
+            .map(DateTime::parse_from_rfc3339)
             .transpose()?
             .or(item_datetime);
         let item_end = self
@@ -487,7 +487,7 @@ impl Item {
             .additional_fields
             .get("end_datetime")
             .and_then(|value| value.as_str())
-            .map(|s| DateTime::parse_from_rfc3339(&s))
+            .map(DateTime::parse_from_rfc3339)
             .transpose()?
             .or(item_datetime);
         let mut intersects = true;

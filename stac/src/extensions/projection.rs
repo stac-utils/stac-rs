@@ -112,7 +112,7 @@ impl Projection {
                 .map(Some)
                 .map_err(Error::from)
         } else if let Some(wkt) = self.wkt2.as_ref() {
-            SpatialRef::from_wkt(&wkt).map(Some).map_err(Error::from)
+            SpatialRef::from_wkt(wkt).map(Some).map_err(Error::from)
         } else if let Some(projjson) = self.projjson.clone() {
             SpatialRef::from_definition(&serde_json::to_string(&Value::Object(projjson))?)
                 .map(Some)

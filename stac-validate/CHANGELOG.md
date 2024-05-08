@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+
+- `impl Default for Validator` ([#252](https://github.com/stac-utils/stac-rs/pull/252))
+
 ## [0.1.2] - 2024-04-29
 
 ### Changed
@@ -26,3 +30,5 @@ Initial release.
 [0.1.2]: https://github.com/stac-utils/stac-rs/compare/stac-validate-v0.1.1..stac-validate-v0.1.2
 [0.1.1]: https://github.com/stac-utils/stac-rs/compare/stac-validate-v0.1.0..stac-validate-v0.1.1
 [0.1.0]: https://github.com/stac-utils/stac-rs/releases/tag/stac-validate-v0.1.0
+
+<!-- markdownlint-disable-file MD024 -->
