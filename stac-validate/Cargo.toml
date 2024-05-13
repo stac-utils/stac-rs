@@ -11,7 +11,7 @@ keywords = ["geospatial", "stac", "metadata", "geo", "raster"]
 categories = ["science", "data-structures"]
 
 [dependencies]
-jsonschema = "0.17"
+jsonschema = "0.18"
 reqwest = { version = "0.12", features = ["blocking", "json"] }
 serde = "1"
 serde_json = "1"
