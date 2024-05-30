@@ -49,6 +49,10 @@ pub enum Error {
     #[error("invalid datetime: {0}")]
     InvalidDatetime(String),
 
+    /// Returned when there is not a `id` field on a STAC object
+    #[error("no \"id\" field in the JSON object")]
+    MissingId,
+
     /// Returned when there is not a `type` field on a STAC object
     #[error("no \"type\" field in the JSON object")]
     MissingType,

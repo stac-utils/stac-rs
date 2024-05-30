@@ -2,7 +2,7 @@
 
 use crate::{Asset, Assets, Error, Extensions, Fields, Href, Link, Links, Result, STAC_VERSION};
 use chrono::{DateTime, FixedOffset, Utc};
-use geojson::Geometry;
+use geojson::{feature::Id, Feature, Geometry};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::{collections::HashMap, path::Path};
@@ -573,6 +573,50 @@ impl TryFrom<Map<String, Value>> for Item {
     }
 }
 
+impl TryFrom<Feature> for Item {
+    type Error = Error;
+
+    fn try_from(feature: Feature) -> Result<Item> {
+        if let Some(id) = feature.id {
+            let mut item = Item::new(match id {
+                Id::String(id) => id,
+                Id::Number(id) => id.to_string(),
+            });
+            item.bbox = feature.bbox;
+            item.geometry = feature.geometry;
+            item.properties = feature
+                .properties
+                .map(|properties| serde_json::from_value::<Properties>(Value::Object(properties)))
+                .transpose()?
+                .unwrap_or_default();
+            item.additional_fields = feature.foreign_members.unwrap_or_default();
+            Ok(item)
+        } else {
+            Err(Error::MissingId)
+        }
+    }
+}
+
+impl TryFrom<Item> for Feature {
+    type Error = Error;
+    fn try_from(item: Item) -> Result<Feature> {
+        Ok(Feature {
+            bbox: item.bbox,
+            geometry: item.geometry,
+            id: Some(Id::String(item.id)),
+            properties: match serde_json::to_value(item.properties)? {
+                Value::Object(object) => Some(object),
+                _ => panic!("properties should always serialize to an object"),
+            },
+            foreign_members: if item.additional_fields.is_empty() {
+                None
+            } else {
+                Some(item.additional_fields)
+            },
+        })
+    }
+}
+
 fn deserialize_type<'de, D>(deserializer: D) -> std::result::Result<String, D::Error>
 where
     D: serde::de::Deserializer<'de>,
@@ -591,6 +635,7 @@ where
 mod tests {
     use super::{Builder, Item};
     use crate::{extensions::Raster, Asset, Extensions, STAC_VERSION};
+    use geojson::{feature::Id, Feature};
     use serde_json::Value;
 
     #[test]
@@ -755,5 +800,26 @@ mod tests {
         } else {
             assert!(!item.has_extension::<Raster>());
         }
+    }
+
+    #[test]
+    fn try_from_geojson_feature() {
+        let mut feature = Feature {
+            bbox: None,
+            geometry: None,
+            id: None,
+            properties: None,
+            foreign_members: None,
+        };
+        let _ = Item::try_from(feature.clone()).unwrap_err();
+        feature.id = Some(Id::String("an-id".to_string()));
+        let _ = Item::try_from(feature).unwrap();
+    }
+
+    #[test]
+    fn try_into_geojson_feature() {
+        let item = Item::new("an-id");
+        let feature = Feature::try_from(item).unwrap();
+        assert_eq!(feature.id.unwrap(), Id::String("an-id".to_string()));
     }
 }
