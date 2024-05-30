@@ -85,7 +85,7 @@ Then, items created from rasters will include the projection and raster extensio
 
 ### geo
 
-To use [geojson](https://docs.rs/geojson) and [geo](https://docs.rs/geo) to add some extra geo-enabled methods:
+Use [geo](https://docs.rs/geo) to add some extra geo-enabled methods:
 
 ```toml
 [dependencies]
