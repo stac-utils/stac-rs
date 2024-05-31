@@ -1,13 +1,15 @@
-use crate::{Error, Result, Subcommand};
+use crate::{Error, Format, Result, Subcommand};
 use clap::Parser;
-use serde::{de::DeserializeOwned, Serialize};
+#[cfg(feature = "parquet")]
+use parquet::arrow::arrow_reader::ParquetRecordBatchReaderBuilder;
+use serde::Serialize;
 use serde_json::json;
 use stac::{item::Builder, Asset, Value};
 use stac_api::{GetItems, GetSearch, Item, ItemCollection};
 use stac_async::ApiClient;
 use stac_server::{Api, Backend, MemoryBackend};
 use stac_validate::Validate;
-use std::path::Path;
+use std::{fs::File, io::Write, path::Path};
 use tokio::net::TcpListener;
 use tokio_stream::StreamExt;
 use url::Url;
@@ -30,6 +32,15 @@ impl Args {
     pub async fn execute(self) -> i32 {
         use Subcommand::*;
         let result = match &self.subcommand {
+            Convert {
+                from,
+                to,
+                in_format,
+                out_format,
+            } => {
+                self.convert(from.as_deref(), to.as_deref(), *in_format, *out_format)
+                    .await
+            }
             Item {
                 id_or_href,
                 id,
@@ -92,6 +103,17 @@ impl Args {
                 err.code()
             }
         }
+    }
+
+    async fn convert(
+        &self,
+        from: Option<&str>,
+        to: Option<&str>,
+        in_format: Option<Format>,
+        out_format: Option<Format>,
+    ) -> Result<()> {
+        self.write_href(self.read_href(from, in_format).await?, to, out_format)
+            .await
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -267,12 +289,18 @@ impl Args {
     }
 
     async fn sort(&self, href: Option<&str>) -> Result<()> {
-        let value: Value = self.read_href(href).await?;
+        // TODO allow specifying formats
+        let value: Value = self.read_href(href, None).await?;
         self.println(value)
     }
 
     async fn validate(&self, href: Option<&str>) -> Result<()> {
-        let value: serde_json::Value = self.read_href(href).await?;
+        // TODO allow specifying formats
+        let value: serde_json::Value = if let Some(href) = href {
+            stac_async::read_json(href).await?
+        } else {
+            serde_json::from_reader(std::io::stdin())?
+        };
         let mut errors: Vec<serde_json::Value> = Vec::new();
         let mut update_errors = |result: std::result::Result<(), stac_validate::Error>| match result
         {
@@ -323,11 +351,82 @@ impl Args {
         }
     }
 
-    async fn read_href<D: DeserializeOwned>(&self, href: Option<&str>) -> Result<D> {
-        if let Some(href) = href {
-            stac_async::read_json(href).await.map_err(Error::from)
-        } else {
-            serde_json::from_reader(std::io::stdin()).map_err(Error::from)
+    async fn read_href(&self, href: Option<&str>, format: Option<Format>) -> Result<Value> {
+        let format = format.unwrap_or_else(|| href.and_then(Format::from_href).unwrap_or_default());
+        match format {
+            Format::Json => {
+                if let Some(href) = href {
+                    stac_async::read_json(href).await.map_err(Error::from)
+                } else {
+                    serde_json::from_reader(std::io::stdin()).map_err(Error::from)
+                }
+            }
+            #[cfg(feature = "parquet")]
+            Format::GeoParquet => {
+                let reader = if let Some(href) = href {
+                    let file = File::open(href)?;
+                    ParquetRecordBatchReaderBuilder::try_new(file)?.build()?
+                } else {
+                    // FIXME
+                    unimplemented!()
+                };
+                let mut items = Vec::new();
+                for result in reader {
+                    items.extend(stac_arrow::record_batch_to_items(result?)?);
+                }
+                Ok(Value::ItemCollection(items.into()))
+            }
+        }
+    }
+
+    async fn write_href(
+        &self,
+        value: Value,
+        href: Option<&str>,
+        format: Option<Format>,
+    ) -> Result<()> {
+        let format = format.unwrap_or_else(|| href.and_then(Format::from_href).unwrap_or_default());
+        match format {
+            Format::Json => {
+                if let Some(href) = href {
+                    let output = if self.compact {
+                        serde_json::to_string(&value)?
+                    } else {
+                        serde_json::to_string_pretty(&value)?
+                    };
+                    let mut file = File::create(href)?;
+                    file.write_all(output.as_bytes())?;
+                } else {
+                    self.println(value)?;
+                }
+                Ok(())
+            }
+            #[cfg(feature = "parquet")]
+            Format::GeoParquet => {
+                let items = match value {
+                    Value::ItemCollection(item_collection) => item_collection.items,
+                    Value::Item(item) => vec![item],
+                    _ => {
+                        return Err(Error::Custom(format!(
+                            "cannot write STAC GeoParquet of type: {}",
+                            value.type_name()
+                        )))
+                    }
+                };
+                // TODO allow customizing batch size
+                let mut geo_table = stac_arrow::items_to_geo_table(items)?;
+                if let Some(href) = href {
+                    let file = File::create(href)?;
+                    geoarrow::io::parquet::write_geoparquet(&mut geo_table, file, None)?;
+                } else {
+                    geoarrow::io::parquet::write_geoparquet(
+                        &mut geo_table,
+                        std::io::stdout(),
+                        None,
+                    )?;
+                }
+                Ok(())
+            }
         }
     }
 

@@ -4,6 +4,7 @@ members = [
     "stac",
     "pgstac",
     "stac-api",
+    "stac-arrow",
     "stac-async",
     "stac-cli",
     "stac-server",
@@ -12,6 +13,7 @@ members = [
 default-members = [
     "stac",
     "stac-api",
+    "stac-arrow",
     "stac-async",
     "stac-cli",
     "stac-server",

@@ -1,7 +1,36 @@
+use crate::Format;
+
 /// A CLI subcommand.
 #[derive(Debug, clap::Subcommand)]
 #[allow(clippy::large_enum_variant)]
 pub enum Subcommand {
+    /// Converts STAC data from one format to another.
+    Convert {
+        /// The href of the STAC object.
+        ///
+        /// If this is not provided or is `-`, will read from standard input.
+        from: Option<String>,
+
+        /// The output href.
+        ///
+        /// If this is not provided or is `-`, will be printed to standard output.
+        to: Option<String>,
+
+        /// The input format.
+        ///
+        /// If not provided, will be inferred from the extension of the input
+        /// href or, if that is not provided, will default to JSON.
+        #[arg(short, long)]
+        in_format: Option<Format>,
+
+        /// The output format.
+        ///
+        /// If not provided, will be inferred from the extension of the output
+        /// href or, if that is not provided, will default to JSON.
+        #[arg(short, long)]
+        out_format: Option<Format>,
+    },
+
     /// Creates a STAC Item.
     Item {
         /// The item id or asset href.

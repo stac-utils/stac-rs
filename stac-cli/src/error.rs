@@ -4,6 +4,11 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 #[non_exhaustive]
 pub enum Error {
+    /// [arrow::error::ArrowError]
+    #[cfg(feature = "parquet")]
+    #[error(transparent)]
+    Arrow(#[from] arrow::error::ArrowError),
+
     /// Custom error.
     #[error("{0}")]
     Custom(String),
@@ -11,6 +16,20 @@ pub enum Error {
     /// [std::io::Error]
     #[error(transparent)]
     Io(#[from] std::io::Error),
+
+    /// Invalid format.
+    #[error("invalid format: {0}")]
+    InvalidFormat(String),
+
+    /// [geoarrow::error::GeoArrowError]
+    #[cfg(feature = "parquet")]
+    #[error(transparent)]
+    GeoArrow(#[from] geoarrow::error::GeoArrowError),
+
+    /// [parquet::errors::ParquetError]
+    #[cfg(feature = "parquet")]
+    #[error(transparent)]
+    Parquet(#[from] parquet::errors::ParquetError),
 
     /// [serde_json::Error]
     #[error(transparent)]
@@ -23,6 +42,11 @@ pub enum Error {
     /// [stac::Error]
     #[error(transparent)]
     Stac(#[from] stac::Error),
+
+    /// [stac_arrow::Error]
+    #[cfg(feature = "parquet")]
+    #[error(transparent)]
+    StacArrow(#[from] stac_arrow::Error),
 
     /// [stac_async::Error]
     #[error(transparent)]

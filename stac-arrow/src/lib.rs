@@ -1,6 +1,8 @@
-//! STAC command-line interface (CLI).
+//! Read and write STAC to/from [geoarrow](https://github.com/geoarrow/geoarrow).
+//!
+//! The arrow data formatted per the [stac-geoparquet
+//! spec](https://github.com/stac-utils/stac-geoparquet/blob/main/spec/stac-geoparquet-spec.md).
 
-#![cfg_attr(docsrs, feature(doc_auto_cfg))]
 #![deny(
     elided_lifetimes_in_paths,
     explicit_outlives_requirements,
@@ -32,15 +34,32 @@
     warnings
 )]
 
-mod args;
 mod error;
-mod format;
-mod subcommand;
+mod read;
+mod write;
 
-pub use {args::Args, error::Error, format::Format, subcommand::Subcommand};
+pub use {
+    error::Error,
+    read::{record_batch_to_items, Reader},
+    write::{items_to_geo_table, Writer},
+};
 
 /// Crate-specific result type.
 pub type Result<T> = std::result::Result<T, Error>;
 
+// From https://github.com/rust-lang/cargo/issues/383#issuecomment-720873790,
+// may they be forever blessed.
+#[cfg(doctest)]
+mod readme {
+    macro_rules! external_doc_test {
+        ($x:expr) => {
+            #[doc = $x]
+            extern "C" {}
+        };
+    }
+
+    external_doc_test!(include_str!("../README.md"));
+}
+
 #[cfg(test)]
-use assert_cmd as _;
+use criterion as _;

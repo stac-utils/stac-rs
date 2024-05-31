@@ -118,8 +118,10 @@ pub struct GeoparquetItem {
     pub id: String,
 
     /// For GeoParquet 1.0 this must be well-known Binary
-    #[serde(default)]
-    pub geometry: Vec<u8>,
+    ///
+    /// We allow this to be null because we sometimes need to remove the
+    /// geometry for extra processing.
+    pub geometry: Option<Vec<u8>>,
 
     /// Can be a 4 or 6 value struct, depending on dimension of the data.
     ///
@@ -628,8 +630,7 @@ impl Item {
                         tm: false,
                     })
                 })
-                .transpose()?
-                .ok_or_else(|| Error::MissingGeometry)?,
+                .transpose()?,
             bbox: self.bbox.ok_or_else(|| Error::MissingBbox)?,
             links: self.links,
             assets: self.assets,
@@ -648,13 +649,17 @@ impl TryFrom<GeoparquetItem> for Item {
         use geozero::wkb::{FromWkb, WkbDialect};
         use std::io::Cursor;
 
-        let geometry = Geometry::<f64>::from_wkb(&mut Cursor::new(item.geometry), WkbDialect::Wkb)?;
+        let geometry = if let Some(geometry) = item.geometry {
+            Some((&Geometry::<f64>::from_wkb(&mut Cursor::new(geometry), WkbDialect::Wkb)?).into())
+        } else {
+            None
+        };
         Ok(Item {
             r#type: item.r#type.unwrap_or_else(|| ITEM_TYPE.to_string()),
             version: STAC_VERSION.to_string(),
             extensions: item.extensions,
             id: item.id,
-            geometry: Some((&geometry).into()),
+            geometry,
             bbox: Some(item.bbox),
             links: item.links,
             assets: item.assets,
@@ -1024,14 +1029,16 @@ mod tests {
             r#type: None,
             extensions: Vec::new(),
             id: "an-id".to_string(),
-            geometry: Geometry::Point((-105., 41.).into())
-                .to_wkb(CoordDimensions {
-                    z: false,
-                    m: false,
-                    t: false,
-                    tm: false,
-                })
-                .unwrap(),
+            geometry: Some(
+                Geometry::Point((-105., 41.).into())
+                    .to_wkb(CoordDimensions {
+                        z: false,
+                        m: false,
+                        t: false,
+                        tm: false,
+                    })
+                    .unwrap(),
+            ),
             bbox: vec![-105., 41., -105., 41.],
             links: Vec::new(),
             assets: Default::default(),
@@ -1049,6 +1056,6 @@ mod tests {
         let mut value = serde_json::to_value(item).unwrap();
         let _ = value.as_object_mut().unwrap().remove("geometry").unwrap();
         let geoparquet_item: GeoparquetItem = serde_json::from_value(value).unwrap();
-        assert_eq!(geoparquet_item.geometry, Vec::<u8>::new());
+        assert_eq!(geoparquet_item.geometry, None);
     }
 }
