@@ -91,7 +91,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
       - name: Test
         run: cargo test --no-default-features -F reqwest -F geo
-  build:
+  check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -101,8 +101,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install libgdal-dev
-      - name: Build
-        run: cargo build --all-features
+      - name: Check
+        run: cargo check --all --all-features
   fmt:
     runs-on: ubuntu-latest
     steps:
