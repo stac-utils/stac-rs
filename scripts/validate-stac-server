@@ -16,7 +16,7 @@ if [ $# -eq 1 ]; then
 fi
 
 cargo build -p stac-cli $build_args
-cargo run $build_args -- serve $args &
+cargo run -p stac-cli $build_args -- serve $args &
 server_pid=$!
 echo "server_pid=$server_pid"
 set +e
