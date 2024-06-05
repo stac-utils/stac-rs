@@ -14,7 +14,7 @@ categories = ["science", "data-structures"]
 gdal = ["dep:gdal", "dep:gdal-sys", "dep:log"]
 geo = ["dep:geo"]
 reqwest = ["dep:reqwest"]
-wkb = ["dep:wkb", "geo", "dep:log"]
+wkb = ["dep:geozero", "geozero/with-wkb", "geo", "dep:log"]
 
 [dependencies]
 chrono = "0.4"
@@ -26,13 +26,13 @@ gdal-sys = { version = "0.9", optional = true, features = [
 ] } # we use bindgen b/c the gdal crate doesn't support GDAL 3.8 as of this writing, and we depend on gdal-sys for build script usage
 geo = { version = "0.28", optional = true }
 geojson = { version = "0.24" }
+geozero = { version = "0.13", optional = true }
 log = { version = "0.4", optional = true }
 reqwest = { version = "0.12", optional = true, features = ["json", "blocking"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
 thiserror = "1"
 url = "2"
-wkb = { version = "0.7", optional = true }
 
 [dev-dependencies]
 assert-json-diff = "2"

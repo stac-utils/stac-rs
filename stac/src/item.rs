@@ -586,6 +586,9 @@ impl Item {
     /// ```
     #[cfg(feature = "wkb")]
     pub fn into_geoparquet_item(self, drop_invalid_attributes: bool) -> Result<GeoparquetItem> {
+        use geo::Geometry;
+        use geozero::{CoordDimensions, ToWkb};
+
         let properties = if let Value::Object(object) = serde_json::to_value(self.properties)? {
             object
         } else {
@@ -607,15 +610,23 @@ impl Item {
                 return Err(Error::InvalidAttribute(key));
             }
         }
+        // TODO can we / should we generalize on coord dimensions more?
         Ok(GeoparquetItem {
             r#type: None,
             extensions: self.extensions,
             id: self.id,
             geometry: self
                 .geometry
-                .map(geo::Geometry::<f64>::try_from)
+                .map(Geometry::<f64>::try_from)
                 .transpose()?
-                .map(|geometry| wkb::geom_to_wkb(&geometry))
+                .map(|geometry| {
+                    geometry.to_wkb(CoordDimensions {
+                        z: false,
+                        m: false,
+                        t: false,
+                        tm: false,
+                    })
+                })
                 .transpose()?
                 .ok_or_else(|| Error::MissingGeometry)?,
             bbox: self.bbox.ok_or_else(|| Error::MissingBbox)?,
@@ -632,15 +643,17 @@ impl TryFrom<GeoparquetItem> for Item {
     type Error = Error;
 
     fn try_from(item: GeoparquetItem) -> Result<Item> {
+        use geo::Geometry;
+        use geozero::wkb::{FromWkb, WkbDialect};
         use std::io::Cursor;
 
-        let geometry = (&wkb::wkb_to_geom(&mut Cursor::new(item.geometry))?).into();
+        let geometry = Geometry::<f64>::from_wkb(&mut Cursor::new(item.geometry), WkbDialect::Wkb)?;
         Ok(Item {
             r#type: item.r#type.unwrap_or_else(|| ITEM_TYPE.to_string()),
             version: STAC_VERSION.to_string(),
             extensions: item.extensions,
             id: item.id,
-            geometry: Some(geometry),
+            geometry: Some((&geometry).into()),
             bbox: Some(item.bbox),
             links: item.links,
             assets: item.assets,
@@ -1001,12 +1014,21 @@ mod tests {
     #[cfg(feature = "wkb")]
     fn geoparquet_item_into_item() {
         use super::GeoparquetItem;
+        use geo::Geometry;
+        use geozero::{CoordDimensions, ToWkb};
 
         let geoparquet_item = GeoparquetItem {
             r#type: None,
             extensions: Vec::new(),
             id: "an-id".to_string(),
-            geometry: wkb::geom_to_wkb(&geo::Geometry::Point((-105., 41.).into())).unwrap(),
+            geometry: Geometry::Point((-105., 41.).into())
+                .to_wkb(CoordDimensions {
+                    z: false,
+                    m: false,
+                    t: false,
+                    tm: false,
+                })
+                .unwrap(),
             bbox: vec![-105., 41., -105., 41.],
             links: Vec::new(),
             assets: Default::default(),

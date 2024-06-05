@@ -23,6 +23,11 @@ pub enum Error {
     #[error(transparent)]
     Geojson(#[from] geojson::Error),
 
+    /// [geozero::error::GeozeroError]
+    #[cfg(feature = "wkb")]
+    #[error(transparent)]
+    Geozero(#[from] geozero::error::GeozeroError),
+
     /// [std::io::Error]
     #[error(transparent)]
     Io(#[from] std::io::Error),
@@ -113,28 +118,4 @@ pub enum Error {
     /// [url::ParseError]
     #[error(transparent)]
     Url(#[from] url::ParseError),
-
-    /// [wkb::WKBReadError]
-    #[cfg(feature = "wkb")]
-    #[error("wkb read error: {0:?}")]
-    WkbRead(wkb::WKBReadError),
-
-    /// [wkb::WKBWriteError]
-    #[cfg(feature = "wkb")]
-    #[error("wkb write error: {0:?}")]
-    WkbWrite(wkb::WKBWriteError),
-}
-
-#[cfg(feature = "wkb")]
-impl From<wkb::WKBWriteError> for Error {
-    fn from(err: wkb::WKBWriteError) -> Error {
-        Error::WkbWrite(err)
-    }
-}
-
-#[cfg(feature = "wkb")]
-impl From<wkb::WKBReadError> for Error {
-    fn from(err: wkb::WKBReadError) -> Error {
-        Error::WkbRead(err)
-    }
 }
