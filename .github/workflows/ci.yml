@@ -22,6 +22,7 @@ jobs:
         args:
           - "-p stac"
           - "-p stac -F reqwest"
+          - "-p stac -F wkb"
           - "-p stac-api"
           - "-p stac -p stac-api -F geo"
           - "-p stac-async"

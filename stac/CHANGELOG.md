@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - `stac::datetime::Interval` ([#252](https://github.com/stac-utils/stac-rs/pull/252))
 - `TryFrom<Feature>` and `TryInto<Feature>` for `Item` ([#255](https://github.com/stac-utils/stac-rs/pull/255))
+- `wkb` feature and `GeoparquetItem` ([#260](https://github.com/stac-utils/stac-rs/pull/260))
 
 ### Fixed
 

@@ -11,6 +11,18 @@ use url::Url;
 /// The type field for [Items](Item).
 pub const ITEM_TYPE: &str = "Feature";
 
+#[cfg(feature = "wkb")]
+const TOP_LEVEL_ATTRIBUTES: [&str; 8] = [
+    "type",
+    "stac_extensions",
+    "id",
+    "geometry",
+    "bbox",
+    "links",
+    "assets",
+    "collection",
+];
+
 /// An `Item` is a GeoJSON Feature augmented with foreign members relevant to a
 /// STAC object.
 ///
@@ -84,6 +96,49 @@ pub struct Item {
 
     #[serde(skip)]
     href: Option<String>,
+}
+
+/// A [GeoparquetItem] has all of its properties at the top level, and has a
+/// Well-Known Binary (WKB) `geometry` field.
+///
+/// The structure of this item is defined in [the specification](https://github.com/stac-utils/stac-geoparquet/blob/main/spec/stac-geoparquet-spec.md).
+#[cfg(feature = "wkb")]
+#[derive(Debug, Serialize, Deserialize)]
+pub struct GeoparquetItem {
+    /// This is just needed for GeoJSON, so it is optional and not recommended
+    /// to include in GeoParquet.
+    ///
+    /// This value is set to `None` by `TryFrom<Item>`.
+    pub r#type: Option<String>,
+
+    /// This column is required, but can be empty if no STAC extensions were used
+    #[serde(rename = "stac_extensions")]
+    pub extensions: Vec<String>,
+
+    /// Required, should be unique within each collection
+    pub id: String,
+
+    /// For GeoParquet 1.0 this must be well-known Binary
+    pub geometry: Vec<u8>,
+
+    /// Can be a 4 or 6 value struct, depending on dimension of the data.
+    ///
+    /// It must conform to the "Bounding Box Columns" definition of GeoParquet 1.1.
+    pub bbox: Vec<f64>,
+
+    /// List of link objects to resources and related URLs.
+    pub links: Vec<Link>,
+
+    /// Dictionary of asset objects that can be downloaded, each with a unique key.
+    pub assets: HashMap<String, Asset>,
+
+    /// The ID of the collection this Item is a part of.
+    pub collection: Option<String>,
+
+    /// Each property should use the relevant Parquet type, and be pulled out of
+    /// the properties object to be a top-level Parquet field
+    #[serde(flatten)]
+    pub properties: Map<String, Value>,
 }
 
 /// Additional metadata fields can be added to the GeoJSON Object Properties.
@@ -507,6 +562,95 @@ impl Item {
         }
         Ok(intersects)
     }
+
+    /// Converts this item into a [GeoparquetItem].
+    ///
+    /// If `drop_invalid_attributes` is `True`, any properties that conflict
+    /// with top-level field names will be discarded with a warning. If it is
+    /// `False`, and error will be raised. The same is true for any top-level
+    /// fields that are not part of the spec.
+    ///
+    /// Raises an error if there's no geometry or bbox set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::Item;
+    /// use geojson::{Geometry, Value};
+    ///
+    /// let mut item = Item::new("an-id");
+    /// #[cfg(feature = "wkb")]
+    /// {
+    /// item.set_geometry(Some(Geometry::new(Value::Point(vec![-105.1, 41.1]))));
+    /// let geoparquet_item = item.into_geoparquet_item(true).unwrap();
+    /// }
+    /// ```
+    #[cfg(feature = "wkb")]
+    pub fn into_geoparquet_item(self, drop_invalid_attributes: bool) -> Result<GeoparquetItem> {
+        let properties = if let Value::Object(object) = serde_json::to_value(self.properties)? {
+            object
+        } else {
+            panic!("properties should always serialize to an object")
+        };
+        for (key, _) in properties.iter() {
+            if TOP_LEVEL_ATTRIBUTES.contains(&key.as_str()) {
+                if drop_invalid_attributes {
+                    log::warn!("dropping invalid property: {}", key);
+                } else {
+                    return Err(Error::InvalidAttribute(key.to_string()));
+                }
+            }
+        }
+        for (key, _) in self.additional_fields {
+            if drop_invalid_attributes {
+                log::warn!("dropping out-of-spec top-level attribute: {}", key);
+            } else {
+                return Err(Error::InvalidAttribute(key));
+            }
+        }
+        Ok(GeoparquetItem {
+            r#type: None,
+            extensions: self.extensions,
+            id: self.id,
+            geometry: self
+                .geometry
+                .map(geo::Geometry::<f64>::try_from)
+                .transpose()?
+                .map(|geometry| wkb::geom_to_wkb(&geometry))
+                .transpose()?
+                .ok_or_else(|| Error::MissingGeometry)?,
+            bbox: self.bbox.ok_or_else(|| Error::MissingBbox)?,
+            links: self.links,
+            assets: self.assets,
+            collection: self.collection,
+            properties,
+        })
+    }
+}
+
+#[cfg(feature = "wkb")]
+impl TryFrom<GeoparquetItem> for Item {
+    type Error = Error;
+
+    fn try_from(item: GeoparquetItem) -> Result<Item> {
+        use std::io::Cursor;
+
+        let geometry = (&wkb::wkb_to_geom(&mut Cursor::new(item.geometry))?).into();
+        Ok(Item {
+            r#type: item.r#type.unwrap_or_else(|| ITEM_TYPE.to_string()),
+            version: STAC_VERSION.to_string(),
+            extensions: item.extensions,
+            id: item.id,
+            geometry: Some(geometry),
+            bbox: Some(item.bbox),
+            links: item.links,
+            assets: item.assets,
+            collection: item.collection,
+            properties: serde_json::from_value(item.properties.into())?,
+            additional_fields: Default::default(),
+            href: None,
+        })
+    }
 }
 
 impl Href for Item {
@@ -821,5 +965,55 @@ mod tests {
         let item = Item::new("an-id");
         let feature = Feature::try_from(item).unwrap();
         assert_eq!(feature.id.unwrap(), Id::String("an-id".to_string()));
+    }
+
+    #[test]
+    #[cfg(feature = "wkb")]
+    fn item_into_geoparquet_item() {
+        use geojson::Geometry;
+
+        let mut item = Item::new("an-id");
+        let _ = item.clone().into_geoparquet_item(true).unwrap_err(); // no geometry
+
+        let geometry = Geometry::new(geojson::Value::Point(vec![-105.1, 41.1]));
+        item.geometry = Some(geometry.clone());
+        let _ = item.clone().into_geoparquet_item(true).unwrap_err(); // no bbox
+
+        item.set_geometry(geometry).unwrap();
+        let _ = item.clone().into_geoparquet_item(true).unwrap();
+        let _ = item.clone().into_geoparquet_item(false).unwrap();
+
+        let _ = item
+            .properties
+            .additional_fields
+            .insert("bbox".to_string(), vec![42.0].into());
+        let _ = item.clone().into_geoparquet_item(true).unwrap();
+        let _ = item.clone().into_geoparquet_item(false).unwrap_err();
+
+        item.properties.additional_fields = Default::default();
+        let _ = item
+            .additional_fields
+            .insert("foo".to_string(), "bar".to_string().into());
+        let _ = item.clone().into_geoparquet_item(true).unwrap();
+        let _ = item.clone().into_geoparquet_item(false).unwrap_err();
+    }
+
+    #[test]
+    #[cfg(feature = "wkb")]
+    fn geoparquet_item_into_item() {
+        use super::GeoparquetItem;
+
+        let geoparquet_item = GeoparquetItem {
+            r#type: None,
+            extensions: Vec::new(),
+            id: "an-id".to_string(),
+            geometry: wkb::geom_to_wkb(&geo::Geometry::Point((-105., 41.).into())).unwrap(),
+            bbox: vec![-105., 41., -105., 41.],
+            links: Vec::new(),
+            assets: Default::default(),
+            collection: None,
+            properties: Default::default(),
+        };
+        let _ = Item::try_from(geoparquet_item).unwrap();
     }
 }

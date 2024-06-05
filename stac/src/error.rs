@@ -20,7 +20,6 @@ pub enum Error {
     GdalNotEnabled,
 
     /// [geojson::Error]
-    #[cfg(feature = "geo")]
     #[error(transparent)]
     Geojson(#[from] geojson::Error),
 
@@ -31,6 +30,11 @@ pub enum Error {
     /// Returned when the `type` field of a STAC object is not a [String].
     #[error("invalid \"type\" field: {0}")]
     InvalidTypeField(JsonValue),
+
+    /// Returned when a property name conflicts with a top-level STAC field, or
+    /// it's an invalid top-level field name.
+    #[error("invalid attribute name: {0}")]
+    InvalidAttribute(String),
 
     /// Returned when a STAC object has the wrong type field.
     #[error("incorrect type: expected={expected}, actual={actual}")]
@@ -60,6 +64,14 @@ pub enum Error {
     /// Returned when an object is expected to have an href, but it doesn't.
     #[error("object has no href")]
     MissingHref,
+
+    /// Returned when an item is expected to have a geometry but doesn't.
+    #[error("item has no geometry")]
+    MissingGeometry,
+
+    /// Returned when an item is expected to have a bbox but doesn't.
+    #[error("item has no bbox")]
+    MissingBbox,
 
     /// This value is not an item.
     #[error("value is not an item")]
@@ -101,4 +113,28 @@ pub enum Error {
     /// [url::ParseError]
     #[error(transparent)]
     Url(#[from] url::ParseError),
+
+    /// [wkb::WKBReadError]
+    #[cfg(feature = "wkb")]
+    #[error("wkb read error: {0:?}")]
+    WkbRead(wkb::WKBReadError),
+
+    /// [wkb::WKBWriteError]
+    #[cfg(feature = "wkb")]
+    #[error("wkb write error: {0:?}")]
+    WkbWrite(wkb::WKBWriteError),
+}
+
+#[cfg(feature = "wkb")]
+impl From<wkb::WKBWriteError> for Error {
+    fn from(err: wkb::WKBWriteError) -> Error {
+        Error::WkbWrite(err)
+    }
+}
+
+#[cfg(feature = "wkb")]
+impl From<wkb::WKBReadError> for Error {
+    fn from(err: wkb::WKBReadError) -> Error {
+        Error::WkbRead(err)
+    }
 }
