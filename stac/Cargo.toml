@@ -14,6 +14,7 @@ categories = ["science", "data-structures"]
 gdal = ["dep:gdal", "dep:gdal-sys", "dep:log"]
 geo = ["dep:geo"]
 reqwest = ["dep:reqwest"]
+wkb = ["dep:wkb", "geo", "dep:log"]
 
 [dependencies]
 chrono = "0.4"
@@ -31,6 +32,7 @@ serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
 thiserror = "1"
 url = "2"
+wkb = { version = "0.7", optional = true }
 
 [dev-dependencies]
 assert-json-diff = "2"
