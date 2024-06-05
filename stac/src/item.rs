@@ -102,7 +102,6 @@ pub struct Item {
 /// Well-Known Binary (WKB) `geometry` field.
 ///
 /// The structure of this item is defined in [the specification](https://github.com/stac-utils/stac-geoparquet/blob/main/spec/stac-geoparquet-spec.md).
-#[cfg(feature = "wkb")]
 #[derive(Debug, Serialize, Deserialize)]
 pub struct GeoparquetItem {
     /// This is just needed for GeoJSON, so it is optional and not recommended
