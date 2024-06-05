@@ -8,7 +8,7 @@
 
 Rust implementation of the data structures that make up the [STAC API specification](https://github.com/radiantearth/stac-api-spec).
 This is **not** a server implementation.
-For a STAC API server written in Rust, check out [stac-server-rs](https://github.com/gadomski/stac-server-rs).
+For a STAC API server written in Rust, check out our [stac-server](https://github.com/stac-utils/stac-rs/tree/main/stac-server).
 
 ## Usage
 
