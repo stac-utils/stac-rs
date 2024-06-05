@@ -118,6 +118,7 @@ pub struct GeoparquetItem {
     pub id: String,
 
     /// For GeoParquet 1.0 this must be well-known Binary
+    #[serde(default)]
     pub geometry: Vec<u8>,
 
     /// Can be a 4 or 6 value struct, depending on dimension of the data.
@@ -789,8 +790,11 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::{Builder, Item};
-    use crate::{extensions::Raster, Asset, Extensions, STAC_VERSION};
+    use super::{Builder, GeoparquetItem, Item};
+    use crate::{
+        extensions::{Projection, Raster},
+        Asset, Extensions, STAC_VERSION,
+    };
     use geojson::{feature::Id, Feature};
     use serde_json::Value;
 
@@ -1013,7 +1017,6 @@ mod tests {
     #[test]
     #[cfg(feature = "wkb")]
     fn geoparquet_item_into_item() {
-        use super::GeoparquetItem;
         use geo::Geometry;
         use geozero::{CoordDimensions, ToWkb};
 
@@ -1036,5 +1039,16 @@ mod tests {
             properties: Default::default(),
         };
         let _ = Item::try_from(geoparquet_item).unwrap();
+    }
+
+    #[test]
+    fn geoparquet_item_without_geometry() {
+        let mut item = Item::new("an-item");
+        item.add_extension::<Projection>();
+        item.bbox = Some(vec![-105., 42., -105., -42.]);
+        let mut value = serde_json::to_value(item).unwrap();
+        let _ = value.as_object_mut().unwrap().remove("geometry").unwrap();
+        let geoparquet_item: GeoparquetItem = serde_json::from_value(value).unwrap();
+        assert_eq!(geoparquet_item.geometry, Vec::<u8>::new());
     }
 }
