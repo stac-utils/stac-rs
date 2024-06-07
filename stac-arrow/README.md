@@ -24,17 +24,10 @@ Reading from a [geoparquet](https://geoparquet.org/) file:
 
 ```rust
 use std::fs::File;
-use parquet::arrow::arrow_reader::ParquetRecordBatchReaderBuilder;
 
 let file = File::open("data/naip.parquet").unwrap();
-let reader = ParquetRecordBatchReaderBuilder::try_new(file)
-    .unwrap()
-    .build()
-    .unwrap();
-let mut items = Vec::new();
-for result in reader {
-    items.extend(stac_arrow::record_batch_to_items(result.unwrap()).unwrap());
-}
+let geo_table = geoarrow::io::parquet::read_geoparquet(file, Default::default()).unwrap();
+let items = stac_arrow::geo_table_to_items(geo_table).unwrap();
 assert_eq!(items.len(), 5);
 ```
 

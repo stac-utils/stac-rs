@@ -2,6 +2,39 @@
 //!
 //! The arrow data formatted per the [stac-geoparquet
 //! spec](https://github.com/stac-utils/stac-geoparquet/blob/main/spec/stac-geoparquet-spec.md).
+//!
+//! # Reading
+//!
+//! Use top-level function [geo_table_to_items] to convert [geoarrow] record
+//! batches to a vector of [Items](stac::Item).
+//!
+//! ```
+//! use std::fs::File;
+//!
+//! let file = File::open("data/naip.parquet").unwrap();
+//! let geo_table = geoarrow::io::parquet::read_geoparquet(file, Default::default()).unwrap();
+//! let items = stac_arrow::geo_table_to_items(geo_table).unwrap();
+//! assert_eq!(items.len(), 5);
+//! ```
+//!
+//! The [Reader] structure provides more control over the process.
+//!
+//! # Writing
+//!
+//! For writing, there is a top level [items_to_geo_table]:
+//!
+//! ```
+//! use stac::ItemCollection;
+//!
+//! let item_collection: ItemCollection = stac::read_json("data/naip.json").unwrap();
+//! let geo_table = stac_arrow::items_to_geo_table(item_collection.items).unwrap();
+//! ```
+//!
+//! The [Writer] structure provides more control.
+//!
+//! # IO
+//!
+//! This library does not provide any IO (reading or writing to/from disk or the network) — use [geoarrow::io].
 
 #![deny(
     elided_lifetimes_in_paths,
@@ -40,7 +73,7 @@ mod write;
 
 pub use {
     error::Error,
-    read::{record_batch_to_items, Reader},
+    read::{geo_table_to_items, Reader},
     write::{items_to_geo_table, Writer},
 };
 

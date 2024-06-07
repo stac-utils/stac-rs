@@ -1,7 +1,5 @@
 use crate::{Error, Format, Result, Subcommand};
 use clap::Parser;
-#[cfg(feature = "parquet")]
-use parquet::arrow::arrow_reader::ParquetRecordBatchReaderBuilder;
 use serde::Serialize;
 use serde_json::json;
 use stac::{item::Builder, Asset, Value};
@@ -363,17 +361,14 @@ impl Args {
             }
             #[cfg(feature = "parquet")]
             Format::GeoParquet => {
-                let reader = if let Some(href) = href {
+                let geo_table = if let Some(href) = href {
                     let file = File::open(href)?;
-                    ParquetRecordBatchReaderBuilder::try_new(file)?.build()?
+                    geoarrow::io::parquet::read_geoparquet(file, Default::default())?
                 } else {
                     // FIXME
                     unimplemented!()
                 };
-                let mut items = Vec::new();
-                for result in reader {
-                    items.extend(stac_arrow::record_batch_to_items(result?)?);
-                }
+                let items = stac_arrow::geo_table_to_items(geo_table)?;
                 Ok(Value::ItemCollection(items.into()))
             }
         }

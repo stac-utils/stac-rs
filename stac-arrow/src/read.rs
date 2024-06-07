@@ -1,32 +1,26 @@
 use crate::{Error, Result};
 use arrow::array::{AsArray, OffsetSizeTrait, RecordBatch};
 use geo::Geometry;
+use geoarrow::table::GeoTable;
 use geozero::wkb::{FromWkb, WkbDialect};
 use serde_json::{Map, Value};
 use stac::{item::GeoparquetItem, Item};
 use std::io::Cursor;
 
-/// Converts a [RecordBatch] into a vector of [Items](Item).
+/// Converts a [GeoTable] into a vector of [Items](Item).
 ///
 /// # Examples
 ///
 /// ```
 /// use std::fs::File;
-/// use parquet::arrow::arrow_reader::ParquetRecordBatchReaderBuilder;
 ///
 /// let file = File::open("data/naip.parquet").unwrap();
-/// let reader = ParquetRecordBatchReaderBuilder::try_new(file)
-///     .unwrap()
-///     .build()
-///     .unwrap();
-/// let mut items = Vec::new();
-/// for result in reader {
-///     items.extend(stac_arrow::record_batch_to_items(result.unwrap()).unwrap());
-/// }
+/// let geo_table = geoarrow::io::parquet::read_geoparquet(file, Default::default()).unwrap();
+/// let items = stac_arrow::geo_table_to_items(geo_table).unwrap();
 /// assert_eq!(items.len(), 5);
 /// ```
-pub fn record_batch_to_items(record_batch: RecordBatch) -> Result<Vec<Item>> {
-    Reader::new().read::<i32>(record_batch)
+pub fn geo_table_to_items(geo_table: GeoTable) -> Result<Vec<Item>> {
+    Reader::new().read::<i32>(geo_table)
 }
 
 /// Reads record batches into items.
@@ -47,6 +41,29 @@ impl Reader {
         Reader {}
     }
 
+    /// Reads a [GeoTable] into a vector of items.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::fs::File;
+    /// use stac_arrow::Reader;
+    ///
+    /// let file = File::open("data/naip.parquet").unwrap();
+    /// let geo_table = geoarrow::io::parquet::read_geoparquet(file, Default::default()).unwrap();
+    /// let reader = Reader::new();
+    /// let items = reader.read::<i32>(geo_table).unwrap();
+    /// assert_eq!(items.len(), 5);
+    /// ```
+    pub fn read<O: OffsetSizeTrait>(&self, geo_table: GeoTable) -> Result<Vec<Item>> {
+        let mut items = Vec::with_capacity(geo_table.len());
+        let (_, record_batches, _) = geo_table.into_inner();
+        for record_batch in record_batches {
+            items.extend(self.record_batch_to_items::<O>(record_batch)?);
+        }
+        Ok(items)
+    }
+
     /// Reads items from a record batch.
     ///
     /// # Examples
@@ -64,12 +81,15 @@ impl Reader {
     /// let mut items = Vec::new();
     /// let reader = Reader::new();
     /// for result in parquet_reader {
-    ///     items.extend(reader.read::<i32>(result.unwrap()).unwrap());
+    ///     items.extend(reader.record_batch_to_items::<i32>(result.unwrap()).unwrap());
     /// }
     /// assert_eq!(items.len(), 5);
     /// ```
     #[allow(deprecated)] // We find that `record_batches_to_json_rows` is faster than serializing-then-deserializing with `Writer`
-    pub fn read<O: OffsetSizeTrait>(&self, mut record_batch: RecordBatch) -> Result<Vec<Item>> {
+    pub fn record_batch_to_items<O: OffsetSizeTrait>(
+        &self,
+        mut record_batch: RecordBatch,
+    ) -> Result<Vec<Item>> {
         let index = record_batch.schema().index_of("geometry")?;
         let geometry = record_batch.remove_column(index);
         let geometry = geometry
@@ -96,6 +116,7 @@ impl Reader {
 
 #[cfg(test)]
 mod tests {
+    use super::Reader;
     use parquet::arrow::arrow_reader::ParquetRecordBatchReaderBuilder;
     use stac_validate::Validate;
     use std::fs::File;
@@ -103,17 +124,22 @@ mod tests {
     #[test]
     fn record_batch_to_items() {
         let file = File::open("data/naip.parquet").unwrap();
-        let mut reader = ParquetRecordBatchReaderBuilder::try_new(file)
+        let mut parquet_reader = ParquetRecordBatchReaderBuilder::try_new(file)
             .unwrap()
             .build()
             .unwrap();
-        let items = reader
+        let reader = Reader::new();
+        let items = parquet_reader
             .next()
-            .map(|result| super::record_batch_to_items(result.unwrap()).unwrap())
+            .map(|result| {
+                reader
+                    .record_batch_to_items::<i32>(result.unwrap())
+                    .unwrap()
+            })
             .unwrap();
         assert_eq!(items.len(), 5);
         for item in items {
-            assert_eq!(item.extensions.len(), 2);
+            assert_eq!(item.extensions.len(), 6);
             assert!(item.geometry.is_some());
             assert!(item.bbox.is_some());
             assert!(!item.links.is_empty());
@@ -121,5 +147,13 @@ mod tests {
             assert!(item.collection.is_some());
             item.validate().unwrap();
         }
+    }
+
+    #[test]
+    fn geo_table_to_items() {
+        let file = File::open("data/naip.parquet").unwrap();
+        let geo_table = geoarrow::io::parquet::read_geoparquet(file, Default::default()).unwrap();
+        let items = super::geo_table_to_items(geo_table).unwrap();
+        assert_eq!(items.len(), 5);
     }
 }

@@ -1,775 +1,922 @@
 {
+  "type": "FeatureCollection",
   "features": [
     {
       "type": "Feature",
       "stac_version": "1.0.0",
-      "stac_extensions": [
-        "https://stac-extensions.github.io/eo/v1.0.0/schema.json",
-        "https://stac-extensions.github.io/projection/v1.0.0/schema.json"
-      ],
-      "id": "ok_m_3409901_nw_14_1_20100425",
+      "id": "co_m_4010556_sw_13_060_20210726",
+      "properties": {
+        "naip:state": "co",
+        "naip:year": "2021",
+        "gsd": 0.6,
+        "proj:epsg": 26913,
+        "proj:shape": [
+          12240,
+          9550
+        ],
+        "proj:bbox": [
+          489150,
+          4441434,
+          494880,
+          4448778
+        ],
+        "proj:transform": [
+          0.6,
+          0,
+          489150,
+          0,
+          -0.6,
+          4448778,
+          0,
+          0,
+          1
+        ],
+        "proj:centroid": {
+          "lat": 40.15627,
+          "lon": -105.09376
+        },
+        "grid:code": "DOQQ-4010556SW",
+        "storage:platform": "AWS",
+        "storage:region": "us-west-2",
+        "storage:requester_pays": true,
+        "earthsearch:payload_id": "roda-naip/workflow-naip-to-stac/822e68e82dcceee9e6b95dd1e0835ab3",
+        "datetime": "2021-07-26T16:00:00Z",
+        "processing:software": {
+          "naip-to-stac": "2023.05.22"
+        },
+        "created": "2023-05-24T16:08:51.161Z",
+        "updated": "2023-05-24T16:08:51.161Z"
+      },
       "geometry": {
         "type": "Polygon",
         "coordinates": [
           [
             [
-              -99.933454,
-              34.934815
+              -105.06009,
+              40.123208
             ],
             [
-              -99.93423,
-              35.00323
+              -105.060148,
+              40.189374
             ],
             [
-              -100.004084,
-              35.002673
+              -105.127462,
+              40.18932
             ],
             [
-              -100.00325,
-              34.934259
+              -105.127338,
+              40.123154
             ],
             [
-              -99.933454,
-              34.934815
+              -105.06009,
+              40.123208
             ]
           ]
         ]
       },
-      "bbox": [
-        -100.004084,
-        34.934259,
-        -99.933454,
-        35.00323
-      ],
-      "properties": {
-        "datetime": "2010-04-25T00:00:00Z",
-        "stac_version": "1.0.0",
-        "gsd": 1.0,
-        "naip:year": "2010",
-        "proj:bbox": [
-          408377.0,
-          3866212.0,
-          414752.0,
-          3873800.0
-        ],
-        "proj:epsg": 26914,
-        "naip:state": "ok",
-        "proj:shape": [
-          7588,
-          6375
-        ],
-        "proj:transform": [
-          1.0,
-          0.0,
-          408377.0,
-          0.0,
-          -1.0,
-          3873800.0,
-          0.0,
-          0.0,
-          1.0
-        ]
-      },
       "links": [
         {
-          "href": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/naip",
-          "rel": "collection",
-          "type": "application/json"
-        },
-        {
-          "href": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/naip",
-          "rel": "parent",
-          "type": "application/json"
-        },
-        {
-          "href": "https://planetarycomputer.microsoft.com/api/stac/v1/",
-          "rel": "root",
-          "type": "application/json"
-        },
-        {
-          "href": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/naip/items/ok_m_3409901_nw_14_1_20100425",
           "rel": "self",
-          "type": "application/geo+json"
+          "type": "application/geo+json",
+          "href": "https://earth-search.aws.element84.com/v1/collections/naip/items/co_m_4010556_sw_13_060_20210726"
         },
         {
-          "href": "https://planetarycomputer.microsoft.com/api/data/v1/item/map?collection=naip&item=ok_m_3409901_nw_14_1_20100425",
-          "rel": "preview",
-          "type": "text/html",
-          "title": "Map of item"
+          "rel": "canonical",
+          "href": "s3://earthsearch-data/naip/co/2021/co_m_4010556_sw_13_060_20210726/co_m_4010556_sw_13_060_20210726.json",
+          "type": "application/json"
+        },
+        {
+          "rel": "parent",
+          "type": "application/json",
+          "href": "https://earth-search.aws.element84.com/v1/collections/naip"
+        },
+        {
+          "rel": "collection",
+          "type": "application/json",
+          "href": "https://earth-search.aws.element84.com/v1/collections/naip"
+        },
+        {
+          "rel": "root",
+          "type": "application/json",
+          "href": "https://earth-search.aws.element84.com/v1"
+        },
+        {
+          "rel": "thumbnail",
+          "href": "https://earth-search.aws.element84.com/v1/collections/naip/items/co_m_4010556_sw_13_060_20210726/thumbnail"
         }
       ],
       "assets": {
-        "rendered_preview": {
-          "href": "https://planetarycomputer.microsoft.com/api/data/v1/item/preview.png?collection=naip&item=ok_m_3409901_nw_14_1_20100425&assets=image&asset_bidx=image%7C1%2C2%2C3",
-          "title": "Rendered preview",
-          "type": "image/png",
-          "roles": [
-            "overview"
-          ],
-          "rel": "preview"
-        },
-        "thumbnail": {
-          "href": "https://naipeuwest.blob.core.windows.net/naip/v002/ok/2010/ok_100cm_2010/34099/m_3409901_nw_14_1_20100425.200.jpg",
-          "title": "Thumbnail",
-          "type": "image/jpeg",
-          "roles": [
-            "thumbnail"
-          ]
-        },
-        "tilejson": {
-          "href": "https://planetarycomputer.microsoft.com/api/data/v1/item/tilejson.json?collection=naip&item=ok_m_3409901_nw_14_1_20100425&assets=image&asset_bidx=image%7C1%2C2%2C3",
-          "title": "TileJSON with default rendering",
-          "type": "application/json",
-          "roles": [
-            "tiles"
-          ]
-        },
         "image": {
-          "href": "https://naipeuwest.blob.core.windows.net/naip/v002/ok/2010/ok_100cm_2010/34099/m_3409901_nw_14_1_20100425.tif",
-          "title": "RGBIR COG tile",
+          "href": "s3://naip-analytic/co/2021/60cm/rgbir_cog/40105/56/m_4010556_sw_13_060_20210726.tif",
           "type": "image/tiff; application=geotiff; profile=cloud-optimized",
-          "roles": [
-            "data"
-          ],
+          "title": "RGBIR COG tile",
           "eo:bands": [
             {
-              "common_name": "red",
-              "name": "Red"
+              "name": "Red",
+              "common_name": "red"
             },
             {
-              "common_name": "green",
-              "name": "Green"
+              "name": "Green",
+              "common_name": "green"
             },
             {
-              "common_name": "blue",
-              "name": "Blue"
+              "name": "Blue",
+              "common_name": "blue"
             },
             {
+              "name": "NIR",
               "common_name": "nir",
-              "description": "near-infrared",
-              "name": "NIR"
+              "description": "near-infrared"
             }
+          ],
+          "raster:bands": [
+            {
+              "nodata": 0,
+              "data_type": "uint8",
+              "spatial_resolution": 0.6,
+              "unit": "none"
+            },
+            {
+              "nodata": 0,
+              "data_type": "uint8",
+              "spatial_resolution": 0.6,
+              "unit": "none"
+            },
+            {
+              "nodata": 0,
+              "data_type": "uint8",
+              "spatial_resolution": 0.6,
+              "unit": "none"
+            },
+            {
+              "nodata": 0,
+              "data_type": "uint8",
+              "spatial_resolution": 0.6,
+              "unit": "none"
+            }
+          ],
+          "roles": [
+            "data"
+          ]
+        },
+        "metadata": {
+          "href": "s3://naip-analytic/co/2021/60cm/fgdc/40105/m_4010556_sw_13_060_20210726_20211115.xml",
+          "type": "application/xml",
+          "title": "FGDC Metadata",
+          "roles": [
+            "metadata"
           ]
         }
       },
+      "bbox": [
+        -105.127462,
+        40.123154,
+        -105.06009,
+        40.189374
+      ],
+      "stac_extensions": [
+        "https://stac-extensions.github.io/projection/v1.0.0/schema.json",
+        "https://stac-extensions.github.io/processing/v1.1.0/schema.json",
+        "https://stac-extensions.github.io/raster/v1.1.0/schema.json",
+        "https://stac-extensions.github.io/storage/v1.0.0/schema.json",
+        "https://stac-extensions.github.io/grid/v1.0.0/schema.json",
+        "https://stac-extensions.github.io/eo/v1.0.0/schema.json"
+      ],
       "collection": "naip"
     },
     {
       "type": "Feature",
       "stac_version": "1.0.0",
-      "stac_extensions": [
-        "https://stac-extensions.github.io/eo/v1.0.0/schema.json",
-        "https://stac-extensions.github.io/projection/v1.0.0/schema.json"
-      ],
-      "id": "ok_m_3409901_se_14_1_20100425",
+      "id": "co_m_4010556_sw_13_060_20190803_20191121",
+      "properties": {
+        "naip:state": "co",
+        "naip:year": "2019",
+        "gsd": 0.6,
+        "proj:epsg": 26913,
+        "proj:shape": [
+          12240,
+          9550
+        ],
+        "proj:bbox": [
+          489150,
+          4441434,
+          494880,
+          4448778
+        ],
+        "proj:transform": [
+          0.6,
+          0,
+          489150,
+          0,
+          -0.6,
+          4448778,
+          0,
+          0,
+          1
+        ],
+        "proj:centroid": {
+          "lat": 40.15627,
+          "lon": -105.09376
+        },
+        "grid:code": "DOQQ-4010556SW",
+        "storage:platform": "AWS",
+        "storage:region": "us-west-2",
+        "storage:requester_pays": true,
+        "earthsearch:payload_id": "roda-naip/workflow-naip-to-stac/04cf941135a3751ebe5e6f4195504c7d",
+        "datetime": "2019-08-03T16:00:00Z",
+        "processing:software": {
+          "naip-to-stac": "2023.05.22"
+        },
+        "created": "2023-03-06T19:50:21.748Z",
+        "updated": "2023-05-24T19:32:32.578Z"
+      },
       "geometry": {
         "type": "Polygon",
         "coordinates": [
           [
             [
-              -99.871005,
-              34.872311
+              -105.06009,
+              40.123208
             ],
             [
-              -99.871728,
-              34.940702
+              -105.060148,
+              40.189374
             ],
             [
-              -99.94153,
-              34.940181
+              -105.127462,
+              40.18932
             ],
             [
-              -99.94075,
-              34.871792
+              -105.127338,
+              40.123154
             ],
             [
-              -99.871005,
-              34.872311
+              -105.06009,
+              40.123208
             ]
           ]
         ]
       },
-      "bbox": [
-        -99.94153,
-        34.871792,
-        -99.871005,
-        34.940702
-      ],
-      "properties": {
-        "datetime": "2010-04-25T00:00:00Z",
-        "stac_version": "1.0.0",
-        "gsd": 1.0,
-        "naip:year": "2010",
-        "proj:bbox": [
-          414020.0,
-          3859229.0,
-          420395.0,
-          3866814.0
-        ],
-        "proj:epsg": 26914,
-        "naip:state": "ok",
-        "proj:shape": [
-          7585,
-          6375
-        ],
-        "proj:transform": [
-          1.0,
-          0.0,
-          414020.0,
-          0.0,
-          -1.0,
-          3866814.0,
-          0.0,
-          0.0,
-          1.0
-        ]
-      },
       "links": [
         {
-          "href": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/naip",
-          "rel": "collection",
-          "type": "application/json"
-        },
-        {
-          "href": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/naip",
-          "rel": "parent",
-          "type": "application/json"
-        },
-        {
-          "href": "https://planetarycomputer.microsoft.com/api/stac/v1/",
-          "rel": "root",
-          "type": "application/json"
-        },
-        {
-          "href": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/naip/items/ok_m_3409901_se_14_1_20100425",
           "rel": "self",
-          "type": "application/geo+json"
+          "type": "application/geo+json",
+          "href": "https://earth-search.aws.element84.com/v1/collections/naip/items/co_m_4010556_sw_13_060_20190803_20191121"
         },
         {
-          "href": "https://planetarycomputer.microsoft.com/api/data/v1/item/map?collection=naip&item=ok_m_3409901_se_14_1_20100425",
-          "rel": "preview",
-          "type": "text/html",
-          "title": "Map of item"
+          "rel": "canonical",
+          "href": "s3://earthsearch-data/naip/co/2019/co_m_4010556_sw_13_060_20190803_20191121/co_m_4010556_sw_13_060_20190803_20191121.json",
+          "type": "application/json"
+        },
+        {
+          "rel": "parent",
+          "type": "application/json",
+          "href": "https://earth-search.aws.element84.com/v1/collections/naip"
+        },
+        {
+          "rel": "collection",
+          "type": "application/json",
+          "href": "https://earth-search.aws.element84.com/v1/collections/naip"
+        },
+        {
+          "rel": "root",
+          "type": "application/json",
+          "href": "https://earth-search.aws.element84.com/v1"
+        },
+        {
+          "rel": "thumbnail",
+          "href": "https://earth-search.aws.element84.com/v1/collections/naip/items/co_m_4010556_sw_13_060_20190803_20191121/thumbnail"
         }
       ],
       "assets": {
-        "rendered_preview": {
-          "href": "https://planetarycomputer.microsoft.com/api/data/v1/item/preview.png?collection=naip&item=ok_m_3409901_se_14_1_20100425&assets=image&asset_bidx=image%7C1%2C2%2C3",
-          "title": "Rendered preview",
-          "type": "image/png",
-          "roles": [
-            "overview"
-          ],
-          "rel": "preview"
-        },
         "image": {
-          "href": "https://naipeuwest.blob.core.windows.net/naip/v002/ok/2010/ok_100cm_2010/34099/m_3409901_se_14_1_20100425.tif",
-          "title": "RGBIR COG tile",
+          "href": "s3://naip-analytic/co/2019/60cm/rgbir_cog/40105/m_4010556_sw_13_060_20190803.tif",
           "type": "image/tiff; application=geotiff; profile=cloud-optimized",
-          "roles": [
-            "data"
-          ],
+          "title": "RGBIR COG tile",
           "eo:bands": [
             {
-              "common_name": "red",
-              "name": "Red"
+              "name": "Red",
+              "common_name": "red"
             },
             {
-              "common_name": "green",
-              "name": "Green"
+              "name": "Green",
+              "common_name": "green"
             },
             {
-              "common_name": "blue",
-              "name": "Blue"
+              "name": "Blue",
+              "common_name": "blue"
             },
             {
+              "name": "NIR",
               "common_name": "nir",
-              "description": "near-infrared",
-              "name": "NIR"
+              "description": "near-infrared"
             }
+          ],
+          "raster:bands": [
+            {
+              "nodata": 0,
+              "data_type": "uint8",
+              "spatial_resolution": 0.6,
+              "unit": "none"
+            },
+            {
+              "nodata": 0,
+              "data_type": "uint8",
+              "spatial_resolution": 0.6,
+              "unit": "none"
+            },
+            {
+              "nodata": 0,
+              "data_type": "uint8",
+              "spatial_resolution": 0.6,
+              "unit": "none"
+            },
+            {
+              "nodata": 0,
+              "data_type": "uint8",
+              "spatial_resolution": 0.6,
+              "unit": "none"
+            }
+          ],
+          "roles": [
+            "data"
           ]
         },
-        "thumbnail": {
-          "href": "https://naipeuwest.blob.core.windows.net/naip/v002/ok/2010/ok_100cm_2010/34099/m_3409901_se_14_1_20100425.200.jpg",
-          "title": "Thumbnail",
-          "type": "image/jpeg",
+        "metadata": {
+          "href": "s3://naip-analytic/co/2019/60cm/fgdc/40105/m_4010556_sw_13_060_20190803.txt",
+          "type": "text/plain",
+          "title": "FGDC Metadata",
           "roles": [
-            "thumbnail"
-          ]
-        },
-        "tilejson": {
-          "href": "https://planetarycomputer.microsoft.com/api/data/v1/item/tilejson.json?collection=naip&item=ok_m_3409901_se_14_1_20100425&assets=image&asset_bidx=image%7C1%2C2%2C3",
-          "title": "TileJSON with default rendering",
-          "type": "application/json",
-          "roles": [
-            "tiles"
+            "metadata"
           ]
         }
       },
+      "bbox": [
+        -105.127462,
+        40.123154,
+        -105.06009,
+        40.189374
+      ],
+      "stac_extensions": [
+        "https://stac-extensions.github.io/eo/v1.0.0/schema.json",
+        "https://stac-extensions.github.io/grid/v1.0.0/schema.json",
+        "https://stac-extensions.github.io/processing/v1.1.0/schema.json",
+        "https://stac-extensions.github.io/storage/v1.0.0/schema.json",
+        "https://stac-extensions.github.io/projection/v1.0.0/schema.json",
+        "https://stac-extensions.github.io/raster/v1.1.0/schema.json"
+      ],
       "collection": "naip"
     },
     {
       "type": "Feature",
       "stac_version": "1.0.0",
-      "stac_extensions": [
-        "https://stac-extensions.github.io/eo/v1.0.0/schema.json",
-        "https://stac-extensions.github.io/projection/v1.0.0/schema.json"
-      ],
-      "id": "ok_m_3409901_sw_14_1_20100425",
+      "id": "co_m_4010556_sw_13_1_20170827_20171017",
+      "properties": {
+        "naip:state": "co",
+        "naip:year": "2017",
+        "gsd": 1,
+        "proj:epsg": 26913,
+        "proj:shape": [
+          7568,
+          5954
+        ],
+        "proj:bbox": [
+          489038,
+          4441322,
+          494992,
+          4448890
+        ],
+        "proj:transform": [
+          1,
+          0,
+          489038,
+          0,
+          -1,
+          4448890,
+          0,
+          0,
+          1
+        ],
+        "proj:centroid": {
+          "lat": 40.15627,
+          "lon": -105.09376
+        },
+        "grid:code": "DOQQ-4010556SW",
+        "storage:platform": "AWS",
+        "storage:region": "us-west-2",
+        "storage:requester_pays": true,
+        "earthsearch:payload_id": "roda-naip/workflow-naip-to-stac/1387d98166b9397db5f05cb02523c076",
+        "datetime": "2017-08-27T16:00:00Z",
+        "processing:software": {
+          "naip-to-stac": "2023.05.22"
+        },
+        "created": "2023-03-06T19:50:04.158Z",
+        "updated": "2023-05-24T19:56:41.061Z"
+      },
       "geometry": {
         "type": "Polygon",
         "coordinates": [
           [
             [
-              -99.933458,
-              34.872317
+              -105.058774,
+              40.1222
             ],
             [
-              -99.934233,
-              34.940733
+              -105.058833,
+              40.190384
             ],
             [
-              -100.004078,
-              34.940176
+              -105.128779,
+              40.190327
             ],
             [
-              -100.003245,
-              34.871761
+              -105.128651,
+              40.122143
             ],
             [
-              -99.933458,
-              34.872317
+              -105.058774,
+              40.1222
             ]
           ]
         ]
       },
-      "bbox": [
-        -100.004078,
-        34.871761,
-        -99.933458,
-        34.940733
-      ],
-      "properties": {
-        "datetime": "2010-04-25T00:00:00Z",
-        "stac_version": "1.0.0",
-        "gsd": 1.0,
-        "naip:year": "2010",
-        "proj:bbox": [
-          408308.0,
-          3859281.0,
-          414687.0,
-          3866869.0
-        ],
-        "proj:epsg": 26914,
-        "naip:state": "ok",
-        "proj:shape": [
-          7588,
-          6379
-        ],
-        "proj:transform": [
-          1.0,
-          0.0,
-          408308.0,
-          0.0,
-          -1.0,
-          3866869.0,
-          0.0,
-          0.0,
-          1.0
-        ]
-      },
       "links": [
         {
-          "href": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/naip",
-          "rel": "collection",
-          "type": "application/json"
-        },
-        {
-          "href": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/naip",
-          "rel": "parent",
-          "type": "application/json"
-        },
-        {
-          "href": "https://planetarycomputer.microsoft.com/api/stac/v1/",
-          "rel": "root",
-          "type": "application/json"
-        },
-        {
-          "href": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/naip/items/ok_m_3409901_sw_14_1_20100425",
           "rel": "self",
-          "type": "application/geo+json"
+          "type": "application/geo+json",
+          "href": "https://earth-search.aws.element84.com/v1/collections/naip/items/co_m_4010556_sw_13_1_20170827_20171017"
         },
         {
-          "href": "https://planetarycomputer.microsoft.com/api/data/v1/item/map?collection=naip&item=ok_m_3409901_sw_14_1_20100425",
-          "rel": "preview",
-          "type": "text/html",
-          "title": "Map of item"
+          "rel": "canonical",
+          "href": "s3://earthsearch-data/naip/co/2017/co_m_4010556_sw_13_1_20170827_20171017/co_m_4010556_sw_13_1_20170827_20171017.json",
+          "type": "application/json"
+        },
+        {
+          "rel": "parent",
+          "type": "application/json",
+          "href": "https://earth-search.aws.element84.com/v1/collections/naip"
+        },
+        {
+          "rel": "collection",
+          "type": "application/json",
+          "href": "https://earth-search.aws.element84.com/v1/collections/naip"
+        },
+        {
+          "rel": "root",
+          "type": "application/json",
+          "href": "https://earth-search.aws.element84.com/v1"
+        },
+        {
+          "rel": "thumbnail",
+          "href": "https://earth-search.aws.element84.com/v1/collections/naip/items/co_m_4010556_sw_13_1_20170827_20171017/thumbnail"
         }
       ],
       "assets": {
-        "rendered_preview": {
-          "href": "https://planetarycomputer.microsoft.com/api/data/v1/item/preview.png?collection=naip&item=ok_m_3409901_sw_14_1_20100425&assets=image&asset_bidx=image%7C1%2C2%2C3",
-          "title": "Rendered preview",
-          "type": "image/png",
-          "roles": [
-            "overview"
-          ],
-          "rel": "preview"
-        },
-        "tilejson": {
-          "href": "https://planetarycomputer.microsoft.com/api/data/v1/item/tilejson.json?collection=naip&item=ok_m_3409901_sw_14_1_20100425&assets=image&asset_bidx=image%7C1%2C2%2C3",
-          "title": "TileJSON with default rendering",
-          "type": "application/json",
-          "roles": [
-            "tiles"
-          ]
-        },
-        "thumbnail": {
-          "href": "https://naipeuwest.blob.core.windows.net/naip/v002/ok/2010/ok_100cm_2010/34099/m_3409901_sw_14_1_20100425.200.jpg",
-          "title": "Thumbnail",
-          "type": "image/jpeg",
-          "roles": [
-            "thumbnail"
-          ]
-        },
         "image": {
-          "href": "https://naipeuwest.blob.core.windows.net/naip/v002/ok/2010/ok_100cm_2010/34099/m_3409901_sw_14_1_20100425.tif",
-          "title": "RGBIR COG tile",
+          "href": "s3://naip-analytic/co/2017/100cm/rgbir_cog/40105/m_4010556_sw_13_1_20170827.tif",
           "type": "image/tiff; application=geotiff; profile=cloud-optimized",
-          "roles": [
-            "data"
-          ],
+          "title": "RGBIR COG tile",
           "eo:bands": [
             {
-              "common_name": "red",
-              "name": "Red"
+              "name": "Red",
+              "common_name": "red"
             },
             {
-              "common_name": "green",
-              "name": "Green"
+              "name": "Green",
+              "common_name": "green"
             },
             {
-              "common_name": "blue",
-              "name": "Blue"
+              "name": "Blue",
+              "common_name": "blue"
             },
             {
+              "name": "NIR",
               "common_name": "nir",
-              "description": "near-infrared",
-              "name": "NIR"
+              "description": "near-infrared"
             }
+          ],
+          "raster:bands": [
+            {
+              "nodata": 0,
+              "data_type": "uint8",
+              "spatial_resolution": 1,
+              "unit": "none"
+            },
+            {
+              "nodata": 0,
+              "data_type": "uint8",
+              "spatial_resolution": 1,
+              "unit": "none"
+            },
+            {
+              "nodata": 0,
+              "data_type": "uint8",
+              "spatial_resolution": 1,
+              "unit": "none"
+            },
+            {
+              "nodata": 0,
+              "data_type": "uint8",
+              "spatial_resolution": 1,
+              "unit": "none"
+            }
+          ],
+          "roles": [
+            "data"
+          ]
+        },
+        "metadata": {
+          "href": "s3://naip-analytic/co/2017/100cm/fgdc/40105/m_4010556_sw_13_1_20170827.txt",
+          "type": "text/plain",
+          "title": "FGDC Metadata",
+          "roles": [
+            "metadata"
           ]
         }
       },
+      "bbox": [
+        -105.128779,
+        40.122143,
+        -105.058774,
+        40.190384
+      ],
+      "stac_extensions": [
+        "https://stac-extensions.github.io/processing/v1.1.0/schema.json",
+        "https://stac-extensions.github.io/storage/v1.0.0/schema.json",
+        "https://stac-extensions.github.io/raster/v1.1.0/schema.json",
+        "https://stac-extensions.github.io/grid/v1.0.0/schema.json",
+        "https://stac-extensions.github.io/projection/v1.0.0/schema.json",
+        "https://stac-extensions.github.io/eo/v1.0.0/schema.json"
+      ],
       "collection": "naip"
     },
     {
       "type": "Feature",
       "stac_version": "1.0.0",
-      "stac_extensions": [
-        "https://stac-extensions.github.io/eo/v1.0.0/schema.json",
-        "https://stac-extensions.github.io/projection/v1.0.0/schema.json"
-      ],
-      "id": "ok_m_3409902_ne_14_1_20100425",
+      "id": "co_m_4010556_sw_13_1_20150825_20151102",
+      "properties": {
+        "naip:state": "co",
+        "naip:year": "2015",
+        "gsd": 1,
+        "proj:epsg": 26913,
+        "proj:shape": [
+          7570,
+          5960
+        ],
+        "proj:bbox": [
+          489030,
+          4441320,
+          494990,
+          4448890
+        ],
+        "proj:transform": [
+          1,
+          0,
+          489030,
+          0,
+          -1,
+          4448890,
+          0,
+          0,
+          1
+        ],
+        "proj:centroid": {
+          "lat": 40.15626,
+          "lon": -105.09382
+        },
+        "grid:code": "DOQQ-4010556SW",
+        "storage:platform": "AWS",
+        "storage:region": "us-west-2",
+        "storage:requester_pays": true,
+        "earthsearch:payload_id": "roda-naip/workflow-naip-to-stac/b9124378adf4423beb52cd8026140794",
+        "datetime": "2015-08-25T16:00:00Z",
+        "processing:software": {
+          "naip-to-stac": "2023.05.22"
+        },
+        "created": "2023-03-06T19:49:26.704Z",
+        "updated": "2023-05-24T20:13:51.321Z"
+      },
       "geometry": {
         "type": "Polygon",
         "coordinates": [
           [
             [
-              -99.746106,
-              34.934802
+              -105.058798,
+              40.122182
             ],
             [
-              -99.746725,
-              35.003131
+              -105.058857,
+              40.190384
             ],
             [
-              -99.816441,
-              35.002682
+              -105.128873,
+              40.190327
             ],
             [
-              -99.815763,
-              34.934355
+              -105.128745,
+              40.122125
             ],
             [
-              -99.746106,
-              34.934802
+              -105.058798,
+              40.122182
             ]
           ]
         ]
       },
-      "bbox": [
-        -99.816441,
-        34.934355,
-        -99.746106,
-        35.003131
-      ],
-      "properties": {
-        "datetime": "2010-04-25T00:00:00Z",
-        "stac_version": "1.0.0",
-        "gsd": 1.0,
-        "naip:year": "2010",
-        "proj:bbox": [
-          425500.0,
-          3866067.0,
-          431862.0,
-          3873645.0
-        ],
-        "proj:epsg": 26914,
-        "naip:state": "ok",
-        "proj:shape": [
-          7578,
-          6362
-        ],
-        "proj:transform": [
-          1.0,
-          0.0,
-          425500.0,
-          0.0,
-          -1.0,
-          3873645.0,
-          0.0,
-          0.0,
-          1.0
-        ]
-      },
       "links": [
         {
-          "href": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/naip",
-          "rel": "collection",
-          "type": "application/json"
-        },
-        {
-          "href": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/naip",
-          "rel": "parent",
-          "type": "application/json"
-        },
-        {
-          "href": "https://planetarycomputer.microsoft.com/api/stac/v1/",
-          "rel": "root",
-          "type": "application/json"
-        },
-        {
-          "href": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/naip/items/ok_m_3409902_ne_14_1_20100425",
           "rel": "self",
-          "type": "application/geo+json"
+          "type": "application/geo+json",
+          "href": "https://earth-search.aws.element84.com/v1/collections/naip/items/co_m_4010556_sw_13_1_20150825_20151102"
         },
         {
-          "href": "https://planetarycomputer.microsoft.com/api/data/v1/item/map?collection=naip&item=ok_m_3409902_ne_14_1_20100425",
-          "rel": "preview",
-          "type": "text/html",
-          "title": "Map of item"
+          "rel": "canonical",
+          "href": "s3://earthsearch-data/naip/co/2015/co_m_4010556_sw_13_1_20150825_20151102/co_m_4010556_sw_13_1_20150825_20151102.json",
+          "type": "application/json"
+        },
+        {
+          "rel": "parent",
+          "type": "application/json",
+          "href": "https://earth-search.aws.element84.com/v1/collections/naip"
+        },
+        {
+          "rel": "collection",
+          "type": "application/json",
+          "href": "https://earth-search.aws.element84.com/v1/collections/naip"
+        },
+        {
+          "rel": "root",
+          "type": "application/json",
+          "href": "https://earth-search.aws.element84.com/v1"
+        },
+        {
+          "rel": "thumbnail",
+          "href": "https://earth-search.aws.element84.com/v1/collections/naip/items/co_m_4010556_sw_13_1_20150825_20151102/thumbnail"
         }
       ],
       "assets": {
-        "rendered_preview": {
-          "href": "https://planetarycomputer.microsoft.com/api/data/v1/item/preview.png?collection=naip&item=ok_m_3409902_ne_14_1_20100425&assets=image&asset_bidx=image%7C1%2C2%2C3",
-          "title": "Rendered preview",
-          "type": "image/png",
-          "roles": [
-            "overview"
-          ],
-          "rel": "preview"
-        },
         "image": {
-          "href": "https://naipeuwest.blob.core.windows.net/naip/v002/ok/2010/ok_100cm_2010/34099/m_3409902_ne_14_1_20100425.tif",
-          "title": "RGBIR COG tile",
+          "href": "s3://naip-analytic/co/2015/100cm/rgbir_cog/40105/m_4010556_sw_13_1_20150825.tif",
           "type": "image/tiff; application=geotiff; profile=cloud-optimized",
-          "roles": [
-            "data"
-          ],
+          "title": "RGBIR COG tile",
           "eo:bands": [
             {
-              "common_name": "red",
-              "name": "Red"
+              "name": "Red",
+              "common_name": "red"
             },
             {
-              "common_name": "green",
-              "name": "Green"
+              "name": "Green",
+              "common_name": "green"
             },
             {
-              "common_name": "blue",
-              "name": "Blue"
+              "name": "Blue",
+              "common_name": "blue"
             },
             {
+              "name": "NIR",
               "common_name": "nir",
-              "description": "near-infrared",
-              "name": "NIR"
+              "description": "near-infrared"
             }
+          ],
+          "raster:bands": [
+            {
+              "nodata": 0,
+              "data_type": "uint8",
+              "spatial_resolution": 1,
+              "unit": "none"
+            },
+            {
+              "nodata": 0,
+              "data_type": "uint8",
+              "spatial_resolution": 1,
+              "unit": "none"
+            },
+            {
+              "nodata": 0,
+              "data_type": "uint8",
+              "spatial_resolution": 1,
+              "unit": "none"
+            },
+            {
+              "nodata": 0,
+              "data_type": "uint8",
+              "spatial_resolution": 1,
+              "unit": "none"
+            }
+          ],
+          "roles": [
+            "data"
           ]
         },
-        "tilejson": {
-          "href": "https://planetarycomputer.microsoft.com/api/data/v1/item/tilejson.json?collection=naip&item=ok_m_3409902_ne_14_1_20100425&assets=image&asset_bidx=image%7C1%2C2%2C3",
-          "title": "TileJSON with default rendering",
-          "type": "application/json",
+        "metadata": {
+          "href": "s3://naip-analytic/co/2015/100cm/fgdc/40105/m_4010556_sw_13_1_20150825.txt",
+          "type": "text/plain",
+          "title": "FGDC Metadata",
           "roles": [
-            "tiles"
-          ]
-        },
-        "thumbnail": {
-          "href": "https://naipeuwest.blob.core.windows.net/naip/v002/ok/2010/ok_100cm_2010/34099/m_3409902_ne_14_1_20100425.200.jpg",
-          "title": "Thumbnail",
-          "type": "image/jpeg",
-          "roles": [
-            "thumbnail"
+            "metadata"
           ]
         }
       },
+      "bbox": [
+        -105.128873,
+        40.122125,
+        -105.058798,
+        40.190384
+      ],
+      "stac_extensions": [
+        "https://stac-extensions.github.io/grid/v1.0.0/schema.json",
+        "https://stac-extensions.github.io/storage/v1.0.0/schema.json",
+        "https://stac-extensions.github.io/raster/v1.1.0/schema.json",
+        "https://stac-extensions.github.io/processing/v1.1.0/schema.json",
+        "https://stac-extensions.github.io/projection/v1.0.0/schema.json",
+        "https://stac-extensions.github.io/eo/v1.0.0/schema.json"
+      ],
       "collection": "naip"
     },
     {
       "type": "Feature",
       "stac_version": "1.0.0",
-      "stac_extensions": [
-        "https://stac-extensions.github.io/eo/v1.0.0/schema.json",
-        "https://stac-extensions.github.io/projection/v1.0.0/schema.json"
-      ],
-      "id": "ok_m_3409902_nw_14_1_20100425",
+      "id": "co_m_4010556_sw_13_1_20130716_20131119",
+      "properties": {
+        "naip:state": "co",
+        "naip:year": "2013",
+        "gsd": 1,
+        "proj:epsg": 26913,
+        "proj:shape": [
+          7544,
+          5932
+        ],
+        "proj:bbox": [
+          489049,
+          4441332,
+          494981,
+          4448876
+        ],
+        "proj:transform": [
+          1,
+          0,
+          489049,
+          0,
+          -1,
+          4448876,
+          0,
+          0,
+          1
+        ],
+        "proj:centroid": {
+          "lat": 40.15625,
+          "lon": -105.09376
+        },
+        "grid:code": "DOQQ-4010556SW",
+        "storage:platform": "AWS",
+        "storage:region": "us-west-2",
+        "storage:requester_pays": true,
+        "earthsearch:payload_id": "roda-naip/workflow-naip-to-stac/a9621fa695da26ffcb51d48b78c271d4",
+        "datetime": "2013-07-16T16:00:00Z",
+        "processing:software": {
+          "naip-to-stac": "2023.05.22"
+        },
+        "created": "2023-03-06T19:48:59.447Z",
+        "updated": "2023-05-24T18:32:19.402Z"
+      },
       "geometry": {
         "type": "Polygon",
         "coordinates": [
           [
             [
-              -99.808552,
-              34.934809
+              -105.058903,
+              40.12229
             ],
             [
-              -99.809224,
-              35.003163
+              -105.058962,
+              40.190258
             ],
             [
-              -99.878982,
-              35.002678
+              -105.12865,
+              40.190201
             ],
             [
-              -99.878252,
-              34.934325
+              -105.128522,
+              40.122233
             ],
             [
-              -99.808552,
-              34.934809
+              -105.058903,
+              40.12229
             ]
           ]
         ]
       },
-      "bbox": [
-        -99.878982,
-        34.934325,
-        -99.808552,
-        35.003163
-      ],
-      "properties": {
-        "datetime": "2010-04-25T00:00:00Z",
-        "stac_version": "1.0.0",
-        "gsd": 1.0,
-        "naip:year": "2010",
-        "proj:bbox": [
-          419793.0,
-          3866112.0,
-          426159.0,
-          3873693.0
-        ],
-        "proj:epsg": 26914,
-        "naip:state": "ok",
-        "proj:shape": [
-          7581,
-          6366
-        ],
-        "proj:transform": [
-          1.0,
-          0.0,
-          419793.0,
-          0.0,
-          -1.0,
-          3873693.0,
-          0.0,
-          0.0,
-          1.0
-        ]
-      },
       "links": [
         {
-          "href": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/naip",
-          "rel": "collection",
-          "type": "application/json"
-        },
-        {
-          "href": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/naip",
-          "rel": "parent",
-          "type": "application/json"
-        },
-        {
-          "href": "https://planetarycomputer.microsoft.com/api/stac/v1/",
-          "rel": "root",
-          "type": "application/json"
-        },
-        {
-          "href": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/naip/items/ok_m_3409902_nw_14_1_20100425",
           "rel": "self",
-          "type": "application/geo+json"
+          "type": "application/geo+json",
+          "href": "https://earth-search.aws.element84.com/v1/collections/naip/items/co_m_4010556_sw_13_1_20130716_20131119"
         },
         {
-          "href": "https://planetarycomputer.microsoft.com/api/data/v1/item/map?collection=naip&item=ok_m_3409902_nw_14_1_20100425",
-          "rel": "preview",
-          "type": "text/html",
-          "title": "Map of item"
+          "rel": "canonical",
+          "href": "s3://earthsearch-data/naip/co/2013/co_m_4010556_sw_13_1_20130716_20131119/co_m_4010556_sw_13_1_20130716_20131119.json",
+          "type": "application/json"
+        },
+        {
+          "rel": "parent",
+          "type": "application/json",
+          "href": "https://earth-search.aws.element84.com/v1/collections/naip"
+        },
+        {
+          "rel": "collection",
+          "type": "application/json",
+          "href": "https://earth-search.aws.element84.com/v1/collections/naip"
+        },
+        {
+          "rel": "root",
+          "type": "application/json",
+          "href": "https://earth-search.aws.element84.com/v1"
+        },
+        {
+          "rel": "thumbnail",
+          "href": "https://earth-search.aws.element84.com/v1/collections/naip/items/co_m_4010556_sw_13_1_20130716_20131119/thumbnail"
         }
       ],
       "assets": {
-        "thumbnail": {
-          "href": "https://naipeuwest.blob.core.windows.net/naip/v002/ok/2010/ok_100cm_2010/34099/m_3409902_nw_14_1_20100425.200.jpg",
-          "title": "Thumbnail",
-          "type": "image/jpeg",
-          "roles": [
-            "thumbnail"
-          ]
-        },
         "image": {
-          "href": "https://naipeuwest.blob.core.windows.net/naip/v002/ok/2010/ok_100cm_2010/34099/m_3409902_nw_14_1_20100425.tif",
-          "title": "RGBIR COG tile",
+          "href": "s3://naip-analytic/co/2013/100cm/rgbir_cog/40105/m_4010556_sw_13_1_20130716.tif",
           "type": "image/tiff; application=geotiff; profile=cloud-optimized",
-          "roles": [
-            "data"
-          ],
+          "title": "RGBIR COG tile",
           "eo:bands": [
             {
-              "common_name": "red",
-              "name": "Red"
+              "name": "Red",
+              "common_name": "red"
             },
             {
-              "common_name": "green",
-              "name": "Green"
+              "name": "Green",
+              "common_name": "green"
             },
             {
-              "common_name": "blue",
-              "name": "Blue"
+              "name": "Blue",
+              "common_name": "blue"
             },
             {
+              "name": "NIR",
               "common_name": "nir",
-              "description": "near-infrared",
-              "name": "NIR"
+              "description": "near-infrared"
             }
-          ]
-        },
-        "tilejson": {
-          "href": "https://planetarycomputer.microsoft.com/api/data/v1/item/tilejson.json?collection=naip&item=ok_m_3409902_nw_14_1_20100425&assets=image&asset_bidx=image%7C1%2C2%2C3",
-          "title": "TileJSON with default rendering",
-          "type": "application/json",
-          "roles": [
-            "tiles"
-          ]
-        },
-        "rendered_preview": {
-          "href": "https://planetarycomputer.microsoft.com/api/data/v1/item/preview.png?collection=naip&item=ok_m_3409902_nw_14_1_20100425&assets=image&asset_bidx=image%7C1%2C2%2C3",
-          "title": "Rendered preview",
-          "type": "image/png",
-          "roles": [
-            "overview"
           ],
-          "rel": "preview"
+          "raster:bands": [
+            {
+              "nodata": 0,
+              "data_type": "uint8",
+              "spatial_resolution": 1,
+              "unit": "none"
+            },
+            {
+              "nodata": 0,
+              "data_type": "uint8",
+              "spatial_resolution": 1,
+              "unit": "none"
+            },
+            {
+              "nodata": 0,
+              "data_type": "uint8",
+              "spatial_resolution": 1,
+              "unit": "none"
+            },
+            {
+              "nodata": 0,
+              "data_type": "uint8",
+              "spatial_resolution": 1,
+              "unit": "none"
+            }
+          ],
+          "roles": [
+            "data"
+          ]
+        },
+        "metadata": {
+          "href": "s3://naip-analytic/co/2013/100cm/fgdc/40105/m_4010556_sw_13_1_20130716.txt",
+          "type": "text/plain",
+          "title": "FGDC Metadata",
+          "roles": [
+            "metadata"
+          ]
         }
       },
+      "bbox": [
+        -105.12865,
+        40.122233,
+        -105.058903,
+        40.190258
+      ],
+      "stac_extensions": [
+        "https://stac-extensions.github.io/processing/v1.1.0/schema.json",
+        "https://stac-extensions.github.io/storage/v1.0.0/schema.json",
+        "https://stac-extensions.github.io/eo/v1.0.0/schema.json",
+        "https://stac-extensions.github.io/raster/v1.1.0/schema.json",
+        "https://stac-extensions.github.io/grid/v1.0.0/schema.json",
+        "https://stac-extensions.github.io/projection/v1.0.0/schema.json"
+      ],
       "collection": "naip"
     }
   ],
-  "type": "FeatureCollection"
+  "links": [],
+  "numberReturned": 5
 }
