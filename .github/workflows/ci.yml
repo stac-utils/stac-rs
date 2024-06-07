@@ -36,8 +36,6 @@ jobs:
       - uses: actions/checkout@v4
       - name: Set up Rust cache
         uses: Swatinem/rust-cache@v2
-      - name: Clippy
-        run: cargo clippy ${{ matrix.args }}
       - name: Test
         run: cargo test ${{ matrix.args }}
   test-ubuntu-with-gdal:
@@ -50,8 +48,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install libgdal-dev
-      - name: Clippy
-        run: cargo clippy -p stac -p stac-cli 
       - name: Test
         run: cargo test -p stac -p stac-cli  # gdal is default for stac-cli
   test-ubuntu-with-pgstac:
@@ -72,8 +68,6 @@ jobs:
       - uses: actions/checkout@v4
       - name: Set up Rust cache
         uses: Swatinem/rust-cache@v2
-      - name: Clippy
-        run: cargo clippy -p pgstac
       - name: Test
         run: cargo test -p pgstac
   test-windows:
@@ -104,6 +98,18 @@ jobs:
           sudo apt-get install libgdal-dev
       - name: Check
         run: cargo check --all --all-features
+  clippy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Rust cache
+        uses: Swatinem/rust-cache@v2
+      - name: Install GDAL
+        run: |
+          sudo apt-get update
+          sudo apt-get install libgdal-dev
+      - name: Check
+        run: cargo clippy --all --all-features
   fmt:
     runs-on: ubuntu-latest
     steps:
