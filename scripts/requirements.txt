@@ -4,7 +4,7 @@ attrs==23.2.0
     # via
     #   jsonschema
     #   referencing
-certifi==2024.2.2
+certifi==2024.6.2
     # via
     #   requests
     #   stac-api-validator
@@ -19,7 +19,7 @@ deepdiff==6.7.1
     # via stac-api-validator
 idna==3.7
     # via requests
-jsonschema==4.21.1
+jsonschema==4.22.0
     # via
     #   pystac
     #   stac-api-validator
@@ -29,13 +29,13 @@ jsonschema-specifications==2023.12.1
     # via jsonschema
 more-itertools==8.14.0
     # via stac-api-validator
-numpy==1.26.4
+numpy==2.0.0
     # via shapely
 ordered-set==4.1.0
     # via deepdiff
-orjson==3.10.1
+orjson==3.10.5
     # via pystac
-pystac[orjson,validation]==1.10.0
+pystac==1.10.1
     # via
     #   pystac-client
     #   stac-api-validator
@@ -51,17 +51,17 @@ pyyaml==6.0.1
     # via
     #   stac-api-validator
     #   stac-check
-referencing==0.35.0
+referencing==0.35.1
     # via
     #   jsonschema
     #   jsonschema-specifications
-requests==2.32.0
+requests==2.32.3
     # via
     #   pystac-client
     #   stac-api-validator
     #   stac-check
     #   stac-validator
-rpds-py==0.18.0
+rpds-py==0.18.1
     # via
     #   jsonschema
     #   referencing
@@ -70,12 +70,12 @@ shapely==2.0.4
 six==1.16.0
     # via python-dateutil
 stac-api-validator==0.6.2
-    # via -r requirements.in
+    # via -r scripts/requirements.in
 stac-check==1.3.3
     # via stac-api-validator
 stac-validator==3.3.2
     # via
     #   stac-api-validator
     #   stac-check
-urllib3==2.2.1
+urllib3==2.2.2
     # via requests
