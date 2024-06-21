@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - `TryFrom<Feature>` and `TryInto<Feature>` for `Item` ([#255](https://github.com/stac-utils/stac-rs/pull/255))
 - `wkb` feature and `GeoparquetItem` ([#260](https://github.com/stac-utils/stac-rs/pull/260), [#263](https://github.com/stac-utils/stac-rs/pull/263))
 - Authentication extension ([#268](https://github.com/stac-utils/stac-rs/pull/268))
+- Electro-Optical extension ([#271](https://github.com/stac-utils/stac-rs/pull/271))
 
 ### Fixed
 

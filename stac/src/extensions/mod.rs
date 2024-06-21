@@ -11,7 +11,7 @@
 //! | Extension | Maturity | **stac-rs** supported version |
 //! | -- | -- | -- |
 //! | [Authentication](https://github.com/stac-extensions/authentication) | Proposal | v1.1.0 |
-//! | [Electro-Optical](https://github.com/stac-extensions/eo) | Stable | n/a |
+//! | [Electro-Optical](https://github.com/stac-extensions/eo) | Stable | v1.1.0 |
 //! | [File Info](https://github.com/stac-extensions/file) | Stable | n/a |
 //! | [Landsat](https://github.com/stac-extensions/landsat) | Stable | n/a |
 //! | [Projection](https://github.com/stac-extensions/projection) | Stable | v1.1.0 |
@@ -44,6 +44,7 @@
 //! ```
 
 pub mod authentication;
+pub mod electro_optical;
 pub mod projection;
 pub mod raster;
 
