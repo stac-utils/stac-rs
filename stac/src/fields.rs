@@ -3,6 +3,25 @@ use serde::{de::DeserializeOwned, Serialize};
 use serde_json::{json, Map, Value};
 
 /// Trait for structures that have gettable and settable fields.
+///
+/// For most structures in this crate, this will be the `additional_properties`
+/// attribute. The primary exception is [Item](crate::Item), which gets and sets
+/// additional fields in its `properties` attribute.
+///
+/// # Examples
+///
+/// ```
+/// use stac::{Catalog, Item, Fields};
+///
+/// let mut catalog = Catalog::new("an-id", "a description");
+/// catalog.set_field("foo", "bar");
+/// assert_eq!(catalog.additional_fields.get("foo").unwrap(), "bar");
+///
+/// let mut item = Item::new("an-id");
+/// item.set_field("foo", "bar");
+/// assert_eq!(item.properties.additional_fields.get("foo").unwrap(), "bar");
+/// assert!(item.additional_fields.is_empty());
+/// ```
 pub trait Fields {
     /// Gets the fields value.
     ///
