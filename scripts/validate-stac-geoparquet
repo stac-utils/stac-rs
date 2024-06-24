@@ -1,0 +1,30 @@
+#!/usr/bin/env python3
+
+import subprocess
+from pathlib import Path
+from tempfile import TemporaryDirectory
+
+import pyarrow.parquet
+import stac_geoparquet.arrow
+
+with TemporaryDirectory() as temporary_directory:
+    path = Path(temporary_directory) / "naip.parquet"
+    subprocess.run(
+        [
+            "cargo",
+            "run",
+            "-p",
+            "stac-cli",
+            "--no-default-features",
+            "-F",
+            "parquet",
+            "--",
+            "convert",
+            "stac-arrow/data/naip.json",
+            path,
+        ],
+        check=True,
+    )
+    table = pyarrow.parquet.read_table(path)
+    items = list(stac_geoparquet.arrow.stac_table_to_items(table))
+    assert len(items) == 5

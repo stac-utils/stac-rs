@@ -1,1 +1,2 @@
 stac-api-validator
+stac-geoparquet<0.5  # v0.5 uses geoparquet 1.1, but geoarrow-rs is geoparquet 1.0

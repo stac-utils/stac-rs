@@ -34,9 +34,10 @@
 
 mod args;
 mod error;
+mod format;
 mod subcommand;
 
-pub use {args::Args, error::Error, subcommand::Subcommand};
+pub use {args::Args, error::Error, format::Format, subcommand::Subcommand};
 
 /// Crate-specific result type.
 pub type Result<T> = std::result::Result<T, Error>;
