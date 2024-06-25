@@ -6,10 +6,14 @@ attrs==23.2.0
     #   referencing
 certifi==2024.7.4
     # via
+    #   pyogrio
+    #   pyproj
     #   requests
     #   stac-api-validator
 charset-normalizer==3.3.2
     # via requests
+ciso8601==2.3.1
+    # via stac-geoparquet
 click==8.1.7
     # via
     #   stac-api-validator
@@ -17,9 +21,13 @@ click==8.1.7
     #   stac-validator
 deepdiff==6.7.1
     # via stac-api-validator
+deltalake==0.18.2
+    # via stac-geoparquet
+geopandas==1.0.1
+    # via stac-geoparquet
 idna==3.7
     # via requests
-jsonschema==4.22.0
+jsonschema==4.23.0
     # via
     #   pystac
     #   stac-api-validator
@@ -29,24 +37,59 @@ jsonschema-specifications==2023.12.1
     # via jsonschema
 more-itertools==8.14.0
     # via stac-api-validator
-numpy==2.0.0
-    # via shapely
+numpy==2.0.1
+    # via
+    #   geopandas
+    #   pandas
+    #   pyarrow
+    #   pyogrio
+    #   shapely
 ordered-set==4.1.0
     # via deepdiff
-orjson==3.10.5
-    # via pystac
-pystac[orjson,validation]==1.10.1
+orjson==3.10.6
+    # via
+    #   pystac
+    #   stac-geoparquet
+packaging==24.1
+    # via
+    #   geopandas
+    #   pyogrio
+    #   stac-geoparquet
+pandas==2.2.2
+    # via
+    #   geopandas
+    #   stac-geoparquet
+pyarrow==17.0.0
+    # via
+    #   -r scripts/requirements.in
+    #   deltalake
+    #   stac-geoparquet
+pyarrow-hotfix==0.6
+    # via deltalake
+pyogrio==0.9.0
+    # via geopandas
+pyproj==3.6.1
+    # via
+    #   geopandas
+    #   stac-geoparquet
+pystac==1.10.1
     # via
     #   pystac-client
     #   stac-api-validator
+    #   stac-geoparquet
 pystac-client==0.7.7
-    # via stac-api-validator
+    # via
+    #   -r scripts/requirements.in
+    #   stac-api-validator
 python-dateutil==2.9.0.post0
     # via
+    #   pandas
     #   pystac
     #   pystac-client
 python-dotenv==1.0.1
     # via stac-check
+pytz==2024.1
+    # via pandas
 pyyaml==6.0.1
     # via
     #   stac-api-validator
@@ -61,21 +104,28 @@ requests==2.32.3
     #   stac-api-validator
     #   stac-check
     #   stac-validator
-rpds-py==0.18.1
+rpds-py==0.19.0
     # via
     #   jsonschema
     #   referencing
-shapely==2.0.4
-    # via stac-api-validator
+shapely==2.0.5
+    # via
+    #   geopandas
+    #   stac-api-validator
+    #   stac-geoparquet
 six==1.16.0
     # via python-dateutil
 stac-api-validator==0.6.2
-    # via -r requirements.in
+    # via -r scripts/requirements.in
 stac-check==1.3.3
     # via stac-api-validator
+stac-geoparquet @ git+https://github.com/stac-utils/stac-geoparquet@e13f237be2aa341ceb21abb341fc47d8fe3efeda
+    # via -r scripts/requirements.in
 stac-validator==3.3.2
     # via
     #   stac-api-validator
     #   stac-check
+tzdata==2024.1
+    # via pandas
 urllib3==2.2.2
     # via requests

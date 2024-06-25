@@ -1,1 +1,4 @@
+pyarrow
+pystac-client
 stac-api-validator
+git+https://github.com/stac-utils/stac-geoparquet@e13f237
