@@ -11,7 +11,6 @@ use url::Url;
 /// The type field for [Items](Item).
 pub const ITEM_TYPE: &str = "Feature";
 
-#[cfg(feature = "wkb")]
 const TOP_LEVEL_ATTRIBUTES: [&str; 8] = [
     "type",
     "stac_extensions",
@@ -44,9 +43,11 @@ pub struct Item {
     version: String,
 
     /// A list of extensions the `Item` implements.
-    #[serde(rename = "stac_extensions")]
-    #[serde(skip_serializing_if = "Vec::is_empty")]
-    #[serde(default)]
+    #[serde(
+        rename = "stac_extensions",
+        skip_serializing_if = "Vec::is_empty",
+        default
+    )]
     pub extensions: Vec<String>,
 
     /// Provider identifier.
@@ -98,33 +99,43 @@ pub struct Item {
     href: Option<String>,
 }
 
-/// A [GeoparquetItem] has all of its properties at the top level, and has a
-/// Well-Known Binary (WKB) `geometry` field.
+/// A [FlatItem] has all of its properties at the top level.
 ///
-/// The structure of this item is defined in [the specification](https://github.com/stac-utils/stac-geoparquet/blob/main/spec/stac-geoparquet-spec.md).
+/// Some STAC representations, e.g.
+/// [stac-geoparquet](https://github.com/stac-utils/stac-geoparquet/blob/main/spec/stac-geoparquet-spec.md),
+/// use this "flat" representation.
 #[derive(Debug, Serialize, Deserialize)]
-pub struct GeoparquetItem {
-    /// This is just needed for GeoJSON, so it is optional and not recommended
-    /// to include in GeoParquet.
-    ///
-    /// This value is set to `None` by `TryFrom<Item>`.
-    pub r#type: Option<String>,
+pub struct FlatItem {
+    #[serde(default = "default_type")]
+    r#type: String,
 
-    /// This column is required, but can be empty if no STAC extensions were used
-    #[serde(rename = "stac_extensions")]
+    #[serde(rename = "stac_version", default = "default_stac_version")]
+    version: String,
+
+    /// This column is required, but can be empty if no STAC extensions were used.
+    #[serde(
+        rename = "stac_extensions",
+        skip_serializing_if = "Vec::is_empty",
+        default
+    )]
     pub extensions: Vec<String>,
 
     /// Required, should be unique within each collection
     pub id: String,
 
-    /// For GeoParquet 1.0 this must be well-known Binary
-    #[serde(default)]
-    pub geometry: Vec<u8>,
-
-    /// Can be a 4 or 6 value struct, depending on dimension of the data.
+    /// Defines the full footprint of the asset represented by this item,
+    /// formatted according to [RFC 7946, section
+    /// 3.1](https://tools.ietf.org/html/rfc7946#section-3.1).
     ///
-    /// It must conform to the "Bounding Box Columns" definition of GeoParquet 1.1.
-    pub bbox: Vec<f64>,
+    /// The footprint should be the default GeoJSON geometry, though additional
+    /// geometries can be included. Coordinates are specified in
+    /// Longitude/Latitude or Longitude/Latitude/Elevation based on [WGS
+    /// 84](http://www.opengis.net/def/crs/OGC/1.3/CRS84).
+    pub geometry: Option<Geometry>,
+
+    /// Can be a 4 or 6 value vector, depending on dimension of the data.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub bbox: Option<Vec<f64>>,
 
     /// List of link objects to resources and related URLs.
     pub links: Vec<Link>,
@@ -563,33 +574,22 @@ impl Item {
         Ok(intersects)
     }
 
-    /// Converts this item into a [GeoparquetItem].
+    /// Converts this item into a [FlatItem].
     ///
     /// If `drop_invalid_attributes` is `True`, any properties that conflict
     /// with top-level field names will be discarded with a warning. If it is
     /// `False`, and error will be raised. The same is true for any top-level
     /// fields that are not part of the spec.
     ///
-    /// Raises an error if there's no geometry or bbox set.
-    ///
     /// # Examples
     ///
     /// ```
     /// use stac::Item;
-    /// use geojson::{Geometry, Value};
     ///
     /// let mut item = Item::new("an-id");
-    /// #[cfg(feature = "wkb")]
-    /// {
-    /// item.set_geometry(Some(Geometry::new(Value::Point(vec![-105.1, 41.1]))));
-    /// let geoparquet_item = item.into_geoparquet_item(true).unwrap();
-    /// }
+    /// let flat_item = item.into_flat_item(true).unwrap();
     /// ```
-    #[cfg(feature = "wkb")]
-    pub fn into_geoparquet_item(self, drop_invalid_attributes: bool) -> Result<GeoparquetItem> {
-        use geo::Geometry;
-        use geozero::{CoordDimensions, ToWkb};
-
+    pub fn into_flat_item(self, drop_invalid_attributes: bool) -> Result<FlatItem> {
         let properties = if let Value::Object(object) = serde_json::to_value(self.properties)? {
             object
         } else {
@@ -611,26 +611,13 @@ impl Item {
                 return Err(Error::InvalidAttribute(key));
             }
         }
-        // TODO can we / should we generalize on coord dimensions more?
-        Ok(GeoparquetItem {
-            r#type: None,
+        Ok(FlatItem {
+            r#type: ITEM_TYPE.to_string(),
+            version: STAC_VERSION.to_string(),
             extensions: self.extensions,
             id: self.id,
-            geometry: self
-                .geometry
-                .map(Geometry::<f64>::try_from)
-                .transpose()?
-                .map(|geometry| {
-                    geometry.to_wkb(CoordDimensions {
-                        z: false,
-                        m: false,
-                        t: false,
-                        tm: false,
-                    })
-                })
-                .transpose()?
-                .ok_or_else(|| Error::MissingGeometry)?,
-            bbox: self.bbox.ok_or_else(|| Error::MissingBbox)?,
+            geometry: self.geometry,
+            bbox: self.bbox,
             links: self.links,
             assets: self.assets,
             collection: self.collection,
@@ -639,27 +626,21 @@ impl Item {
     }
 }
 
-#[cfg(feature = "wkb")]
-impl TryFrom<GeoparquetItem> for Item {
+impl TryFrom<FlatItem> for Item {
     type Error = Error;
 
-    fn try_from(item: GeoparquetItem) -> Result<Item> {
-        use geo::Geometry;
-        use geozero::wkb::{FromWkb, WkbDialect};
-        use std::io::Cursor;
-
-        let geometry = Geometry::<f64>::from_wkb(&mut Cursor::new(item.geometry), WkbDialect::Wkb)?;
+    fn try_from(flat_item: FlatItem) -> Result<Item> {
         Ok(Item {
-            r#type: item.r#type.unwrap_or_else(|| ITEM_TYPE.to_string()),
-            version: STAC_VERSION.to_string(),
-            extensions: item.extensions,
-            id: item.id,
-            geometry: Some((&geometry).into()),
-            bbox: Some(item.bbox),
-            links: item.links,
-            assets: item.assets,
-            collection: item.collection,
-            properties: serde_json::from_value(item.properties.into())?,
+            r#type: flat_item.r#type,
+            version: flat_item.version,
+            extensions: flat_item.extensions,
+            id: flat_item.id,
+            geometry: flat_item.geometry,
+            bbox: flat_item.bbox,
+            links: flat_item.links,
+            assets: flat_item.assets,
+            collection: flat_item.collection,
+            properties: serde_json::from_value(flat_item.properties.into())?,
             additional_fields: Default::default(),
             href: None,
         })
@@ -788,9 +769,17 @@ where
     crate::serialize_type(r#type, serializer, ITEM_TYPE)
 }
 
+fn default_stac_version() -> String {
+    STAC_VERSION.to_string()
+}
+
+fn default_type() -> String {
+    ITEM_TYPE.to_string()
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{Builder, GeoparquetItem, Item};
+    use super::{Builder, FlatItem, Item};
     use crate::{
         extensions::{Projection, Raster},
         Asset, Extensions, STAC_VERSION,
@@ -984,71 +973,52 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "wkb")]
-    fn item_into_geoparquet_item() {
-        use geojson::Geometry;
-
+    fn item_into_flat_item() {
         let mut item = Item::new("an-id");
-        let _ = item.clone().into_geoparquet_item(true).unwrap_err(); // no geometry
-
-        let geometry = Geometry::new(geojson::Value::Point(vec![-105.1, 41.1]));
-        item.geometry = Some(geometry.clone());
-        let _ = item.clone().into_geoparquet_item(true).unwrap_err(); // no bbox
-
-        item.set_geometry(geometry).unwrap();
-        let _ = item.clone().into_geoparquet_item(true).unwrap();
-        let _ = item.clone().into_geoparquet_item(false).unwrap();
+        let _ = item.clone().into_flat_item(true).unwrap();
 
         let _ = item
             .properties
             .additional_fields
-            .insert("bbox".to_string(), vec![42.0].into());
-        let _ = item.clone().into_geoparquet_item(true).unwrap();
-        let _ = item.clone().into_geoparquet_item(false).unwrap_err();
+            .insert("bbox".to_string(), vec![-105.1, 42.0, -105.0, 42.1].into());
+        let _ = item.clone().into_flat_item(true).unwrap();
+        let _ = item.clone().into_flat_item(false).unwrap_err();
 
         item.properties.additional_fields = Default::default();
         let _ = item
             .additional_fields
             .insert("foo".to_string(), "bar".to_string().into());
-        let _ = item.clone().into_geoparquet_item(true).unwrap();
-        let _ = item.clone().into_geoparquet_item(false).unwrap_err();
+        let _ = item.clone().into_flat_item(true).unwrap();
+        let _ = item.clone().into_flat_item(false).unwrap_err();
     }
 
     #[test]
-    #[cfg(feature = "wkb")]
-    fn geoparquet_item_into_item() {
-        use geo::Geometry;
-        use geozero::{CoordDimensions, ToWkb};
+    fn flat_item_into_item() {
+        use geojson::{Geometry, Value};
 
-        let geoparquet_item = GeoparquetItem {
-            r#type: None,
+        let flat_item = FlatItem {
+            r#type: "Feature".to_string(),
+            version: "1.0.0".to_string(),
             extensions: Vec::new(),
             id: "an-id".to_string(),
-            geometry: Geometry::Point((-105., 41.).into())
-                .to_wkb(CoordDimensions {
-                    z: false,
-                    m: false,
-                    t: false,
-                    tm: false,
-                })
-                .unwrap(),
-            bbox: vec![-105., 41., -105., 41.],
+            geometry: Some(Geometry::new(Value::Point(vec![-105.1, 41.1]))),
+            bbox: Some(vec![-105., 41., -105., 41.]),
             links: Vec::new(),
             assets: Default::default(),
             collection: None,
             properties: Default::default(),
         };
-        let _ = Item::try_from(geoparquet_item).unwrap();
+        let _ = Item::try_from(flat_item).unwrap();
     }
 
     #[test]
-    fn geoparquet_item_without_geometry() {
+    fn flat_item_without_geometry() {
         let mut item = Item::new("an-item");
         item.add_extension::<Projection>();
         item.bbox = Some(vec![-105., 42., -105., -42.]);
         let mut value = serde_json::to_value(item).unwrap();
         let _ = value.as_object_mut().unwrap().remove("geometry").unwrap();
-        let geoparquet_item: GeoparquetItem = serde_json::from_value(value).unwrap();
-        assert_eq!(geoparquet_item.geometry, Vec::<u8>::new());
+        let flat_item: FlatItem = serde_json::from_value(value).unwrap();
+        assert_eq!(flat_item.geometry, None);
     }
 }

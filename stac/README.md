@@ -110,33 +110,6 @@ Then, you can set an item's geometry and bounding box at the same time:
 }
 ```
 
-### wkb
-
-Use the `wkb` feature to convert items to and from their [stac-geoparquet](https://github.com/stac-utils/stac-geoparquet) forms.
-
-```toml
-[dependencies]
-stac = { version = "0.7", features = ["wkb"] }
-```
-
-Then:
-
-```rust
-#[cfg(feature = "wkb")]
-{
-    use stac::Item;
-    use geojson::{Geometry, Value};
-
-    let geometry = Geometry::new(Value::Point(vec![
-        -105.1, 41.1,
-    ]));
-    let mut item = Item::new("an-id");
-    item.set_geometry(geometry).unwrap();
-    let geoparquet_item = item.into_geoparquet_item(true).unwrap();
-    let item = Item::try_from(geoparquet_item).unwrap();
-}
-```
-
 ## Other info
 
 This crate is part of the [stac-rs](https://github.com/stac-utils/stac-rs) monorepo, see its README for contributing and license information.

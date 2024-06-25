@@ -23,11 +23,6 @@ pub enum Error {
     #[error(transparent)]
     Geojson(#[from] geojson::Error),
 
-    /// [geozero::error::GeozeroError]
-    #[cfg(feature = "wkb")]
-    #[error(transparent)]
-    Geozero(#[from] geozero::error::GeozeroError),
-
     /// [std::io::Error]
     #[error(transparent)]
     Io(#[from] std::io::Error),
@@ -69,14 +64,6 @@ pub enum Error {
     /// Returned when an object is expected to have an href, but it doesn't.
     #[error("object has no href")]
     MissingHref,
-
-    /// Returned when an item is expected to have a geometry but doesn't.
-    #[error("item has no geometry")]
-    MissingGeometry,
-
-    /// Returned when an item is expected to have a bbox but doesn't.
-    #[error("item has no bbox")]
-    MissingBbox,
 
     /// This value is not an item.
     #[error("value is not an item")]
