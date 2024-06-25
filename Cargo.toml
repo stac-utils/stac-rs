@@ -7,7 +7,7 @@ members = [
     "stac-async",
     "stac-cli",
     "stac-server",
-    "stac-validate",
+    "stac-validate", "stac-arrow",
 ]
 default-members = [
     "stac",
