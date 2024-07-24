@@ -81,7 +81,7 @@ impl Bounds {
                 vec![self.xmin, self.ymin],
                 vec![self.xmax, self.ymin],
                 vec![self.xmax, self.ymax],
-                vec![self.xmax, self.ymax],
+                vec![self.xmin, self.ymax],
                 vec![self.xmin, self.ymin],
             ]]),
             foreign_members: None,
@@ -97,5 +97,28 @@ impl Default for Bounds {
             xmax: f64::MIN,
             ymax: f64::MIN,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use geojson::Value;
+
+    use super::Bounds;
+
+    #[test]
+    fn bounds_to_geometry() {
+        let bounds = Bounds::new(1., 2., 3., 4.);
+        let geometry = bounds.to_geometry();
+        assert_eq!(
+            geometry.value,
+            Value::Polygon(vec![vec![
+                vec![1., 2.],
+                vec![3., 2.],
+                vec![3., 4.],
+                vec![1., 4.],
+                vec![1., 2.],
+            ]])
+        )
     }
 }
