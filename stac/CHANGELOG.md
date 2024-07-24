@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+- `Bounds::to_geometry` ([#279](https://github.com/stac-utils/stac-rs/pull/279))
+
 ## [0.7.1] - 2024-07-24
 
 ### Added
