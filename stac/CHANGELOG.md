@@ -17,6 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Fixed
 
 - Removed unnecessary qualifications ([#251](https://github.com/stac-utils/stac-rs/pull/251))
+- Axis ordering for WGS84 bounds+geometries ([#277](https://github.com/stac-utils/stac-rs/pull/277))
 
 ## [0.7.0] - 2024-04-29
 

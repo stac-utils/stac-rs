@@ -77,6 +77,7 @@ impl Projection {
     #[cfg(feature = "gdal")]
     pub fn wgs84_bounds(&self) -> crate::Result<Option<crate::Bounds>> {
         use gdal::spatial_ref::{CoordTransform, SpatialRef};
+        use gdal_sys::OSRAxisMappingStrategy::OAMS_TRADITIONAL_GIS_ORDER;
 
         if let Some(bbox) = self.bbox.as_ref() {
             if bbox.len() != 4 {
@@ -84,6 +85,8 @@ impl Projection {
             }
             if let Some(spatial_ref) = self.spatial_ref()? {
                 let wgs84 = SpatialRef::from_epsg(4326)?;
+                // Ensure we're lon then lat
+                wgs84.set_axis_mapping_strategy(OAMS_TRADITIONAL_GIS_ORDER);
                 let coord_transform = CoordTransform::new(&spatial_ref, &wgs84)?;
                 let bounds =
                     coord_transform.transform_bounds(&[bbox[0], bbox[1], bbox[2], bbox[3]], 21)?;
@@ -127,4 +130,27 @@ impl Extension for Projection {
     const IDENTIFIER: &'static str =
         "https://stac-extensions.github.io/projection/v1.1.0/schema.json";
     const PREFIX: &'static str = "proj";
+}
+
+#[cfg(test)]
+mod tests {
+    #[cfg(feature = "gdal")]
+    #[test]
+    fn axis_order() {
+        use super::Projection;
+
+        let projection = Projection {
+            epsg: Some(32621),
+            bbox: Some(vec![
+                373185.0,
+                8019284.949381611,
+                639014.9492102272,
+                8286015.0,
+            ]),
+            ..Default::default()
+        };
+        let bounds = projection.wgs84_bounds().unwrap().unwrap();
+        assert!((bounds.xmin - -61.2876244).abs() < 0.1, "{}", bounds.xmin);
+        assert!((bounds.ymin - 72.229798).abs() < 0.1);
+    }
 }
