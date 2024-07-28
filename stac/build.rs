@@ -2,6 +2,12 @@ fn main() {
     #[cfg(feature = "gdal")]
     {
         use std::str::FromStr;
+
+        // https://blog.rust-lang.org/2024/05/06/check-cfg.html
+        println!("cargo::rustc-check-cfg=cfg(gdal_has_int8)");
+        println!("cargo::rustc-check-cfg=cfg(gdal_has_int64)");
+        println!("cargo::rustc-check-cfg=cfg(gdal_has_uint64)");
+
         let gdal_version_string = std::env::var("DEP_GDAL_VERSION_NUMBER").unwrap();
         let gdal_version = i64::from_str(&gdal_version_string)
             .expect("Could not convert gdal version string into number.");
