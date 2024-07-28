@@ -41,8 +41,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Rust cache
-        uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@v2
       - name: Install GDAL
         run: |
           sudo apt-get update
@@ -65,32 +64,40 @@ jobs:
           - 5432:5432
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Rust cache
-        uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@v2
       - name: Test
         run: cargo test -p pgstac
   test-windows:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Rust cache
-        uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@v2
       - name: Test
         run: cargo test --no-default-features -F reqwest -F geo
   test-macos:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Rust cache
-        uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@v2
       - name: Test
         run: cargo test --no-default-features -F reqwest -F geo
   check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Rust cache
-        uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@v2
+      - name: Install GDAL
+        run: |
+          sudo apt-get update
+          sudo apt-get install libgdal-dev
+      - name: Check
+        run: cargo check --all --all-features
+  check-nightly:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+      - uses: Swatinem/rust-cache@v2
       - name: Install GDAL
         run: |
           sudo apt-get update
@@ -101,8 +108,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Rust cache
-        uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@v2
       - name: Install GDAL
         run: |
           sudo apt-get update
@@ -113,8 +119,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Rust cache
-        uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@v2
       - name: Fmt
         run: cargo fmt
   doc:
@@ -123,8 +128,7 @@ jobs:
       RUSTDOCFLAGS: -Dwarnings
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Rust cache
-        uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@v2
       - name: Install GDAL
         run: |
           sudo apt-get update
@@ -135,10 +139,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Rust cache
-        uses: Swatinem/rust-cache@v2
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
           cache: "pip"
@@ -162,10 +164,8 @@ jobs:
           - 5432:5432
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Rust cache
-        uses: Swatinem/rust-cache@v2
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
           cache: "pip"
