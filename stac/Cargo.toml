@@ -17,12 +17,8 @@ reqwest = ["dep:reqwest"]
 
 [dependencies]
 chrono = "0.4"
-gdal = { version = "0.16", optional = true, features = [
-    "bindgen",
-] } # we use bindgen b/c the gdal crate doesn't support GDAL 3.8 as of this writing
-gdal-sys = { version = "0.9", optional = true, features = [
-    "bindgen",
-] } # we use bindgen b/c the gdal crate doesn't support GDAL 3.8 as of this writing, and we depend on gdal-sys for build script usage
+gdal = { version = "0.17", optional = true }
+gdal-sys = { version = "0.10", optional = true }
 geo = { version = "0.28", optional = true }
 geojson = { version = "0.24" }
 log = { version = "0.4" }

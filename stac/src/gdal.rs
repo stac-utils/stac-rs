@@ -139,7 +139,7 @@ fn update_asset(
         }
     }
     let count = dataset.raster_count();
-    let mut bands = Vec::with_capacity(count.try_into()?);
+    let mut bands = Vec::with_capacity(count);
     for i in 1..=count {
         let band = dataset.rasterband(i)?;
         bands.push(Band {

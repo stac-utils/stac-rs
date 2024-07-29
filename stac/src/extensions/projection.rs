@@ -76,17 +76,16 @@ impl Projection {
     /// ```
     #[cfg(feature = "gdal")]
     pub fn wgs84_bounds(&self) -> crate::Result<Option<crate::Bounds>> {
-        use gdal::spatial_ref::{CoordTransform, SpatialRef};
-        use gdal_sys::OSRAxisMappingStrategy::OAMS_TRADITIONAL_GIS_ORDER;
+        use gdal::spatial_ref::{AxisMappingStrategy, CoordTransform, SpatialRef};
 
         if let Some(bbox) = self.bbox.as_ref() {
             if bbox.len() != 4 {
                 return Ok(None);
             }
             if let Some(spatial_ref) = self.spatial_ref()? {
-                let wgs84 = SpatialRef::from_epsg(4326)?;
+                let mut wgs84 = SpatialRef::from_epsg(4326)?;
                 // Ensure we're lon then lat
-                wgs84.set_axis_mapping_strategy(OAMS_TRADITIONAL_GIS_ORDER);
+                wgs84.set_axis_mapping_strategy(AxisMappingStrategy::TraditionalGisOrder);
                 let coord_transform = CoordTransform::new(&spatial_ref, &wgs84)?;
                 let bounds =
                     coord_transform.transform_bounds(&[bbox[0], bbox[1], bbox[2], bbox[3]], 21)?;
