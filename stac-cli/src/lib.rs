@@ -33,9 +33,16 @@
 
 mod args;
 mod error;
+pub mod io;
+mod printer;
 mod subcommand;
 
-pub use {args::Args, error::Error, subcommand::Subcommand};
+pub use {
+    args::{Args, ItemArgs, SearchArgs, ServeArgs, SortArgs, ValidateArgs},
+    error::Error,
+    printer::Printer,
+    subcommand::Subcommand,
+};
 
 /// Crate-specific result type.
 pub type Result<T> = std::result::Result<T, Error>;

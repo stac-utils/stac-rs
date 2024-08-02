@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- Switch to using structures for command arguments, and move the `execute` methods to those structures ([#285](https://github.com/stac-utils/stac-rs/pull/285))
+
 ## [0.1.0] - 2024-04-29
 
 ### Added
