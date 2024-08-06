@@ -1,37 +1,25 @@
-use crate::{Printer, Result};
-use clap::Args;
+use crate::{Output, Result, ServeArgs, Subcommand};
 use stac_server::{Api, Backend, MemoryBackend};
-use tokio::net::TcpListener;
+use tokio::{net::TcpListener, sync::mpsc::Sender};
 
-/// Arguments for serving a STAC API.
-#[derive(Args, Debug)]
-pub struct ServeArgs {
-    /// Hrefs of STAC collections and items to load before starting the server.
-    href: Vec<String>,
-
-    /// The pgstac connection string.
-    #[arg(long)]
-    pgstac: Option<String>,
-}
-
-impl ServeArgs {
-    /// Serves a STAC API.
+impl Subcommand {
     #[allow(unused_variables)]
-    pub async fn execute(&self, printer: Printer) -> Result<()> {
+    pub(crate) async fn serve(args: ServeArgs, sender: Sender<Output>) -> Result<()> {
         let root = "http://127.0.0.1:7822";
         let addr = "127.0.0.1:7822";
-        if let Some(pgstac) = self.pgstac.as_deref() {
+        if let Some(pgstac) = args.pgstac.as_deref() {
             #[cfg(feature = "pgstac")]
             {
                 let mut backend = stac_server::PgstacBackend::new_from_stringlike(pgstac).await?;
-                if !self.href.is_empty() {
-                    backend.add_from_hrefs(&self.href).await?;
+                if !args.href.is_empty() {
+                    backend.add_from_hrefs(&args.href).await?;
                 }
                 let api = Api::new(backend, root)?;
                 let router = stac_server::routes::from_api(api);
                 let listener = TcpListener::bind(addr).await.unwrap();
-                // TODO add "don't make me JSON" functionality to the printer
-                println!("Serving a STAC API at {} using a pgstac backend", root);
+                sender
+                    .send(format!("Serving a STAC API at {} using a pgstac backend", root).into())
+                    .await?;
                 axum::serve(listener, router).await.unwrap();
             }
             #[cfg(not(feature = "pgstac"))]
@@ -40,13 +28,15 @@ impl ServeArgs {
             ));
         } else {
             let mut backend = MemoryBackend::new();
-            if !self.href.is_empty() {
-                backend.add_from_hrefs(&self.href).await?;
+            if !args.href.is_empty() {
+                backend.add_from_hrefs(&args.href).await?;
             }
             let api = Api::new(backend, root)?;
             let router = stac_server::routes::from_api(api);
             let listener = TcpListener::bind(addr).await.unwrap();
-            println!("Serving a STAC API at {} using a memory backend", root);
+            sender
+                .send(format!("Serving a STAC API at {} using a memory backend", root).into())
+                .await?;
             axum::serve(listener, router).await.unwrap();
         };
         Ok(())
