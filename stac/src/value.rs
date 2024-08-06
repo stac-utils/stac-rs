@@ -237,6 +237,30 @@ impl TryFrom<Value> for Map<String, serde_json::Value> {
     }
 }
 
+impl From<Item> for Value {
+    fn from(item: Item) -> Self {
+        Value::Item(item)
+    }
+}
+
+impl From<Catalog> for Value {
+    fn from(catalog: Catalog) -> Self {
+        Value::Catalog(catalog)
+    }
+}
+
+impl From<Collection> for Value {
+    fn from(collection: Collection) -> Self {
+        Value::Collection(collection)
+    }
+}
+
+impl From<ItemCollection> for Value {
+    fn from(item_collection: ItemCollection) -> Self {
+        Value::ItemCollection(item_collection)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::Value;
