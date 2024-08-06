@@ -33,19 +33,52 @@
 
 mod args;
 mod error;
+mod format;
 pub mod io;
-mod printer;
+mod output;
+mod runner;
 mod subcommand;
 
 pub use {
     args::{Args, ItemArgs, SearchArgs, ServeArgs, SortArgs, ValidateArgs},
     error::Error,
-    printer::Printer,
+    format::Format,
+    output::Output,
+    runner::Runner,
     subcommand::Subcommand,
 };
 
 /// Crate-specific result type.
 pub type Result<T> = std::result::Result<T, Error>;
 
+/// Run the command-line interface.
+///
+/// # Examples
+///
+/// ```
+/// use stac_cli::{Args, Subcommand, Format, SortArgs};
+///
+/// let sort_args = SortArgs {
+///         href: Some("data/simple-item.json".to_string())
+/// };
+/// let args = Args {
+///     compact: false,
+///     format: Format::Json,
+///     subcommand: Subcommand::Sort(sort_args),
+/// };
+/// # tokio_test::block_on(async {
+/// stac_cli::run(args).await.unwrap();
+/// # })
+/// ```
+pub async fn run(args: Args) -> Result<()> {
+    let mut runner = Runner {
+        compact: args.compact,
+        format: args.format,
+        writer: std::io::stdout(),
+        buffer: 100,
+    };
+    runner.run(args.subcommand).await
+}
+
 #[cfg(test)]
-use assert_cmd as _;
+use {assert_cmd as _, tokio_test as _};

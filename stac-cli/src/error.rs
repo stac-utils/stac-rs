@@ -1,5 +1,7 @@
 use thiserror::Error;
 
+use crate::Output;
+
 /// Crate specific error type.
 #[derive(Error, Debug)]
 #[non_exhaustive]
@@ -36,9 +38,21 @@ pub enum Error {
     #[error(transparent)]
     StacValidate(#[from] stac_validate::Error),
 
+    /// [tokio::sync::mpsc::error::SendError]
+    #[error(transparent)]
+    SendOutput(#[from] tokio::sync::mpsc::error::SendError<Output>),
+
     /// [tokio::task::JoinError]
     #[error(transparent)]
     TokioJoinError(#[from] tokio::task::JoinError),
+
+    /// Unsupported output format.
+    #[error("unsupported output format: {0}")]
+    UnsupportedFormat(String),
+
+    /// Validation errors.
+    #[error("validation errors: {0:?}")]
+    Validation(Vec<serde_json::Value>),
 }
 
 impl Error {
