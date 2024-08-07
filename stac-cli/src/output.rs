@@ -24,6 +24,17 @@ impl Output {
             Output::String(_) => None,
         }
     }
+
+    /// Converts this output to [stac::Value].
+    ///
+    /// Strings are not converted.
+    pub fn to_stac(&self) -> Option<stac::Value> {
+        match self {
+            Output::Stac(value) => Some(value.clone()),
+            Output::Json(value) => serde_json::from_value(value.clone()).ok(),
+            Output::String(_) => None,
+        }
+    }
 }
 
 impl From<stac::Value> for Output {

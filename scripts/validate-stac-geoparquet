@@ -1,0 +1,62 @@
+#!/usr/bin/env python
+
+import json
+import sys
+import shutil
+import subprocess
+import tempfile
+from typing import Any
+from deepdiff import DeepDiff
+from pathlib import Path
+import pyarrow.parquet
+import stac_geoparquet.arrow
+import pyarrow
+
+root = Path(__file__).parents[1]
+path = root / "spec-examples" / "v1.0.0" / "extended-item.json"
+directory = tempfile.mkdtemp()
+parquet_path = Path(directory) / "extended-item.parquet"
+
+def clean_report(report: dict[str, Any]) -> dict[str, Any]:
+    """We expect datetime values to be changed in the report."""
+    if report.get("values_changed"):
+        if report["values_changed"].get("root['properties']['datetime']") == {
+            "new_value": "2020-12-14T18:02:31.437Z",
+            "old_value": "2020-12-14T18:02:31.437000Z",
+        }:
+            del report["values_changed"]["root['properties']['datetime']"]
+        if not report["values_changed"]:
+            del report["values_changed"]
+    return report
+
+try:
+    # Writing
+    subprocess.check_call(
+        ["cargo", "run", "--no-default-features", "--", "translate", path, parquet_path]
+    )
+    table = pyarrow.parquet.read_table(parquet_path)
+    after = next(stac_geoparquet.arrow.stac_table_to_items(table))
+    with open(path) as f:
+        before = json.load(f)
+    report = DeepDiff(before, after).to_dict()
+    report = clean_report(report)
+    if report:
+        print(json.dumps(report, indent=2))
+        sys.exit(1)
+    else:
+        parquet_path.unlink()
+
+    # Reading
+    table = stac_geoparquet.arrow.parse_stac_items_to_arrow([before])
+    stac_geoparquet.arrow.to_parquet(table, parquet_path)
+    item_collection = json.loads(subprocess.check_output(
+        ["cargo", "run", "--no-default-features", "--", "translate", parquet_path]
+    ))
+    report = DeepDiff(before, item_collection["features"][0]).to_dict()
+    report = clean_report(report)
+    if report:
+        print(json.dumps(report, indent=2))
+        sys.exit(1)
+
+finally:
+    shutil.rmtree(directory)

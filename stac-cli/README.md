@@ -35,6 +35,7 @@ brew install gadomski/gadomski/stac
 - `stac search`: search STAC APIs
 - `stac serve`: serve a STAC API
 - `stac sort`: sort the fields of STAC items, catalogs, and collections
+- `stac translate`: convert STAC values from one format to another
 - `stac validate`: validate STAC items, catalogs, and collections using [json-schema](https://json-schema.org/)
 
 Use the `--help` flag to see all available options for the CLI and the subcommands:

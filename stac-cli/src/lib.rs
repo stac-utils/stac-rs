@@ -34,13 +34,12 @@
 mod args;
 mod error;
 mod format;
-pub mod io;
 mod output;
 mod runner;
 mod subcommand;
 
 pub use {
-    args::{Args, ItemArgs, SearchArgs, ServeArgs, SortArgs, ValidateArgs},
+    args::{Args, ItemArgs, SearchArgs, ServeArgs, SortArgs, TranslateArgs, ValidateArgs},
     error::Error,
     format::Format,
     output::Output,
@@ -56,14 +55,16 @@ pub type Result<T> = std::result::Result<T, Error>;
 /// # Examples
 ///
 /// ```
-/// use stac_cli::{Args, Subcommand, Format, SortArgs};
+/// use stac_cli::{Args, Subcommand, SortArgs};
 ///
 /// let sort_args = SortArgs {
-///         href: Some("data/simple-item.json".to_string())
+///     infile: Some("data/simple-item.json".to_string()),
+///     outfile: None,
 /// };
 /// let args = Args {
 ///     compact: false,
-///     format: Format::Json,
+///     input_format: None,
+///     output_format: None,
 ///     subcommand: Subcommand::Sort(sort_args),
 /// };
 /// # tokio_test::block_on(async {
@@ -71,13 +72,26 @@ pub type Result<T> = std::result::Result<T, Error>;
 /// # })
 /// ```
 pub async fn run(args: Args) -> Result<()> {
+    let writer = args.writer()?;
+    let outfile = args.outfile().map(String::from);
+    let input_format = args.input_format();
+    let output_format = args.output_format();
     let mut runner = Runner {
         compact: args.compact,
-        format: args.format,
-        writer: std::io::stdout(),
+        input_format,
+        output_format,
+        writer,
         buffer: 100,
     };
-    runner.run(args.subcommand).await
+    let result = runner.run(args.subcommand).await;
+    if result.is_err() {
+        if let Some(outfile) = outfile {
+            if let Err(err) = std::fs::remove_file(outfile) {
+                eprintln!("error when unlinking outfile: {}", err);
+            }
+        }
+    }
+    result
 }
 
 #[cfg(test)]

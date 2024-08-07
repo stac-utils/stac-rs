@@ -1,11 +1,11 @@
-use crate::{Error, Result, Subcommand, ValidateArgs};
+use crate::{Error, Format, Result, Subcommand, ValidateArgs};
 use serde_json::json;
 use stac_validate::Validate;
 
 impl Subcommand {
     /// Validates a STAC value.
-    pub async fn validate(args: ValidateArgs) -> Result<()> {
-        let value: serde_json::Value = crate::io::read_href(args.href.as_deref()).await?;
+    pub async fn validate(args: ValidateArgs, input_format: Format) -> Result<()> {
+        let value: serde_json::Value = input_format.read_href(args.href.as_deref()).await?;
         let mut errors: Vec<serde_json::Value> = Vec::new();
         let mut update_errors = |result: std::result::Result<(), stac_validate::Error>| match result
         {

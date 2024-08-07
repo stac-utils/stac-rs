@@ -4,16 +4,20 @@ members = [
     "stac",
     "pgstac",
     "stac-api",
+    "stac-arrow",
     "stac-async",
     "stac-cli",
+    "stac-geoparquet",
     "stac-server",
     "stac-validate",
 ]
 default-members = [
     "stac",
     "stac-api",
+    "stac-arrow",
     "stac-async",
     "stac-cli",
+    "stac-geoparquet",
     "stac-server",
     "stac-validate",
 ]

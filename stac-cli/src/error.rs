@@ -1,6 +1,5 @@
-use thiserror::Error;
-
 use crate::Output;
+use thiserror::Error;
 
 /// Crate specific error type.
 #[derive(Error, Debug)]
@@ -13,6 +12,10 @@ pub enum Error {
     /// [std::io::Error]
     #[error(transparent)]
     Io(#[from] std::io::Error),
+
+    /// [reqwest::Error]
+    #[error(transparent)]
+    Reqwest(#[from] reqwest::Error),
 
     /// [serde_json::Error]
     #[error(transparent)]
@@ -29,6 +32,10 @@ pub enum Error {
     /// [stac_async::Error]
     #[error(transparent)]
     StacAsync(#[from] stac_async::Error),
+
+    /// [stac_geoparquet::Error]
+    #[error(transparent)]
+    StacGeoparquet(#[from] stac_geoparquet::Error),
 
     /// [stac_server::Error]
     #[error(transparent)]

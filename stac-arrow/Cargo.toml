@@ -1,0 +1,30 @@
+[package]
+name = "stac-arrow"
+version = "0.0.1"
+edition = "2021"
+authors = ["Pete Gadomski <pete.gadomski@gmail.com>"]
+description = "Read and write STAC using the geoarrow specification"
+homepage = "https://github.com/stac-utils/stac-rs"
+repository = "https://github.com/stac-utils/stac-rs"
+license = "MIT OR Apache-2.0"
+keywords = ["geospatial", "stac", "metadata", "geo"]
+categories = ["science", "data-structures"]
+
+
+[dependencies]
+arrow-array = "52"
+arrow-cast = "52"
+arrow-schema = "52"
+arrow-json = "52"
+geoarrow = { git = "https://github.com/geoarrow/geoarrow-rs", rev = "476562b3da7dde9cd324fc5bf5ceb5451f76c451" }
+geojson = "0.24"
+geo-types = "0.7"
+serde_json = "1"
+stac = { version = "0.7", path = "../stac" }
+thiserror = "1"
+
+[dev-dependencies]
+geoarrow = { git = "https://github.com/geoarrow/geoarrow-rs", rev = "476562b3da7dde9cd324fc5bf5ceb5451f76c451", features = [
+    "parquet",
+] }
+stac-validate = { version = "0.1", path = "../stac-validate" }
