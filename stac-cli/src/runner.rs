@@ -3,12 +3,18 @@ use std::io::Write;
 
 /// Struct for running commands.
 #[derive(Debug)]
-pub struct Runner<W: Write> {
+pub struct Runner<W: Write>
+where
+    W: Send,
+{
     /// Should the output be printed in compact form, if supported?
     pub compact: bool,
 
+    /// The input format.
+    pub input_format: Format,
+
     /// The output format.
-    pub format: Format,
+    pub output_format: Format,
 
     /// The output writeable stream.
     pub writer: W,
@@ -17,12 +23,16 @@ pub struct Runner<W: Write> {
     pub buffer: usize,
 }
 
-impl<W: Write> Runner<W> {
+impl<W: Write> Runner<W>
+where
+    W: Send,
+{
     pub(crate) async fn run(&mut self, subcommand: Subcommand) -> Result<()> {
         let (sender, mut receiver) = tokio::sync::mpsc::channel(self.buffer);
-        let handle = tokio::spawn(async move { subcommand.run(sender).await });
+        let input_format = self.input_format;
+        let handle = tokio::spawn(async move { subcommand.run(input_format, sender).await });
         while let Some(value) = receiver.recv().await {
-            match self.format {
+            match self.output_format {
                 Format::Json => {
                     if let Some(value) = value.to_json() {
                         if self.compact {
@@ -30,6 +40,13 @@ impl<W: Write> Runner<W> {
                         } else {
                             serde_json::to_writer_pretty(&mut self.writer, &value)?;
                         }
+                    } else {
+                        writeln!(self.writer, "{}", value)?;
+                    }
+                }
+                Format::Geoparquet => {
+                    if let Some(value) = value.to_stac() {
+                        stac_geoparquet::to_writer(&mut self.writer, value)?;
                     } else {
                         writeln!(self.writer, "{}", value)?;
                     }

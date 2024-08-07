@@ -6,6 +6,9 @@ async fn main() {
     let args = Args::parse();
     std::process::exit(match stac_cli::run(args).await {
         Ok(()) => 0,
-        Err(err) => err.code()
+        Err(err) => {
+            eprintln!("ERROR: {}", err);
+            err.code()
+        }
     })
 }

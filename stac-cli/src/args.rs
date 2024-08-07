@@ -1,5 +1,6 @@
-use crate::{Format, Subcommand};
+use crate::{Format, Result, Subcommand};
 use clap::Parser;
+use std::{fs::File, io::Write};
 
 /// CLI arguments.
 #[derive(Parser, Debug)]
@@ -9,9 +10,13 @@ pub struct Args {
     #[arg(short, long)]
     pub compact: bool,
 
+    /// The input format.
+    #[arg(short, long)]
+    pub input_format: Option<Format>,
+
     /// The output format.
-    #[arg(short, long, default_value = "json")]
-    pub format: Format,
+    #[arg(short, long)]
+    pub output_format: Option<Format>,
 
     /// The subcommand to run.
     #[command(subcommand)]
@@ -57,6 +62,11 @@ pub struct ItemArgs {
     /// newly created to it into a new item collection.
     #[arg(short, long)]
     pub collect: bool,
+
+    /// The file to write the item to.
+    ///
+    /// If not provided, the item will be written to standard output.
+    pub outfile: Option<String>,
 }
 
 /// Arguments for searching a STAC API.
@@ -83,7 +93,8 @@ pub struct SearchArgs {
     #[arg(short, long)]
     pub datetime: Option<String>,
 
-    /// Searches items by performing intersection between their geometry and provided GeoJSON geometry.
+    /// Searches items by performing intersection between their geometry and
+    /// provided GeoJSON geometry.
     ///
     /// All GeoJSON geometry types must be supported.
     #[arg(long)]
@@ -93,7 +104,8 @@ pub struct SearchArgs {
     #[arg(short, long)]
     pub ids: Option<String>,
 
-    /// Comma-delimited list of one or more Collection IDs that each matching Item must be in.
+    /// Comma-delimited list of one or more Collection IDs that each matching
+    /// Item must be in.
     #[arg(short, long)]
     pub collections: Option<String>,
 
@@ -119,9 +131,14 @@ pub struct SearchArgs {
     #[arg(short, long)]
     pub filter: Option<String>,
 
-    /// Stream the items to standard output as ndjson.
+    /// Stream the items to output as ndjson.
     #[arg(long)]
     pub stream: bool,
+
+    /// The file to write the output to.
+    ///
+    /// If not provided, the output will be written to standard output.
+    pub outfile: Option<String>,
 }
 
 /// Arguments for serving a STAC API.
@@ -138,10 +155,15 @@ pub struct ServeArgs {
 /// Arguments for sorting a STAC value.
 #[derive(clap::Args, Debug)]
 pub struct SortArgs {
-    /// The href of the STAC object.
+    /// The href of the STAC to sort.
     ///
-    /// If this is not provided, will read from standard input.
-    pub href: Option<String>,
+    /// If this is not provided, or is `-`, will read from standard input.
+    pub infile: Option<String>,
+
+    /// The output filename.
+    ///
+    /// If this is not provided, output will be printed to standard output.
+    pub outfile: Option<String>,
 }
 
 /// Arguments for validating a STAC value.
@@ -155,6 +177,48 @@ pub struct ValidateArgs {
     /// endpoint from a STAC API, all collections will be validated.
     /// Additional behavior TBD.
     ///
-    /// If this is not provided, will read from standard input.
+    /// If this is not provided, or is `-`, will read from standard input.
     pub href: Option<String>,
+}
+
+/// Arguments for translating STAC values.
+#[derive(clap::Args, Debug)]
+pub struct TranslateArgs {
+    /// The input STAC value.
+    ///
+    /// If this is not provided, or is `-`, input will be read from standard
+    /// input.
+    pub infile: Option<String>,
+
+    /// The output STAC value.
+    ///
+    /// If not provided, output will be printed to standard output.
+    pub outfile: Option<String>,
+}
+
+impl Args {
+    pub(crate) fn writer(&self) -> Result<Box<dyn Write + Send>> {
+        if let Some(outfile) = self.subcommand.outfile() {
+            let file = File::create(outfile)?;
+            Ok(Box::new(file))
+        } else {
+            Ok(Box::new(std::io::stdout()))
+        }
+    }
+
+    pub(crate) fn input_format(&self) -> Format {
+        self.input_format
+            .or_else(|| self.subcommand.infile().and_then(Format::maybe_from_href))
+            .unwrap_or_default()
+    }
+
+    pub(crate) fn output_format(&self) -> Format {
+        self.output_format
+            .or_else(|| self.subcommand.outfile().and_then(Format::maybe_from_href))
+            .unwrap_or_default()
+    }
+
+    pub(crate) fn outfile(&self) -> Option<&str> {
+        self.subcommand.outfile()
+    }
 }

@@ -24,8 +24,10 @@ jobs:
           - "-p stac -F reqwest"
           - "-p stac-api"
           - "-p stac -p stac-api -F geo"
+          - "-p stac-arrow"
           - "-p stac-async"
           - "-p stac-cli --no-default-features"
+          - "-p stac-geoparquet"
           - "-p stac-server --no-default-features"
           - "-p stac-server --no-default-features -F axum"
           - "-p stac-server --no-default-features -F memory-item-search"
@@ -144,8 +146,9 @@ jobs:
         with:
           python-version: "3.10"
           cache: "pip"
+          cache-dependency-path: scripts/requirements-stac-server.txt
       - name: Install stac-api-validator
-        run: pip install -r scripts/requirements.txt
+        run: pip install -r scripts/requirements-stac-server.txt
       - name: Validate
         run: scripts/validate-stac-server
   validate-stac-server-pgstac:
@@ -169,7 +172,22 @@ jobs:
         with:
           python-version: "3.10"
           cache: "pip"
+          cache-dependency-path: scripts/requirements-stac-server.txt
       - name: Install stac-api-validator
-        run: pip install -r scripts/requirements.txt
+        run: pip install -r scripts/requirements-stac-server.txt
       - name: Validate
         run: scripts/validate-stac-server --pgstac
+  validate-stac-geoparquet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: scripts/requirements-stac-geoparquet.txt
+      - name: Install requirements
+        run: pip install -r scripts/requirements-stac-geoparquet.txt
+      - name: Validate
+        run: scripts/validate-stac-geoparquet
