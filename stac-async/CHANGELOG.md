@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - `impl Default for Client` ([#252](https://github.com/stac-utils/stac-rs/pull/252))
 
+### Fixed
+
+- Better send message handling in the api client ([#288](https://github.com/stac-utils/stac-rs/pull/288))
+
 ## [0.5.1]
 
 ### Changed

@@ -5,7 +5,10 @@ use futures_util::{pin_mut, StreamExt};
 use reqwest::Method;
 use stac::{Collection, Links};
 use stac_api::{GetItems, Item, ItemCollection, Items, Search, UrlBuilder};
-use tokio::sync::mpsc;
+use tokio::{
+    sync::mpsc::{self, error::SendError},
+    task::JoinHandle,
+};
 
 const DEFAULT_CHANNEL_BUFFER: usize = 4;
 
@@ -159,18 +162,19 @@ fn stream_items(
     channel_buffer: usize,
 ) -> impl Stream<Item = Result<Item>> {
     let (tx, mut rx) = mpsc::channel(channel_buffer);
-    let handle = tokio::spawn(async move {
+    let handle: JoinHandle<std::result::Result<(), SendError<_>>> = tokio::spawn(async move {
         let pages = stream_pages(client, page);
         pin_mut!(pages);
         while let Some(result) = pages.next().await {
             match result {
-                Ok(page) => tx.send(Ok(page)).await.unwrap(),
+                Ok(page) => tx.send(Ok(page)).await?,
                 Err(err) => {
-                    tx.send(Err(err)).await.unwrap();
-                    return;
+                    tx.send(Err(err)).await?;
+                    return Ok(());
                 }
             }
         }
+        Ok(())
     });
     try_stream! {
         while let Some(result) = rx.recv().await {
@@ -179,7 +183,7 @@ fn stream_items(
                 yield item;
             }
         }
-        handle.await?;
+        let _ = handle.await?;
     }
 }
 
