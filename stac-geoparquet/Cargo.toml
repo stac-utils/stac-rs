@@ -22,7 +22,7 @@ compression = [
 ]
 
 [dependencies]
-geoarrow = { git = "https://github.com/geoarrow/geoarrow-rs", rev = "476562b3da7dde9cd324fc5bf5ceb5451f76c451", features = [
+geoarrow = { git = "https://github.com/geoarrow/geoarrow-rs", rev = "509c25296133e0fe6bf946a1a9715ea17fb0633d", features = [
     "parquet",
 ] }
 parquet = { version = "52", default-features = false }
