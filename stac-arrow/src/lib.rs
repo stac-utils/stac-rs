@@ -37,7 +37,7 @@ use arrow_schema::{DataType, Field, SchemaBuilder, TimeUnit};
 use geo_types::Geometry;
 use geoarrow::{
     array::{AsGeometryArray, MixedGeometryBuilder},
-    datatypes::GeoDataType,
+    datatypes::{Dimension, GeoDataType},
     table::Table,
     trait_::GeometryArrayAccessor,
 };
@@ -88,6 +88,10 @@ pub enum Error {
     /// [stac::Error]
     #[error(transparent)]
     Stac(#[from] stac::Error),
+
+    /// XYZ dimensions are not supported.
+    #[error("xyz dimensions not supported")]
+    XYZNotSupported,
 }
 
 /// Crate-specific result type.
@@ -109,7 +113,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 /// ```
 pub fn to_table(item_collection: ItemCollection) -> Result<Table> {
     let mut values = Vec::with_capacity(item_collection.items.len());
-    let mut builder = MixedGeometryBuilder::<i32>::new();
+    let mut builder = MixedGeometryBuilder::<i32, 2>::new();
     for mut item in item_collection.items {
         builder.push_geometry(
             item.geometry
@@ -200,32 +204,80 @@ pub fn from_table(table: Table) -> Result<ItemCollection> {
     for chunk in table.geometry_column(Some(index))?.geometry_chunks() {
         for i in 0..chunk.len() {
             let value = match chunk.data_type() {
-                Point(_) => Value::from(&chunk.as_point().value_as_geo(i)),
-                LineString(_) => Value::from(&chunk.as_line_string().value_as_geo(i)),
-                LargeLineString(_) => Value::from(&chunk.as_large_line_string().value_as_geo(i)),
-                Polygon(_) => Value::from(&chunk.as_polygon().value_as_geo(i)),
-                LargePolygon(_) => Value::from(&chunk.as_large_polygon().value_as_geo(i)),
-                MultiPoint(_) => Value::from(&chunk.as_multi_point().value_as_geo(i)),
-                LargeMultiPoint(_) => Value::from(&chunk.as_large_multi_point().value_as_geo(i)),
-                MultiLineString(_) => Value::from(&chunk.as_multi_line_string().value_as_geo(i)),
-                LargeMultiLineString(_) => {
-                    Value::from(&chunk.as_large_multi_line_string().value_as_geo(i))
-                }
-                MultiPolygon(_) => Value::from(&chunk.as_multi_polygon().value_as_geo(i)),
-                LargeMultiPolygon(_) => {
-                    Value::from(&chunk.as_large_multi_polygon().value_as_geo(i))
-                }
-                Mixed(_) => Value::from(&chunk.as_mixed().value_as_geo(i)),
-                LargeMixed(_) => Value::from(&chunk.as_large_mixed().value_as_geo(i)),
-                GeometryCollection(_) => {
-                    Value::from(&chunk.as_geometry_collection().value_as_geo(i))
-                }
-                LargeGeometryCollection(_) => {
-                    Value::from(&chunk.as_large_geometry_collection().value_as_geo(i))
-                }
+                Point(_, dimension) => match dimension {
+                    Dimension::XY => Value::from(&chunk.as_point_2d().value_as_geo(i)),
+                    Dimension::XYZ => return Err(Error::XYZNotSupported),
+                },
+                LineString(_, dimension) => match dimension {
+                    Dimension::XY => Value::from(&chunk.as_line_string_2d().value_as_geo(i)),
+                    Dimension::XYZ => return Err(Error::XYZNotSupported),
+                },
+                LargeLineString(_, dimension) => match dimension {
+                    Dimension::XY => Value::from(&chunk.as_large_line_string_2d().value_as_geo(i)),
+                    Dimension::XYZ => return Err(Error::XYZNotSupported),
+                },
+                Polygon(_, dimension) => match dimension {
+                    Dimension::XY => Value::from(&chunk.as_polygon_2d().value_as_geo(i)),
+                    Dimension::XYZ => return Err(Error::XYZNotSupported),
+                },
+                LargePolygon(_, dimension) => match dimension {
+                    Dimension::XY => Value::from(&chunk.as_large_polygon_2d().value_as_geo(i)),
+                    Dimension::XYZ => return Err(Error::XYZNotSupported),
+                },
+                MultiPoint(_, dimension) => match dimension {
+                    Dimension::XY => Value::from(&chunk.as_multi_point_2d().value_as_geo(i)),
+                    Dimension::XYZ => return Err(Error::XYZNotSupported),
+                },
+                LargeMultiPoint(_, dimension) => match dimension {
+                    Dimension::XY => Value::from(&chunk.as_large_multi_point_2d().value_as_geo(i)),
+                    Dimension::XYZ => return Err(Error::XYZNotSupported),
+                },
+                MultiLineString(_, dimension) => match dimension {
+                    Dimension::XY => Value::from(&chunk.as_multi_line_string_2d().value_as_geo(i)),
+                    Dimension::XYZ => return Err(Error::XYZNotSupported),
+                },
+                LargeMultiLineString(_, dimension) => match dimension {
+                    Dimension::XY => {
+                        Value::from(&chunk.as_large_multi_line_string_2d().value_as_geo(i))
+                    }
+                    Dimension::XYZ => return Err(Error::XYZNotSupported),
+                },
+                MultiPolygon(_, dimension) => match dimension {
+                    Dimension::XY => Value::from(&chunk.as_multi_polygon_2d().value_as_geo(i)),
+                    Dimension::XYZ => return Err(Error::XYZNotSupported),
+                },
+                LargeMultiPolygon(_, dimension) => match dimension {
+                    Dimension::XY => {
+                        Value::from(&chunk.as_large_multi_polygon_2d().value_as_geo(i))
+                    }
+                    Dimension::XYZ => return Err(Error::XYZNotSupported),
+                },
+                Mixed(_, dimension) => match dimension {
+                    Dimension::XY => Value::from(&chunk.as_mixed_2d().value_as_geo(i)),
+                    Dimension::XYZ => return Err(Error::XYZNotSupported),
+                },
+                LargeMixed(_, dimension) => match dimension {
+                    Dimension::XY => Value::from(&chunk.as_large_mixed_2d().value_as_geo(i)),
+                    Dimension::XYZ => return Err(Error::XYZNotSupported),
+                },
+                GeometryCollection(_, dimension) => match dimension {
+                    Dimension::XY => {
+                        Value::from(&chunk.as_geometry_collection_2d().value_as_geo(i))
+                    }
+                    Dimension::XYZ => return Err(Error::XYZNotSupported),
+                },
+                LargeGeometryCollection(_, dimension) => match dimension {
+                    Dimension::XY => {
+                        Value::from(&chunk.as_large_geometry_collection_2d().value_as_geo(i))
+                    }
+                    Dimension::XYZ => return Err(Error::XYZNotSupported),
+                },
                 WKB => Value::from(&chunk.as_wkb().value_as_geo(i)),
                 LargeWKB => Value::from(&chunk.as_large_wkb().value_as_geo(i)),
-                Rect => Value::from(&chunk.as_rect().value_as_geo(i)),
+                Rect(dimension) => match dimension {
+                    Dimension::XY => Value::from(&chunk.as_rect_2d().value_as_geo(i)),
+                    Dimension::XYZ => return Err(Error::XYZNotSupported),
+                },
             };
             let mut row = json_rows
                 .next()
