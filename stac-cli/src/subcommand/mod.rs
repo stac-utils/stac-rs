@@ -1,4 +1,5 @@
 mod item;
+mod migrate;
 mod search;
 mod serve;
 mod sort;
@@ -6,8 +7,8 @@ mod translate;
 mod validate;
 
 use crate::{
-    Error, Format, ItemArgs, Output, Result, SearchArgs, ServeArgs, SortArgs, TranslateArgs,
-    ValidateArgs,
+    Error, Format, ItemArgs, MigrateArgs, Output, Result, SearchArgs, ServeArgs, SortArgs,
+    TranslateArgs, ValidateArgs,
 };
 use tokio::sync::mpsc::Sender;
 
@@ -17,6 +18,9 @@ use tokio::sync::mpsc::Sender;
 pub enum Subcommand {
     /// Creates a STAC Item.
     Item(ItemArgs),
+
+    /// Migrates an item from one STAC version to another.
+    Migrate(MigrateArgs),
 
     /// Searches a STAC API.
     Search(SearchArgs),
@@ -70,6 +74,10 @@ impl Subcommand {
             Item(args) => {
                 let item = Subcommand::item(args)?;
                 sender.send(item.into()).await?;
+            }
+            Migrate(args) => {
+                let value = Subcommand::migrate(args, input_format).await?;
+                sender.send(value.into()).await?;
             }
             Search(args) => Subcommand::search(args, sender).await?,
             Serve(args) => Subcommand::serve(args, sender).await?,
