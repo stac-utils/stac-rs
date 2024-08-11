@@ -1,4 +1,6 @@
-use crate::{Asset, Assets, Error, Extensions, Fields, Href, Link, Links, Result, STAC_VERSION};
+use crate::{
+    Asset, Assets, Error, Extensions, Fields, Href, Link, Links, Result, Version, STAC_VERSION,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::collections::HashMap;
@@ -31,7 +33,7 @@ pub struct Collection {
 
     /// The STAC version the `Collection` implements.
     #[serde(rename = "stac_version")]
-    version: String,
+    pub version: Version,
 
     /// A list of extension identifiers the `Collection` implements.
     #[serde(rename = "stac_extensions")]
@@ -166,7 +168,7 @@ impl Collection {
     pub fn new(id: impl ToString, description: impl ToString) -> Collection {
         Collection {
             r#type: COLLECTION_TYPE.to_string(),
-            version: STAC_VERSION.to_string(),
+            version: STAC_VERSION,
             extensions: Vec::new(),
             id: id.to_string(),
             title: None,
