@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+
+- `Version` enum ([#293](https://github.com/stac-utils/stac-rs/pull/293))
+
+### Changed
+
+- `STAC_VERSION` is now a `Version`, not a string ([#293](https://github.com/stac-utils/stac-rs/pull/293))
+- `version` fields on collection, catalog, and item are now public ([#293](https://github.com/stac-utils/stac-rs/pull/293))
+
 ## [0.7.2] - 2024-07-24
 
 ### Fixed

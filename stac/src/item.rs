@@ -1,6 +1,8 @@
 //! STAC Items.
 
-use crate::{Asset, Assets, Error, Extensions, Fields, Href, Link, Links, Result, STAC_VERSION};
+use crate::{
+    Asset, Assets, Error, Extensions, Fields, Href, Link, Links, Result, Version, STAC_VERSION,
+};
 use chrono::{DateTime, FixedOffset, Utc};
 use geojson::{feature::Id, Feature, Geometry};
 use serde::{Deserialize, Serialize};
@@ -40,7 +42,7 @@ pub struct Item {
 
     /// The STAC version the `Item` implements.
     #[serde(rename = "stac_version")]
-    version: String,
+    pub version: Version,
 
     /// A list of extensions the `Item` implements.
     #[serde(
@@ -110,7 +112,7 @@ pub struct FlatItem {
     r#type: String,
 
     #[serde(rename = "stac_version", default = "default_stac_version")]
-    version: String,
+    version: Version,
 
     /// This column is required, but can be empty if no STAC extensions were used.
     #[serde(
@@ -369,7 +371,7 @@ impl Item {
     pub fn new(id: impl ToString) -> Item {
         Item {
             r#type: ITEM_TYPE.to_string(),
-            version: STAC_VERSION.to_string(),
+            version: STAC_VERSION,
             extensions: Vec::new(),
             id: id.to_string(),
             geometry: None,
@@ -613,7 +615,7 @@ impl Item {
         }
         Ok(FlatItem {
             r#type: ITEM_TYPE.to_string(),
-            version: STAC_VERSION.to_string(),
+            version: STAC_VERSION,
             extensions: self.extensions,
             id: self.id,
             geometry: self.geometry,
@@ -769,8 +771,8 @@ where
     crate::serialize_type(r#type, serializer, ITEM_TYPE)
 }
 
-fn default_stac_version() -> String {
-    STAC_VERSION.to_string()
+fn default_stac_version() -> Version {
+    STAC_VERSION
 }
 
 fn default_type() -> String {
@@ -782,7 +784,7 @@ mod tests {
     use super::{Builder, FlatItem, Item};
     use crate::{
         extensions::{Projection, Raster},
-        Asset, Extensions, STAC_VERSION,
+        Asset, Extensions, Version, STAC_VERSION,
     };
     use geojson::{feature::Id, Feature};
     use serde_json::Value;
@@ -998,7 +1000,7 @@ mod tests {
 
         let flat_item = FlatItem {
             r#type: "Feature".to_string(),
-            version: "1.0.0".to_string(),
+            version: Version::v1_0_0,
             extensions: Vec::new(),
             id: "an-id".to_string(),
             geometry: Some(Geometry::new(Value::Point(vec![-105.1, 41.1]))),

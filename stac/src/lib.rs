@@ -134,6 +134,7 @@ mod item_collection;
 pub mod link;
 pub mod media_type;
 mod value;
+mod version;
 
 pub use {
     asset::{Asset, Assets},
@@ -149,10 +150,11 @@ pub use {
     item_collection::{ItemCollection, ITEM_COLLECTION_TYPE},
     link::{Link, Links},
     value::Value,
+    version::Version,
 };
 
 /// The default STAC version supported by this library.
-pub const STAC_VERSION: &str = "1.0.0";
+pub const STAC_VERSION: Version = Version::v1_0_0;
 
 /// Custom [Result](std::result::Result) type for this crate.
 pub type Result<T> = std::result::Result<T, Error>;
