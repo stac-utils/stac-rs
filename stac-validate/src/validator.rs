@@ -1,6 +1,7 @@
 use crate::{Error, Result, Validate};
-use jsonschema::{JSONSchema, SchemaResolver, SchemaResolverError};
+use jsonschema::{CompilationOptions, JSONSchema, SchemaResolver, SchemaResolverError};
 use serde_json::Value;
+use stac::Version;
 use std::{
     collections::HashMap,
     sync::Arc,
@@ -14,10 +15,11 @@ use url::Url;
 /// schemas.
 #[derive(Debug)]
 pub struct Validator {
-    item_schema: JSONSchema,
-    catalog_schema: JSONSchema,
-    collection_schema: JSONSchema,
+    item_schemas: HashMap<Version, JSONSchema>,
+    catalog_schemas: HashMap<Version, JSONSchema>,
+    collection_schemas: HashMap<Version, JSONSchema>,
     extension_schemas: HashMap<String, JSONSchema>,
+    compilation_options: CompilationOptions,
 }
 
 #[derive(Default)]
@@ -34,25 +36,41 @@ impl Validator {
     /// ```
     pub fn new() -> Validator {
         let mut options = JSONSchema::options();
-        let options = options.with_resolver(Resolver);
-        Validator {
-            item_schema: options
+        let options_with_resolver = options.with_resolver(Resolver);
+        let mut item_schemas = HashMap::new();
+        let _ = item_schemas.insert(
+            Version::v1_0_0,
+            options_with_resolver
                 .compile(
                     &serde_json::from_str(include_str!("../schemas/v1.0.0/item.json")).unwrap(),
                 )
                 .unwrap(),
-            catalog_schema: options
+        );
+        let mut catalog_schemas = HashMap::new();
+        let _ = catalog_schemas.insert(
+            Version::v1_0_0,
+            options_with_resolver
                 .compile(
                     &serde_json::from_str(include_str!("../schemas/v1.0.0/catalog.json")).unwrap(),
                 )
                 .unwrap(),
-            collection_schema: options
+        );
+        let mut collection_schemas = HashMap::new();
+        let _ = collection_schemas.insert(
+            Version::v1_0_0,
+            options_with_resolver
                 .compile(
                     &serde_json::from_str(include_str!("../schemas/v1.0.0/collection.json"))
                         .unwrap(),
                 )
                 .unwrap(),
+        );
+        Validator {
+            item_schemas,
+            catalog_schemas,
+            collection_schemas,
             extension_schemas: HashMap::new(),
+            compilation_options: options,
         }
     }
 
@@ -71,25 +89,79 @@ impl Validator {
         validatable.validate_with_validator(self)
     }
 
-    pub(crate) fn validate_item(&self, item: &Value) -> Result<()> {
-        self.item_schema
+    pub(crate) fn validate_item(&mut self, item: &Value) -> Result<()> {
+        let version = version(item)?;
+        self.item_schema_for(version)?
             .validate(item)
             .map_err(Error::from_validation_errors)
     }
 
-    pub(crate) fn validate_catalog(&self, item: &Value) -> Result<()> {
-        self.catalog_schema
-            .validate(item)
+    fn item_schema_for(&mut self, version: Version) -> Result<&JSONSchema> {
+        if !self.item_schemas.contains_key(&version) {
+            let schema = self.fetch_schema(&format!(
+                "https://schemas.stacspec.org/v{}/item-spec/json-schema/item.json",
+                version
+            ))?;
+            let _ = self.item_schemas.insert(version, schema);
+        }
+        Ok(self
+            .item_schemas
+            .get(&version)
+            .expect("if we didn't have it, we should have just fetched it"))
+    }
+
+    pub(crate) fn validate_catalog(&mut self, catalog: &Value) -> Result<()> {
+        let version = version(catalog)?;
+        self.catalog_schema_for(version)?
+            .validate(catalog)
             .map_err(Error::from_validation_errors)
     }
 
-    pub(crate) fn validate_collection(&self, collection: &Value) -> Result<()> {
-        self.collection_schema
+    fn catalog_schema_for(&mut self, version: Version) -> Result<&JSONSchema> {
+        if !self.catalog_schemas.contains_key(&version) {
+            let schema = self.fetch_schema(&format!(
+                "https://schemas.stacspec.org/v{}/catalog-spec/json-schema/catalog.json",
+                version
+            ))?;
+            let _ = self.catalog_schemas.insert(version, schema);
+        }
+        Ok(self
+            .catalog_schemas
+            .get(&version)
+            .expect("if we didn't have it, we should have just fetched it"))
+    }
+
+    pub(crate) fn validate_collection(&mut self, collection: &Value) -> Result<()> {
+        let version = version(collection)?;
+        self.collection_schema_for(version)?
             .validate(collection)
             .map_err(Error::from_validation_errors)
     }
 
-    pub(crate) fn validate_item_collection(&self, item_collection: &Value) -> Result<()> {
+    fn collection_schema_for(&mut self, version: Version) -> Result<&JSONSchema> {
+        if !self.collection_schemas.contains_key(&version) {
+            let schema = self.fetch_schema(&format!(
+                "https://schemas.stacspec.org/v{}/collection-spec/json-schema/collection.json",
+                version
+            ))?;
+            let _ = self.collection_schemas.insert(version, schema);
+        }
+        Ok(self
+            .collection_schemas
+            .get(&version)
+            .expect("if we didn't have it, we should have just fetched it"))
+    }
+
+    fn fetch_schema(&mut self, url: &str) -> Result<JSONSchema> {
+        let response = reqwest::blocking::get(url)?;
+        let value: Value = response.json()?;
+        let options = self.compilation_options.with_resolver(Resolver);
+        options
+            .compile(&value)
+            .map_err(|_| Error::InvalidSchema(url.to_string()))
+    }
+
+    pub(crate) fn validate_item_collection(&mut self, item_collection: &Value) -> Result<()> {
         if let Some(items) = item_collection.get("features") {
             if let Some(items) = items.as_array() {
                 let mut errors = Vec::new();
@@ -256,4 +328,14 @@ fn get_extension(href: String) -> Result<(String, JSONSchema)> {
         .compile(&json)
         .map_err(Error::from_validation_error)?;
     Ok((href, schema))
+}
+
+fn version(value: &Value) -> Result<Version> {
+    value
+        .as_object()
+        .and_then(|object| object.get("stac_version"))
+        .and_then(|value| value.as_str())
+        .map(|version| version.parse())
+        .transpose()?
+        .ok_or(Error::MissingStacVersion)
 }

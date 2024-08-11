@@ -11,6 +11,10 @@ pub enum Error {
     #[error("cannot resolve json-schema scheme: {0}")]
     CannotResolveJsonSchemaScheme(Url),
 
+    /// Missing stac_version.
+    #[error("missing stac_version attribute")]
+    MissingStacVersion,
+
     /// The `stac_extensions` vector, or its contents, are not the correct type.
     #[error("incorrect stac extensions type")]
     IncorrectStacExtensionsType(serde_json::Value),
@@ -22,6 +26,10 @@ pub enum Error {
     /// We cannot handle this url scheme.
     #[error("invalid url scheme: {0}")]
     InvalidUrlScheme(Url),
+
+    /// Invalid JSONSchema.
+    #[error("invalid json-schema at url: {0}")]
+    InvalidSchema(String),
 
     /// [reqwest::Error]
     #[error(transparent)]
