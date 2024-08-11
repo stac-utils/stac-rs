@@ -1,6 +1,7 @@
 use crate::{Error, Result, Validate};
 use jsonschema::{JSONSchema, SchemaResolver, SchemaResolverError};
 use serde_json::Value;
+use stac::Version;
 use std::{
     collections::HashMap,
     sync::Arc,
@@ -54,6 +55,48 @@ impl Validator {
                 .unwrap(),
             extension_schemas: HashMap::new(),
         }
+    }
+
+    /// Creates a new validator for the specified version.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::Version;
+    /// use stac_validate::Validator;
+    /// let validator = Validator::for_version("1.1.0-beta.1".parse().unwrap()).unwrap();
+    /// ```
+    pub fn for_version(version: Version) -> Result<Validator> {
+        let mut options = JSONSchema::options();
+        let options = options.with_resolver(Resolver);
+        let version = version.to_string();
+        let item_schema: Value = reqwest::blocking::get(format!(
+            "https://schemas.stacspec.org/v{}/item-spec/json-schema/item.json",
+            version
+        ))?
+        .json()?;
+        let catalog_schema: Value = reqwest::blocking::get(format!(
+            "https://schemas.stacspec.org/v{}/catalog-spec/json-schema/catalog.json",
+            version
+        ))?
+        .json()?;
+        let collection_schema: Value = reqwest::blocking::get(format!(
+            "https://schemas.stacspec.org/v{}/collection-spec/json-schema/collection.json",
+            version
+        ))?
+        .json()?;
+        Ok(Validator {
+            item_schema: options
+                .compile(&item_schema)
+                .expect("could not compil item schema"),
+            catalog_schema: options
+                .compile(&catalog_schema)
+                .expect("could not compile catalog schema"),
+            collection_schema: options
+                .compile(&collection_schema)
+                .expect("could not compile collection schema"),
+            extension_schemas: HashMap::new(),
+        })
     }
 
     /// Validates a STAC object.
