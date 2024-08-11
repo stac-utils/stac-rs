@@ -71,6 +71,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 mod tests {
     use crate::Validate;
     use geojson::{Geometry, Value};
+    use rstest as _;
     use stac::{Catalog, Collection, Item};
 
     #[test]

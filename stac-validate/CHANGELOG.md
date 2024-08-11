@@ -9,6 +9,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 
 - `impl Default for Validator` ([#252](https://github.com/stac-utils/stac-rs/pull/252))
+- Support for validating versions other than v1.0.0 ([#293](https://github.com/stac-utils/stac-rs/pull/293))
+
+### Changed
+
+- `ValidateCore::validate_core_json` now takes a mutable reference to the validator ([#293](https://github.com/stac-utils/stac-rs/pull/293))
+
+### Removed
+
+- `ValidateCore::validate_core` ([#293](https://github.com/stac-utils/stac-rs/pull/293))
 
 ## [0.1.2] - 2024-04-29
 

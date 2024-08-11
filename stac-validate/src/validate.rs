@@ -67,35 +67,19 @@ pub trait ValidateCore: Serialize {
     ///
     /// ```
     /// use stac_validate::ValidateCore;
-    /// let item = stac::Item::new("an-id");
-    /// item.validate_core().unwrap();
-    /// ```
-    fn validate_core(&self) -> Result<()> {
-        let value = serde_json::to_value(self)?;
-        Self::validate_core_json(&value, &Validator::new())
-    }
-
-    /// Validate a [serde_json::Value] against a specific STAC jsonschema.
-    ///
-    /// #  Examples
-    ///
-    /// [stac::Item] implements [ValidateCore]:
-    ///
-    /// ```
-    /// use stac_validate::ValidateCore;
     /// use stac::Item;
     ///
     /// let item = Item::new("an-id");
     /// let value = serde_json::to_value(item).unwrap();
-    /// Item::validate_core_json(&value, &stac_validate::Validator::new()).unwrap();
+    /// Item::validate_core_json(&value, &mut stac_validate::Validator::new()).unwrap();
     /// ```
-    fn validate_core_json(value: &Value, validator: &Validator) -> Result<()>;
+    fn validate_core_json(value: &Value, validator: &mut Validator) -> Result<()>;
 }
 
 impl Validate for Item {}
 
 impl ValidateCore for Item {
-    fn validate_core_json(value: &Value, validator: &Validator) -> Result<()> {
+    fn validate_core_json(value: &Value, validator: &mut Validator) -> Result<()> {
         validator.validate_item(value)
     }
 }
@@ -103,7 +87,7 @@ impl ValidateCore for Item {
 impl Validate for Catalog {}
 
 impl ValidateCore for Catalog {
-    fn validate_core_json(value: &Value, validator: &Validator) -> Result<()> {
+    fn validate_core_json(value: &Value, validator: &mut Validator) -> Result<()> {
         validator.validate_catalog(value)
     }
 }
@@ -111,7 +95,7 @@ impl ValidateCore for Catalog {
 impl Validate for Collection {}
 
 impl ValidateCore for Collection {
-    fn validate_core_json(value: &Value, validator: &Validator) -> Result<()> {
+    fn validate_core_json(value: &Value, validator: &mut Validator) -> Result<()> {
         validator.validate_collection(value)
     }
 }
@@ -119,7 +103,7 @@ impl ValidateCore for Collection {
 impl Validate for stac::Value {}
 
 impl ValidateCore for stac::Value {
-    fn validate_core_json(value: &Value, validator: &Validator) -> Result<()> {
+    fn validate_core_json(value: &Value, validator: &mut Validator) -> Result<()> {
         if let Some(type_) = value.get("type") {
             if let Some(type_) = type_.as_str() {
                 match type_ {
@@ -141,7 +125,7 @@ impl ValidateCore for stac::Value {
 impl Validate for ItemCollection {}
 
 impl ValidateCore for ItemCollection {
-    fn validate_core_json(value: &Value, validator: &Validator) -> Result<()> {
+    fn validate_core_json(value: &Value, validator: &mut Validator) -> Result<()> {
         validator.validate_item_collection(value)
     }
 }
@@ -149,7 +133,7 @@ impl ValidateCore for ItemCollection {
 impl Validate for Value {}
 
 impl ValidateCore for Value {
-    fn validate_core_json(value: &Value, validator: &Validator) -> Result<()> {
+    fn validate_core_json(value: &Value, validator: &mut Validator) -> Result<()> {
         if let Some(type_) = value.get("type") {
             if let Some(type_) = type_.as_str() {
                 match type_ {

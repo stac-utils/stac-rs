@@ -22,3 +22,4 @@ url = "2"
 [dev-dependencies]
 geojson = "0.24"
 stac = { version = "0.7", path = "../stac", features = ["geo"] }
+rstest = "0.22"
