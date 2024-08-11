@@ -10,12 +10,16 @@ use serde::{Deserialize, Serialize};
 /// electromagnetic spectrum. Examples of EO data include sensors with visible,
 /// short-wave and mid-wave IR bands (e.g., the OLI instrument on Landsat-8),
 /// long-wave IR bands (e.g. TIRS aboard Landsat-8).
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct ElectroOptical {
     /// An array of available bands where each object is a [Band].
     ///
     /// If given, requires at least one band.
     #[serde(skip_serializing_if = "Vec::is_empty", default)]
+    #[deprecated(
+        since = "0.8.0",
+        note = "v2.0.0 of the electo-optical extension removes the bands array in favor of the common metadata version"
+    )]
     pub bands: Vec<Band>,
 
     /// Estimate of cloud cover, in %.
@@ -30,7 +34,7 @@ pub struct ElectroOptical {
 /// [Spectral
 /// bands](https://www.sciencedirect.com/topics/earth-and-planetary-sciences/spectral-band)
 /// in an [Asset](crate::Asset).
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Band {
     /// The name of the band (e.g., "B01", "B8", "band2", "red").
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -77,6 +81,6 @@ mod tests {
     #[test]
     fn item() {
         let item: Item = crate::read("examples/eo/item.json").unwrap();
-        let _: ElectroOptical = item.extension().unwrap().unwrap();
+        let _: ElectroOptical = item.extension().unwrap();
     }
 }

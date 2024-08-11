@@ -1,6 +1,9 @@
 //! STAC Items.
 
-use crate::{Asset, Assets, Error, Extensions, Fields, Href, Link, Links, Result, STAC_VERSION};
+use crate::{
+    Asset, Assets, Error, Extensions, Fields, Href, Link, Links, Migrate, Result, Version,
+    STAC_VERSION,
+};
 use chrono::{DateTime, FixedOffset, Utc};
 use geojson::{feature::Id, Feature, Geometry};
 use serde::{Deserialize, Serialize};
@@ -40,7 +43,7 @@ pub struct Item {
 
     /// The STAC version the `Item` implements.
     #[serde(rename = "stac_version")]
-    version: String,
+    pub version: Version,
 
     /// A list of extensions the `Item` implements.
     #[serde(
@@ -110,7 +113,7 @@ pub struct FlatItem {
     r#type: String,
 
     #[serde(rename = "stac_version", default = "default_stac_version")]
-    version: String,
+    version: Version,
 
     /// This column is required, but can be empty if no STAC extensions were used.
     #[serde(
@@ -369,7 +372,7 @@ impl Item {
     pub fn new(id: impl ToString) -> Item {
         Item {
             r#type: ITEM_TYPE.to_string(),
-            version: STAC_VERSION.to_string(),
+            version: STAC_VERSION,
             extensions: Vec::new(),
             id: id.to_string(),
             geometry: None,
@@ -613,7 +616,7 @@ impl Item {
         }
         Ok(FlatItem {
             r#type: ITEM_TYPE.to_string(),
-            version: STAC_VERSION.to_string(),
+            version: STAC_VERSION,
             extensions: self.extensions,
             id: self.id,
             geometry: self.geometry,
@@ -755,6 +758,22 @@ impl TryFrom<Item> for Feature {
     }
 }
 
+impl Migrate for Item {
+    fn version(&self) -> Version {
+        self.version
+    }
+    fn version_mut(&mut self) -> &mut Version {
+        &mut self.version
+    }
+
+    fn migrate_v1_0_0_to_v1_1_0(&mut self) -> Result<()> {
+        for asset in self.assets.values_mut() {
+            asset.migrate_bands()?;
+        }
+        Ok(())
+    }
+}
+
 fn deserialize_type<'de, D>(deserializer: D) -> std::result::Result<String, D::Error>
 where
     D: serde::de::Deserializer<'de>,
@@ -769,8 +788,8 @@ where
     crate::serialize_type(r#type, serializer, ITEM_TYPE)
 }
 
-fn default_stac_version() -> String {
-    STAC_VERSION.to_string()
+fn default_stac_version() -> Version {
+    STAC_VERSION
 }
 
 fn default_type() -> String {
@@ -782,10 +801,10 @@ mod tests {
     use super::{Builder, FlatItem, Item};
     use crate::{
         extensions::{Projection, Raster},
-        Asset, Extensions, STAC_VERSION,
+        Asset, DataType, Extensions, Migrate, Version, STAC_VERSION,
     };
     use geojson::{feature::Id, Feature};
-    use serde_json::Value;
+    use serde_json::{json, Value};
 
     #[test]
     fn new() {
@@ -998,7 +1017,7 @@ mod tests {
 
         let flat_item = FlatItem {
             r#type: "Feature".to_string(),
-            version: "1.0.0".to_string(),
+            version: Version::v1_0_0,
             extensions: Vec::new(),
             id: "an-id".to_string(),
             geometry: Some(Geometry::new(Value::Point(vec![-105.1, 41.1]))),
@@ -1020,5 +1039,71 @@ mod tests {
         let _ = value.as_object_mut().unwrap().remove("geometry").unwrap();
         let flat_item: FlatItem = serde_json::from_value(value).unwrap();
         assert_eq!(flat_item.geometry, None);
+    }
+
+    #[test]
+    fn migrate_from_v1_0_0_to_v1_1_0() {
+        // https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#bands
+        let mut item: Item = crate::read("../spec-examples/v1.0.0/simple-item.json").unwrap();
+        let _ = item.assets.insert(
+            "example".to_string(),
+            serde_json::from_value(json!({
+                "href": "example.tif",
+                "eo:bands": [
+                  {
+                    "name": "r",
+                    "common_name": "red"
+                  },
+                  {
+                    "name": "g",
+                    "common_name": "green"
+                  },
+                  {
+                    "name": "b",
+                    "common_name": "blue"
+                  },
+                  {
+                    "name": "nir",
+                    "common_name": "nir"
+                  }
+                ],
+                "raster:bands": [
+                  {
+                    "data_type": "uint16",
+                    "spatial_resolution": 10,
+                    "sampling": "area"
+                  },
+                  {
+                    "data_type": "uint16",
+                    "spatial_resolution": 10,
+                    "sampling": "area"
+                  },
+                  {
+                    "data_type": "uint16",
+                    "spatial_resolution": 10,
+                    "sampling": "area"
+                  },
+                  {
+                    "data_type": "uint16",
+                    "spatial_resolution": 30,
+                    "sampling": "area"
+                  }
+                ]
+            }))
+            .unwrap(),
+        );
+        item.migrate(Version::v1_1_0).unwrap();
+        dbg!(&item);
+        assert_eq!(item.version.to_string(), "1.1.0-beta.1");
+        assert_eq!(
+            *item
+                .assets
+                .get("example")
+                .unwrap()
+                .data_type
+                .as_ref()
+                .unwrap(),
+            DataType::UInt16
+        );
     }
 }

@@ -1,4 +1,4 @@
-use crate::{Href, Item, Link, Links};
+use crate::{Href, Item, Link, Links, Migrate, Result, Version};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
@@ -35,6 +35,26 @@ pub struct ItemCollection {
 
     #[serde(skip)]
     href: Option<String>,
+}
+
+impl ItemCollection {
+    /// Migrates this item collection to another version.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::ItemCollection;
+    ///
+    /// let mut item_collection: ItemCollection = vec![stac::read("data/simple-item.json").unwrap()].into();
+    /// let version = "1.1.0-beta.1".parse().unwrap();
+    /// item_collection.migrate(version).unwrap();
+    /// ```
+    pub fn migrate(&mut self, version: Version) -> Result<()> {
+        for item in self.items.iter_mut() {
+            item.migrate(version)?;
+        }
+        Ok(())
+    }
 }
 
 impl From<Vec<Item>> for ItemCollection {
@@ -74,14 +94,14 @@ impl Links for ItemCollection {
     }
 }
 
-fn deserialize_type<'de, D>(deserializer: D) -> Result<String, D::Error>
+fn deserialize_type<'de, D>(deserializer: D) -> std::result::Result<String, D::Error>
 where
     D: serde::de::Deserializer<'de>,
 {
     crate::deserialize_type(deserializer, ITEM_COLLECTION_TYPE)
 }
 
-fn serialize_type<S>(r#type: &String, serializer: S) -> Result<S::Ok, S::Error>
+fn serialize_type<S>(r#type: &String, serializer: S) -> std::result::Result<S::Ok, S::Error>
 where
     S: serde::ser::Serializer,
 {

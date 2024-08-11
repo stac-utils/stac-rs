@@ -1,4 +1,4 @@
-use crate::{Error, Extensions, Fields, Href, Link, Links, Result, STAC_VERSION};
+use crate::{Error, Extensions, Fields, Href, Link, Links, Migrate, Result, Version, STAC_VERSION};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
@@ -28,7 +28,7 @@ pub struct Catalog {
 
     /// The STAC version the `Catalog` implements.
     #[serde(rename = "stac_version")]
-    version: String,
+    version: Version,
 
     /// A list of extension identifiers the `Catalog` implements.
     #[serde(rename = "stac_extensions")]
@@ -73,7 +73,7 @@ impl Catalog {
     pub fn new(id: impl ToString, description: impl ToString) -> Catalog {
         Catalog {
             r#type: CATALOG_TYPE.to_string(),
-            version: STAC_VERSION.to_string(),
+            version: STAC_VERSION,
             extensions: Vec::new(),
             id: id.to_string(),
             title: None,
@@ -137,6 +137,15 @@ impl Extensions for Catalog {
     }
     fn extensions_mut(&mut self) -> &mut Vec<String> {
         &mut self.extensions
+    }
+}
+
+impl Migrate for Catalog {
+    fn version(&self) -> Version {
+        self.version
+    }
+    fn version_mut(&mut self) -> &mut Version {
+        &mut self.version
     }
 }
 

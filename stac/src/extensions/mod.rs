@@ -31,7 +31,7 @@
 //! assert!(item.has_extension::<Projection>());
 //!
 //! // Get extension information
-//! let mut projection: Projection = item.extension().unwrap().unwrap();
+//! let mut projection: Projection = item.extension().unwrap();
 //! println!("epsg: {}", projection.epsg.unwrap());
 //!
 //! // Set extension information
@@ -50,7 +50,11 @@ pub mod raster;
 
 use crate::{Fields, Result};
 use serde::{de::DeserializeOwned, Serialize};
-pub use {projection::Projection, raster::Raster};
+use serde_json::Value;
+pub use {
+    authentication::Authentication, electro_optical::ElectroOptical, projection::Projection,
+    raster::Raster,
+};
 
 /// A trait implemented by extensions.
 ///
@@ -77,6 +81,34 @@ pub trait Extension: Serialize + DeserializeOwned {
             .find('/')
             .expect("all identifiers should have a first path segment");
         &Self::IDENTIFIER[0.."https://stac-extensions.github.io/".len() + index + 1]
+    }
+
+    /// Returns true if this extension is empty.
+    ///
+    /// The default behavior is to see if it serializes to an empty dictionary,
+    /// but extensions could override this if they want.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::{Extension, extensions::Projection};
+    ///
+    /// let mut projection = Projection::default();
+    /// assert!(projection.is_empty());
+    /// projection.epsg = Some(4326);
+    /// assert!(!projection.is_empty());
+    /// ```
+    fn is_empty(&self) -> bool {
+        serde_json::to_value(self)
+            .ok()
+            .map(|value| {
+                if let Value::Object(object) = value {
+                    object.is_empty()
+                } else {
+                    false
+                }
+            })
+            .unwrap_or_default()
     }
 }
 
@@ -124,22 +156,16 @@ pub trait Extensions: Fields {
 
     /// Gets an extension's data.
     ///
-    /// Returns `Ok(None)` if the object doesn't have the given extension.
-    ///
     /// # Examples
     ///
     /// ```
     /// use stac::{Item, extensions::{Projection, Extensions}};
     /// let item: Item = stac::read("data/extensions-collection/proj-example/proj-example.json").unwrap();
-    /// let projection: Projection = item.extension().unwrap().unwrap();
+    /// let projection: Projection = item.extension().unwrap();
     /// assert_eq!(projection.epsg.unwrap(), 32614);
     /// ```
-    fn extension<E: Extension>(&self) -> Result<Option<E>> {
-        if self.has_extension::<E>() {
-            self.fields_with_prefix(E::PREFIX).map(|v| Some(v))
-        } else {
-            Ok(None)
-        }
+    fn extension<E: Extension>(&self) -> Result<E> {
+        self.fields_with_prefix(E::PREFIX)
     }
 
     /// Adds an extension's identifier to this object.
@@ -219,6 +245,8 @@ mod tests {
     }
 
     #[test]
+    #[allow(deprecated)]
+    // TODO change this test to not require deprecated
     fn set_extension_on_asset() {
         let mut asset = Asset::new("a/href.tif");
         assert!(!asset.has_extension::<Raster>());

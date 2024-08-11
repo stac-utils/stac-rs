@@ -175,7 +175,7 @@ mod tests {
     #[test]
     fn collection() {
         let collection: Collection = crate::read("examples/auth/collection.json").unwrap();
-        let authentication: Authentication = collection.extension().unwrap().unwrap();
+        let authentication: Authentication = collection.extension().unwrap();
         let oauth = authentication.schemes.get("oauth").unwrap();
         let _ = oauth.flows.get("authorizationCode").unwrap();
         // FIXME: assets should be able to have extensions from their parent item
@@ -187,7 +187,7 @@ mod tests {
     #[test]
     fn item() {
         let collection: Item = crate::read("examples/auth/item.json").unwrap();
-        let authentication: Authentication = collection.extension().unwrap().unwrap();
+        let authentication: Authentication = collection.extension().unwrap();
         let _ = authentication.schemes.get("none").unwrap();
     }
 

@@ -38,8 +38,9 @@ pub fn update_item(
     let mut bounds = Bounds::default();
     for asset in item.assets.values_mut() {
         update_asset(asset, force_statistics, is_approx_statistics_ok)?;
-        if let Some(projection) = asset.extension::<Projection>()? {
-            has_projection = true;
+        has_projection = asset.has_extension::<Projection>();
+        if has_projection {
+            let projection = asset.extension::<Projection>()?;
             if let Some(asset_bounds) = projection.wgs84_bounds()? {
                 bounds.update(asset_bounds);
             }
@@ -73,6 +74,8 @@ pub fn update_item(
     Ok(())
 }
 
+#[allow(deprecated)]
+// TODO once STAC v1.1.0 is released, update to use bands
 fn update_asset(
     asset: &mut Asset,
     force_statistics: bool,
@@ -169,6 +172,8 @@ mod tests {
     };
 
     #[test]
+    #[allow(deprecated)]
+    // TODO update to use bands
     fn raster_data_type() {
         let mut item = Builder::new("an-id")
             .asset("data", "assets/dataset.tif")
@@ -176,13 +181,7 @@ mod tests {
             .unwrap();
         super::update_item(&mut item, false, true).unwrap();
         assert!(item.has_extension::<Raster>());
-        let raster: Raster = item
-            .assets
-            .get("data")
-            .unwrap()
-            .extension()
-            .unwrap()
-            .unwrap();
+        let raster: Raster = item.assets.get("data").unwrap().extension().unwrap();
         assert_eq!(
             *raster.bands[0].data_type.as_ref().unwrap(),
             DataType::UInt16
@@ -190,19 +189,15 @@ mod tests {
     }
 
     #[test]
+    #[allow(deprecated)]
+    // TODO update to use bands
     fn raster_spatial_resolution() {
         let mut item = Builder::new("an-id")
             .asset("data", "assets/dataset_geo.tif")
             .into_item()
             .unwrap();
         super::update_item(&mut item, false, true).unwrap();
-        let raster: Raster = item
-            .assets
-            .get("data")
-            .unwrap()
-            .extension()
-            .unwrap()
-            .unwrap();
+        let raster: Raster = item.assets.get("data").unwrap().extension().unwrap();
         assert_eq!(
             raster.bands[0].spatial_resolution.unwrap(),
             100.01126757344893
@@ -216,7 +211,7 @@ mod tests {
             .into_item()
             .unwrap();
         super::update_item(&mut item, false, true).unwrap();
-        let projection: Projection = item.extension().unwrap().unwrap();
+        let projection: Projection = item.extension().unwrap();
         assert_eq!(projection.epsg.unwrap(), 32621);
         assert_eq!(
             projection.bbox.unwrap(),

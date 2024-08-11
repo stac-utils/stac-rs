@@ -1,4 +1,6 @@
-use crate::{Catalog, Collection, Error, Href, Item, ItemCollection, Link, Links, Result};
+use crate::{
+    Catalog, Collection, Error, Href, Item, ItemCollection, Link, Links, Migrate, Result, Version,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::Map;
 use std::convert::TryFrom;
@@ -178,6 +180,25 @@ impl Value {
             Collection(_) => "Collection",
             Catalog(_) => "Catalog",
             ItemCollection(_) => "ItemCollection",
+        }
+    }
+
+    /// Migrates this value to the provided version.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let mut item: stac::Value = stac::read("data/simple-item.json").unwrap();
+    /// item.migrate("1.1.0-beta.1".parse().unwrap()).unwrap();
+    /// ```
+    pub fn migrate(&mut self, version: Version) -> Result<()> {
+        use Value::*;
+
+        match self {
+            Item(item) => item.migrate(version),
+            Catalog(catalog) => catalog.migrate(version),
+            Collection(collection) => collection.migrate(version),
+            ItemCollection(item_collection) => item_collection.migrate(version),
         }
     }
 }

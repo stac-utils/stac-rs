@@ -1,4 +1,7 @@
-use crate::{Asset, Assets, Error, Extensions, Fields, Href, Link, Links, Result, STAC_VERSION};
+use crate::{
+    Asset, Assets, Error, Extensions, Fields, Href, Link, Links, Migrate, Result, Version,
+    STAC_VERSION,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::collections::HashMap;
@@ -31,7 +34,7 @@ pub struct Collection {
 
     /// The STAC version the `Collection` implements.
     #[serde(rename = "stac_version")]
-    version: String,
+    version: Version,
 
     /// A list of extension identifiers the `Collection` implements.
     #[serde(rename = "stac_extensions")]
@@ -166,7 +169,7 @@ impl Collection {
     pub fn new(id: impl ToString, description: impl ToString) -> Collection {
         Collection {
             r#type: COLLECTION_TYPE.to_string(),
-            version: STAC_VERSION.to_string(),
+            version: STAC_VERSION,
             extensions: Vec::new(),
             id: id.to_string(),
             title: None,
@@ -181,6 +184,22 @@ impl Collection {
             additional_fields: Map::new(),
             href: None,
         }
+    }
+}
+
+impl Migrate for Collection {
+    fn version(&self) -> Version {
+        self.version
+    }
+    fn version_mut(&mut self) -> &mut Version {
+        &mut self.version
+    }
+
+    fn migrate_v1_0_0_to_v1_1_0(&mut self) -> Result<()> {
+        if self.license == "proprietary" || self.license == "various" {
+            self.license = "other".to_string()
+        }
+        Ok(())
     }
 }
 
@@ -301,6 +320,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use crate::Migrate;
+
     use super::{Collection, Extent, Provider};
 
     mod collection {
@@ -392,5 +413,25 @@ mod tests {
             "data/extensions-collection/collection.json",
             Collection
         );
+    }
+
+    #[test]
+    fn migrate_from_v1_0_0_to_v1_1_0() {
+        let mut collection: Collection =
+            crate::read("../spec-examples/v1.0.0/collection.json").unwrap();
+        collection.migrate("1.1.0-beta.1".parse().unwrap()).unwrap();
+        assert_eq!(collection.license, "CC-BY-4.0");
+
+        let mut collection: Collection =
+            crate::read("../spec-examples/v1.0.0/collection.json").unwrap();
+        collection.license = "proprietary".to_string();
+        collection.migrate("1.1.0-beta.1".parse().unwrap()).unwrap();
+        assert_eq!(collection.license, "other");
+
+        let mut collection: Collection =
+            crate::read("../spec-examples/v1.0.0/collection.json").unwrap();
+        collection.license = "various".to_string();
+        collection.migrate("1.1.0-beta.1".parse().unwrap()).unwrap();
+        assert_eq!(collection.license, "other");
     }
 }

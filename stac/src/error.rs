@@ -102,6 +102,10 @@ pub enum Error {
     #[error("unknown \"type\": {0}")]
     UnknownType(String),
 
+    /// Unsupported version.
+    #[error("unsupported version: {0}")]
+    UnsupportedVersion(String),
+
     /// [url::ParseError]
     #[error(transparent)]
     Url(#[from] url::ParseError),
