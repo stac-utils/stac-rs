@@ -1,4 +1,4 @@
-use crate::Value;
+use crate::{Value, Version};
 use serde_json::Value as JsonValue;
 use thiserror::Error;
 
@@ -105,6 +105,10 @@ pub enum Error {
     /// Unsupported version.
     #[error("unsupported version: {0}")]
     UnsupportedVersion(String),
+
+    /// Unsupported migration.
+    #[error("unsupported migration: {0} to {1}")]
+    UnsupportedMigration(Version, Version),
 
     /// [url::ParseError]
     #[error(transparent)]

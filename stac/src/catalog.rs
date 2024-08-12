@@ -1,4 +1,4 @@
-use crate::{Error, Extensions, Fields, Href, Link, Links, Result, Version, STAC_VERSION};
+use crate::{Error, Extensions, Fields, Href, Link, Links, Migrate, Result, Version, STAC_VERSION};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
@@ -153,6 +153,8 @@ where
 {
     crate::serialize_type(r#type, serializer, CATALOG_TYPE)
 }
+
+impl Migrate for Catalog {}
 
 #[cfg(test)]
 mod tests {

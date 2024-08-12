@@ -1,7 +1,8 @@
 //! STAC Items.
 
 use crate::{
-    Asset, Assets, Error, Extensions, Fields, Href, Link, Links, Result, Version, STAC_VERSION,
+    Asset, Assets, Error, Extensions, Fields, Href, Link, Links, Migrate, Result, Version,
+    STAC_VERSION,
 };
 use chrono::{DateTime, FixedOffset, Utc};
 use geojson::{feature::Id, Feature, Geometry};
@@ -778,6 +779,8 @@ fn default_stac_version() -> Version {
 fn default_type() -> String {
     ITEM_TYPE.to_string()
 }
+
+impl Migrate for Item {}
 
 #[cfg(test)]
 mod tests {

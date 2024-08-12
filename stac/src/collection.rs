@@ -1,5 +1,6 @@
 use crate::{
-    Asset, Assets, Error, Extensions, Fields, Href, Link, Links, Result, Version, STAC_VERSION,
+    Asset, Assets, Error, Extensions, Fields, Href, Link, Links, Migrate, Result, Version,
+    STAC_VERSION,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
@@ -300,6 +301,8 @@ where
 {
     crate::serialize_type(r#type, serializer, COLLECTION_TYPE)
 }
+
+impl Migrate for Collection {}
 
 #[cfg(test)]
 mod tests {

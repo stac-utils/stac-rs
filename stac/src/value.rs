@@ -1,4 +1,6 @@
-use crate::{Catalog, Collection, Error, Href, Item, ItemCollection, Link, Links, Result};
+use crate::{
+    Catalog, Collection, Error, Href, Item, ItemCollection, Link, Links, Migrate, Result, Version,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::Map;
 use std::convert::TryFrom;
@@ -258,6 +260,19 @@ impl From<Collection> for Value {
 impl From<ItemCollection> for Value {
     fn from(item_collection: ItemCollection) -> Self {
         Value::ItemCollection(item_collection)
+    }
+}
+
+impl Migrate for Value {
+    fn migrate(self, version: Version) -> Result<Value> {
+        match self {
+            Value::Item(item) => item.migrate(version).map(Value::Item),
+            Value::Catalog(catalog) => catalog.migrate(version).map(Value::Catalog),
+            Value::Collection(collection) => collection.migrate(version).map(Value::Collection),
+            Value::ItemCollection(item_collection) => {
+                item_collection.migrate(version).map(Value::ItemCollection)
+            }
+        }
     }
 }
 

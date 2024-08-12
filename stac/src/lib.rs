@@ -116,9 +116,11 @@
 )]
 
 mod asset;
+mod band;
 mod bounds;
 mod catalog;
 mod collection;
+mod data_type;
 pub mod datetime;
 mod error;
 pub mod extensions;
@@ -133,14 +135,18 @@ pub mod item;
 mod item_collection;
 pub mod link;
 pub mod media_type;
+mod migrate;
+mod statistics;
 mod value;
 mod version;
 
 pub use {
     asset::{Asset, Assets},
+    band::Band,
     bounds::Bounds,
     catalog::{Catalog, CATALOG_TYPE},
     collection::{Collection, Extent, Provider, SpatialExtent, TemporalExtent, COLLECTION_TYPE},
+    data_type::DataType,
     error::Error,
     extensions::{Extension, Extensions},
     fields::Fields,
@@ -149,6 +155,8 @@ pub use {
     item::{FlatItem, Item, Properties, ITEM_TYPE},
     item_collection::{ItemCollection, ITEM_COLLECTION_TYPE},
     link::{Link, Links},
+    migrate::Migrate,
+    statistics::Statistics,
     value::Value,
     version::Version,
 };
@@ -207,6 +215,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use rstest as _;
+
     macro_rules! roundtrip {
         ($function:ident, $filename:expr, $object:ident) => {
             #[test]
