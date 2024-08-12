@@ -1,4 +1,4 @@
-use crate::{Extensions, Fields};
+use crate::{Band, DataType, Extensions, Fields, Statistics};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::collections::HashMap;
@@ -51,6 +51,31 @@ pub struct Asset {
     /// field.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub updated: Option<String>,
+
+    /// An array of available bands where each object is a [Band].
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
+    pub bands: Vec<Band>,
+
+    /// Value used to identify no-data.
+    ///
+    /// The extension specifies that this can be a number or a string, but we
+    /// just use a f64 with a custom (de)serializer.
+    ///
+    /// TODO write custom (de)serializer.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub nodata: Option<f64>,
+
+    /// The data type of the values.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub data_type: Option<DataType>,
+
+    /// Statistics of all the values.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub statistics: Option<Statistics>,
+
+    /// Unit of measurement of the value.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub unit: Option<String>,
 
     /// Additional fields on the asset.
     #[serde(flatten)]
@@ -110,6 +135,11 @@ impl Asset {
             roles: Vec::new(),
             created: None,
             updated: None,
+            bands: Vec::new(),
+            data_type: None,
+            nodata: None,
+            statistics: None,
+            unit: None,
             additional_fields: Map::new(),
             extensions: Vec::new(),
         }

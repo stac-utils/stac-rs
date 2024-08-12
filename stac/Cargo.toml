@@ -30,6 +30,7 @@ url = "2"
 
 [dev-dependencies]
 assert-json-diff = "2"
+rstest = "0.22"
 
 [package.metadata.docs.rs]
 all-features = true

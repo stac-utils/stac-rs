@@ -1,0 +1,55 @@
+{
+    "type": "Feature",
+    "stac_version": "1.0.0",
+    "id": "bands-migration",
+    "geometry": null,
+    "properties": {
+        "datetime": "2024-08-11T16:07:32.766181+00:00"
+    },
+    "links": [],
+    "assets": {
+        "example": {
+            "href": "example.tif",
+            "eo:bands": [
+                {
+                    "name": "r",
+                    "common_name": "red"
+                },
+                {
+                    "name": "g",
+                    "common_name": "green"
+                },
+                {
+                    "name": "b",
+                    "common_name": "blue"
+                },
+                {
+                    "name": "nir",
+                    "common_name": "nir"
+                }
+            ],
+            "raster:bands": [
+                {
+                    "data_type": "uint16",
+                    "spatial_resolution": 10,
+                    "sampling": "area"
+                },
+                {
+                    "data_type": "uint16",
+                    "spatial_resolution": 10,
+                    "sampling": "area"
+                },
+                {
+                    "data_type": "uint16",
+                    "spatial_resolution": 10,
+                    "sampling": "area"
+                },
+                {
+                    "data_type": "uint16",
+                    "spatial_resolution": 30,
+                    "sampling": "area"
+                }
+            ]
+        }
+    }
+}

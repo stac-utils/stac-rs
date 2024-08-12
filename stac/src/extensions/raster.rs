@@ -9,9 +9,9 @@
 //! many applications, it is interesting to have some metadata about the rasters
 //! in the asset (values statistics, value interpretation, transforms).
 
-use serde::{Deserialize, Serialize};
-
 use super::Extension;
+pub use crate::{DataType, Statistics};
+use serde::{Deserialize, Serialize};
 
 /// The raster extension.
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -92,83 +92,6 @@ pub enum Sampling {
 
     /// The pixel value is a point sample at the center of the pixel.
     Point,
-}
-
-/// The data type gives information about the values in the file.
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
-#[serde(rename_all = "lowercase")]
-pub enum DataType {
-    /// 8-bit integer
-    Int8,
-
-    /// 16-bit integer
-    Int16,
-
-    /// 32-bit integer
-    Int32,
-
-    /// 64-bit integer
-    Int64,
-
-    /// Unsigned 8-bit integer (common for 8-bit RGB PNG's)
-    UInt8,
-
-    /// Unsigned 16-bit integer
-    UInt16,
-
-    /// Unsigned 32-bit integer
-    UInt32,
-
-    /// Unsigned 64-bit integer
-    UInt64,
-
-    /// 16-bit float
-    Float16,
-
-    /// 32-bit float
-    Float32,
-
-    /// 64-bit float
-    Float64,
-
-    /// 16-bit complex integer
-    CInt16,
-
-    /// 32-bit complex integer
-    CInt32,
-
-    /// 32-bit complex float
-    CFloat32,
-
-    /// 64-bit complex float
-    CFloat64,
-
-    /// Other data type than the ones listed above (e.g. boolean, string, higher precision numbers)
-    Other,
-}
-
-/// Statistics of all pixels in the band.
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Statistics {
-    /// Mean value of all the pixels in the band
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub mean: Option<f64>,
-
-    /// Minimum value of all the pixels in the band
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub minimum: Option<f64>,
-
-    /// Maximum value of all the pixels in the band
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub maximum: Option<f64>,
-
-    /// Standard deviation value of all the pixels in the band
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub stddev: Option<f64>,
-
-    /// Percentage of valid (not nodata) pixel
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub valid_percent: Option<f64>,
 }
 
 /// The distribution of pixel values of a band can be provided with a histogram

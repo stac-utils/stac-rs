@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::{fmt::Display, str::FromStr};
 
 /// A version of the STAC specification.
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Eq, Hash, PartialOrd)]
 #[allow(non_camel_case_types)]
 pub enum Version {
     /// [v1.0.0](https://github.com/radiantearth/stac-spec/releases/tag/v1.0.0)

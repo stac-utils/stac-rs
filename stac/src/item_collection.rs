@@ -1,4 +1,4 @@
-use crate::{Href, Item, Link, Links};
+use crate::{Href, Item, Link, Links, Migrate};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
@@ -86,6 +86,17 @@ where
     S: serde::ser::Serializer,
 {
     crate::serialize_type(r#type, serializer, ITEM_COLLECTION_TYPE)
+}
+
+impl Migrate for ItemCollection {
+    fn migrate(mut self, version: crate::Version) -> crate::Result<Self> {
+        let mut items = Vec::with_capacity(self.items.len());
+        for item in self.items {
+            items.push(item.migrate(version)?);
+        }
+        self.items = items;
+        Ok(self)
+    }
 }
 
 #[cfg(test)]

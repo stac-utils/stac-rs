@@ -9,11 +9,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 
 - `Version` enum ([#293](https://github.com/stac-utils/stac-rs/pull/293))
+- STAC v1.1.0-beta.1 ([#294](https://github.com/stac-utils/stac-rs/pull/294)):
+  - `Asset::bands` vec and `Band` struct
+  - `nodata`, `data_type`, `statistics`, and `unit` to `Asset`
+- Migrations via a `Migrate` trait ([#294](https://github.com/stac-utils/stac-rs/pull/294))
 
 ### Changed
 
 - `STAC_VERSION` is now a `Version`, not a string ([#293](https://github.com/stac-utils/stac-rs/pull/293))
 - `version` fields on collection, catalog, and item are now public ([#293](https://github.com/stac-utils/stac-rs/pull/293))
+- `DataType` and `Statistics` structures are now top-level instead of being in the `raster` extension ([#294](https://github.com/stac-utils/stac-rs/pull/294))
 
 ## [0.7.2] - 2024-07-24
 
