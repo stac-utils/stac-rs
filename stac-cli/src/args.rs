@@ -1,5 +1,6 @@
 use crate::{Format, Result, Subcommand};
 use clap::Parser;
+use stac::{Version, STAC_VERSION};
 use std::{fs::File, io::Write};
 
 /// CLI arguments.
@@ -194,6 +195,25 @@ pub struct TranslateArgs {
     ///
     /// If not provided, output will be printed to standard output.
     pub outfile: Option<String>,
+}
+
+/// Arguments for migrating STAC values.
+#[derive(clap::Args, Debug)]
+pub struct MigrateArgs {
+    /// The input STAC value.
+    ///
+    /// If this is not provided, or is `-`, input will be read from standard
+    /// input.
+    pub infile: Option<String>,
+
+    /// The output STAC value.
+    ///
+    /// If not provided, output will be printed to standard output.
+    pub outfile: Option<String>,
+
+    /// The STAC version to migrate to.
+    #[arg(short, long, default_value_t = STAC_VERSION)]
+    pub version: Version,
 }
 
 impl Args {

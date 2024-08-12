@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+
+- `migrate` subcommand ([#294](https://github.com/stac-utils/stac-rs/pull/294))
+
 ### Changed
 
 - Switch to using structures for command arguments, and move the `execute` methods to those structures ([#285](https://github.com/stac-utils/stac-rs/pull/285))

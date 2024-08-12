@@ -39,7 +39,9 @@ mod runner;
 mod subcommand;
 
 pub use {
-    args::{Args, ItemArgs, SearchArgs, ServeArgs, SortArgs, TranslateArgs, ValidateArgs},
+    args::{
+        Args, ItemArgs, MigrateArgs, SearchArgs, ServeArgs, SortArgs, TranslateArgs, ValidateArgs,
+    },
     error::Error,
     format::Format,
     output::Output,
