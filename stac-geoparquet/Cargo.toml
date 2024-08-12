@@ -26,6 +26,6 @@ geoarrow = { git = "https://github.com/geoarrow/geoarrow-rs", rev = "509c2529613
     "parquet",
 ] }
 parquet = { version = "52", default-features = false }
-stac = { version = "0.7", path = "../stac" }
+stac = { version = "0.8", path = "../stac" }
 stac-arrow = { version = "0.0.1", path = "../stac-arrow" }
 thiserror = "1"
