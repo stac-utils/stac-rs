@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.2.0] - 2024-08-12
+
 ### Added
 
 - `impl Default for Validator` ([#252](https://github.com/stac-utils/stac-rs/pull/252))
@@ -35,7 +37,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 Initial release.
 
-[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-validate-v0.1.2...main
+[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-validate-v0.2.0...main
+[0.2.0]: https://github.com/stac-utils/stac-rs/compare/stac-validate-v0.1.2..stac-validate-v0.2.0
 [0.1.2]: https://github.com/stac-utils/stac-rs/compare/stac-validate-v0.1.1..stac-validate-v0.1.2
 [0.1.1]: https://github.com/stac-utils/stac-rs/compare/stac-validate-v0.1.0..stac-validate-v0.1.1
 [0.1.0]: https://github.com/stac-utils/stac-rs/releases/tag/stac-validate-v0.1.0

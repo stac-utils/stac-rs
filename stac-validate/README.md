@@ -14,7 +14,7 @@ To use the library in your project:
 
 ```toml
 [dependencies]
-stac-validate = "0.1"
+stac-validate = "0.2"
 ```
 
 ## Examples

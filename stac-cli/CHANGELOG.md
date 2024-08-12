@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.2.0] - 2024-08-12
+
 ### Added
 
 - `migrate` subcommand ([#294](https://github.com/stac-utils/stac-rs/pull/294))
@@ -71,7 +73,8 @@ Moved over from [stac-incubator-rs](https://github.com/gadomski/stac-incubator-r
 - Downloading ([#142](https://github.com/stac-utils/stac-rs/pull/142), [#152](https://github.com/stac-utils/stac-rs/pull/152))
 - Validation ([#155](https://github.com/stac-utils/stac-rs/pull/155))
 
-[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-cli-v0.1.0..main
+[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-cli-v0.2.0..main
+[0.2.0]: https://github.com/stac-utils/stac-rs/compare/stac-cli-v0.1.0..stac-cli-v0.2.0
 [0.1.0]: https://github.com/stac-utils/stac-rs/compare/stac-cli-v0.0.8..stac-cli-v0.1.0
 [0.0.8]: https://github.com/stac-utils/stac-rs/compare/stac-cli-v0.0.7..stac-cli-v0.0.8
 [0.0.7]: https://github.com/stac-utils/stac-rs/compare/stac-cli-v0.0.6..stac-cli-v0.0.7
