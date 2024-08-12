@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.1.1] - 2024-08-12
+
 ### Changed
 
 - Bump **pgstac** version to v0.8.6
@@ -50,7 +52,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 Initial release
 
-[unreleased]: https://github.com/stac-utils/stac-rs/compare/pgstac-v0.1.0...HEAD
+[unreleased]: https://github.com/stac-utils/stac-rs/compare/pgstac-v0.1.1...HEAD
+[0.1.1]: https://github.com/stac-utils/stac-rs/compare/pgstac-v0.1.0..pgstac-v0.1.1
 [0.1.0]: https://github.com/stac-utils/stac-rs/releases/tag/pgstac-v0.1.0
 [0.0.6]: https://github.com/stac-utils/pgstac-rs/compare/v0.0.5...v0.0.6
 [0.0.5]: https://github.com/stac-utils/pgstac-rs/compare/v0.0.4...v0.0.5
