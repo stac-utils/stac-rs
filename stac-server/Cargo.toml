@@ -38,4 +38,4 @@ serde_json = "1"
 stac-validate = { version = "0.2", path = "../stac-validate" }
 tokio = { version = "1.37", features = ["macros"] }
 tokio-test = "0.4"
-tower = "0.5"
+tower = { version = "0.5", features = ["util"] }
