@@ -45,9 +45,8 @@ where
                     }
                 }
                 Format::Geoparquet => {
-                    if value.to_stac().is_some() {
-                        unimplemented!("waiting on geoarrow v0.3 release");
-                        // stac_geoparquet::to_writer(&mut self.writer, value)?;
+                    if let Some(value) = value.to_stac() {
+                        stac_geoparquet::to_writer(&mut self.writer, value)?;
                     } else {
                         writeln!(self.writer, "{}", value)?;
                     }

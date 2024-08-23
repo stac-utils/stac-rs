@@ -1,3 +1,4 @@
+use geoarrow::io::parquet::GeoParquetRecordBatchReaderBuilder;
 use parquet::file::reader::ChunkReader;
 use stac::{ItemCollection, Value};
 use std::io::Write;
@@ -42,9 +43,13 @@ where
 {
     match value {
         Value::ItemCollection(item_collection) => {
-            let mut table = stac_arrow::to_table(item_collection)?;
-            geoarrow::io::parquet::write_geoparquet(&mut table, writer, &Default::default())
-                .map_err(Error::from)
+            let table = stac_arrow::to_table(item_collection)?;
+            geoarrow::io::parquet::write_geoparquet(
+                table.into_record_batch_reader(),
+                writer,
+                &Default::default(),
+            )
+            .map_err(Error::from)
         }
         Value::Item(item) => to_writer(writer, ItemCollection::from(vec![item.clone()]).into()),
         _ => Err(Error::UnsupportedType(value.type_name())),
@@ -66,13 +71,15 @@ pub fn from_reader<R>(reader: R) -> Result<ItemCollection>
 where
     R: ChunkReader + 'static,
 {
-    let table = geoarrow::io::parquet::read_geoparquet(reader, Default::default())?;
+    let reader = GeoParquetRecordBatchReaderBuilder::try_new(reader)?.build()?;
+    let table = reader.read_table()?;
     stac_arrow::from_table(table).map_err(Error::from)
 }
 
 #[cfg(test)]
 mod tests {
-    use stac::ItemCollection;
+    use bytes::Bytes;
+    use stac::{Href, Item, ItemCollection};
     use std::{fs::File, io::Cursor};
 
     #[test]
@@ -109,6 +116,17 @@ mod tests {
         let file = File::open("examples/extended-item.parquet").unwrap();
         let item_collection = super::from_reader(file).unwrap();
         assert_eq!(item_collection.items.len(), 1);
+    }
+
+    #[test]
+    fn roundtrip() {
+        let mut item: Item = stac::read("data/simple-item.json").unwrap();
+        item.clear_href();
+        let mut cursor = Cursor::new(Vec::new());
+        super::to_writer(&mut cursor, item.clone().into()).unwrap();
+        let bytes = Bytes::from(cursor.into_inner());
+        let item_collection = super::from_reader(bytes).unwrap();
+        assert_eq!(item_collection.items[0], item);
     }
 }
 
