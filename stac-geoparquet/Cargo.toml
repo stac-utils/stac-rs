@@ -22,10 +22,13 @@ compression = [
 ]
 
 [dependencies]
-geoarrow = { git = "https://github.com/geoarrow/geoarrow-rs", rev = "509c25296133e0fe6bf946a1a9715ea17fb0633d", features = [
+geoarrow = { git = "https://github.com/geoarrow/geoarrow-rs", features = [
     "parquet",
-] }
+], rev = "6b877486bf98f280bc04b589eb7ce25b20e629f0" }
 parquet = { version = "52", default-features = false }
 stac = { version = "0.8", path = "../stac" }
 stac-arrow = { version = "0.0.1", path = "../stac-arrow" }
 thiserror = "1"
+
+[dev-dependencies]
+bytes = "1"

@@ -173,10 +173,11 @@ pub fn to_table(item_collection: ItemCollection) -> Result<Table> {
     let mut decoder = ReaderBuilder::new(schema.clone()).build_decoder()?;
     decoder.serialize(&values)?;
     let batch = decoder.flush()?.ok_or(Error::NoItems)?;
+    let array = builder.finish();
     Table::from_arrow_and_geometry(
         vec![batch],
         schema,
-        geoarrow::chunked_array::from_geoarrow_chunks(&[&builder.finish()])?,
+        geoarrow::chunked_array::from_geoarrow_chunks(&[&array])?,
     )
     .map_err(Error::from)
 }
@@ -187,9 +188,14 @@ pub fn to_table(item_collection: ItemCollection) -> Result<Table> {
 ///
 /// ```
 /// use std::fs::File;
+/// use geoarrow::io::parquet::GeoParquetRecordBatchReaderBuilder;
 ///
 /// let file = File::open("examples/extended-item.parquet").unwrap();
-/// let table = geoarrow::io::parquet::read_geoparquet(file, Default::default()).unwrap();
+/// let reader = GeoParquetRecordBatchReaderBuilder::try_new(file)
+///     .unwrap()
+///     .build()
+///     .unwrap();
+/// let table = reader.read_table().unwrap();
 /// let item_collection = stac_arrow::from_table(table).unwrap();
 /// ```
 pub fn from_table(table: Table) -> Result<ItemCollection> {
@@ -295,6 +301,7 @@ pub fn from_table(table: Table) -> Result<ItemCollection> {
 
 #[cfg(test)]
 mod tests {
+    use geoarrow::io::parquet::GeoParquetRecordBatchReaderBuilder;
     use stac_validate::Validate;
     use std::fs::File;
 
@@ -307,10 +314,21 @@ mod tests {
     #[test]
     fn from_table() {
         let file = File::open("examples/extended-item.parquet").unwrap();
-        let table = geoarrow::io::parquet::read_geoparquet(file, Default::default()).unwrap();
+        let reader = GeoParquetRecordBatchReaderBuilder::try_new(file)
+            .unwrap()
+            .build()
+            .unwrap();
+        let table = reader.read_table().unwrap();
         let item_collection = super::from_table(table).unwrap();
         assert_eq!(item_collection.items.len(), 1);
         item_collection.items[0].validate().unwrap();
+    }
+
+    #[test]
+    fn roundtrip() {
+        let item = stac::read("data/simple-item.json").unwrap();
+        let table = super::to_table(vec![item].into()).unwrap();
+        let _ = super::from_table(table).unwrap();
     }
 }
 
