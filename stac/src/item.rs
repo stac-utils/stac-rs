@@ -802,7 +802,7 @@ mod tests {
 
     #[test]
     fn deserialize_invalid_type_field() {
-        let mut item: Value = crate::read_json("data/simple-item.json").unwrap();
+        let mut item: Value = crate::io::read_json("data/simple-item.json").unwrap();
         item["type"] = "Item".into(); // must be "Feature"
         assert!(serde_json::from_value::<Item>(item).is_err());
     }
