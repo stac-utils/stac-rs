@@ -162,7 +162,7 @@ pub struct Properties {
     ///
     /// It is formatted according to RFC 3339, section 5.6. null is allowed, but
     /// requires `start_datetime` and `end_datetime` from common metadata to be set.
-    pub datetime: Option<String>,
+    pub datetime: Option<DateTime<Utc>>,
 
     /// The first or start date and time for the Item, in UTC.
     ///
@@ -172,7 +172,7 @@ pub struct Properties {
     /// metadata](https://github.com/radiantearth/stac-spec/blob/master/item-spec/common-metadata.md)
     /// field.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub start_datetime: Option<String>,
+    pub start_datetime: Option<DateTime<Utc>>,
 
     /// The last or end date and time for the Item, in UTC.
     ///
@@ -182,7 +182,7 @@ pub struct Properties {
     /// metadata](https://github.com/radiantearth/stac-spec/blob/master/item-spec/common-metadata.md)
     /// field.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub end_datetime: Option<String>,
+    pub end_datetime: Option<DateTime<Utc>>,
 
     /// A human readable title describing the Item.
     ///
@@ -344,7 +344,7 @@ impl Builder {
 impl Default for Properties {
     fn default() -> Properties {
         Properties {
-            datetime: Some(Utc::now().to_rfc3339()),
+            datetime: Some(Utc::now()),
             start_datetime: None,
             end_datetime: None,
             title: None,
@@ -512,7 +512,7 @@ impl Item {
     /// ```
     /// use stac::Item;
     /// let mut item = Item::new("an-id");
-    /// item.properties.datetime = Some("2023-07-11T12:00:00Z".to_string());
+    /// item.properties.datetime = Some("2023-07-11T12:00:00Z".parse().unwrap());
     /// assert!(item.intersects_datetime_str("2023-07-11T00:00:00Z/2023-07-12T00:00:00Z").unwrap());
     /// ```
     pub fn intersects_datetime_str(&self, datetime: &str) -> Result<bool> {
@@ -528,7 +528,7 @@ impl Item {
     /// ```
     /// use stac::Item;
     /// let mut item = Item::new("an-id");
-    /// item.properties.datetime = Some("2023-07-11T12:00:00Z".to_string());
+    /// item.properties.datetime = Some("2023-07-11T12:00:00Z".parse().unwrap());
     /// let (start, end) = stac::datetime::parse("2023-07-11T00:00:00Z/2023-07-12T00:00:00Z").unwrap();
     /// assert!(item.intersects_datetimes(start, end).unwrap());
     /// ```
@@ -537,28 +537,9 @@ impl Item {
         start: Option<DateTime<FixedOffset>>,
         end: Option<DateTime<FixedOffset>>,
     ) -> Result<bool> {
-        let item_datetime = self
-            .properties
-            .datetime
-            .as_ref()
-            .map(|s| DateTime::parse_from_rfc3339(s))
-            .transpose()?;
-        let item_start = self
-            .properties
-            .additional_fields
-            .get("start_datetime")
-            .and_then(|value| value.as_str())
-            .map(DateTime::parse_from_rfc3339)
-            .transpose()?
-            .or(item_datetime);
-        let item_end = self
-            .properties
-            .additional_fields
-            .get("end_datetime")
-            .and_then(|value| value.as_str())
-            .map(DateTime::parse_from_rfc3339)
-            .transpose()?
-            .or(item_datetime);
+        let item_datetime = self.properties.datetime;
+        let item_start = self.properties.start_datetime.or(item_datetime);
+        let item_end = self.properties.end_datetime.or(item_datetime);
         let mut intersects = true;
         if let Some(start) = start {
             if let Some(item_end) = item_end {
@@ -871,7 +852,7 @@ mod tests {
     #[test]
     fn intersects_datetime() {
         let mut item = Item::new("an-id");
-        item.properties.datetime = Some("2023-07-11T12:00:00Z".to_string());
+        item.properties.datetime = Some("2023-07-11T12:00:00Z".parse().unwrap());
         for datetime in [
             "2023-07-11T12:00:00Z",
             "2023-07-11T00:00:00Z/2023-07-12T00:00:00Z",
