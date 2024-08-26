@@ -222,9 +222,9 @@ mod tests {
             #[test]
             fn $function() {
                 use assert_json_diff::assert_json_eq;
+                use chrono::{DateTime, Utc};
                 use serde_json::Value;
-                use std::fs::File;
-                use std::io::BufReader;
+                use std::{fs::File, io::BufReader};
 
                 let file = File::open($filename).unwrap();
                 let buf_reader = BufReader::new(file);
@@ -237,6 +237,20 @@ mod tests {
                         .unwrap_or_default()
                     {
                         let _ = object.remove("stac_extensions");
+                    }
+                    if let Some(properties) =
+                        object.get_mut("properties").and_then(|v| v.as_object_mut())
+                    {
+                        if let Some(datetime) = properties.get("datetime") {
+                            if !datetime.is_null() {
+                                let datetime: DateTime<Utc> =
+                                    serde_json::from_value(datetime.clone()).unwrap();
+                                let _ = properties.insert(
+                                    "datetime".to_string(),
+                                    serde_json::to_value(datetime).unwrap(),
+                                );
+                            }
+                        }
                     }
                 }
                 let object: $object = serde_json::from_value(before.clone()).unwrap();

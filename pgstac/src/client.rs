@@ -576,7 +576,7 @@ mod tests {
         let mut item = Item::new("an-id");
         item.collection = Some("collection-id".to_string());
         item.geometry = Some(longmont());
-        item.properties.datetime = Some("2023-01-07T00:00:00Z".to_string());
+        item.properties.datetime = Some("2023-01-07T00:00:00Z".parse().unwrap());
         client.add_item(item.clone()).await.unwrap();
         let mut search = Search::default();
         search.items.datetime = Some("2023-01-07T00:00:00Z".to_string());
@@ -638,11 +638,11 @@ mod tests {
         client.add_collection(collection).await.unwrap();
         let mut item = Item::new("an-id");
         item.collection = Some("collection-id".to_string());
-        item.properties.datetime = Some("2023-01-08T00:00:00Z".to_string());
+        item.properties.datetime = Some("2023-01-08T00:00:00Z".parse().unwrap());
         item.geometry = Some(longmont());
         client.add_item(item.clone()).await.unwrap();
         item.id = "another-id".to_string();
-        item.properties.datetime = Some("2023-01-07T00:00:00Z".to_string());
+        item.properties.datetime = Some("2023-01-07T00:00:00Z".parse().unwrap());
         client.add_item(item).await.unwrap();
         let mut search = Search::default();
         search.items.limit = Some(1);

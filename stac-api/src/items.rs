@@ -226,7 +226,7 @@ impl Items {
     /// assert!(search.datetime_matches(&item).unwrap());
     /// search.datetime = Some("../2023-10-09T00:00:00Z".to_string());
     /// assert!(!search.datetime_matches(&item).unwrap());
-    /// item.properties.datetime = Some("2023-10-08T00:00:00Z".to_string());
+    /// item.properties.datetime = Some("2023-10-08T00:00:00Z".parse().unwrap());
     /// assert!(search.datetime_matches(&item).unwrap());
     /// ```
     pub fn datetime_matches(&self, item: &Item) -> Result<bool> {
