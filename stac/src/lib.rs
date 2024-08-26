@@ -151,7 +151,7 @@ pub use {
     extensions::{Extension, Extensions},
     fields::Fields,
     href::{href_to_url, Href},
-    io::{read, read_json},
+    io::read,
     item::{FlatItem, Item, Properties, ITEM_TYPE},
     item_collection::{ItemCollection, ITEM_COLLECTION_TYPE},
     link::{Link, Links},

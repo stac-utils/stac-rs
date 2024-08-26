@@ -17,14 +17,7 @@ pub fn read<T: Href + DeserializeOwned>(href: impl ToString) -> Result<T> {
     Ok(value)
 }
 
-/// Reads any deserializable value from the JSON at an href.
-///
-/// # Examples
-///
-/// ```
-/// let value: stac::Item = stac::read_json("data/simple-item.json").unwrap();
-/// ```
-pub fn read_json<T>(href: &str) -> Result<T>
+pub(crate) fn read_json<T>(href: &str) -> Result<T>
 where
     T: DeserializeOwned,
 {
