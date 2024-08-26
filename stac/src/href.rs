@@ -9,6 +9,7 @@ use url::Url;
 ///
 /// ```
 /// use stac::{Item, Href};
+///
 /// let item = Item::new("an-id");
 /// assert!(item.href().is_none());
 /// let item: Item = stac::read("data/simple-item.json").unwrap();
@@ -16,10 +17,41 @@ use url::Url;
 /// ```
 pub trait Href {
     /// Gets this object's href.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::{Href, Item};
+    ///
+    /// let item: Item = stac::read("data/simple-item.json").unwrap();
+    /// assert_eq!(item.href(), Some("data/simple-item.json"));
+    /// ```
     fn href(&self) -> Option<&str>;
 
     /// Sets this object's href.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::{Item, Href};
+    ///
+    /// let mut item = Item::new("an-id");
+    /// item.set_href("http://stac.test/item.json");
+    /// ```
     fn set_href(&mut self, href: impl ToString);
+
+    /// Clears this object's href.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::{Href, Item};
+    ///
+    /// let mut item: Item = stac::read("data/simple-item.json").unwrap();
+    /// item.clear_href();
+    /// assert!(item.href().is_none());
+    /// ```
+    fn clear_href(&mut self);
 }
 
 /// Parses an href into a [Url] if the scheme is `http` or `https`.

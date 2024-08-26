@@ -204,6 +204,16 @@ impl Href for Value {
             ItemCollection(item_collection) => item_collection.set_href(href),
         }
     }
+
+    fn clear_href(&mut self) {
+        use Value::*;
+        match self {
+            Catalog(catalog) => catalog.clear_href(),
+            Collection(collection) => collection.clear_href(),
+            Item(item) => item.clear_href(),
+            ItemCollection(item_collection) => item_collection.clear_href(),
+        }
+    }
 }
 
 impl Links for Value {
