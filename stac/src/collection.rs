@@ -195,6 +195,10 @@ impl Href for Collection {
     fn set_href(&mut self, href: impl ToString) {
         self.href = Some(href.to_string())
     }
+
+    fn clear_href(&mut self) {
+        self.href = None;
+    }
 }
 
 impl Links for Collection {

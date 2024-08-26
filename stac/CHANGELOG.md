@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Changed
 
 - Use `DateTime<Utc>` instead of `String` for datetimes ([#297](https://github.com/stac-utils/stac-rs/pull/297))
+- Add `Href.clear_href` ([#299](https://github.com/stac-utils/stac-rs/pull/299))
 
 ## [0.8.0] - 2024-08-12
 
