@@ -4,6 +4,8 @@
 ![Crates.io](https://img.shields.io/crates/l/stac?style=for-the-badge)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?style=for-the-badge)](./CODE_OF_CONDUCT)
 
+![Ferris the crab holding the STAC logo](./img/rustacean-and-stac-small.png)
+
 Command Line Interface (CLI) and Rust libraries for the [SpatioTemporal Asset Catalog (STAC)](https://stacspec.org/) specification.
 
 - Use [stac-cli](./stac-cli/README.md) to query a STAC API, create and validate STAC items, and do other awesome stuff on the command line.
