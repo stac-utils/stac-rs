@@ -302,6 +302,7 @@ pub fn from_table(table: Table) -> Result<ItemCollection> {
 #[cfg(test)]
 mod tests {
     use geoarrow::io::parquet::GeoParquetRecordBatchReaderBuilder;
+    use stac::ItemCollection;
     use stac_validate::Validate;
     use std::fs::File;
 
@@ -328,6 +329,13 @@ mod tests {
     fn roundtrip() {
         let item = stac::read("data/simple-item.json").unwrap();
         let table = super::to_table(vec![item].into()).unwrap();
+        let _ = super::from_table(table).unwrap();
+    }
+
+    #[test]
+    fn roundtrip_with_missing_asset() {
+        let items: ItemCollection = stac::read("examples/two-sentinel-2-items.json").unwrap();
+        let table = super::to_table(items).unwrap();
         let _ = super::from_table(table).unwrap();
     }
 }

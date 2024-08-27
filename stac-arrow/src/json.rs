@@ -435,7 +435,13 @@ fn record_batches_to_json_rows_internal(
         }
     }
 
-    Ok(rows.into_iter().map(|a| a.unwrap()))
+    Ok(rows.into_iter().map(|a| {
+        let mut a = a.unwrap();
+        if let Some(assets) = a.get_mut("assets").and_then(|a| a.as_object_mut()) {
+            assets.retain(|_, asset| asset.is_object());
+        }
+        a
+    }))
 }
 
 fn convert_bbox(obj: serde_json::Map<String, Value>) -> Value {
