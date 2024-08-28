@@ -3,6 +3,7 @@ resolver = "2"
 members = [
     "stac",
     "pgstac",
+    "python",
     "stac-api",
     "stac-arrow",
     "stac-async",
@@ -12,6 +13,7 @@ members = [
     "stac-validate",
 ]
 default-members = [
+    "python",
     "stac",
     "stac-api",
     "stac-arrow",

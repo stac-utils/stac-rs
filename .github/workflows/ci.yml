@@ -7,7 +7,7 @@ on:
   pull_request:
 
 concurrency:
-  group: ${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -83,6 +83,22 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Test
         run: cargo test --no-default-features -F reqwest -F geo
+  test-python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
+      - name: Install maturin and pytest
+        run: pip install maturin pytest
+      - name: Build
+        run: maturin build --manifest-path python/Cargo.toml --out dist
+      - name: Install stacrs
+        run: pip install stacrs --find-links dist
+      - name: Test
+        run: pytest python/tests
   check:
     runs-on: ubuntu-latest
     steps:

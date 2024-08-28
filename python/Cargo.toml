@@ -1,0 +1,19 @@
+[package]
+name = "python"
+version = "0.0.1"
+edition = "2021"
+publish = false
+
+[lib]
+name = "stacrs"
+crate-type = ["cdylib"]
+
+[features]
+# Fixes cross-platform builds in the maturin action
+openssl-vendored = ["openssl/vendored"]
+
+[dependencies]
+openssl = { version = "0.10", optional = true }
+pyo3 = "0.22"
+stac = { version = "0.8", path = "../stac", features = ["reqwest"] }
+stac-validate = { version = "0.2", path = "../stac-validate" }
