@@ -1,7 +1,7 @@
 //! STAC Items.
 
 use crate::{
-    Asset, Assets, Error, Extensions, Fields, Href, Link, Links, Migrate, Result, Version,
+    Asset, Assets, Bbox, Error, Extensions, Fields, Href, Link, Links, Migrate, Result, Version,
     STAC_VERSION,
 };
 use chrono::{DateTime, FixedOffset, Utc};
@@ -73,7 +73,7 @@ pub struct Item {
     ///
     /// REQUIRED if `geometry` is not `null`.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub bbox: Option<Vec<f64>>,
+    pub bbox: Option<Bbox>,
 
     /// A dictionary of additional metadata for the `Item`.
     pub properties: Properties,
@@ -138,7 +138,7 @@ pub struct FlatItem {
 
     /// Can be a 4 or 6 value vector, depending on dimension of the data.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub bbox: Option<Vec<f64>>,
+    pub bbox: Option<Bbox>,
 
     /// List of link objects to resources and related URLs.
     pub links: Vec<Link>,
@@ -426,7 +426,7 @@ impl Item {
     ///
     /// let mut item = Item::new("an-id");
     /// item.set_geometry(Some(Geometry::new(Value::Point(vec![-105.1, 41.1]))));
-    /// assert_eq!(item.bbox.unwrap(), vec![-105.1, 41.1, -105.1, 41.1]);
+    /// assert_eq!(item.bbox.unwrap(), vec![-105.1, 41.1, -105.1, 41.1].try_into().unwrap());
     /// ```
     #[cfg(feature = "geo")]
     pub fn set_geometry(&mut self, geometry: impl Into<Option<Geometry>>) -> Result<()> {
@@ -437,11 +437,7 @@ impl Item {
             .as_ref()
             .and_then(|geometry| geo::Geometry::try_from(geometry).ok())
             .and_then(|geometry| geometry.bounding_rect())
-            .map(|rect| {
-                let min = rect.min();
-                let max = rect.max();
-                vec![min.x, min.y, max.x, max.y]
-            });
+            .map(Bbox::from);
         self.geometry = serde_json::from_value(serde_json::to_value(geometry)?)?;
         Ok(())
     }
@@ -708,7 +704,7 @@ impl TryFrom<Feature> for Item {
                 Id::String(id) => id,
                 Id::Number(id) => id.to_string(),
             });
-            item.bbox = feature.bbox;
+            item.bbox = feature.bbox.map(|bbox| bbox.try_into()).transpose()?;
             item.geometry = feature.geometry;
             item.properties = feature
                 .properties
@@ -727,7 +723,7 @@ impl TryFrom<Item> for Feature {
     type Error = Error;
     fn try_from(item: Item) -> Result<Feature> {
         Ok(Feature {
-            bbox: item.bbox,
+            bbox: item.bbox.map(Bbox::into),
             geometry: item.geometry,
             id: Some(Id::String(item.id)),
             properties: match serde_json::to_value(item.properties)? {
@@ -823,7 +819,10 @@ mod tests {
             -105.1, 41.1,
         ]))))
         .unwrap();
-        assert_eq!(item.bbox, Some(vec![-105.1, 41.1, -105.1, 41.1]));
+        assert_eq!(
+            item.bbox,
+            Some(vec![-105.1, 41.1, -105.1, 41.1].try_into().unwrap())
+        );
     }
 
     #[test]
@@ -992,7 +991,7 @@ mod tests {
             extensions: Vec::new(),
             id: "an-id".to_string(),
             geometry: Some(Geometry::new(Value::Point(vec![-105.1, 41.1]))),
-            bbox: Some(vec![-105., 41., -105., 41.]),
+            bbox: Some(vec![-105., 41., -105., 41.].try_into().unwrap()),
             links: Vec::new(),
             assets: Default::default(),
             collection: None,
@@ -1005,7 +1004,7 @@ mod tests {
     fn flat_item_without_geometry() {
         let mut item = Item::new("an-item");
         item.add_extension::<Projection>();
-        item.bbox = Some(vec![-105., 42., -105., -42.]);
+        item.bbox = Some(vec![-105., 42., -105., -42.].try_into().unwrap());
         let mut value = serde_json::to_value(item).unwrap();
         let _ = value.as_object_mut().unwrap().remove("geometry").unwrap();
         let flat_item: FlatItem = serde_json::from_value(value).unwrap();

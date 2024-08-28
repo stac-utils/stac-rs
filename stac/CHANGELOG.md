@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+
+- `Bbox` ([#303](https://github.com/stac-utils/stac-rs/pull/303))
+
 ### Changed
 
 - Use `DateTime<Utc>` instead of `String` for datetimes ([#297](https://github.com/stac-utils/stac-rs/pull/297))
@@ -14,6 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Removed
 
 - `stac::read_json` from the public API ([#301](https://github.com/stac-utils/stac-rs/pull/301))
+- `Bounds` ([#303](https://github.com/stac-utils/stac-rs/pull/303))
 
 ## [0.8.0] - 2024-08-12
 

@@ -117,7 +117,7 @@
 
 mod asset;
 mod band;
-mod bounds;
+mod bbox;
 mod catalog;
 mod collection;
 mod data_type;
@@ -143,7 +143,7 @@ mod version;
 pub use {
     asset::{Asset, Assets},
     band::Band,
-    bounds::Bounds,
+    bbox::Bbox,
     catalog::{Catalog, CATALOG_TYPE},
     collection::{Collection, Extent, Provider, SpatialExtent, TemporalExtent, COLLECTION_TYPE},
     data_type::DataType,
