@@ -533,9 +533,7 @@ impl Item {
         start: Option<DateTime<FixedOffset>>,
         end: Option<DateTime<FixedOffset>>,
     ) -> Result<bool> {
-        let item_datetime = self.properties.datetime;
-        let item_start = self.properties.start_datetime.or(item_datetime);
-        let item_end = self.properties.end_datetime.or(item_datetime);
+        let (item_start, item_end) = self.datetimes();
         let mut intersects = true;
         if let Some(start) = start {
             if let Some(item_end) = item_end {
@@ -552,6 +550,13 @@ impl Item {
             }
         }
         Ok(intersects)
+    }
+
+    pub(crate) fn datetimes(&self) -> (Option<DateTime<Utc>>, Option<DateTime<Utc>>) {
+        let item_datetime = self.properties.datetime;
+        let item_start = self.properties.start_datetime.or(item_datetime);
+        let item_end = self.properties.end_datetime.or(item_datetime);
+        (item_start, item_end)
     }
 
     /// Converts this item into a [FlatItem].

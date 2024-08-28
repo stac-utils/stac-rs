@@ -252,6 +252,26 @@ mod tests {
                             }
                         }
                     }
+                    if let Some(intervals) = object
+                        .get_mut("extent")
+                        .and_then(|v| v.as_object_mut())
+                        .and_then(|o| o.get_mut("temporal"))
+                        .and_then(|v| v.as_object_mut())
+                        .and_then(|o| o.get_mut("interval"))
+                        .and_then(|v| v.as_array_mut())
+                    {
+                        for interval in intervals {
+                            if let Some(interval) = interval.as_array_mut() {
+                                for datetime in interval {
+                                    if !datetime.is_null() {
+                                        let dt: DateTime<Utc> =
+                                            serde_json::from_value(datetime.clone()).unwrap();
+                                        *datetime = serde_json::to_value(dt).unwrap();
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
                 let object: $object = serde_json::from_value(before.clone()).unwrap();
                 let after = serde_json::to_value(object).unwrap();
