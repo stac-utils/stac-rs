@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 
 - Geoparquet support ([#300](https://github.com/stac-utils/stac-rs/pull/300))
+- Auto-create collections when serving ([#304](https://github.com/stac-utils/stac-rs/pull/304))
 
 ## [0.2.0] - 2024-08-12
 
