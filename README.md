@@ -27,6 +27,17 @@ This monorepo contains several crates:
 | [stac-server](./stac-server/README.md)| STAC API server with multiple backends | [![docs.rs](https://img.shields.io/docsrs/stac-server?style=flat-square)](https://docs.rs/stac-server/latest/stac_server/) <br> [![Crates.io](https://img.shields.io/crates/v/stac-server?style=flat-square)](https://crates.io/crates/stac-server) |
 | [stac-validate](./stac-validate/README.md) | Validate STAC data structures with [jsonschema](https://json-schema.org/) | [![docs.rs](https://img.shields.io/docsrs/stac-validate?style=flat-square)](https://docs.rs/stac-validate/latest/stac-validate/) <br> [![Crates.io](https://img.shields.io/crates/v/stac-validate?style=flat-square)](https://crates.io/crates/stac-validate) |
 
+## Bindings
+
+This repo includes Python bindings, called **stacrs**.
+Install with **pip**:
+
+```shell
+pip install stacrs
+```
+
+See [the README](./python/README.md) for more information.
+
 ## Development
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for information about contributing to this project.
