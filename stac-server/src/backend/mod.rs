@@ -9,6 +9,7 @@ pub use memory::MemoryBackend;
 pub use pgstac::PgstacBackend;
 use stac::{Collection, Item, Value};
 use stac_api::{ItemCollection, Items, Search};
+use std::collections::{HashMap, HashSet};
 
 /// Storage backend for a STAC API.
 #[async_trait]
@@ -26,7 +27,9 @@ pub trait Backend: Clone + Sync + Send + 'static {
 
     /// Adds collections and items from hrefs.
     ///
-    /// A default implementation is provided.
+    /// A default implementation is provided. If `auto_create_collections` is
+    /// true, then, _if_ there is no collection for one or more items, a
+    /// collection will be auto-created before adding the items.
     ///
     /// # Examples
     ///
@@ -37,29 +40,67 @@ pub trait Backend: Clone + Sync + Send + 'static {
     /// backend.add_from_hrefs(&[
     ///     "tests/data/collection.json".to_string(),
     ///     "tests/data/feature.geojson".to_string(),
-    /// ]);
+    /// ], false);
     /// # })
     /// ```
-    async fn add_from_hrefs(&mut self, hrefs: &[String]) -> Result<()> {
-        let mut items = Vec::new();
+    async fn add_from_hrefs(
+        &mut self,
+        hrefs: &[String],
+        auto_create_collections: bool,
+    ) -> Result<()> {
+        let mut items: HashMap<Option<String>, Vec<Item>> = HashMap::new();
+        let mut item_collection_ids = HashSet::new();
+        let mut collection_ids = HashSet::new();
         for href in hrefs {
             let value: Value = stac_async::read(href).await?;
             match value {
-                Value::Item(item) => items.push(item),
+                Value::Item(item) => {
+                    if let Some(collection) = item.collection.as_ref() {
+                        let collection = collection.clone();
+                        let _ = item_collection_ids.insert(collection.clone());
+                        let _ = items.entry(Some(collection)).or_default().push(item);
+                    } else {
+                        let _ = items.entry(None).or_default().push(item);
+                    }
+                }
                 Value::Catalog(catalog) => {
                     return Err(Error::Backend(format!(
                         "cannot add catalog with id={} to the backend",
                         catalog.id
                     )))
                 }
-                Value::Collection(collection) => self.add_collection(collection).await?,
+                Value::Collection(collection) => {
+                    let _ = collection_ids.insert(collection.id.clone());
+                    self.add_collection(collection).await?
+                }
                 Value::ItemCollection(item_collection) => {
-                    items.extend(item_collection.items.into_iter())
+                    for item in item_collection.items {
+                        if let Some(collection) = item.collection.as_ref() {
+                            let collection = collection.clone();
+                            let _ = item_collection_ids.insert(collection.clone());
+                            let _ = items.entry(Some(collection)).or_default().push(item);
+                        } else {
+                            let _ = items.entry(None).or_default().push(item);
+                        }
+                    }
                 }
             }
         }
-        for item in items {
-            self.add_item(item).await?;
+        if auto_create_collections {
+            for id in item_collection_ids {
+                if !collection_ids.contains(&id) {
+                    let items = items
+                        .get(&Some(id.clone())) // TODO can we get rid of this clone?
+                        .expect("should have items for collection id");
+                    let collection = Collection::from_id_and_items(id, items);
+                    self.add_collection(collection).await?;
+                }
+            }
+        }
+        for (_, items) in items {
+            for item in items {
+                self.add_item(item).await?;
+            }
         }
         Ok(())
     }
@@ -177,4 +218,27 @@ pub trait Backend: Clone + Sync + Send + 'static {
     /// # })
     /// ```
     async fn search(&self, search: Search) -> Result<ItemCollection>;
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Backend;
+    use crate::MemoryBackend;
+
+    #[tokio::test]
+    async fn auto_create_collection() {
+        let mut backend = MemoryBackend::new();
+        backend
+            .add_from_hrefs(
+                &["../spec-examples/v1.0.0/simple-item.json".to_string()],
+                true,
+            )
+            .await
+            .unwrap();
+        let _ = backend
+            .collection("simple-collection")
+            .await
+            .unwrap()
+            .unwrap();
+    }
 }
