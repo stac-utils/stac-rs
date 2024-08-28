@@ -12,7 +12,9 @@ impl Subcommand {
             {
                 let mut backend = stac_server::PgstacBackend::new_from_stringlike(pgstac).await?;
                 if !args.href.is_empty() {
-                    backend.add_from_hrefs(&args.href).await?;
+                    backend
+                        .add_from_hrefs(&args.href, !args.dont_auto_create_collections)
+                        .await?;
                 }
                 let api = Api::new(backend, root)?;
                 let router = stac_server::routes::from_api(api);
@@ -29,7 +31,9 @@ impl Subcommand {
         } else {
             let mut backend = MemoryBackend::new();
             if !args.href.is_empty() {
-                backend.add_from_hrefs(&args.href).await?;
+                backend
+                    .add_from_hrefs(&args.href, !args.dont_auto_create_collections)
+                    .await?;
             }
             let api = Api::new(backend, root)?;
             let router = stac_server::routes::from_api(api);

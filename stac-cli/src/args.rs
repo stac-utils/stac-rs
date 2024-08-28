@@ -151,6 +151,10 @@ pub struct ServeArgs {
     /// The pgstac connection string.
     #[arg(long)]
     pub pgstac: Option<String>,
+
+    /// Don't auto-create collections for items that are missing them.
+    #[arg(short, long)]
+    pub dont_auto_create_collections: bool,
 }
 
 /// Arguments for sorting a STAC value.
