@@ -9,10 +9,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 
 - `Bbox` ([#303](https://github.com/stac-utils/stac-rs/pull/303))
+- Functions to create collections from items ([#304](https://github.com/stac-utils/stac-rs/pull/304))
 
 ### Changed
 
-- Use `DateTime<Utc>` instead of `String` for datetimes ([#297](https://github.com/stac-utils/stac-rs/pull/297))
+- Use `DateTime<Utc>` instead of `String` for datetimes ([#297](https://github.com/stac-utils/stac-rs/pull/297), [#304](https://github.com/stac-utils/stac-rs/pull/304))
 - Add `Href.clear_href` ([#299](https://github.com/stac-utils/stac-rs/pull/299))
 
 ### Removed
