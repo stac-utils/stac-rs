@@ -4,13 +4,27 @@ build-backend = "maturin"
 
 [project]
 name = "stacrs"
+description = "Work with STAC, using Rust under the hood"
+readme = "README.md"
+authors = [{ name = "Pete Gadomski", email = "pete.gadomski@gmail.com" }]
 requires-python = ">=3.8"
 classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Natural Language :: English",
     "Programming Language :: Rust",
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: Implementation :: PyPy",
+    "License :: OSI Approved :: Apache Software License",
+    "License :: OSI Approved :: MIT License",
+    "Typing :: Typed",
 ]
+keywords = ["stac", "geospatial"]
 dynamic = ["version"]
+
+[project.urls]
+Repository = "https://github.com/stac-utils/stac-rs/tree/main/python"
+Issues = "https://github.com/stac-utils/stac-rs/issues"
 
 [tool.maturin]
 features = ["pyo3/extension-module"]
