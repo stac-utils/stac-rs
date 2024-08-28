@@ -1,5 +1,5 @@
 use crate::{
-    Asset, Assets, Error, Extensions, Fields, Href, Link, Links, Migrate, Result, Version,
+    Asset, Assets, Bbox, Error, Extensions, Fields, Href, Link, Links, Migrate, Result, Version,
     STAC_VERSION,
 };
 use serde::{Deserialize, Serialize};
@@ -145,7 +145,7 @@ pub struct Extent {
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct SpatialExtent {
     /// Potential spatial extents covered by the Collection.
-    pub bbox: Vec<Vec<f64>>,
+    pub bbox: Vec<Bbox>,
 }
 
 /// The object describes the temporal extents of the Collection.
@@ -234,7 +234,7 @@ impl Provider {
 impl Default for SpatialExtent {
     fn default() -> SpatialExtent {
         SpatialExtent {
-            bbox: vec![vec![-180.0, -90.0, 180.0, 90.0]],
+            bbox: vec![Default::default()],
         }
     }
 }
@@ -371,11 +371,15 @@ mod tests {
 
     mod extent {
         use super::Extent;
+        use crate::Bbox;
 
         #[test]
         fn default() {
             let extent = Extent::default();
-            assert_eq!(extent.spatial.bbox, [[-180.0, -90.0, 180.0, 90.0]]);
+            assert_eq!(
+                extent.spatial.bbox[0],
+                Bbox::TwoDimensional([-180.0, -90.0, 180.0, 90.0])
+            );
             assert_eq!(extent.temporal.interval, [[None, None]]);
             assert!(extent.additional_fields.is_empty());
         }

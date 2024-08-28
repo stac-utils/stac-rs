@@ -6,7 +6,7 @@ use crate::{
         raster::{Band, Raster, Statistics},
         Projection,
     },
-    Asset, Bounds, Extensions, Item, Result,
+    Asset, Bbox, Extensions, Item, Result,
 };
 use gdal::{
     spatial_ref::{CoordTransform, SpatialRef},
@@ -35,13 +35,13 @@ pub fn update_item(
     let mut has_raster = false;
     let mut has_projection = false;
     let mut projections = Vec::new();
-    let mut bounds = Bounds::default();
+    let mut bbox = Bbox::default(); // TODO support 2D
     for asset in item.assets.values_mut() {
         update_asset(asset, force_statistics, is_approx_statistics_ok)?;
         if let Some(projection) = asset.extension::<Projection>()? {
             has_projection = true;
             if let Some(asset_bounds) = projection.wgs84_bounds()? {
-                bounds.update(asset_bounds);
+                bbox.update(asset_bounds);
             }
             projections.push(projection);
         }
@@ -49,9 +49,9 @@ pub fn update_item(
             has_raster = true;
         }
     }
-    if bounds.is_valid() {
-        item.geometry = Some(bounds.to_geometry());
-        item.bbox = Some(vec![bounds.xmin, bounds.ymin, bounds.xmax, bounds.ymax]);
+    if bbox.is_valid() {
+        item.geometry = Some(bbox.to_geometry());
+        item.bbox = Some(bbox);
     }
     if has_projection {
         if !projections.is_empty()

@@ -75,7 +75,7 @@ impl Projection {
     /// let bounds = projection.wgs84_bounds().unwrap().unwrap();
     /// ```
     #[cfg(feature = "gdal")]
-    pub fn wgs84_bounds(&self) -> crate::Result<Option<crate::Bounds>> {
+    pub fn wgs84_bounds(&self) -> crate::Result<Option<crate::Bbox>> {
         use gdal::spatial_ref::{AxisMappingStrategy, CoordTransform, SpatialRef};
 
         if let Some(bbox) = self.bbox.as_ref() {
@@ -90,7 +90,7 @@ impl Projection {
                 let bounds =
                     coord_transform.transform_bounds(&[bbox[0], bbox[1], bbox[2], bbox[3]], 21)?;
                 let round = |n: f64| (n * 10_000_000.).round() / 10_000_000.;
-                Ok(Some(crate::Bounds::new(
+                Ok(Some(crate::Bbox::new(
                     round(bounds[0]),
                     round(bounds[1]),
                     round(bounds[2]),
@@ -149,7 +149,11 @@ mod tests {
             ..Default::default()
         };
         let bounds = projection.wgs84_bounds().unwrap().unwrap();
-        assert!((bounds.xmin - -61.2876244).abs() < 0.1, "{}", bounds.xmin);
-        assert!((bounds.ymin - 72.229798).abs() < 0.1);
+        assert!(
+            (bounds.xmin() - -61.2876244).abs() < 0.1,
+            "{}",
+            bounds.xmin()
+        );
+        assert!((bounds.ymin() - 72.229798).abs() < 0.1);
     }
 }
