@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "stacrs"
-description = "Work with STAC, using Rust under the hood"
+description = "A small STAC library with Rust under the hood"
 readme = "README.md"
 authors = [{ name = "Pete Gadomski", email = "pete.gadomski@gmail.com" }]
 requires-python = ">=3.8"
