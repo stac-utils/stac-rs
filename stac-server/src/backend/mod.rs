@@ -7,7 +7,7 @@ use async_trait::async_trait;
 pub use memory::MemoryBackend;
 #[cfg(feature = "pgstac")]
 pub use pgstac::PgstacBackend;
-use stac::{Collection, Item, Value};
+use stac::{Collection, Item, Links, Value};
 use stac_api::{ItemCollection, Items, Search};
 use std::collections::{HashMap, HashSet};
 
@@ -54,7 +54,8 @@ pub trait Backend: Clone + Sync + Send + 'static {
         for href in hrefs {
             let value: Value = stac_async::read(href).await?;
             match value {
-                Value::Item(item) => {
+                Value::Item(mut item) => {
+                    item.remove_structural_links();
                     if let Some(collection) = item.collection.as_ref() {
                         let collection = collection.clone();
                         let _ = item_collection_ids.insert(collection.clone());
@@ -69,12 +70,14 @@ pub trait Backend: Clone + Sync + Send + 'static {
                         catalog.id
                     )))
                 }
-                Value::Collection(collection) => {
+                Value::Collection(mut collection) => {
+                    collection.remove_structural_links();
                     let _ = collection_ids.insert(collection.id.clone());
                     self.add_collection(collection).await?
                 }
                 Value::ItemCollection(item_collection) => {
-                    for item in item_collection.items {
+                    for mut item in item_collection.items {
+                        item.remove_structural_links();
                         if let Some(collection) = item.collection.as_ref() {
                             let collection = collection.clone();
                             let _ = item_collection_ids.insert(collection.clone());
