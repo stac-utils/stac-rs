@@ -1,0 +1,30 @@
+site_name: stacrs
+site_url: https://stacrs.readthedocs.org
+repo_url: https://github.com/stac-utils/stac-rs
+theme:
+  name: material
+  icon:
+    repo: fontawesome/brands/github
+nav:
+  - Home: index.md
+  - API: api.md
+plugins:
+  - search
+  - mkdocstrings:
+      enable_inventory: true
+      handlers:
+        python:
+          load_external_modules: false
+          options:
+            show_root_heading: true
+            show_signature: true
+            show_signature_annotations: true
+            separate_signature: false
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences

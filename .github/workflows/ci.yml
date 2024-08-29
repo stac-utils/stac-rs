@@ -96,7 +96,7 @@ jobs:
       - name: Build
         run: maturin build --manifest-path python/Cargo.toml --out dist
       - name: Install stacrs
-        run: pip install stacrs --find-links dist
+        run: pip install stacrs --find-links dist --no-index
       - name: Test
         run: pytest python/tests
   check:
