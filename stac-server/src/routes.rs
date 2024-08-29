@@ -10,6 +10,7 @@ use axum::{
 };
 use http::Method;
 use stac_api::{GetItems, GetSearch, Items, Search};
+use tower_http::cors::CorsLayer;
 
 /// Creates an [axum::Router] from an [Api].
 ///
@@ -33,6 +34,7 @@ pub fn from_api<B: Backend>(api: Api<B>) -> Router {
         .route("/collections/:collection_id/items/:item_id", get(item))
         .route("/search", get(get_search))
         .route("/search", post(post_search))
+        .layer(CorsLayer::permissive()) // TODO make this configurable
         .with_state(api)
 }
 

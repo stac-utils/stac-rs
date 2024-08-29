@@ -33,6 +33,7 @@ stac-async = { version = "0.5", path = "../stac-async" }
 thiserror = "1"
 tokio = { version = "1.37", features = ["sync"], optional = true }
 tokio-postgres = { version = "0.7", optional = true }
+tower-http = { version = "0.5", features = ["cors"] }
 url = "2"
 
 [dev-dependencies]
