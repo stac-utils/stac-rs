@@ -13,7 +13,11 @@ impl Subcommand {
                 let mut backend = stac_server::PgstacBackend::new_from_stringlike(pgstac).await?;
                 if !args.href.is_empty() {
                     backend
-                        .add_from_hrefs(&args.href, !args.dont_auto_create_collections)
+                        .add_from_hrefs(
+                            args.href,
+                            !args.dont_auto_create_collections,
+                            !args.dont_follow_links,
+                        )
                         .await?;
                 }
                 let api = Api::new(backend, root)?;
@@ -32,7 +36,11 @@ impl Subcommand {
             let mut backend = MemoryBackend::new();
             if !args.href.is_empty() {
                 backend
-                    .add_from_hrefs(&args.href, !args.dont_auto_create_collections)
+                    .add_from_hrefs(
+                        args.href,
+                        !args.dont_auto_create_collections,
+                        !args.dont_follow_links,
+                    )
                     .await?;
             }
             let api = Api::new(backend, root)?;

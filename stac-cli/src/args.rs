@@ -153,8 +153,12 @@ pub struct ServeArgs {
     pub pgstac: Option<String>,
 
     /// Don't auto-create collections for items that are missing them.
-    #[arg(short, long)]
+    #[arg(long)]
     pub dont_auto_create_collections: bool,
+
+    /// Don't follow links in collections to more items.
+    #[arg(long)]
+    pub dont_follow_links: bool,
 }
 
 /// Arguments for sorting a STAC value.
