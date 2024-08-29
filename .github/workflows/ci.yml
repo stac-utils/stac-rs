@@ -91,12 +91,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
-      - name: Install maturin and pytest
-        run: pip install maturin pytest
+      - name: Install dev requirements
+        run: pip install -r python/requirements-dev.txt
       - name: Build
         run: maturin build --manifest-path python/Cargo.toml --out dist
       - name: Install stacrs
         run: pip install stacrs --find-links dist --no-index
+      - name: Check
+        run: ruff check python && ruff format --check python && mypy python
       - name: Test
         run: pytest python/tests
   check:
