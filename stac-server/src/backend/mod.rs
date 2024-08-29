@@ -58,6 +58,7 @@ pub trait Backend: Clone + Sync + Send + 'static {
 
         let mut set = JoinSet::new();
         for href in hrefs {
+            // TODO allow parquet
             let _ = set.spawn(async move { stac_async::read::<Value>(href).await });
         }
 
