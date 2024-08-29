@@ -15,6 +15,7 @@ default = ["axum", "memory-item-search"]
 axum = ["dep:axum"]
 memory-item-search = ["stac-api/geo"]
 pgstac = ["dep:pgstac", "dep:bb8", "dep:bb8-postgres", "dep:tokio-postgres"]
+tokio = ["dep:tokio"]
 
 [dependencies]
 async-trait = "0.1"
@@ -30,6 +31,7 @@ stac = { version = "0.8", path = "../stac" }
 stac-api = { version = "0.4", path = "../stac-api" }
 stac-async = { version = "0.5", path = "../stac-async" }
 thiserror = "1"
+tokio = { version = "1.37", features = ["sync"], optional = true }
 tokio-postgres = { version = "0.7", optional = true }
 url = "2"
 

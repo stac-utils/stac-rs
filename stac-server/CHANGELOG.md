@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 
 - Auto-create collections on ingest ([#304](https://github.com/stac-utils/stac-rs/pull/304))
+- Auto-add items on ingest ([#312](https://github.com/stac-utils/stac-rs/pull/312))
 
 ## [0.1.1] - 2024-08-12
 
