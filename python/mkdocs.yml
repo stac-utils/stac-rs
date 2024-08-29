@@ -19,7 +19,7 @@ plugins:
             show_root_heading: true
             show_signature: true
             show_signature_annotations: true
-            separate_signature: false
+            separate_signature: true
 markdown_extensions:
   - pymdownx.highlight:
       anchor_linenums: true

@@ -29,14 +29,16 @@ This monorepo contains several crates:
 
 ## Bindings
 
-This repo includes Python bindings, called **stacrs**.
+### Python
+
+**stacrs** is a small, no-dependency Python library that uses **stac-rs** under the hood.
 Install with **pip**:
 
 ```shell
 pip install stacrs
 ```
 
-See [the README](./python/README.md) for more information.
+See [the documentation](https://stacrs.readthedocs.io/) for more information.
 
 ## Development
 

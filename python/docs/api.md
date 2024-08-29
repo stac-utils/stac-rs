@@ -2,7 +2,11 @@
 
 API documentation for **stacrs**.
 
-## Validation
+## Migrate
+
+::: stacrs.migrate
+
+## Validate
 
 ::: stacrs.validate
 ::: stacrs.validate_href
