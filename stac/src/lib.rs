@@ -162,6 +162,7 @@ pub use {
 };
 
 /// The default STAC version supported by this library.
+// When updating this value, make sure to update the `Default` implementation of `Version` as well.
 pub const STAC_VERSION: Version = Version::v1_0_0;
 
 /// Custom [Result](std::result::Result) type for this crate.
