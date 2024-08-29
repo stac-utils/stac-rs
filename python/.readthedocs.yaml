@@ -1,5 +1,3 @@
-# ReadThedocs hosts our Python (stacrs) documentation.
-
 version: 2
 build:
   os: ubuntu-lts-latest
@@ -11,3 +9,4 @@ mkdocs:
 python:
   install:
     - requirements: python/requirements-docs.txt
+    - path: python
