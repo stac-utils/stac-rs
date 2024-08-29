@@ -1,40 +1,30 @@
 use crate::{Error, Result};
 use bytes::Bytes;
+use clap::ValueEnum;
 use serde::de::DeserializeOwned;
-use std::{fs::File, io::Read, str::FromStr};
+use std::{fs::File, io::Read};
 
 /// The STAC output format.
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Copy, Debug, Default, ValueEnum)]
 pub enum Format {
-    /// stac-geparquet
-    Geoparquet,
+    /// stac-geoparquet
+    Parquet,
 
     /// JSON (the default).
     #[default]
     Json,
 }
 
-impl FromStr for Format {
-    type Err = Error;
-    fn from_str(s: &str) -> Result<Format> {
-        match s.to_ascii_lowercase().as_str() {
-            "json" | "geojson" => Ok(Format::Json),
-            "parquet" | "geoparquet" => Ok(Format::Geoparquet),
-            _ => Err(Error::UnsupportedFormat(s.to_string())),
-        }
-    }
-}
-
 impl Format {
     pub(crate) fn maybe_from_href(href: &str) -> Option<Format> {
         href.rsplit_once('.')
-            .and_then(|(_, ext)| Format::from_str(ext).ok())
+            .and_then(|(_, ext)| Format::from_str(ext, true).ok())
     }
 
     pub(crate) async fn read_href<D: DeserializeOwned>(&self, href: Option<&str>) -> Result<D> {
         if let Some(href) = href.and_then(|href| if href == "-" { None } else { Some(href) }) {
             match *self {
-                Format::Geoparquet => {
+                Format::Parquet => {
                     let item_collection = if let Some(url) = stac::href_to_url(href) {
                         stac_geoparquet::from_reader(reqwest::blocking::get(url)?.bytes()?)?
                     } else {
@@ -48,7 +38,7 @@ impl Format {
             }
         } else {
             match *self {
-                Format::Geoparquet => {
+                Format::Parquet => {
                     let mut buf = Vec::new();
                     let _ = std::io::stdin().read_to_end(&mut buf)?;
                     let item_collection = stac_geoparquet::from_reader(Bytes::from(buf))?;
