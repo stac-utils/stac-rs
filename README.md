@@ -6,12 +6,13 @@
 
 ![Ferris the crab holding the STAC logo](./img/rustacean-and-stac-small.png)
 
-Command Line Interface (CLI) and Rust libraries for the [SpatioTemporal Asset Catalog (STAC)](https://stacspec.org/) specification.
+Command Line Interface (CLI), Rust crates, and other libraries for the [SpatioTemporal Asset Catalog (STAC)](https://stacspec.org/) specification.
 
-- Use [stac-cli](./stac-cli/README.md) to query a STAC API, create and validate STAC items, and do other awesome stuff on the command line.
-- Use the core [stac](./stac/README.md) library to incorporate STAC data structures (`Item`, `Catalog`, and `Collection`) in another Rust application.
-- Use [stac-async](./stac-async/README.md) to build an application that uses async Rust via [tokio](https://tokio.rs/).
-- Use [stac-server](./stac-server/README.md) to serve a STAC API
+- [stac-cli](./stac-cli/README.md) is a command-line interface to query a STAC API, create and validate STAC items, and do other awesome stuff on the command line.
+- [stac](./stac/README.md) is the core library with data structures (`Item`, `Catalog`, and `Collection`) and more.
+- [stac-async](./stac-async/README.md) uses async Rust via [tokio](https://tokio.rs/) for input and output.
+- [stac-server](./stac-server/README.md) is a STAC API server with multiple backends.
+- [stacrs](./python/README.md) is a small, no-dependency Python library based on **stac-rs**.
 
 ## Crates
 
