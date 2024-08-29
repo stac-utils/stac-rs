@@ -41,6 +41,11 @@ pub enum Error {
     #[error(transparent)]
     StacAsync(#[from] stac_async::Error),
 
+    /// [tokio::task::JoinError]
+    #[cfg(feature = "tokio")]
+    #[error(transparent)]
+    TokioJoin(#[from] tokio::task::JoinError),
+
     /// [tokio_postgres::Error]
     #[cfg(feature = "pgstac")]
     #[error(transparent)]

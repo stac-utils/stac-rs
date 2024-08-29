@@ -2,14 +2,13 @@ mod memory;
 #[cfg(feature = "pgstac")]
 mod pgstac;
 
-use crate::{Error, Result};
+use crate::Result;
 use async_trait::async_trait;
 pub use memory::MemoryBackend;
 #[cfg(feature = "pgstac")]
 pub use pgstac::PgstacBackend;
-use stac::{Collection, Item, Links, Value};
+use stac::{Collection, Item};
 use stac_api::{ItemCollection, Items, Search};
-use std::collections::{HashMap, HashSet};
 
 /// Storage backend for a STAC API.
 #[async_trait]
@@ -29,7 +28,9 @@ pub trait Backend: Clone + Sync + Send + 'static {
     ///
     /// A default implementation is provided. If `auto_create_collections` is
     /// true, then, _if_ there is no collection for one or more items, a
-    /// collection will be auto-created before adding the items.
+    /// collection will be auto-created before adding the items. If
+    /// `follow_links` is true, then `item` links on collections will be
+    /// followed and added as well.
     ///
     /// # Examples
     ///
@@ -37,33 +38,47 @@ pub trait Backend: Clone + Sync + Send + 'static {
     /// use stac_server::{MemoryBackend, Backend};
     /// let mut backend = MemoryBackend::new();
     /// # tokio_test::block_on(async {
-    /// backend.add_from_hrefs(&[
+    /// backend.add_from_hrefs(vec![
     ///     "tests/data/collection.json".to_string(),
     ///     "tests/data/feature.geojson".to_string(),
-    /// ], false);
+    /// ], false, false);
     /// # })
     /// ```
+    #[cfg(feature = "tokio")]
     async fn add_from_hrefs(
         &mut self,
-        hrefs: &[String],
+        hrefs: Vec<String>,
         auto_create_collections: bool,
+        follow_links: bool,
     ) -> Result<()> {
+        use crate::Error;
+        use stac::{Href, Links, Value};
+        use std::collections::{HashMap, HashSet};
+        use tokio::task::JoinSet;
+
+        let mut set = JoinSet::new();
+        for href in hrefs {
+            let _ = set.spawn(async move { stac_async::read::<Value>(href).await });
+        }
+
         let mut items: HashMap<Option<String>, Vec<Item>> = HashMap::new();
         let mut item_collection_ids = HashSet::new();
+        let mut add_item = |mut item: Item| {
+            item.remove_structural_links();
+            if let Some(collection) = item.collection.as_ref() {
+                let collection = collection.clone();
+                let _ = item_collection_ids.insert(collection.clone());
+                let _ = items.entry(Some(collection)).or_default().push(item);
+            } else {
+                let _ = items.entry(None).or_default().push(item);
+            }
+        };
+        let mut item_set = JoinSet::new();
         let mut collection_ids = HashSet::new();
-        for href in hrefs {
-            let value: Value = stac_async::read(href).await?;
+        while let Some(result) = set.join_next().await {
+            let value = result??;
             match value {
-                Value::Item(mut item) => {
-                    item.remove_structural_links();
-                    if let Some(collection) = item.collection.as_ref() {
-                        let collection = collection.clone();
-                        let _ = item_collection_ids.insert(collection.clone());
-                        let _ = items.entry(Some(collection)).or_default().push(item);
-                    } else {
-                        let _ = items.entry(None).or_default().push(item);
-                    }
-                }
+                Value::Item(item) => add_item(item),
                 Value::Catalog(catalog) => {
                     return Err(Error::Backend(format!(
                         "cannot add catalog with id={} to the backend",
@@ -71,24 +86,36 @@ pub trait Backend: Clone + Sync + Send + 'static {
                     )))
                 }
                 Value::Collection(mut collection) => {
+                    if follow_links {
+                        // TODO we could maybe merge this with `remove_structural_links`
+                        let href = collection
+                            .href()
+                            .expect("we read it, so it should have an href")
+                            .to_string();
+                        collection.make_relative_links_absolute(href)?;
+                        for link in collection.iter_item_links() {
+                            let href = link.href.clone();
+                            let _ =
+                                item_set.spawn(async move { stac_async::read::<Item>(href).await });
+                        }
+                    }
                     collection.remove_structural_links();
                     let _ = collection_ids.insert(collection.id.clone());
                     self.add_collection(collection).await?
                 }
                 Value::ItemCollection(item_collection) => {
-                    for mut item in item_collection.items {
-                        item.remove_structural_links();
-                        if let Some(collection) = item.collection.as_ref() {
-                            let collection = collection.clone();
-                            let _ = item_collection_ids.insert(collection.clone());
-                            let _ = items.entry(Some(collection)).or_default().push(item);
-                        } else {
-                            let _ = items.entry(None).or_default().push(item);
-                        }
+                    for item in item_collection.items {
+                        add_item(item)
                     }
                 }
             }
         }
+
+        while let Some(result) = item_set.join_next().await {
+            let item = result??;
+            add_item(item);
+        }
+
         if auto_create_collections {
             for id in item_collection_ids {
                 if !collection_ids.contains(&id) {
@@ -100,6 +127,7 @@ pub trait Backend: Clone + Sync + Send + 'static {
                 }
             }
         }
+
         for (_, items) in items {
             for item in items {
                 self.add_item(item).await?;
@@ -225,16 +253,18 @@ pub trait Backend: Clone + Sync + Send + 'static {
 
 #[cfg(test)]
 mod tests {
-    use super::Backend;
-    use crate::MemoryBackend;
-
     #[tokio::test]
+    #[cfg(feature = "tokio")]
     async fn auto_create_collection() {
+        use super::Backend;
+        use crate::MemoryBackend;
+
         let mut backend = MemoryBackend::new();
         backend
             .add_from_hrefs(
-                &["../spec-examples/v1.0.0/simple-item.json".to_string()],
+                vec!["../spec-examples/v1.0.0/simple-item.json".to_string()],
                 true,
+                false,
             )
             .await
             .unwrap();
