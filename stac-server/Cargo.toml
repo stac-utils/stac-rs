@@ -12,7 +12,7 @@ categories = ["science", "data-structures"]
 
 [features]
 default = ["axum", "memory-item-search"]
-axum = ["dep:axum"]
+axum = ["dep:axum", "dep:tower-http"]
 memory-item-search = ["stac-api/geo"]
 pgstac = ["dep:pgstac", "dep:bb8", "dep:bb8-postgres", "dep:tokio-postgres"]
 tokio = ["dep:tokio"]
@@ -33,7 +33,7 @@ stac-async = { version = "0.5", path = "../stac-async" }
 thiserror = "1"
 tokio = { version = "1.37", features = ["sync"], optional = true }
 tokio-postgres = { version = "0.7", optional = true }
-tower-http = { version = "0.5", features = ["cors"] }
+tower-http = { version = "0.5", features = ["cors"], optional = true }
 url = "2"
 
 [dev-dependencies]
