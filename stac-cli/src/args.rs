@@ -11,12 +11,12 @@ pub struct Args {
     #[arg(short, long)]
     pub compact: bool,
 
-    /// The input format.
+    /// The input format. If not provided, the format will be detected from the input file extension when possible.
     #[arg(short, long)]
     pub input_format: Option<Format>,
 
-    /// The output format.
-    #[arg(short, long)]
+    /// The output format. If not provided, the format will be detected from the output file extension when possible.
+    #[arg(short, long, value_enum)]
     pub output_format: Option<Format>,
 
     /// The subcommand to run.
