@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "stacrs"
-description = "A small STAC library with Rust under the hood"
+description = "A small, no-dependency STAC library with Rust under the hood"
 readme = "README.md"
 authors = [{ name = "Pete Gadomski", email = "pete.gadomski@gmail.com" }]
 requires-python = ">=3.8"
@@ -23,7 +23,7 @@ keywords = ["stac", "geospatial"]
 dynamic = ["version"]
 
 [project.urls]
-Repository = "https://github.com/stac-utils/stac-rs/tree/main/python"
+Repository = "https://github.com/stac-utils/stac-rs"
 Documentation = "https://stacrs.readthedocs.io/"
 Issues = "https://github.com/stac-utils/stac-rs/issues"
 
