@@ -97,7 +97,7 @@ impl Subcommand {
                                 sender.send(error.into()).await?;
                             }
                             sender
-                                .send("one or more errors during validation".into())
+                                .send("ERROR: one or more validation errors".into())
                                 .await?;
                         }
                         _ => return Err(err),

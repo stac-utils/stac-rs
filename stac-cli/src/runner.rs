@@ -37,8 +37,10 @@ where
                     if let Some(value) = value.to_json() {
                         if self.compact {
                             serde_json::to_writer(&mut self.writer, &value)?;
+                            writeln!(&mut self.writer)?;
                         } else {
                             serde_json::to_writer_pretty(&mut self.writer, &value)?;
+                            writeln!(&mut self.writer)?;
                         }
                     } else {
                         writeln!(self.writer, "{}", value)?;
