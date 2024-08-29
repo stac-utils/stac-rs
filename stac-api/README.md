@@ -24,7 +24,7 @@ stac-api = "0.4"
 
 ```toml
 [dependencies]
-stac-api = { version = "0.3", features = ["geo"] }
+stac-api = { version = "0.4", features = ["geo"] }
 ```
 
 ## Examples
