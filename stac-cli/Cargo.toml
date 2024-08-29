@@ -28,6 +28,7 @@ stac-async = { version = "0.5", path = "../stac-async" }
 stac-geoparquet = { version = "0.0.1", path = "../stac-geoparquet" }
 stac-server = { version = "0.1", path = "../stac-server", features = [
     "memory-item-search",
+    "tokio",
 ] }
 stac-validate = { version = "0.2", path = "../stac-validate" }
 thiserror = "1"
