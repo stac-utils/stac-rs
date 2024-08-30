@@ -33,44 +33,17 @@ Please see the [documentation](https://docs.rs/stac) for more usage examples.
 
 ## Features
 
-There are a few opt-in features.
+There are five opt-in features:
 
-### reqwest
-
-`reqwest` enables blocking remote reads:
-
-```toml
-[dependencies]
-stac = { version = "0.8", features = ["reqwest"]}
-```
-
-Then:
-
-```rust
-let href = "https://raw.githubusercontent.com/radiantearth/stac-spec/master/examples/simple-item.json";
-#[cfg(feature = "reqwest")]
-let item: stac::Item = stac::read(href).unwrap();
-```
-
-If `reqwest` is not enabled, `stac::read` will throw an error if you try to read from a url.
-
-```rust
-let href = "https://raw.githubusercontent.com/radiantearth/stac-spec/master/examples/simple-item.json";
-#[cfg(not(feature = "reqwest"))]
-let err = stac::read::<stac::Item>(href).unwrap_err();
-```
-
-For non-blocking IO, use the [**stac-async**](https://crates.io/crates/stac-async) crate.
+- `gdal`
+- `geo`
+- `geoarrow` (experimental)
+- `geoparquet` (experimental)
+- `reqwest`
 
 ### gdal
 
-To use [GDAL](https://gdal.org) to create items with projection and raster band information, you'll need GDAL installed on your system:
-
-```toml
-[dependencies]
-stac = { version = "0.8", features = ["gdal"] }
-```
-
+To use [GDAL](https://gdal.org) to create items with projection and raster band information, you'll need GDAL installed on your system and enable the `gdal` feature.
 Then, items created from rasters will include the projection and raster extensions:
 
 ```rust
@@ -85,14 +58,8 @@ Then, items created from rasters will include the projection and raster extensio
 
 ### geo
 
-Use [geo](https://docs.rs/geo) to add some extra geo-enabled methods:
-
-```toml
-[dependencies]
-stac = { version = "0.8", features = ["geo"] }
-```
-
-Then, you can set an item's geometry and bounding box at the same time:
+Use [geo](https://docs.rs/geo) to add some extra geo-enabled methods.
+For example, you can set an item's geometry and bounding box at the same time:
 
 ```rust
 #[cfg(feature = "geo")]
@@ -109,6 +76,61 @@ Then, you can set an item's geometry and bounding box at the same time:
     assert!(item.bbox.is_some());
 }
 ```
+
+### geoarrow
+
+**⚠️ geoarrow support is currently experimental, and may break on any release.**
+
+[geoarrow](https://geoarrow.org/) is a specification for storing geospatial data in [Apache Arrow](https://arrow.apache.org/) data structures.
+It's support in **stac-rs** is currently experimental:
+
+```rust
+#[cfg(feature = "geoarrow")]
+{
+    use stac::ItemCollection;
+
+    let item = stac::read("data/simple-item.json").unwrap();
+    let item_collection = ItemCollection::from(vec![item]);
+    let table = stac::geoarrow::to_table(item_collection).unwrap();
+}
+```
+
+### geoparquet
+
+**⚠️ geoparquet support is currently experimental, and may break on any release.**
+
+[geoparquet](https://geoparquet.org/) is a specification for storing geospatial data in [Apache Parquet](https://parquet.apache.org/) data structures.
+It's support in **stac-rs** is currently experimental:
+
+```rust
+#[cfg(feature = "geoparquet")]
+{
+    use std::fs::File;
+
+    let file = File::open("examples/extended-item.parquet").unwrap();
+    let item_collection = stac::geoparquet::from_reader(file).unwrap();
+}
+```
+
+### reqwest
+
+`reqwest` enables blocking remote reads:
+
+```rust
+let href = "https://raw.githubusercontent.com/radiantearth/stac-spec/master/examples/simple-item.json";
+#[cfg(feature = "reqwest")]
+let item: stac::Item = stac::read(href).unwrap();
+```
+
+If `reqwest` is not enabled, `stac::read` will throw an error if you try to read from a url.
+
+```rust
+let href = "https://raw.githubusercontent.com/radiantearth/stac-spec/master/examples/simple-item.json";
+#[cfg(not(feature = "reqwest"))]
+let err = stac::read::<stac::Item>(href).unwrap_err();
+```
+
+For non-blocking IO, use the [**stac-async**](https://crates.io/crates/stac-async) crate.
 
 ## Other info
 

@@ -5,10 +5,8 @@ members = [
     "pgstac",
     "python",
     "stac-api",
-    "stac-arrow",
     "stac-async",
     "stac-cli",
-    "stac-geoparquet",
     "stac-server",
     "stac-validate",
 ]
@@ -16,10 +14,8 @@ default-members = [
     "python",
     "stac",
     "stac-api",
-    "stac-arrow",
     "stac-async",
     "stac-cli",
-    "stac-geoparquet",
     "stac-server",
     "stac-validate",
 ]

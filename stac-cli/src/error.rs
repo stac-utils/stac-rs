@@ -33,10 +33,6 @@ pub enum Error {
     #[error(transparent)]
     StacAsync(#[from] stac_async::Error),
 
-    /// [stac_geoparquet::Error]
-    #[error(transparent)]
-    StacGeoparquet(#[from] stac_geoparquet::Error),
-
     /// [stac_server::Error]
     #[error(transparent)]
     StacServer(#[from] stac_server::Error),

@@ -26,10 +26,10 @@ impl Format {
             match *self {
                 Format::Parquet => {
                     let item_collection = if let Some(url) = stac::href_to_url(href) {
-                        stac_geoparquet::from_reader(reqwest::blocking::get(url)?.bytes()?)?
+                        stac::geoparquet::from_reader(reqwest::blocking::get(url)?.bytes()?)?
                     } else {
                         let file = File::open(href)?;
-                        stac_geoparquet::from_reader(file)?
+                        stac::geoparquet::from_reader(file)?
                     };
                     serde_json::from_value(serde_json::to_value(item_collection)?)
                         .map_err(Error::from)
@@ -41,7 +41,7 @@ impl Format {
                 Format::Parquet => {
                     let mut buf = Vec::new();
                     let _ = std::io::stdin().read_to_end(&mut buf)?;
-                    let item_collection = stac_geoparquet::from_reader(Bytes::from(buf))?;
+                    let item_collection = stac::geoparquet::from_reader(Bytes::from(buf))?;
                     serde_json::from_value(serde_json::to_value(item_collection)?)
                         .map_err(Error::from)
                 }

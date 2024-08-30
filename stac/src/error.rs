@@ -6,6 +6,11 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 #[non_exhaustive]
 pub enum Error {
+    /// [arrow_schema::ArrowError]
+    #[error(transparent)]
+    #[cfg(feature = "geoarrow")]
+    Arrow(#[from] arrow_schema::ArrowError),
+
     /// [chrono::ParseError]
     #[error(transparent)]
     ChronoParse(#[from] chrono::ParseError),
@@ -18,6 +23,11 @@ pub enum Error {
     /// GDAL is not enabled.
     #[error("gdal is not enabled")]
     GdalNotEnabled,
+
+    /// [geoarrow::error::GeoArrowError]
+    #[error(transparent)]
+    #[cfg(feature = "geoarrow")]
+    GeoArrow(#[from] geoarrow::error::GeoArrowError),
 
     /// [geojson::Error]
     #[error(transparent)]
@@ -57,6 +67,10 @@ pub enum Error {
     #[error("no \"id\" field in the JSON object")]
     MissingId,
 
+    /// Returned when a geometry is missing but is required.
+    #[error("no geometry field")]
+    MissingGeometry,
+
     /// Returned when there is not a `type` field on a STAC object
     #[error("no \"type\" field in the JSON object")]
     MissingType,
@@ -64,6 +78,10 @@ pub enum Error {
     /// Returned when an object is expected to have an href, but it doesn't.
     #[error("object has no href")]
     MissingHref,
+
+    /// There are no items, when items are required.
+    #[error("no items")]
+    NoItems,
 
     /// This value is not an item.
     #[error("value is not an item")]

@@ -1,4 +1,10 @@
 #!/usr/bin/env sh
+#
+# Validate stac server using stac-api-validator.
+#
+# To use this script on macos, you'll need `timeout`, which is provided by Homebrew's coreutils:
+#
+#   brew install coreutils
 
 set -e
 
