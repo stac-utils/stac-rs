@@ -48,7 +48,7 @@ where
                 }
                 Format::Parquet => {
                     if let Some(value) = value.to_stac() {
-                        stac_geoparquet::to_writer(&mut self.writer, value)?;
+                        stac::geoparquet::to_writer(&mut self.writer, value)?;
                     } else {
                         writeln!(self.writer, "{}", value)?;
                     }

@@ -129,6 +129,10 @@ mod fields;
 pub mod gdal;
 #[cfg(feature = "geo")]
 pub mod geo;
+#[cfg(feature = "geoarrow")]
+pub mod geoarrow;
+#[cfg(feature = "geoparquet")]
+pub mod geoparquet;
 mod href;
 mod io;
 pub mod item;
@@ -216,6 +220,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    #[cfg(not(feature = "geoparquet"))]
+    use bytes as _;
     use rstest as _;
 
     macro_rules! roundtrip {

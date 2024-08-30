@@ -13,15 +13,40 @@ categories = ["science", "data-structures"]
 [features]
 gdal = ["dep:gdal", "dep:gdal-sys"]
 geo = ["dep:geo"]
+geoarrow = [
+    "dep:geoarrow",
+    "dep:arrow-array",
+    "dep:arrow-cast",
+    "dep:arrow-json",
+    "dep:arrow-schema",
+    "dep:geo-types",
+]
+geoparquet = ["geoarrow/parquet", "dep:parquet"]
+geoparquet-compression = [
+    "geoparquet",
+    "geoarrow/parquet_compression",
+    "parquet/snap",
+    "parquet/brotli",
+    "parquet/flate2",
+    "parquet/lz4",
+    "parquet/zstd",
+]
 reqwest = ["dep:reqwest"]
 
 [dependencies]
+arrow-array = { version = "52", optional = true }
+arrow-cast = { version = "52", optional = true }
+arrow-json = { version = "52", optional = true }
+arrow-schema = { version = "52", optional = true }
 chrono = { version = "0.4", features = ["serde"] }
 gdal = { version = "0.17", optional = true }
 gdal-sys = { version = "0.10", optional = true }
 geo = { version = "0.28", optional = true }
+geo-types = { version = "0.7", optional = true }
+geoarrow = { git = "https://github.com/geoarrow/geoarrow-rs", rev = "6b877486bf98f280bc04b589eb7ce25b20e629f0", optional = true }
 geojson = { version = "0.24" }
 log = { version = "0.4" }
+parquet = { version = "52", default-features = false, optional = true }
 reqwest = { version = "0.12", optional = true, features = ["json", "blocking"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
@@ -30,6 +55,7 @@ url = "2"
 
 [dev-dependencies]
 assert-json-diff = "2"
+bytes = "1"
 rstest = "0.22"
 
 [package.metadata.docs.rs]

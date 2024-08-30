@@ -9,6 +9,10 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "cargo"
+    directory: "/python"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "cargo"
     directory: "/pgstac"
     schedule:
       interval: "weekly"
@@ -30,5 +34,9 @@ updates:
       interval: "weekly"
   - package-ecosystem: "cargo"
     directory: "/stac-validate"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "pip"
+    directory: "/scripts"
     schedule:
       interval: "weekly"

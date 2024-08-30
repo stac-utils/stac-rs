@@ -1,37 +1,10 @@
-//! Convert between [ItemCollection] and [Table].
-
-#![deny(
-    elided_lifetimes_in_paths,
-    explicit_outlives_requirements,
-    keyword_idents,
-    macro_use_extern_crate,
-    meta_variable_misuse,
-    missing_abi,
-    missing_debug_implementations,
-    missing_docs,
-    non_ascii_idents,
-    noop_method_call,
-    rust_2021_incompatible_closure_captures,
-    rust_2021_incompatible_or_patterns,
-    rust_2021_prefixes_incompatible_syntax,
-    rust_2021_prelude_collisions,
-    single_use_lifetimes,
-    trivial_casts,
-    trivial_numeric_casts,
-    unreachable_pub,
-    unsafe_code,
-    unsafe_op_in_unsafe_fn,
-    unused_crate_dependencies,
-    unused_extern_crates,
-    unused_import_braces,
-    unused_lifetimes,
-    unused_qualifications,
-    unused_results,
-    warnings
-)]
+//! Convert between [ItemCollection] and [Table]. (experimental)
+//!
+//!  ⚠️ geoarrow support is currently experimental, and may break on any release.
 
 mod json;
 
+use crate::{Error, FlatItem, Item, ItemCollection, Result};
 use arrow_json::ReaderBuilder;
 use arrow_schema::{DataType, Field, SchemaBuilder, TimeUnit};
 use geo_types::Geometry;
@@ -43,9 +16,7 @@ use geoarrow::{
 };
 use geojson::Value;
 use serde_json::json;
-use stac::{FlatItem, Item, ItemCollection};
 use std::sync::Arc;
-use thiserror::Error;
 
 const DATETIME_COLUMNS: [&str; 8] = [
     "datetime",
@@ -57,45 +28,6 @@ const DATETIME_COLUMNS: [&str; 8] = [
     "published",
     "unpublished",
 ];
-
-/// Crate specific error enum.
-#[derive(Debug, Error)]
-pub enum Error {
-    /// [arrow_schema::ArrowError]
-    #[error(transparent)]
-    Arrow(#[from] arrow_schema::ArrowError),
-
-    /// [geoarrow::error::GeoArrowError]
-    #[error(transparent)]
-    GeoArrow(#[from] geoarrow::error::GeoArrowError),
-
-    /// Invalid bbox length.
-    #[error("invalid bbox length (should be four or six): {0}")]
-    InvalidBBoxLength(usize),
-
-    /// No geometry column.
-    #[error("no geometry column")]
-    NoGeometryColumn,
-
-    /// No items to serialize.
-    #[error("no items")]
-    NoItems,
-
-    /// [serde_json::Error]
-    #[error(transparent)]
-    SerdeJson(#[from] serde_json::Error),
-
-    /// [stac::Error]
-    #[error(transparent)]
-    Stac(#[from] stac::Error),
-
-    /// XYZ dimensions are not supported.
-    #[error("xyz dimensions not supported")]
-    XYZNotSupported,
-}
-
-/// Crate-specific result type.
-pub type Result<T> = std::result::Result<T, Error>;
 
 /// Converts an [ItemCollection] to a [Table].
 ///
@@ -109,7 +41,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 ///
 /// let item = stac::read("data/simple-item.json").unwrap();
 /// let item_collection = ItemCollection::from(vec![item]);
-/// let table = stac_arrow::to_table(item_collection).unwrap();
+/// let table = stac::geoarrow::to_table(item_collection).unwrap();
 /// ```
 pub fn to_table(item_collection: ItemCollection) -> Result<Table> {
     let mut values = Vec::with_capacity(item_collection.items.len());
@@ -149,7 +81,9 @@ pub fn to_table(item_collection: ItemCollection) -> Result<Table> {
                         "zmax": bbox[5].as_number().expect("all bbox values should be a number"),
                     }));
                 } else {
-                    return Err(Error::InvalidBBoxLength(bbox.len()));
+                    return Err(Error::InvalidBbox(
+                        bbox.iter().filter_map(|v| v.as_f64()).collect(),
+                    ));
                 }
             }
         }
@@ -187,6 +121,8 @@ pub fn to_table(item_collection: ItemCollection) -> Result<Table> {
 /// # Examples
 ///
 /// ```
+/// # #[cfg(feature = "geoparquet")]
+/// # {
 /// use std::fs::File;
 /// use geoarrow::io::parquet::GeoParquetRecordBatchReaderBuilder;
 ///
@@ -196,7 +132,8 @@ pub fn to_table(item_collection: ItemCollection) -> Result<Table> {
 ///     .build()
 ///     .unwrap();
 /// let table = reader.read_table().unwrap();
-/// let item_collection = stac_arrow::from_table(table).unwrap();
+/// let item_collection = stac::geoarrow::from_table(table).unwrap();
+/// # }
 /// ```
 pub fn from_table(table: Table) -> Result<ItemCollection> {
     use GeoDataType::*;
@@ -204,7 +141,7 @@ pub fn from_table(table: Table) -> Result<ItemCollection> {
     let (index, _) = table
         .schema()
         .column_with_name("geometry")
-        .ok_or(Error::NoGeometryColumn)?;
+        .ok_or(Error::MissingGeometry)?;
     let mut json_rows = json::record_batches_to_json_rows(table.batches(), index)?;
     let mut items = Vec::new();
     for chunk in table.geometry_column(Some(index))?.geometry_chunks() {
@@ -212,77 +149,85 @@ pub fn from_table(table: Table) -> Result<ItemCollection> {
             let value = match chunk.data_type() {
                 Point(_, dimension) => match dimension {
                     Dimension::XY => Value::from(&chunk.as_point_2d().value_as_geo(i)),
-                    Dimension::XYZ => return Err(Error::XYZNotSupported),
+                    Dimension::XYZ => Value::from(&chunk.as_point_3d().value_as_geo(i)),
                 },
                 LineString(_, dimension) => match dimension {
                     Dimension::XY => Value::from(&chunk.as_line_string_2d().value_as_geo(i)),
-                    Dimension::XYZ => return Err(Error::XYZNotSupported),
+                    Dimension::XYZ => Value::from(&chunk.as_line_string_3d().value_as_geo(i)),
                 },
                 LargeLineString(_, dimension) => match dimension {
                     Dimension::XY => Value::from(&chunk.as_large_line_string_2d().value_as_geo(i)),
-                    Dimension::XYZ => return Err(Error::XYZNotSupported),
+                    Dimension::XYZ => Value::from(&chunk.as_large_line_string_3d().value_as_geo(i)),
                 },
                 Polygon(_, dimension) => match dimension {
                     Dimension::XY => Value::from(&chunk.as_polygon_2d().value_as_geo(i)),
-                    Dimension::XYZ => return Err(Error::XYZNotSupported),
+                    Dimension::XYZ => Value::from(&chunk.as_polygon_3d().value_as_geo(i)),
                 },
                 LargePolygon(_, dimension) => match dimension {
                     Dimension::XY => Value::from(&chunk.as_large_polygon_2d().value_as_geo(i)),
-                    Dimension::XYZ => return Err(Error::XYZNotSupported),
+                    Dimension::XYZ => Value::from(&chunk.as_large_polygon_3d().value_as_geo(i)),
                 },
                 MultiPoint(_, dimension) => match dimension {
                     Dimension::XY => Value::from(&chunk.as_multi_point_2d().value_as_geo(i)),
-                    Dimension::XYZ => return Err(Error::XYZNotSupported),
+                    Dimension::XYZ => Value::from(&chunk.as_multi_point_3d().value_as_geo(i)),
                 },
                 LargeMultiPoint(_, dimension) => match dimension {
                     Dimension::XY => Value::from(&chunk.as_large_multi_point_2d().value_as_geo(i)),
-                    Dimension::XYZ => return Err(Error::XYZNotSupported),
+                    Dimension::XYZ => Value::from(&chunk.as_large_multi_point_3d().value_as_geo(i)),
                 },
                 MultiLineString(_, dimension) => match dimension {
                     Dimension::XY => Value::from(&chunk.as_multi_line_string_2d().value_as_geo(i)),
-                    Dimension::XYZ => return Err(Error::XYZNotSupported),
+                    Dimension::XYZ => Value::from(&chunk.as_multi_line_string_3d().value_as_geo(i)),
                 },
                 LargeMultiLineString(_, dimension) => match dimension {
                     Dimension::XY => {
                         Value::from(&chunk.as_large_multi_line_string_2d().value_as_geo(i))
                     }
-                    Dimension::XYZ => return Err(Error::XYZNotSupported),
+                    Dimension::XYZ => {
+                        Value::from(&chunk.as_large_multi_line_string_3d().value_as_geo(i))
+                    }
                 },
                 MultiPolygon(_, dimension) => match dimension {
                     Dimension::XY => Value::from(&chunk.as_multi_polygon_2d().value_as_geo(i)),
-                    Dimension::XYZ => return Err(Error::XYZNotSupported),
+                    Dimension::XYZ => Value::from(&chunk.as_multi_polygon_3d().value_as_geo(i)),
                 },
                 LargeMultiPolygon(_, dimension) => match dimension {
                     Dimension::XY => {
                         Value::from(&chunk.as_large_multi_polygon_2d().value_as_geo(i))
                     }
-                    Dimension::XYZ => return Err(Error::XYZNotSupported),
+                    Dimension::XYZ => {
+                        Value::from(&chunk.as_large_multi_polygon_3d().value_as_geo(i))
+                    }
                 },
                 Mixed(_, dimension) => match dimension {
                     Dimension::XY => Value::from(&chunk.as_mixed_2d().value_as_geo(i)),
-                    Dimension::XYZ => return Err(Error::XYZNotSupported),
+                    Dimension::XYZ => Value::from(&chunk.as_mixed_3d().value_as_geo(i)),
                 },
                 LargeMixed(_, dimension) => match dimension {
                     Dimension::XY => Value::from(&chunk.as_large_mixed_2d().value_as_geo(i)),
-                    Dimension::XYZ => return Err(Error::XYZNotSupported),
+                    Dimension::XYZ => Value::from(&chunk.as_large_mixed_3d().value_as_geo(i)),
                 },
                 GeometryCollection(_, dimension) => match dimension {
                     Dimension::XY => {
                         Value::from(&chunk.as_geometry_collection_2d().value_as_geo(i))
                     }
-                    Dimension::XYZ => return Err(Error::XYZNotSupported),
+                    Dimension::XYZ => {
+                        Value::from(&chunk.as_geometry_collection_3d().value_as_geo(i))
+                    }
                 },
                 LargeGeometryCollection(_, dimension) => match dimension {
                     Dimension::XY => {
                         Value::from(&chunk.as_large_geometry_collection_2d().value_as_geo(i))
                     }
-                    Dimension::XYZ => return Err(Error::XYZNotSupported),
+                    Dimension::XYZ => {
+                        Value::from(&chunk.as_large_geometry_collection_3d().value_as_geo(i))
+                    }
                 },
                 WKB => Value::from(&chunk.as_wkb().value_as_geo(i)),
                 LargeWKB => Value::from(&chunk.as_large_wkb().value_as_geo(i)),
                 Rect(dimension) => match dimension {
                     Dimension::XY => Value::from(&chunk.as_rect_2d().value_as_geo(i)),
-                    Dimension::XYZ => return Err(Error::XYZNotSupported),
+                    Dimension::XYZ => Value::from(&chunk.as_rect_3d().value_as_geo(i)),
                 },
             };
             let mut row = json_rows
@@ -299,16 +244,17 @@ pub fn from_table(table: Table) -> Result<ItemCollection> {
     Ok(items.into())
 }
 
-#[cfg(test)]
+// We only run tests when the geoparquet feature is enabled so that we don't
+// have to add geoarrow as a dev dependency for all builds.
+#[cfg(all(test, feature = "geoparquet"))]
 mod tests {
+    use crate::ItemCollection;
     use geoarrow::io::parquet::GeoParquetRecordBatchReaderBuilder;
-    use stac::ItemCollection;
-    use stac_validate::Validate;
     use std::fs::File;
 
     #[test]
     fn to_table() {
-        let item = stac::read("data/simple-item.json").unwrap();
+        let item = crate::read("data/simple-item.json").unwrap();
         let _ = super::to_table(vec![item].into()).unwrap();
     }
 
@@ -322,34 +268,19 @@ mod tests {
         let table = reader.read_table().unwrap();
         let item_collection = super::from_table(table).unwrap();
         assert_eq!(item_collection.items.len(), 1);
-        item_collection.items[0].validate().unwrap();
     }
 
     #[test]
     fn roundtrip() {
-        let item = stac::read("data/simple-item.json").unwrap();
+        let item = crate::read("data/simple-item.json").unwrap();
         let table = super::to_table(vec![item].into()).unwrap();
         let _ = super::from_table(table).unwrap();
     }
 
     #[test]
     fn roundtrip_with_missing_asset() {
-        let items: ItemCollection = stac::read("examples/two-sentinel-2-items.json").unwrap();
+        let items: ItemCollection = crate::read("examples/two-sentinel-2-items.json").unwrap();
         let table = super::to_table(items).unwrap();
         let _ = super::from_table(table).unwrap();
     }
-}
-
-// From https://github.com/rust-lang/cargo/issues/383#issuecomment-720873790,
-// may they be forever blessed.
-#[cfg(doctest)]
-mod readme {
-    macro_rules! external_doc_test {
-        ($x:expr) => {
-            #[doc = $x]
-            extern "C" {}
-        };
-    }
-
-    external_doc_test!(include_str!("../README.md"));
 }
