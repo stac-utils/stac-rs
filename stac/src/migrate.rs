@@ -221,7 +221,9 @@ mod tests {
         assert_eq!(asset.bands[2].name.as_ref().unwrap(), "b");
         assert_eq!(asset.bands[3].name.as_ref().unwrap(), "nir");
 
-        let expected: Value = crate::io::read_json("examples/bands-v1.1.0-beta.1.json").unwrap();
+        let expected: Value =
+            serde_json::to_value(crate::read::<Item>("examples/bands-v1.1.0-beta.1.json").unwrap())
+                .unwrap();
         assert_json_eq!(expected, serde_json::to_value(item).unwrap());
 
         let collection = Collection::new("an-id", "a description");

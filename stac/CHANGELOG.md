@@ -11,7 +11,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - `Bbox` ([#303](https://github.com/stac-utils/stac-rs/pull/303))
 - Functions to create collections from items ([#304](https://github.com/stac-utils/stac-rs/pull/304))
 - Default implementation for `Version` ([#309](https://github.com/stac-utils/stac-rs/pull/309))
-- Experimental GeoParquet and GeoArrow support ([#316](https://github.com/stac-utils/stac-rs/pull/316))
+- Experimental GeoParquet and GeoArrow support ([#316](https://github.com/stac-utils/stac-rs/pull/316), [#319](https://github.com/stac-utils/stac-rs/pull/319))
+- Public `stac::io` module ([#319](https://github.com/stac-utils/stac-rs/pull/319))
 
 ### Changed
 

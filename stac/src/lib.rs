@@ -134,7 +134,7 @@ pub mod geoarrow;
 #[cfg(feature = "geoparquet")]
 pub mod geoparquet;
 mod href;
-mod io;
+pub mod io;
 pub mod item;
 mod item_collection;
 pub mod link;
