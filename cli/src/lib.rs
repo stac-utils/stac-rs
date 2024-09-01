@@ -60,7 +60,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 /// use stac_cli::{Args, Subcommand, SortArgs};
 ///
 /// let sort_args = SortArgs {
-///     infile: Some("data/simple-item.json".to_string()),
+///     infile: Some("examples/simple-item.json".to_string()),
 ///     outfile: None,
 /// };
 /// let args = Args {

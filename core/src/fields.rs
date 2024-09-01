@@ -80,7 +80,7 @@ pub trait Fields {
     ///
     /// ```
     /// use stac::{Fields, Item, extensions::Projection};
-    /// let item: Item = stac::read("data/extensions-collection/proj-example/proj-example.json").unwrap();
+    /// let item: Item = stac::read("examples/extensions-collection/proj-example/proj-example.json").unwrap();
     /// let projection: Projection = item.fields_with_prefix("proj").unwrap();  // Prefer `Extensions::extension`
     /// ```
     fn fields_with_prefix<D: DeserializeOwned>(&self, prefix: &str) -> Result<D> {

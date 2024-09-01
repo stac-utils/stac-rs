@@ -39,7 +39,7 @@ const DATETIME_COLUMNS: [&str; 8] = [
 /// ```
 /// use stac::ItemCollection;
 ///
-/// let item = stac::read("data/simple-item.json").unwrap();
+/// let item = stac::read("examples/simple-item.json").unwrap();
 /// let item_collection = ItemCollection::from(vec![item]);
 /// let table = stac::geoarrow::to_table(item_collection).unwrap();
 /// ```
@@ -126,7 +126,7 @@ pub fn to_table(item_collection: ItemCollection) -> Result<Table> {
 /// use std::fs::File;
 /// use geoarrow::io::parquet::GeoParquetRecordBatchReaderBuilder;
 ///
-/// let file = File::open("examples/extended-item.parquet").unwrap();
+/// let file = File::open("data/extended-item.parquet").unwrap();
 /// let reader = GeoParquetRecordBatchReaderBuilder::try_new(file)
 ///     .unwrap()
 ///     .build()
@@ -254,13 +254,13 @@ mod tests {
 
     #[test]
     fn to_table() {
-        let item = crate::read("data/simple-item.json").unwrap();
+        let item = crate::read("examples/simple-item.json").unwrap();
         let _ = super::to_table(vec![item].into()).unwrap();
     }
 
     #[test]
     fn from_table() {
-        let file = File::open("examples/extended-item.parquet").unwrap();
+        let file = File::open("data/extended-item.parquet").unwrap();
         let reader = GeoParquetRecordBatchReaderBuilder::try_new(file)
             .unwrap()
             .build()
@@ -272,14 +272,14 @@ mod tests {
 
     #[test]
     fn roundtrip() {
-        let item = crate::read("data/simple-item.json").unwrap();
+        let item = crate::read("examples/simple-item.json").unwrap();
         let table = super::to_table(vec![item].into()).unwrap();
         let _ = super::from_table(table).unwrap();
     }
 
     #[test]
     fn roundtrip_with_missing_asset() {
-        let items: ItemCollection = crate::read("examples/two-sentinel-2-items.json").unwrap();
+        let items: ItemCollection = crate::read("data/two-sentinel-2-items.json").unwrap();
         let table = super::to_table(items).unwrap();
         let _ = super::from_table(table).unwrap();
     }

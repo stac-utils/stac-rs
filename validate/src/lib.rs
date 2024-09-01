@@ -91,7 +91,7 @@ mod tests {
     #[test]
     fn item_with_extensions() {
         let item: Item =
-            stac::read("data/extensions-collection/proj-example/proj-example.json").unwrap();
+            stac::read("examples/extensions-collection/proj-example/proj-example.json").unwrap();
         item.validate().unwrap();
     }
 
@@ -109,13 +109,13 @@ mod tests {
 
     #[test]
     fn value() {
-        let value: stac::Value = stac::read("data/simple-item.json").unwrap();
+        let value: stac::Value = stac::read("examples/simple-item.json").unwrap();
         value.validate().unwrap();
     }
 
     #[test]
     fn item_collection() {
-        let item = stac::read("data/simple-item.json").unwrap();
+        let item = stac::read("examples/simple-item.json").unwrap();
         let item_collection = stac::ItemCollection::from(vec![item]);
         item_collection.validate().unwrap();
     }

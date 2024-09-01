@@ -174,7 +174,7 @@ mod tests {
 
     #[test]
     fn collection() {
-        let collection: Collection = crate::read("examples/auth/collection.json").unwrap();
+        let collection: Collection = crate::read("data/auth/collection.json").unwrap();
         let authentication: Authentication = collection.extension().unwrap().unwrap();
         let oauth = authentication.schemes.get("oauth").unwrap();
         let _ = oauth.flows.get("authorizationCode").unwrap();
@@ -186,7 +186,7 @@ mod tests {
 
     #[test]
     fn item() {
-        let collection: Item = crate::read("examples/auth/item.json").unwrap();
+        let collection: Item = crate::read("data/auth/item.json").unwrap();
         let authentication: Authentication = collection.extension().unwrap().unwrap();
         let _ = authentication.schemes.get("none").unwrap();
     }

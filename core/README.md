@@ -26,7 +26,7 @@ use stac::Item;
 let item = Item::new("an-id");
 
 // Reads an item from the filesystem.
-let item: Item = stac::read("data/simple-item.json").unwrap();
+let item: Item = stac::read("examples/simple-item.json").unwrap();
 ```
 
 Please see the [documentation](https://docs.rs/stac) for more usage examples.
@@ -89,7 +89,7 @@ It's support in **stac-rs** is currently experimental:
 {
     use stac::ItemCollection;
 
-    let item = stac::read("data/simple-item.json").unwrap();
+    let item = stac::read("examples/simple-item.json").unwrap();
     let item_collection = ItemCollection::from(vec![item]);
     let table = stac::geoarrow::to_table(item_collection).unwrap();
 }
@@ -107,7 +107,7 @@ It's support in **stac-rs** is currently experimental:
 {
     use std::fs::File;
 
-    let file = File::open("examples/extended-item.parquet").unwrap();
+    let file = File::open("data/extended-item.parquet").unwrap();
     let item_collection = stac::geoparquet::from_reader(file).unwrap();
 }
 ```

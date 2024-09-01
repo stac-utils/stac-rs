@@ -12,7 +12,7 @@ use std::fs::File;
 /// # Examples
 ///
 /// ```
-/// let item: stac::Item = stac::io::json::read("data/simple-item.json").unwrap();
+/// let item: stac::Item = stac::io::json::read("examples/simple-item.json").unwrap();
 /// ```
 pub fn read<T: Href + DeserializeOwned>(href: impl ToString) -> Result<T> {
     JsonReader::read(href)

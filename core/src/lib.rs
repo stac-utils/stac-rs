@@ -45,7 +45,7 @@
 //! Synchronous reads from the filesystem are supported via [read]:
 //!
 //! ```
-//! let value: stac::Item = stac::read("data/simple-item.json").unwrap();
+//! let value: stac::Item = stac::read("examples/simple-item.json").unwrap();
 //! ```
 //!
 //! If the [reqwest](https://docs.rs/reqwest/latest/reqwest/) feature is enabled, synchronous reads from urls are also supported:
@@ -75,8 +75,8 @@
 //!
 //! ```
 //! use stac::{Href, Item};
-//! let item: Item = stac::read("data/simple-item.json").unwrap();
-//! assert!(item.href().as_deref().unwrap().ends_with("data/simple-item.json"));
+//! let item: Item = stac::read("examples/simple-item.json").unwrap();
+//! assert!(item.href().as_deref().unwrap().ends_with("examples/simple-item.json"));
 //! ```
 //!
 //! # Extensions

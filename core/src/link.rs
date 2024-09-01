@@ -96,7 +96,7 @@ pub trait Links {
     ///
     /// ```
     /// use stac::Links;
-    /// let item: stac::Item = stac::read("data/simple-item.json").unwrap();
+    /// let item: stac::Item = stac::read("examples/simple-item.json").unwrap();
     /// let links = item.links();
     /// ```
     fn links(&self) -> &[Link];
@@ -109,7 +109,7 @@ pub trait Links {
     ///
     /// ```
     /// use stac::Links;
-    /// let mut item: stac::Item = stac::read("data/simple-item.json").unwrap();
+    /// let mut item: stac::Item = stac::read("examples/simple-item.json").unwrap();
     /// let links = item.links_mut();
     /// links.clear();
     /// ```
@@ -121,7 +121,7 @@ pub trait Links {
     ///
     /// ```
     /// use stac::Links;
-    /// let item: stac::Item = stac::read("data/simple-item.json").unwrap();
+    /// let item: stac::Item = stac::read("examples/simple-item.json").unwrap();
     /// let link = item.link("root").unwrap();
     /// ```
     fn link(&self, rel: &str) -> Option<&Link> {
@@ -137,7 +137,7 @@ pub trait Links {
     ///
     /// ```
     /// use stac::{Links, Link};
-    /// let mut item: stac::Item = stac::read("data/simple-item.json").unwrap();
+    /// let mut item: stac::Item = stac::read("examples/simple-item.json").unwrap();
     /// item.set_link(Link::root("a/href"));
     /// ```
     fn set_link(&mut self, link: Link) {
@@ -153,7 +153,7 @@ pub trait Links {
     ///
     /// ```
     /// use stac::Links;
-    /// let item: stac::Item = stac::read("data/simple-item.json").unwrap();
+    /// let item: stac::Item = stac::read("examples/simple-item.json").unwrap();
     /// let link = item.root_link().unwrap();
     /// ```
     fn root_link(&self) -> Option<&Link> {
@@ -168,7 +168,7 @@ pub trait Links {
     ///
     /// ```
     /// use stac::Links;
-    /// let item: stac::Item = stac::read("data/simple-item.json").unwrap();
+    /// let item: stac::Item = stac::read("examples/simple-item.json").unwrap();
     /// let link = item.root_link().unwrap();
     /// ```
     fn self_link(&self) -> Option<&Link> {
@@ -183,7 +183,7 @@ pub trait Links {
     ///
     /// ```
     /// use stac::Links;
-    /// let item: stac::Item = stac::read("data/simple-item.json").unwrap();
+    /// let item: stac::Item = stac::read("examples/simple-item.json").unwrap();
     /// let link = item.parent_link().unwrap();
     /// ```
     fn parent_link(&self) -> Option<&Link> {
@@ -196,7 +196,7 @@ pub trait Links {
     ///
     /// ```
     /// use stac::Links;
-    /// let collection: stac::Collection = stac::read("data/collection.json").unwrap();
+    /// let collection: stac::Collection = stac::read("examples/collection.json").unwrap();
     /// let links: Vec<_> = collection.iter_child_links().collect();
     /// ```
     fn iter_child_links(&self) -> Box<dyn Iterator<Item = &Link> + '_> {
@@ -209,7 +209,7 @@ pub trait Links {
     ///
     /// ```
     /// use stac::Links;
-    /// let collection: stac::Collection = stac::read("data/collection.json").unwrap();
+    /// let collection: stac::Collection = stac::read("examples/collection.json").unwrap();
     /// let links: Vec<_> = collection.iter_item_links().collect();
     /// ```
     fn iter_item_links(&self) -> Box<dyn Iterator<Item = &Link> + '_> {
@@ -223,9 +223,9 @@ pub trait Links {
     /// ```
     /// use stac::{Links, Catalog, Error, Href};
     ///
-    /// let mut catalog: stac::Catalog = stac::read("data/catalog.json").unwrap();
+    /// let mut catalog: stac::Catalog = stac::read("examples/catalog.json").unwrap();
     /// assert!(!catalog.root_link().unwrap().is_absolute());
-    /// catalog.make_relative_links_absolute("data/catalog.json").unwrap();
+    /// catalog.make_relative_links_absolute("examples/catalog.json").unwrap();
     /// assert!(catalog.root_link().unwrap().is_absolute());
     /// ```
     fn make_relative_links_absolute(&mut self, href: impl ToString) -> Result<()> {
@@ -245,11 +245,11 @@ pub trait Links {
     /// ```
     /// use stac::{Links, Catalog, Error, Href};
     ///
-    /// let mut catalog: stac::Catalog = stac::read("data/catalog.json").unwrap();
+    /// let mut catalog: stac::Catalog = stac::read("examples/catalog.json").unwrap();
     /// assert!(!catalog.root_link().unwrap().is_absolute());
-    /// catalog.make_relative_links_absolute("data/catalog.json").unwrap();
+    /// catalog.make_relative_links_absolute("examples/catalog.json").unwrap();
     /// assert!(catalog.root_link().unwrap().is_absolute());
-    /// catalog.make_absolute_links_relative("data/catalog.json").unwrap();
+    /// catalog.make_absolute_links_relative("examples/catalog.json").unwrap();
     /// assert!(catalog.root_link().unwrap().is_relative());
     /// ```
     fn make_absolute_links_relative(&mut self, href: impl ToString) -> Result<()> {
@@ -844,9 +844,9 @@ mod tests {
 
         #[test]
         fn make_relative_links_absolute_path() {
-            let mut catalog: Catalog = crate::read("data/catalog.json").unwrap();
+            let mut catalog: Catalog = crate::read("examples/catalog.json").unwrap();
             catalog
-                .make_relative_links_absolute("data/catalog.json")
+                .make_relative_links_absolute("examples/catalog.json")
                 .unwrap();
             for link in catalog.links() {
                 assert!(link.is_absolute());
@@ -855,7 +855,7 @@ mod tests {
 
         #[test]
         fn make_relative_links_absolute_url() {
-            let mut catalog: Catalog = crate::read("data/catalog.json").unwrap();
+            let mut catalog: Catalog = crate::read("examples/catalog.json").unwrap();
             catalog
                 .make_relative_links_absolute("http://stac-rs.test/catalog.json")
                 .unwrap();
@@ -870,11 +870,11 @@ mod tests {
 
         #[test]
         fn make_absolute_links_relative_path() {
-            let mut catalog: Catalog = crate::read("data/catalog.json").unwrap();
+            let mut catalog: Catalog = crate::read("examples/catalog.json").unwrap();
             catalog
-                .make_relative_links_absolute("data/catalog.json")
+                .make_relative_links_absolute("examples/catalog.json")
                 .unwrap();
-            catalog.make_absolute_links_relative("data/").unwrap();
+            catalog.make_absolute_links_relative("examples/").unwrap();
             for link in catalog.links() {
                 if !link.is_self() {
                     assert!(link.is_relative(), "{}", link.href);
@@ -884,7 +884,7 @@ mod tests {
 
         #[test]
         fn make_absolute_links_relative_url() {
-            let mut catalog: Catalog = crate::read("data/catalog.json").unwrap();
+            let mut catalog: Catalog = crate::read("examples/catalog.json").unwrap();
             catalog
                 .make_relative_links_absolute("http://stac-rs.test/catalog.json")
                 .unwrap();

@@ -195,8 +195,8 @@ impl Collection {
     /// ```
     /// use stac::{Item, Collection};
     ///
-    /// let simple_item: Item = stac::read("data/simple-item.json").unwrap();
-    /// let extended_item: Item = stac::read("data/extended-item.json").unwrap();
+    /// let simple_item: Item = stac::read("examples/simple-item.json").unwrap();
+    /// let extended_item: Item = stac::read("examples/extended-item.json").unwrap();
     /// let collection = Collection::from_id_and_items("an-id", &[simple_item, extended_item]);
     /// ```
     pub fn from_id_and_items(id: impl ToString, items: &[Item]) -> Collection {
@@ -225,7 +225,7 @@ impl Collection {
     /// ```
     /// use stac::{Item, Collection};
     ///
-    /// let item: Item = stac::read("data/simple-item.json").unwrap();
+    /// let item: Item = stac::read("examples/simple-item.json").unwrap();
     /// let collection = Collection::new_from_item("an-id", "a description", &item);
     /// ```
     pub fn new_from_item(id: impl ToString, description: impl ToString, item: &Item) -> Collection {
@@ -277,8 +277,8 @@ impl Collection {
     /// ```
     /// use stac::{Item, Collection};
     ///
-    /// let item_0 = stac::read("data/simple-item.json").unwrap();
-    /// let item_1 = stac::read("data/extended-item.json").unwrap();
+    /// let item_0 = stac::read("examples/simple-item.json").unwrap();
+    /// let item_1 = stac::read("examples/extended-item.json").unwrap();
     /// let mut collection = Collection::new_from_item("an-id", "a description", &item_0);
     /// collection.add_item(&item_1);
     /// ```
@@ -478,7 +478,7 @@ mod tests {
 
         #[test]
         fn new_from_item() {
-            let item = crate::read("data/simple-item.json").unwrap();
+            let item = crate::read("examples/simple-item.json").unwrap();
             let collection = Collection::new_from_item("an-id", "a description", &item);
             assert_eq!(
                 collection.extent.spatial.bbox[0],
@@ -502,7 +502,7 @@ mod tests {
                     .unwrap()
             );
             let link = collection.link("item").unwrap();
-            assert_eq!(link.href, "data/simple-item.json");
+            assert_eq!(link.href, "examples/simple-item.json");
         }
     }
 
@@ -549,20 +549,20 @@ mod tests {
         use super::Collection;
         use crate::tests::roundtrip;
 
-        roundtrip!(collection, "data/collection.json", Collection);
+        roundtrip!(collection, "examples/collection.json", Collection);
         roundtrip!(
             collection_with_schemas,
-            "data/collection-only/collection-with-schemas.json",
+            "examples/collection-only/collection-with-schemas.json",
             Collection
         );
         roundtrip!(
             collection_only,
-            "data/collection-only/collection.json",
+            "examples/collection-only/collection.json",
             Collection
         );
         roundtrip!(
             extensions_collection,
-            "data/extensions-collection/collection.json",
+            "examples/extensions-collection/collection.json",
             Collection
         );
     }
