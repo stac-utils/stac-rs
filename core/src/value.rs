@@ -170,7 +170,7 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// let value: stac::Value = stac::read("data/simple-item.json").unwrap();
+    /// let value: stac::Value = stac::read("examples/simple-item.json").unwrap();
     /// assert_eq!(value.type_name(), "Item");
     /// ```
     pub fn type_name(&self) -> &'static str {

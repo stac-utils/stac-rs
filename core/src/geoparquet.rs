@@ -19,7 +19,7 @@ use std::io::Write;
 /// use std::io::Cursor;
 /// use stac::Item;
 ///
-/// let item: Item = stac::read("data/simple-item.json").unwrap();
+/// let item: Item = stac::read("examples/simple-item.json").unwrap();
 /// let mut cursor = Cursor::new(Vec::new());
 /// stac::geoparquet::to_writer(&mut cursor, item.into()).unwrap();
 /// ```
@@ -53,7 +53,7 @@ where
 /// ```
 /// use std::fs::File;
 ///
-/// let file = File::open("examples/extended-item.parquet").unwrap();
+/// let file = File::open("data/extended-item.parquet").unwrap();
 /// let item_collection = stac::geoparquet::from_reader(file).unwrap();
 /// ```
 pub fn from_reader<R>(reader: R) -> Result<ItemCollection>
@@ -74,21 +74,21 @@ mod tests {
     #[test]
     fn to_writer_catalog() {
         let mut cursor = Cursor::new(Vec::new());
-        let catalog = crate::read("data/catalog.json").unwrap();
+        let catalog = crate::read("examples/catalog.json").unwrap();
         let _ = super::to_writer(&mut cursor, catalog).unwrap_err();
     }
 
     #[test]
     fn to_writer_collection() {
         let mut cursor = Cursor::new(Vec::new());
-        let collection = crate::read("data/collection.json").unwrap();
+        let collection = crate::read("examples/collection.json").unwrap();
         let _ = super::to_writer(&mut cursor, collection).unwrap_err();
     }
 
     #[test]
     fn to_writer_item_collection() {
         let mut cursor = Cursor::new(Vec::new());
-        let item = crate::read("data/simple-item.json").unwrap();
+        let item = crate::read("examples/simple-item.json").unwrap();
         let item_collection = ItemCollection::from(vec![item]);
         super::to_writer(&mut cursor, item_collection.into()).unwrap();
     }
@@ -96,20 +96,20 @@ mod tests {
     #[test]
     fn to_writer_item() {
         let mut cursor = Cursor::new(Vec::new());
-        let item = crate::read("data/simple-item.json").unwrap();
+        let item = crate::read("examples/simple-item.json").unwrap();
         super::to_writer(&mut cursor, item).unwrap();
     }
 
     #[test]
     fn from_reader() {
-        let file = File::open("examples/extended-item.parquet").unwrap();
+        let file = File::open("data/extended-item.parquet").unwrap();
         let item_collection = super::from_reader(file).unwrap();
         assert_eq!(item_collection.items.len(), 1);
     }
 
     #[test]
     fn roundtrip() {
-        let mut item: Item = crate::read("data/simple-item.json").unwrap();
+        let mut item: Item = crate::read("examples/simple-item.json").unwrap();
         item.clear_href();
         let mut cursor = Cursor::new(Vec::new());
         super::to_writer(&mut cursor, item.clone().into()).unwrap();

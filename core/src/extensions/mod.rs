@@ -27,7 +27,7 @@
 //!
 //! ```
 //! use stac::{Item, Extensions, extensions::{Projection, projection::Centroid}};
-//! let mut item: Item = stac::read("data/extensions-collection/proj-example/proj-example.json").unwrap();
+//! let mut item: Item = stac::read("examples/extensions-collection/proj-example/proj-example.json").unwrap();
 //! assert!(item.has_extension::<Projection>());
 //!
 //! // Get extension information
@@ -130,7 +130,7 @@ pub trait Extensions: Fields {
     ///
     /// ```
     /// use stac::{Item, extensions::{Projection, Extensions}};
-    /// let item: Item = stac::read("data/extensions-collection/proj-example/proj-example.json").unwrap();
+    /// let item: Item = stac::read("examples/extensions-collection/proj-example/proj-example.json").unwrap();
     /// let projection: Projection = item.extension().unwrap().unwrap();
     /// assert_eq!(projection.epsg.unwrap(), 32614);
     /// ```
@@ -181,7 +181,7 @@ pub trait Extensions: Fields {
     ///
     /// ```
     /// use stac::{Item, extensions::{Projection, Extensions}};
-    /// let mut item: Item = stac::read("data/extensions-collection/proj-example/proj-example.json").unwrap();
+    /// let mut item: Item = stac::read("examples/extensions-collection/proj-example/proj-example.json").unwrap();
     /// assert!(item.has_extension::<Projection>());
     /// item.remove_extension::<Projection>();
     /// assert!(!item.has_extension::<Projection>());

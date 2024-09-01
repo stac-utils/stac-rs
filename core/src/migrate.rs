@@ -212,7 +212,7 @@ mod tests {
 
     #[test]
     fn migrate_v1_0_0_to_v1_1_0_beta_1() {
-        let item: Item = crate::read("examples/bands-v1.0.0.json").unwrap();
+        let item: Item = crate::read("data/bands-v1.0.0.json").unwrap();
         let item = item.migrate(Version::v1_1_0_beta_1).unwrap();
         let asset = &item.assets["example"];
         assert_eq!(asset.data_type.as_ref().unwrap(), &DataType::UInt16);
@@ -222,7 +222,7 @@ mod tests {
         assert_eq!(asset.bands[3].name.as_ref().unwrap(), "nir");
 
         let expected: Value =
-            serde_json::to_value(crate::read::<Item>("examples/bands-v1.1.0-beta.1.json").unwrap())
+            serde_json::to_value(crate::read::<Item>("data/bands-v1.1.0-beta.1.json").unwrap())
                 .unwrap();
         assert_json_eq!(expected, serde_json::to_value(item).unwrap());
 

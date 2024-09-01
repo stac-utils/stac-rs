@@ -407,7 +407,7 @@ impl Item {
     ///
     /// ```
     /// use stac::Item;
-    /// let item: Item = stac::read("data/simple-item.json").unwrap();
+    /// let item: Item = stac::read("examples/simple-item.json").unwrap();
     /// let link = item.collection_link().unwrap();
     /// ```
     pub fn collection_link(&self) -> Option<&Link> {
@@ -804,7 +804,8 @@ mod tests {
     #[test]
     fn deserialize_invalid_type_field() {
         let mut item: Value =
-            serde_json::to_value(crate::read::<Item>("data/simple-item.json").unwrap()).unwrap();
+            serde_json::to_value(crate::read::<Item>("examples/simple-item.json").unwrap())
+                .unwrap();
         item["type"] = "Item".into(); // must be "Feature"
         assert!(serde_json::from_value::<Item>(item).is_err());
     }
@@ -891,13 +892,17 @@ mod tests {
         use super::Item;
         use crate::tests::roundtrip;
 
-        roundtrip!(simple_item, "data/simple-item.json", Item);
-        roundtrip!(extended_item, "data/extended-item.json", Item);
-        roundtrip!(core_item, "data/core-item.json", Item);
-        roundtrip!(collectionless_item, "data/collectionless-item.json", Item);
+        roundtrip!(simple_item, "examples/simple-item.json", Item);
+        roundtrip!(extended_item, "examples/extended-item.json", Item);
+        roundtrip!(core_item, "examples/core-item.json", Item);
+        roundtrip!(
+            collectionless_item,
+            "examples/collectionless-item.json",
+            Item
+        );
         roundtrip!(
             proj_example_item,
-            "data/extensions-collection/proj-example/proj-example.json",
+            "examples/extensions-collection/proj-example/proj-example.json",
             Item
         );
     }

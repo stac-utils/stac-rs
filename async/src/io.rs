@@ -12,7 +12,7 @@ use url::Url;
 ///
 /// ```
 /// # tokio_test::block_on(async {
-/// let item: stac::Item = stac_async::read("data/simple-item.json").await.unwrap();
+/// let item: stac::Item = stac_async::read("examples/simple-item.json").await.unwrap();
 /// # })
 /// ```
 pub async fn read<T>(href: impl ToString) -> Result<T>
@@ -33,7 +33,7 @@ where
 ///
 /// ```
 /// # tokio_test::block_on(async {
-/// let item: stac::Item = stac_async::read_json("data/simple-item.json").await.unwrap();
+/// let item: stac::Item = stac_async::read_json("examples/simple-item.json").await.unwrap();
 /// # })
 /// ```
 pub async fn read_json<T>(href: &str) -> Result<T>
@@ -84,8 +84,8 @@ mod tests {
 
     #[tokio::test]
     async fn read_filesystem() {
-        let item: Item = super::read("data/simple-item.json").await.unwrap();
-        assert!(item.href().unwrap().ends_with("data/simple-item.json"));
+        let item: Item = super::read("examples/simple-item.json").await.unwrap();
+        assert!(item.href().unwrap().ends_with("examples/simple-item.json"));
     }
 
     #[tokio::test]

@@ -11,7 +11,7 @@ use std::fs::File;
 /// # Examples
 ///
 /// ```
-/// let item_collection = stac::io::geoparquet::read("examples/extended-item.parquet").unwrap();
+/// let item_collection = stac::io::geoparquet::read("data/extended-item.parquet").unwrap();
 /// ```
 pub fn read(href: impl ToString) -> Result<ItemCollection> {
     GeoparquetReader::read(href)

@@ -12,7 +12,7 @@ use url::Url;
 ///
 /// let item = Item::new("an-id");
 /// assert!(item.href().is_none());
-/// let item: Item = stac::read("data/simple-item.json").unwrap();
+/// let item: Item = stac::read("examples/simple-item.json").unwrap();
 /// assert!(item.href().is_some());
 /// ```
 pub trait Href {
@@ -23,8 +23,8 @@ pub trait Href {
     /// ```
     /// use stac::{Href, Item};
     ///
-    /// let item: Item = stac::read("data/simple-item.json").unwrap();
-    /// assert_eq!(item.href(), Some("data/simple-item.json"));
+    /// let item: Item = stac::read("examples/simple-item.json").unwrap();
+    /// assert_eq!(item.href(), Some("examples/simple-item.json"));
     /// ```
     fn href(&self) -> Option<&str>;
 
@@ -47,7 +47,7 @@ pub trait Href {
     /// ```
     /// use stac::{Href, Item};
     ///
-    /// let mut item: Item = stac::read("data/simple-item.json").unwrap();
+    /// let mut item: Item = stac::read("examples/simple-item.json").unwrap();
     /// item.clear_href();
     /// assert!(item.href().is_none());
     /// ```

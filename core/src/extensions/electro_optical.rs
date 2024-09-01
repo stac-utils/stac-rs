@@ -76,7 +76,7 @@ mod tests {
 
     #[test]
     fn item() {
-        let item: Item = crate::read("examples/eo/item.json").unwrap();
+        let item: Item = crate::read("data/eo/item.json").unwrap();
         let _: ElectroOptical = item.extension().unwrap().unwrap();
     }
 }

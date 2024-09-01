@@ -97,7 +97,7 @@ pub trait Assets {
     ///
     /// ```
     /// use stac::{Item, Assets};
-    /// let item: Item = stac::read("data/simple-item.json").unwrap();
+    /// let item: Item = stac::read("examples/simple-item.json").unwrap();
     /// assert!(!item.assets().is_empty());
     /// ```
     fn assets(&self) -> &HashMap<String, Asset>;
@@ -110,7 +110,7 @@ pub trait Assets {
     ///
     /// ```
     /// use stac::{Item, Asset, Assets};
-    /// let mut item: Item = stac::read("data/simple-item.json").unwrap();
+    /// let mut item: Item = stac::read("examples/simple-item.json").unwrap();
     /// item.assets_mut().insert("foo".to_string(), Asset::new("./asset.tif"));
     /// ```
     fn assets_mut(&mut self) -> &mut HashMap<String, Asset>;

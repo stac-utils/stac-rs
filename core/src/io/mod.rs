@@ -24,7 +24,7 @@ use url::Url;
 /// # Examples
 ///
 /// ```
-/// let item: stac::Item = stac::read("data/simple-item.json").unwrap();
+/// let item: stac::Item = stac::read("examples/simple-item.json").unwrap();
 /// ```
 pub fn read<T: Href + DeserializeOwned>(href: impl ToString) -> Result<T> {
     let href = href.to_string();
@@ -98,16 +98,16 @@ mod tests {
         };
     }
 
-    read!(read_item_from_path, "data/simple-item.json", Item);
-    read!(read_catalog_from_path, "data/catalog.json", Catalog);
+    read!(read_item_from_path, "examples/simple-item.json", Item);
+    read!(read_catalog_from_path, "examples/catalog.json", Catalog);
     read!(
         read_collection_from_path,
-        "data/collection.json",
+        "examples/collection.json",
         Collection
     );
     read!(
         read_item_collection_from_path,
-        "examples/item-collection.json",
+        "data/item-collection.json",
         ItemCollection
     );
 
@@ -146,12 +146,12 @@ mod tests {
     #[test]
     #[cfg(feature = "geoparquet")]
     fn read_geoparquet() {
-        let _: ItemCollection = super::read("examples/extended-item.parquet").unwrap();
+        let _: ItemCollection = super::read("data/extended-item.parquet").unwrap();
     }
 
     #[test]
     #[cfg(not(feature = "geoparquet"))]
     fn read_geoparquet() {
-        let _ = super::read::<ItemCollection>("examples/extended-item.parquet").unwrap_err();
+        let _ = super::read::<ItemCollection>("data/extended-item.parquet").unwrap_err();
     }
 }

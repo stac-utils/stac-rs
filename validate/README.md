@@ -21,7 +21,7 @@ stac-validate = "0.2"
 
 ```rust
 use stac_validate::Validate;
-let item: stac::Item = stac::read("data/simple-item.json").unwrap();
+let item: stac::Item = stac::read("examples/simple-item.json").unwrap();
 item.validate().unwrap();
 ```
 
