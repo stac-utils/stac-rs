@@ -111,8 +111,12 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install libgdal-dev
+      - name: Fmt
+        run: cargo fmt
       - name: Check
         run: cargo check --all --all-features
+      - name: Clippy
+        run: cargo clippy --all --all-features
   check-nightly:
     runs-on: ubuntu-latest
     steps:
@@ -125,24 +129,6 @@ jobs:
           sudo apt-get install libgdal-dev
       - name: Check
         run: cargo check --all --all-features
-  clippy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: Swatinem/rust-cache@v2
-      - name: Install GDAL
-        run: |
-          sudo apt-get update
-          sudo apt-get install libgdal-dev
-      - name: Check
-        run: cargo clippy --all --all-features
-  fmt:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: Swatinem/rust-cache@v2
-      - name: Fmt
-        run: cargo fmt
   doc:
     runs-on: ubuntu-latest
     env:
