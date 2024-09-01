@@ -8,9 +8,82 @@ use axum::{
     routing::{get, post},
     Json, Router,
 };
+use bytes::{BufMut, BytesMut};
 use http::Method;
-use stac_api::{GetItems, GetSearch, Items, Search};
+use serde::Serialize;
+use stac::{Collection, Item};
+use stac_api::{Collections, GetItems, GetSearch, ItemCollection, Items, Root, Search};
 use tower_http::cors::CorsLayer;
+
+/// Errors for our axum routes.
+#[derive(Debug)]
+pub enum Error {
+    /// An server error.
+    Server(crate::Error),
+
+    /// An error raised when something is not found.
+    NotFound(String),
+
+    /// An error raised when it's a bad request from the client.
+    BadRequest(String),
+}
+
+type Result<T> = std::result::Result<T, Error>;
+
+/// A wrapper struct for any geojson response.
+// Taken from https://docs.rs/axum/latest/src/axum/json.rs.html#93
+#[derive(Debug)]
+pub struct GeoJson<T>(pub T);
+
+impl IntoResponse for Error {
+    fn into_response(self) -> Response {
+        match self {
+            Error::Server(error) => (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()),
+            Error::NotFound(message) => (StatusCode::NOT_FOUND, message),
+            Error::BadRequest(message) => (StatusCode::BAD_REQUEST, message),
+        }
+        .into_response()
+    }
+}
+
+impl From<crate::Error> for Error {
+    fn from(error: crate::Error) -> Self {
+        Error::Server(error)
+    }
+}
+
+impl From<JsonRejection> for Error {
+    fn from(json_rejection: JsonRejection) -> Self {
+        Error::BadRequest(format!("bad request, json rejection: {}", json_rejection))
+    }
+}
+
+impl<T> IntoResponse for GeoJson<T>
+where
+    T: Serialize,
+{
+    fn into_response(self) -> Response {
+        // Use a small initial capacity of 128 bytes like serde_json::to_vec
+        // https://docs.rs/serde_json/1.0.82/src/serde_json/ser.rs.html#2189
+        let mut buf = BytesMut::with_capacity(128).writer();
+        match serde_json::to_writer(&mut buf, &self.0) {
+            Ok(()) => (
+                [(CONTENT_TYPE, HeaderValue::from_static(APPLICATION_GEO_JSON))],
+                buf.into_inner().freeze(),
+            )
+                .into_response(),
+            Err(err) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                [(
+                    CONTENT_TYPE,
+                    HeaderValue::from_static(mime::TEXT_PLAIN_UTF_8.as_ref()),
+                )],
+                err.to_string(),
+            )
+                .into_response(),
+        }
+    }
+}
 
 /// Creates an [axum::Router] from an [Api].
 ///
@@ -40,11 +113,8 @@ pub fn from_api<B: Backend>(api: Api<B>) -> Router {
 
 /// Returns the `/` endpoint from the [core conformance
 /// class](https://github.com/radiantearth/stac-api-spec/tree/release/v1.0.0/core#endpoints).
-pub async fn root<B: Backend>(State(api): State<Api<B>>) -> Response {
-    match api.root().await {
-        Ok(root) => Json(root).into_response(),
-        Err(err) => (StatusCode::INTERNAL_SERVER_ERROR, format!("{}", err)).into_response(),
-    }
+pub async fn root<B: Backend>(State(api): State<Api<B>>) -> Result<Json<Root>> {
+    api.root().await.map(Json).map_err(Error::from)
 }
 
 /// Returns the `/api` endpoint from the [core conformance
@@ -75,11 +145,8 @@ pub async fn conformance<B: Backend>(State(api): State<Api<B>>) -> Response {
 
 /// Returns the `/collections` endpoint from the [ogcapi-features conformance
 /// class](https://github.com/radiantearth/stac-api-spec/blob/release/v1.0.0/ogcapi-features/README.md#endpoints).
-pub async fn collections<B: Backend>(State(api): State<Api<B>>) -> Response {
-    match api.collections().await {
-        Ok(collections) => Json(collections).into_response(),
-        Err(err) => (StatusCode::INTERNAL_SERVER_ERROR, format!("{}", err)).into_response(),
-    }
+pub async fn collections<B: Backend>(State(api): State<Api<B>>) -> Result<Json<Collections>> {
+    api.collections().await.map(Json).map_err(Error::from)
 }
 
 /// Returns the `/collections/{collectionId}` endpoint from the [ogcapi-features
@@ -88,21 +155,16 @@ pub async fn collections<B: Backend>(State(api): State<Api<B>>) -> Response {
 pub async fn collection<B: Backend>(
     State(api): State<Api<B>>,
     Path(collection_id): Path<String>,
-) -> Response {
-    match api.collection(&collection_id).await {
-        Ok(option) => {
-            if let Some(collection) = option {
-                Json(collection).into_response()
-            } else {
-                (
-                    StatusCode::NOT_FOUND,
-                    format!("no collection with id='{}'", collection_id),
-                )
-                    .into_response()
-            }
-        }
-        Err(err) => (StatusCode::INTERNAL_SERVER_ERROR, format!("{}", err)).into_response(),
-    }
+) -> Result<Json<Collection>> {
+    api.collection(&collection_id)
+        .await
+        .map_err(Error::from)
+        .and_then(|option| {
+            option.ok_or_else(|| {
+                Error::NotFound(format!("no collection with id='{}'", collection_id))
+            })
+        })
+        .map(Json)
 }
 
 /// Returns the `/collections/{collectionId}/items` endpoint from the
@@ -112,28 +174,19 @@ pub async fn items<B: Backend>(
     State(api): State<Api<B>>,
     Path(collection_id): Path<String>,
     items: Query<GetItems>,
-) -> Response {
-    match Items::try_from(items.0).and_then(Items::valid) {
-        Ok(items) => match api.items(&collection_id, items).await {
-            Ok(option) => {
-                if let Some(items) = option {
-                    let mut response = Json(items).into_response();
-                    let _ = response
-                        .headers_mut()
-                        .insert(CONTENT_TYPE, HeaderValue::from_static(APPLICATION_GEO_JSON));
-                    response
-                } else {
-                    (
-                        StatusCode::NOT_FOUND,
-                        format!("no collection with id='{}'", collection_id),
-                    )
-                        .into_response()
-                }
-            }
-            Err(err) => (StatusCode::INTERNAL_SERVER_ERROR, format!("{}", err)).into_response(),
-        },
-        Err(err) => (StatusCode::BAD_REQUEST, format!("invalid query: {}", err,)).into_response(),
-    }
+) -> Result<GeoJson<ItemCollection>> {
+    let items = Items::try_from(items.0)
+        .and_then(Items::valid)
+        .map_err(|error| Error::BadRequest(format!("invalid query: {}", error)))?;
+    api.items(&collection_id, items)
+        .await
+        .map_err(Error::from)
+        .and_then(|option| {
+            option.ok_or_else(|| {
+                Error::NotFound(format!(" no collection with id='{}'", collection_id))
+            })
+        })
+        .map(GeoJson)
 }
 
 /// Returns the `/collections/{collectionId}/items/{itemId}` endpoint from the
@@ -142,28 +195,16 @@ pub async fn items<B: Backend>(
 pub async fn item<B: Backend>(
     State(api): State<Api<B>>,
     Path((collection_id, item_id)): Path<(String, String)>,
-) -> Response {
-    match api.item(&collection_id, &item_id).await {
-        Ok(option) => {
-            if let Some(item) = option {
-                let mut response = Json(item).into_response();
-                let _ = response
-                    .headers_mut()
-                    .insert(CONTENT_TYPE, HeaderValue::from_static(APPLICATION_GEO_JSON));
-                response
-            } else {
-                (
-                    StatusCode::NOT_FOUND,
-                    format!(
-                        "no item with id='{}' in collection='{}'",
-                        item_id, collection_id
-                    ),
-                )
-                    .into_response()
-            }
-        }
-        Err(err) => (StatusCode::INTERNAL_SERVER_ERROR, format!("{}", err)).into_response(),
-    }
+) -> Result<GeoJson<Item>> {
+    api.item(&collection_id, &item_id)
+        .await?
+        .ok_or_else(|| {
+            Error::NotFound(format!(
+                "no item with id='{}' in collection='{}'",
+                item_id, collection_id
+            ))
+        })
+        .map(GeoJson)
 }
 
 /// Returns the GET `/search` endpoint from the [item search conformance
@@ -171,44 +212,25 @@ pub async fn item<B: Backend>(
 pub async fn get_search<B: Backend>(
     State(api): State<Api<B>>,
     search: Query<GetSearch>,
-) -> Response {
-    match Search::try_from(search.0).and_then(Search::valid) {
-        Ok(search) => match api.search(search, Method::GET).await {
-            Ok(item_collection) => {
-                let mut response = Json(item_collection).into_response();
-                let _ = response
-                    .headers_mut()
-                    .insert(CONTENT_TYPE, HeaderValue::from_static(APPLICATION_GEO_JSON));
-                response
-            }
-            Err(err) => (StatusCode::INTERNAL_SERVER_ERROR, format!("{}", err)).into_response(),
-        },
-        Err(err) => (StatusCode::BAD_REQUEST, format!("invalid query: {}", err,)).into_response(),
-    }
+) -> Result<GeoJson<ItemCollection>> {
+    let search = Search::try_from(search.0)
+        .and_then(Search::valid)
+        .map_err(|error| Error::BadRequest(error.to_string()))?;
+
+    Ok(GeoJson(api.search(search, Method::GET).await?))
 }
 
 /// Returns the POST `/search` endpoint from the [item search conformance
 /// class](https://github.com/radiantearth/stac-api-spec/tree/release/v1.0.0/item-search)
 pub async fn post_search<B: Backend>(
     State(api): State<Api<B>>,
-    search: Result<Json<Search>, JsonRejection>,
-) -> Response {
-    match search
-        .map_err(|err| err.to_string())
-        .and_then(|search| search.0.valid().map_err(|err| err.to_string()))
-    {
-        Ok(search) => match api.search(search, Method::POST).await {
-            Ok(item_collection) => {
-                let mut response = Json(item_collection).into_response();
-                let _ = response
-                    .headers_mut()
-                    .insert(CONTENT_TYPE, HeaderValue::from_static(APPLICATION_GEO_JSON));
-                response
-            }
-            Err(err) => (StatusCode::INTERNAL_SERVER_ERROR, format!("{}", err)).into_response(),
-        },
-        Err(err) => (StatusCode::BAD_REQUEST, format!("invalid query: {}", err,)).into_response(),
-    }
+    search: std::result::Result<Json<Search>, JsonRejection>,
+) -> Result<GeoJson<ItemCollection>> {
+    let search = search?
+        .0
+        .valid()
+        .map_err(|error| Error::BadRequest(error.to_string()))?;
+    Ok(GeoJson(api.search(search, Method::POST).await?))
 }
 
 #[cfg(test)]
