@@ -1,8 +1,8 @@
-use crate::{Backend, Error, Result, APPLICATION_OPENAPI_3_0, DEFAULT_DESCRIPTION, DEFAULT_ID};
+use crate::{Backend, Error, Result, DEFAULT_DESCRIPTION, DEFAULT_ID};
 use http::Method;
 use serde::Serialize;
 use serde_json::{Map, Value};
-use stac::{Catalog, Collection, Fields, Item, Link, Links};
+use stac::{mime::APPLICATION_OPENAPI_3_0, Catalog, Collection, Fields, Item, Link, Links};
 use stac_api::{Collections, Conformance, ItemCollection, Items, Root, Search};
 use url::Url;
 

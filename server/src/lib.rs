@@ -53,12 +53,6 @@ pub const DEFAULT_DESCRIPTION: &str = "A STAC API server written in Rust";
 /// The default limit.
 pub const DEFAULT_LIMIT: u64 = 10;
 
-/// The GeoJSON content type.
-pub const APPLICATION_GEO_JSON: &str = "application/geo+json";
-
-/// The OpenAPI 3.0 content type.
-pub const APPLICATION_OPENAPI_3_0: &str = "application/vnd.oai.openapi+json;version=3.0";
-
 #[cfg(test)]
 use tokio_test as _;
 

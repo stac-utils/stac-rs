@@ -1,6 +1,6 @@
 //! Routes for serving API endpoints.
 
-use crate::{Api, Backend, APPLICATION_GEO_JSON, APPLICATION_OPENAPI_3_0};
+use crate::{Api, Backend};
 use axum::{
     extract::{rejection::JsonRejection, Path, Query, State},
     http::{header::CONTENT_TYPE, HeaderValue, StatusCode},
@@ -11,7 +11,10 @@ use axum::{
 use bytes::{BufMut, BytesMut};
 use http::Method;
 use serde::Serialize;
-use stac::{Collection, Item};
+use stac::{
+    mime::{APPLICATION_GEOJSON, APPLICATION_OPENAPI_3_0},
+    Collection, Item,
+};
 use stac_api::{Collections, GetItems, GetSearch, ItemCollection, Items, Root, Search};
 use tower_http::cors::CorsLayer;
 
@@ -68,7 +71,7 @@ where
         let mut buf = BytesMut::with_capacity(128).writer();
         match serde_json::to_writer(&mut buf, &self.0) {
             Ok(()) => (
-                [(CONTENT_TYPE, HeaderValue::from_static(APPLICATION_GEO_JSON))],
+                [(CONTENT_TYPE, HeaderValue::from_static(APPLICATION_GEOJSON))],
                 buf.into_inner().freeze(),
             )
                 .into_response(),
