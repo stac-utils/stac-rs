@@ -39,17 +39,11 @@ We hope to provide this support in the future.
 
 ### Features
 
-**stac-server** has three features, two of which are enabled by default.
+**stac-server** has two optional features.
 
 #### axum
 
-The `axum` feature is on by default and enables routing and serving using [axum](https://github.com/tokio-rs/axum).
-If you want to use the `Api` functionality with a different web framework, you can depend on this library and disable the `axum` feature.
-
-#### memory-item-search
-
-In order to search with the naïve memory backend, we need the `geo` feature on the **stac** crate.
-If you aren't using the memory backend, you can disable the `memory-item-search` feature, which is enabled by default.
+The `axum` feature enables routing and serving using [axum](https://github.com/tokio-rs/axum).
 
 #### pgstac
 

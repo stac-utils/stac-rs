@@ -37,7 +37,7 @@ impl MemoryBackend {
 #[async_trait]
 impl Backend for MemoryBackend {
     fn has_item_search(&self) -> bool {
-        cfg!(feature = "memory-item-search")
+        true
     }
 
     async fn collections(&self) -> Result<Vec<Collection>> {
