@@ -15,5 +15,5 @@ crate-type = ["cdylib"]
 [dependencies]
 pyo3 = "0.22"
 pythonize = "0.22"
-stac = { path = "../stac", features = ["reqwest"] }
-stac-validate = { path = "../stac-validate" }
+stac = { path = "../core", features = ["reqwest"] }
+stac-validate = { path = "../validate" }

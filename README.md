@@ -8,10 +8,10 @@
 
 Command Line Interface (CLI), Rust crates, and other libraries for the [SpatioTemporal Asset Catalog (STAC)](https://stacspec.org/) specification.
 
-- [stac-cli](./stac-cli/README.md) is a command-line interface to query a STAC API, create and validate STAC items, and do other awesome stuff on the command line.
-- [stac](./stac/README.md) is the core library with data structures (`Item`, `Catalog`, and `Collection`) and more.
-- [stac-async](./stac-async/README.md) uses async Rust via [tokio](https://tokio.rs/) for input and output.
-- [stac-server](./stac-server/README.md) is a STAC API server with multiple backends.
+- [stac-cli](./cli/README.md) is a command-line interface to query a STAC API, create and validate STAC items, and do other awesome stuff on the command line.
+- [stac](./core/README.md) is the core library with data structures (`Item`, `Catalog`, and `Collection`) and more.
+- [stac-async](./async/README.md) uses async Rust via [tokio](https://tokio.rs/) for input and output.
+- [stac-server](./server/README.md) is a STAC API server with multiple backends.
 - [stacrs](./python/README.md) is a small, no-dependency Python library based on **stac-rs**.
 
 ## Crates
@@ -20,13 +20,13 @@ This monorepo contains several crates:
 
 | Crate | Description | Badges |
 | ----- | ---- | --------- |
-| [stac](./stac/README.md) | Core data structures and synchronous I/O | [![docs.rs](https://img.shields.io/docsrs/stac?style=flat-square)](https://docs.rs/stac/latest/stac/) <br> [![Crates.io](https://img.shields.io/crates/v/stac?style=flat-square)](https://crates.io/crates/stac) |
+| [stac](./core/README.md) | Core data structures and synchronous I/O | [![docs.rs](https://img.shields.io/docsrs/stac?style=flat-square)](https://docs.rs/stac/latest/stac/) <br> [![Crates.io](https://img.shields.io/crates/v/stac?style=flat-square)](https://crates.io/crates/stac) |
 | [pgstac](./pgstac/README.md) | Bindings for [pgstac](https://github.com/stac-utils/pgstac) | [![docs.rs](https://img.shields.io/docsrs/pgstac?style=flat-square)](https://docs.rs/pgstac/latest/pgstac/) <br> [![Crates.io](https://img.shields.io/crates/v/pgstac?style=flat-square)](https://crates.io/crates/pgstac) |
-| [stac-api](./stac-api/README.md) | Data structures for the [STAC API](https://github.com/radiantearth/stac-api-spec) specification | [![docs.rs](https://img.shields.io/docsrs/stac-api?style=flat-square)](https://docs.rs/stac-api/latest/stac_api/) <br> [![Crates.io](https://img.shields.io/crates/v/stac-api?style=flat-square)](https://crates.io/crates/stac-api) |
-| [stac-async](./stac-async/README.md) | Asynchronous I/O with [tokio](https://tokio.rs/) | [![docs.rs](https://img.shields.io/docsrs/stac-async?style=flat-square)](https://docs.rs/stac-async/latest/stac_async/) <br> [![Crates.io](https://img.shields.io/crates/v/stac-async?style=flat-square)](https://crates.io/crates/stac-async) |
-| [stac-cli](./stac-cli/README.md)| Command line interface | [![docs.rs](https://img.shields.io/docsrs/stac-cli?style=flat-square)](https://docs.rs/stac-cli/latest/stac_cli/) <br> [![Crates.io](https://img.shields.io/crates/v/stac-cli?style=flat-square)](https://crates.io/crates/stac-cli) |
-| [stac-server](./stac-server/README.md)| STAC API server with multiple backends | [![docs.rs](https://img.shields.io/docsrs/stac-server?style=flat-square)](https://docs.rs/stac-server/latest/stac_server/) <br> [![Crates.io](https://img.shields.io/crates/v/stac-server?style=flat-square)](https://crates.io/crates/stac-server) |
-| [stac-validate](./stac-validate/README.md) | Validate STAC data structures with [jsonschema](https://json-schema.org/) | [![docs.rs](https://img.shields.io/docsrs/stac-validate?style=flat-square)](https://docs.rs/stac-validate/latest/stac-validate/) <br> [![Crates.io](https://img.shields.io/crates/v/stac-validate?style=flat-square)](https://crates.io/crates/stac-validate) |
+| [stac-api](./api/README.md) | Data structures for the [STAC API](https://github.com/radiantearth/stac-api-spec) specification | [![docs.rs](https://img.shields.io/docsrs/stac-api?style=flat-square)](https://docs.rs/stac-api/latest/stac_api/) <br> [![Crates.io](https://img.shields.io/crates/v/stac-api?style=flat-square)](https://crates.io/crates/stac-api) |
+| [stac-async](./async/README.md) | Asynchronous I/O with [tokio](https://tokio.rs/) | [![docs.rs](https://img.shields.io/docsrs/stac-async?style=flat-square)](https://docs.rs/stac-async/latest/stac_async/) <br> [![Crates.io](https://img.shields.io/crates/v/stac-async?style=flat-square)](https://crates.io/crates/stac-async) |
+| [stac-cli](./cli/README.md)| Command line interface | [![docs.rs](https://img.shields.io/docsrs/stac-cli?style=flat-square)](https://docs.rs/stac-cli/latest/stac_cli/) <br> [![Crates.io](https://img.shields.io/crates/v/stac-cli?style=flat-square)](https://crates.io/crates/stac-cli) |
+| [stac-server](./server/README.md)| STAC API server with multiple backends | [![docs.rs](https://img.shields.io/docsrs/stac-server?style=flat-square)](https://docs.rs/stac-server/latest/stac_server/) <br> [![Crates.io](https://img.shields.io/crates/v/stac-server?style=flat-square)](https://crates.io/crates/stac-server) |
+| [stac-validate](./validate/README.md) | Validate STAC data structures with [jsonschema](https://json-schema.org/) | [![docs.rs](https://img.shields.io/docsrs/stac-validate?style=flat-square)](https://docs.rs/stac-validate/latest/stac-validate/) <br> [![Crates.io](https://img.shields.io/crates/v/stac-validate?style=flat-square)](https://crates.io/crates/stac-validate) |
 
 ## Bindings
 

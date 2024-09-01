@@ -10,7 +10,7 @@ A [STAC API](https://github.com/radiantearth/stac-api-spec) server with multiple
 
 ## Usage
 
-To run a server from the command-line, use [stac-cli](../stac-cli/README.md).
+To run a server from the command-line, use [stac-cli](../cli/README.md).
 Any arguments will be interpreted as hrefs to STAC collections, items, and item collections, and will be loaded into the server on startup.
 
 ```shell

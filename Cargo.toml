@@ -1,21 +1,21 @@
 [workspace]
 resolver = "2"
 members = [
-    "stac",
+    "core",
     "pgstac",
     "python",
-    "stac-api",
-    "stac-async",
-    "stac-cli",
-    "stac-server",
-    "stac-validate",
+    "api",
+    "async",
+    "cli",
+    "server",
+    "validate",
 ]
 default-members = [
+    "api",
+    "async",
+    "cli",
+    "core",
     "python",
-    "stac",
-    "stac-api",
-    "stac-async",
-    "stac-cli",
-    "stac-server",
-    "stac-validate",
+    "server",
+    "validate",
 ]
