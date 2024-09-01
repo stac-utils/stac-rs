@@ -20,7 +20,7 @@ pub trait Backend: Clone + Sync + Send + 'static {
     /// ```
     /// use stac_server::{MemoryBackend, Backend};
     ///
-    /// assert_eq!(MemoryBackend::new().has_item_search(), cfg!(feature = "memory-item-search"));
+    /// assert!(MemoryBackend::new().has_item_search());
     /// ```
     fn has_item_search(&self) -> bool;
 

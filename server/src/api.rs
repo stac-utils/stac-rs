@@ -717,14 +717,8 @@ mod tests {
     fn memory_item_search_conformance() {
         let api = test_api(MemoryBackend::new());
         let conformance = api.conformance();
-        if cfg!(feature = "memory-item-search") {
-            assert!(conformance
-                .conforms_to
-                .contains(&ITEM_SEARCH_URI.to_string()));
-        } else {
-            assert!(!conformance
-                .conforms_to
-                .contains(&ITEM_SEARCH_URI.to_string()));
-        }
+        assert!(conformance
+            .conforms_to
+            .contains(&ITEM_SEARCH_URI.to_string()));
     }
 }

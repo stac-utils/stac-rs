@@ -29,10 +29,8 @@ jobs:
           - "-p stac -p stac-api -F geo"
           - "-p stac-async"
           - "-p stac-cli --no-default-features"
-          - "-p stac-server --no-default-features"
-          - "-p stac-server --no-default-features -F axum"
-          - "-p stac-server --no-default-features -F memory-item-search"
           - "-p stac-server"
+          - "-p stac-server -F axum"
           - "-p stac-validate"
     steps:
       - uses: actions/checkout@v4

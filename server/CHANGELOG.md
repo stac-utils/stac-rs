@@ -12,6 +12,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Auto-add items on ingest ([#312](https://github.com/stac-utils/stac-rs/pull/312))
 - Permissive CORS layer
 
+### Changed
+
+- `axum` is no longer a default feature ([#322](https://github.com/stac-utils/stac-rs/pull/322))
+
+### Removed
+
+- `memory-item-search` feature ([#322](https://github.com/stac-utils/stac-rs/pull/322))
+
 ## [0.1.1] - 2024-08-12
 
 ### Added
@@ -25,3 +33,5 @@ Initial release.
 [Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-server-v0.1.1..main
 [0.1.1]: https://github.com/stac-utils/stac-rs/compare/stac-server-v0.1.0..stac-server-v0.1.1
 [0.1.0]: https://github.com/stac-utils/stac-rs/releases/tag/stac-server-v0.1.0
+
+<!-- markdownlint-disable-file MD024 -->
