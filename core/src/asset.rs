@@ -21,7 +21,7 @@ pub struct Asset {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
 
-    /// [Media type](crate::media_type) of the asset.
+    /// [Media type](crate::mime) of the asset.
     ///
     /// See the [common media types](https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#common-media-types-in-stac) in the best practice doc for commonly used asset types.
     #[serde(skip_serializing_if = "Option::is_none")]

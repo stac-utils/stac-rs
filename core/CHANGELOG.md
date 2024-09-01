@@ -18,6 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Use `DateTime<Utc>` instead of `String` for datetimes ([#297](https://github.com/stac-utils/stac-rs/pull/297), [#304](https://github.com/stac-utils/stac-rs/pull/304))
 - Add `Href.clear_href` ([#299](https://github.com/stac-utils/stac-rs/pull/299))
+- Rename `media_type` module to `mime`, deprecate a bunch of them, add some others ([#327](https://github.com/stac-utils/stac-rs/pull/327))
 
 ### Removed
 

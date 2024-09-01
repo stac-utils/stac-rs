@@ -1,6 +1,7 @@
 //! Links.
 
-use crate::{media_type, Error, Result};
+use crate::{mime::APPLICATION_GEOJSON, Error, Result};
+use mime::APPLICATION_JSON;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use url::Url;
@@ -45,7 +46,7 @@ pub struct Link {
     /// in the STAC spec for more information.
     pub rel: String,
 
-    /// [Media type](crate::media_type) of the referenced entity.
+    /// [Media type](crate::mime) of the referenced entity.
     #[serde(rename = "type")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub r#type: Option<String>,
@@ -328,12 +329,12 @@ impl Link {
     /// # Examples
     ///
     /// ```
-    /// use stac::{Link, media_type};
+    /// use stac::Link;
     /// let link = Link::new("a/href", "rel-type").json();
-    /// assert_eq!(link.r#type.unwrap(), media_type::JSON);
+    /// assert_eq!(link.r#type.unwrap(), ::mime::APPLICATION_JSON.as_ref());
     /// ```
     pub fn json(mut self) -> Link {
-        self.r#type = Some(media_type::JSON.to_string());
+        self.r#type = Some(APPLICATION_JSON.to_string());
         self
     }
 
@@ -342,14 +343,14 @@ impl Link {
     /// # Examples
     ///
     /// ```
-    /// use stac::{Link, media_type};
+    /// use stac::Link;
     /// let link = Link::new("a/href", "rel-type").json();
     /// assert!(link.is_json());
     /// ```
     pub fn is_json(&self) -> bool {
         self.r#type
             .as_ref()
-            .map(|t| t == media_type::JSON)
+            .map(|t| t == APPLICATION_JSON.as_ref())
             .unwrap_or(false)
     }
 
@@ -358,12 +359,12 @@ impl Link {
     /// # Examples
     ///
     /// ```
-    /// use stac::{Link, media_type};
+    /// use stac::{Link, mime};
     /// let link = Link::new("a/href", "rel-type").geojson();
-    /// assert_eq!(link.r#type.unwrap(), media_type::GEOJSON);
+    /// assert_eq!(link.r#type.unwrap(), mime::GEOJSON);
     /// ```
     pub fn geojson(mut self) -> Link {
-        self.r#type = Some(media_type::GEOJSON.to_string());
+        self.r#type = Some(APPLICATION_GEOJSON.to_string());
         self
     }
 
@@ -372,14 +373,14 @@ impl Link {
     /// # Examples
     ///
     /// ```
-    /// use stac::{Link, media_type};
+    /// use stac::Link;
     /// let link = Link::new("a/href", "rel-type").geojson();
     /// assert!(link.is_geojson());
     /// ```
     pub fn is_geojson(&self) -> bool {
         self.r#type
             .as_ref()
-            .map(|t| t == media_type::GEOJSON)
+            .map(|t| t == APPLICATION_GEOJSON)
             .unwrap_or(false)
     }
 
@@ -388,9 +389,9 @@ impl Link {
     /// # Examples
     ///
     /// ```
-    /// use stac::{Link, media_type};
-    /// let link = Link::new("a/href", "rel-type").r#type(media_type::GEOJSON.to_string());
-    /// assert_eq!(link.r#type.unwrap(), media_type::GEOJSON);
+    /// use stac::{Link, mime};
+    /// let link = Link::new("a/href", "rel-type").r#type(mime::GEOJSON.to_string());
+    /// assert_eq!(link.r#type.unwrap(), mime::GEOJSON);
     /// ```
     pub fn r#type(mut self, r#type: impl Into<Option<String>>) -> Link {
         self.r#type = r#type.into();
@@ -416,10 +417,10 @@ impl Link {
     /// # Examples
     ///
     /// ```
-    /// # use stac::{Link, media_type};
+    /// # use stac::Link;
     /// let link = Link::root("an-href");
     /// assert!(link.is_root());
-    /// assert_eq!(link.r#type.as_ref().unwrap(), media_type::JSON);
+    /// assert_eq!(link.r#type.as_ref().unwrap(), ::mime::APPLICATION_JSON.as_ref());
     /// ```
     pub fn root(href: impl ToString) -> Link {
         Link::new(href, ROOT_REL).json()
@@ -430,10 +431,10 @@ impl Link {
     /// # Examples
     ///
     /// ```
-    /// # use stac::{Link, media_type};
+    /// # use stac::Link;
     /// let link = Link::self_("an-href");
     /// assert!(link.is_self());
-    /// assert_eq!(link.r#type.as_ref().unwrap(), media_type::JSON);
+    /// assert_eq!(link.r#type.as_ref().unwrap(), ::mime::APPLICATION_JSON.as_ref());
     /// ```
     pub fn self_(href: impl ToString) -> Link {
         Link::new(href, SELF_REL).json()
@@ -444,10 +445,10 @@ impl Link {
     /// # Examples
     ///
     /// ```
-    /// # use stac::{Link, media_type};
+    /// # use stac::Link;
     /// let link = Link::child("an-href");
     /// assert!(link.is_child());
-    /// assert_eq!(link.r#type.as_ref().unwrap(), media_type::JSON);
+    /// assert_eq!(link.r#type.as_ref().unwrap(), ::mime::APPLICATION_JSON.as_ref());
     /// ```
     pub fn child(href: impl ToString) -> Link {
         Link::new(href, CHILD_REL).json()
@@ -458,10 +459,10 @@ impl Link {
     /// # Examples
     ///
     /// ```
-    /// # use stac::{Link, media_type};
+    /// # use stac::Link;
     /// let link = Link::item("an-href");
     /// assert!(link.is_item());
-    /// assert_eq!(link.r#type.as_ref().unwrap(), media_type::JSON);
+    /// assert_eq!(link.r#type.as_ref().unwrap(), ::mime::APPLICATION_JSON.as_ref());
     /// ```
     pub fn item(href: impl ToString) -> Link {
         Link::new(href, ITEM_REL).json()
@@ -472,10 +473,10 @@ impl Link {
     /// # Examples
     ///
     /// ```
-    /// # use stac::{Link, media_type};
+    /// # use stac::Link;
     /// let link = Link::parent("an-href");
     /// assert!(link.is_parent());
-    /// assert_eq!(link.r#type.as_ref().unwrap(), media_type::JSON);
+    /// assert_eq!(link.r#type.as_ref().unwrap(), ::mime::APPLICATION_JSON.as_ref());
     /// ```
     pub fn parent(href: impl ToString) -> Link {
         Link::new(href, PARENT_REL).json()
@@ -486,10 +487,10 @@ impl Link {
     /// # Examples
     ///
     /// ```
-    /// # use stac::{Link, media_type};
+    /// # use stac::Link;
     /// let link = Link::collection("an-href");
     /// assert!(link.is_collection());
-    /// assert_eq!(link.r#type.as_ref().unwrap(), media_type::JSON);
+    /// assert_eq!(link.r#type.as_ref().unwrap(), ::mime::APPLICATION_JSON.as_ref());
     /// ```
     pub fn collection(href: impl ToString) -> Link {
         Link::new(href, COLLECTION_REL).json()

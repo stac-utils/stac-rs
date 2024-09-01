@@ -46,6 +46,7 @@ geo-types = { version = "0.7", optional = true }
 geoarrow = { git = "https://github.com/geoarrow/geoarrow-rs", rev = "6b877486bf98f280bc04b589eb7ce25b20e629f0", optional = true }
 geojson = { version = "0.24" }
 log = { version = "0.4" }
+mime = "0.3"
 parquet = { version = "52", default-features = false, optional = true }
 reqwest = { version = "0.12", optional = true, features = ["json", "blocking"] }
 serde = { version = "1", features = ["derive"] }
