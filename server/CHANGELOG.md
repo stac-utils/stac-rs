@@ -20,6 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Removed
 
 - `memory-item-search` feature ([#322](https://github.com/stac-utils/stac-rs/pull/322))
+- `APPLICATION_GEO_JSON` and `APPLICATION_OPENAPI_3_0` constants (they're now in `stac::mime`) ([#327](https://github.com/stac-utils/stac-rs/pull/327))
 
 ## [0.1.1] - 2024-08-12
 
