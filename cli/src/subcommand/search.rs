@@ -30,7 +30,7 @@ impl Subcommand {
         {
             #[cfg(feature = "duckdb")]
             {
-                let client = stac_duckdb::Client::from_path(args.href)?;
+                let client = stac_duckdb::Client::from_href(args.href)?;
                 let items = client.search_to_json(search)?;
                 if args.stream {
                     for item in items.items {
