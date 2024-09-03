@@ -15,10 +15,14 @@ pub struct Sortby {
     pub direction: Direction,
 }
 
+/// The direction of sorting.
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
 pub enum Direction {
+    /// Ascending
     #[serde(rename = "asc")]
     Ascending,
+
+    /// Descending
     #[serde(rename = "desc")]
     Descending,
 }
