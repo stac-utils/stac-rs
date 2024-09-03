@@ -131,7 +131,6 @@ pub mod gdal;
 pub mod geo;
 #[cfg(feature = "geoarrow")]
 pub mod geoarrow;
-#[cfg(feature = "geoparquet")]
 pub mod geoparquet;
 mod href;
 pub mod io;
