@@ -72,6 +72,45 @@ fn migrate<'py>(value: &Bound<'py, PyDict>, version: Option<&str>) -> PyResult<B
     value.downcast_into().map_err(PyErr::from)
 }
 
+/// Migrates a STAC dictionary at the given href to another version.
+///
+/// Migration can be as simple as updating the `stac_version` attribute, but
+/// sometimes can be more complicated. For example, when migrating to v1.1.0,
+/// [eo:bands and raster:bands should be consolidated to the new bands
+/// structure](https://github.com/radiantearth/stac-spec/releases/tag/v1.1.0-beta.1).
+///
+/// See [the stac-rs
+/// documentation](https://docs.rs/stac/latest/stac/enum.Version.html) for
+/// supported versions.
+///
+/// Args:
+///     href (str): The href to read the STAC object from
+///     version (str | None): The version to migrate to. If not provided, the
+///         value will be migrated to the latest stable version.
+///
+/// Examples:
+///     >>> item = stacrs.migrate_href("examples/simple-item.json", "1.1.0-beta.1")
+///     >>> assert item["stac_version"] == "1.1.0-beta.1"
+#[pyfunction]
+#[pyo3(signature = (href, version=None))]
+fn migrate_href<'py>(
+    py: Python<'py>,
+    href: &str,
+    version: Option<&str>,
+) -> PyResult<Bound<'py, PyDict>> {
+    let value: Value = stac::read(href).map_err(|err| StacrsError::new_err(err.to_string()))?;
+    let version = version
+        .map(|version| version.parse())
+        .transpose()
+        .map_err(|err: stac::Error| StacrsError::new_err(err.to_string()))?
+        .unwrap_or_default();
+    let value = value
+        .migrate(version)
+        .map_err(|err| StacrsError::new_err(err.to_string()))?;
+    let value = pythonize::pythonize(py, &value)?;
+    value.downcast_into().map_err(PyErr::from)
+}
+
 /// Validates a single href with json-schema.
 ///
 /// Args:
@@ -134,6 +173,7 @@ fn validate_value(value: Value) -> PyResult<()> {
 fn stacrs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(main, m)?)?;
     m.add_function(wrap_pyfunction!(migrate, m)?)?;
+    m.add_function(wrap_pyfunction!(migrate_href, m)?)?;
     m.add_function(wrap_pyfunction!(validate_href, m)?)?;
     m.add_function(wrap_pyfunction!(validate, m)?)?;
     m.add("StacrsError", m.py().get_type_bound::<StacrsError>())?;
