@@ -8,10 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Added
 
-- `Bbox` ([#303](https://github.com/stac-utils/stac-rs/pull/303))
+- `Bbox` ([#303](https://github.com/stac-utils/stac-rs/pull/303), [#328](https://github.com/stac-utils/stac-rs/pull/328))
 - Functions to create collections from items ([#304](https://github.com/stac-utils/stac-rs/pull/304))
 - Default implementation for `Version` ([#309](https://github.com/stac-utils/stac-rs/pull/309))
-- Experimental GeoParquet and GeoArrow support ([#316](https://github.com/stac-utils/stac-rs/pull/316), [#319](https://github.com/stac-utils/stac-rs/pull/319))
+- Experimental GeoParquet and GeoArrow support ([#316](https://github.com/stac-utils/stac-rs/pull/316), [#319](https://github.com/stac-utils/stac-rs/pull/319), [#328](https://github.com/stac-utils/stac-rs/pull/328))
 - Public `stac::io` module ([#319](https://github.com/stac-utils/stac-rs/pull/319))
 
 ### Changed
@@ -24,6 +24,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - `stac::read_json` from the public API ([#301](https://github.com/stac-utils/stac-rs/pull/301))
 - `Bounds` ([#303](https://github.com/stac-utils/stac-rs/pull/303))
+- `stac::item::FlatItem` ([#328](https://github.com/stac-utils/stac-rs/pull/328))
 
 ## [0.8.0] - 2024-08-12
 

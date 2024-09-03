@@ -611,27 +611,6 @@ impl Item {
     }
 }
 
-impl TryFrom<FlatItem> for Item {
-    type Error = Error;
-
-    fn try_from(flat_item: FlatItem) -> Result<Item> {
-        Ok(Item {
-            r#type: flat_item.r#type,
-            version: flat_item.version,
-            extensions: flat_item.extensions,
-            id: flat_item.id,
-            geometry: flat_item.geometry,
-            bbox: flat_item.bbox,
-            links: flat_item.links,
-            assets: flat_item.assets,
-            collection: flat_item.collection,
-            properties: serde_json::from_value(flat_item.properties.into())?,
-            additional_fields: Default::default(),
-            href: None,
-        })
-    }
-}
-
 impl Href for Item {
     fn href(&self) -> Option<&str> {
         self.href.as_deref()
@@ -773,7 +752,7 @@ mod tests {
     use super::{Builder, FlatItem, Item};
     use crate::{
         extensions::{Projection, Raster},
-        Asset, Extensions, Version, STAC_VERSION,
+        Asset, Extensions, STAC_VERSION,
     };
     use geojson::{feature::Id, Feature};
     use serde_json::Value;
@@ -990,25 +969,6 @@ mod tests {
             .insert("foo".to_string(), "bar".to_string().into());
         let _ = item.clone().into_flat_item(true).unwrap();
         let _ = item.clone().into_flat_item(false).unwrap_err();
-    }
-
-    #[test]
-    fn flat_item_into_item() {
-        use geojson::{Geometry, Value};
-
-        let flat_item = FlatItem {
-            r#type: "Feature".to_string(),
-            version: Version::v1_0_0,
-            extensions: Vec::new(),
-            id: "an-id".to_string(),
-            geometry: Some(Geometry::new(Value::Point(vec![-105.1, 41.1]))),
-            bbox: Some(vec![-105., 41., -105., 41.].try_into().unwrap()),
-            links: Vec::new(),
-            assets: Default::default(),
-            collection: None,
-            properties: Default::default(),
-        };
-        let _ = Item::try_from(flat_item).unwrap();
     }
 
     #[test]
