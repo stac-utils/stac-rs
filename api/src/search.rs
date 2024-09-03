@@ -88,7 +88,7 @@ impl Search {
     /// use geojson::{Geometry, Value};
     ///
     /// let mut search = Search::default();
-    /// search.items.bbox =  Some(vec![-180.0, -90.0, 180.0, 80.0]);
+    /// search.items.bbox =  Some(vec![-180.0, -90.0, 180.0, 80.0].try_into().unwrap());
     /// search = search.valid().unwrap();
     /// search.intersects = Some(Geometry::new(Value::Point(vec![0.0, 0.0])));
     /// search.valid().unwrap_err();

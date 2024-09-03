@@ -68,7 +68,7 @@ impl Backend for PgstacBackend {
 
     async fn items(&self, collection_id: &str, items: Items) -> Result<Option<ItemCollection>> {
         // TODO should we check for collection existence?
-        let search = items.into_search(collection_id);
+        let search = items.search_collection(collection_id);
         self.search(search).await.map(Some)
     }
 

@@ -2,7 +2,7 @@ use crate::{Error, Fields, Filter, Result, Search, Sortby};
 use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use stac::Item;
+use stac::{Bbox, Item};
 use std::collections::HashMap;
 
 /// Parameters for the items endpoint from STAC API - Features.
@@ -14,7 +14,7 @@ pub struct Items {
 
     /// Requested bounding box.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub bbox: Option<Vec<f64>>,
+    pub bbox: Option<Bbox>,
 
     /// Single date+time, or a range ('/' separator), formatted to [RFC 3339,
     /// section 5.6](https://tools.ietf.org/html/rfc3339#section-5.6).
@@ -114,25 +114,8 @@ impl Items {
     /// ```
     pub fn valid(self) -> Result<Items> {
         if let Some(bbox) = self.bbox.as_ref() {
-            if bbox.len() == 4 {
-                if bbox[1] > bbox[3] {
-                    return Err(Error::InvalidBbox(
-                        bbox.clone(),
-                        "min latitude is greater than max latitude",
-                    ));
-                }
-            } else if bbox.len() == 6 {
-                if bbox[1] > bbox[4] {
-                    return Err(Error::InvalidBbox(
-                        bbox.clone(),
-                        "min latitude is greater than max latitude",
-                    ));
-                }
-            } else {
-                return Err(Error::InvalidBbox(
-                    bbox.clone(),
-                    "invalid number of coordinates",
-                ));
+            if !bbox.is_valid() {
+                return Err(Error::from(stac::Error::InvalidBbox((*bbox).into())));
             }
         }
         if let Some(datetime) = self.datetime.as_deref() {
@@ -190,7 +173,7 @@ impl Items {
     /// let mut search = Search::new();
     /// let mut item = Item::new("item-id");
     /// assert!(search.bbox_matches(&item).unwrap());
-    /// search.bbox = Some(vec![-110.0, 40.0, -100.0, 50.0]);
+    /// search.bbox = Some(vec![-110.0, 40.0, -100.0, 50.0].try_into().unwrap());
     /// assert!(!search.bbox_matches(&item).unwrap());
     /// item.set_geometry(Geometry::new(Value::Point(vec![-105.1, 41.1])));
     /// assert!(search.bbox_matches(&item).unwrap());
@@ -201,7 +184,7 @@ impl Items {
         if let Some(bbox) = self.bbox.as_ref() {
             #[cfg(feature = "geo")]
             {
-                let bbox = stac::geo::bbox(bbox)?;
+                let bbox: geo::Rect = (*bbox).into();
                 item.intersects(&bbox).map_err(Error::from)
             }
             #[cfg(not(feature = "geo"))]
@@ -297,10 +280,10 @@ impl Items {
     ///     datetime: Some("2023".to_string()),
     ///     ..Default::default()
     /// };
-    /// let search = items.into_search("collection-id");
+    /// let search = items.search_collection("collection-id");
     /// assert_eq!(search.collections.unwrap(), vec!["collection-id"]);
     /// ```
-    pub fn into_search(self, collection_id: impl ToString) -> Search {
+    pub fn search_collection(self, collection_id: impl ToString) -> Search {
         Search {
             items: self,
             intersects: None,
@@ -328,7 +311,8 @@ impl TryFrom<Items> for GetItems {
         Ok(GetItems {
             limit: items.limit.map(|n| n.to_string()),
             bbox: items.bbox.map(|bbox| {
-                bbox.into_iter()
+                Vec::from(bbox)
+                    .into_iter()
                     .map(|n| n.to_string())
                     .collect::<Vec<_>>()
                     .join(",")
@@ -363,7 +347,7 @@ impl TryFrom<GetItems> for Items {
             for s in value.split(',') {
                 bbox.push(s.parse()?)
             }
-            Some(bbox)
+            Some(bbox.try_into()?)
         } else {
             None
         };
@@ -443,7 +427,10 @@ mod tests {
 
         let items: Items = get_items.try_into().unwrap();
         assert_eq!(items.limit.unwrap(), 42);
-        assert_eq!(items.bbox.unwrap(), vec![-1.0, -2.0, 1.0, 2.0]);
+        assert_eq!(
+            items.bbox.unwrap(),
+            vec![-1.0, -2.0, 1.0, 2.0].try_into().unwrap()
+        );
         assert_eq!(items.datetime.unwrap(), "2023");
         assert_eq!(
             items.fields.unwrap(),
@@ -473,7 +460,7 @@ mod tests {
 
         let items = Items {
             limit: Some(42),
-            bbox: Some(vec![-1.0, -2.0, 1.0, 2.0]),
+            bbox: Some(vec![-1.0, -2.0, 1.0, 2.0].try_into().unwrap()),
             datetime: Some("2023".to_string()),
             fields: Some(Fields {
                 include: vec!["foo".to_string()],
