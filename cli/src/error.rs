@@ -33,6 +33,11 @@ pub enum Error {
     #[error(transparent)]
     StacAsync(#[from] stac_async::Error),
 
+    /// [stac_duckdb::Error]
+    #[cfg(feature = "duckdb")]
+    #[error(transparent)]
+    StacDuckdb(#[from] stac_duckdb::Error),
+
     /// [stac_server::Error]
     #[error(transparent)]
     StacServer(#[from] stac_server::Error),

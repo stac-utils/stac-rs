@@ -12,6 +12,7 @@ categories = ["science", "data-structures"]
 
 [features]
 default = ["gdal", "pgstac"]
+duckdb = ["dep:stac-duckdb"]
 gdal = ["stac/gdal"]
 pgstac = ["stac-server/pgstac"]
 
@@ -27,6 +28,7 @@ stac = { version = "0.8", path = "../core", features = [
 ] }
 stac-api = { version = "0.4", path = "../api" }
 stac-async = { version = "0.5", path = "../async" }
+stac-duckdb = { version = "0.1", path = "../duckdb", optional = true }
 stac-server = { version = "0.1", path = "../server", features = [
     "axum",
     "tokio",

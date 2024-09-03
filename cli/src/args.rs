@@ -136,6 +136,14 @@ pub struct SearchArgs {
     #[arg(long)]
     pub stream: bool,
 
+    /// Search with DuckDB instead of a STAC API client.
+    ///
+    /// ⚠ Experimental: this is a new feature whose behavior might change without warning.
+    ///
+    /// If true, or if not provided and the href's extension is `parquet` or `geoparquet`, use DuckDB. Set to `false` to always use a STAC API client.
+    #[arg(long)]
+    pub duckdb: Option<bool>,
+
     /// The file to write the output to.
     ///
     /// If not provided, the output will be written to standard output.

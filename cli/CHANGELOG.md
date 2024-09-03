@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Geoparquet support ([#300](https://github.com/stac-utils/stac-rs/pull/300))
 - Auto-create collections when serving ([#304](https://github.com/stac-utils/stac-rs/pull/304))
 - Auto-add items when serving ([#312](https://github.com/stac-utils/stac-rs/pull/312))
+- Searching geoparquet files with DuckDB ([#331](https://github.com/stac-utils/stac-rs/pull/331))
 
 ## [0.2.0] - 2024-08-12
 
