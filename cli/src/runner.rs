@@ -46,6 +46,7 @@ where
                         writeln!(self.writer, "{}", value)?;
                     }
                 }
+                #[cfg(feature = "geoparquet")]
                 Format::Parquet => {
                     if let Some(value) = value.to_stac() {
                         stac::geoparquet::to_writer(&mut self.writer, value)?;
