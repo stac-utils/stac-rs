@@ -37,7 +37,7 @@ def clean_report(report: dict[str, Any]) -> dict[str, Any]:
 try:
     # Writing
     subprocess.check_call(
-        ["cargo", "run", "--no-default-features", "--", "translate", path, parquet_path]
+        ["cargo", "run", "--no-default-features", "-F", "geoparquet", "--", "translate", path, parquet_path]
     )
     table = pyarrow.parquet.read_table(parquet_path)
     after = next(stac_geoparquet.arrow.stac_table_to_items(table))
@@ -55,7 +55,7 @@ try:
     table = stac_geoparquet.arrow.parse_stac_items_to_arrow([before])
     stac_geoparquet.arrow.to_parquet(table, parquet_path)
     item_collection = json.loads(subprocess.check_output(
-        ["cargo", "run", "--no-default-features", "--", "translate", parquet_path]
+        ["cargo", "run", "--no-default-features", "-F", "geoparquet", "--", "translate", parquet_path]
     ))
     assert len(item_collection["features"]) == 1
     clean_item(item_collection["features"][0])  # stac-geoparquet writes as a multi-polygon
