@@ -45,7 +45,7 @@ assert_cmd = "2"
 tokio-test = "0.4"
 
 [[bin]]
-name = "stac"
+name = "stacrs"
 path = "src/main.rs"
 doc = false
 test = false

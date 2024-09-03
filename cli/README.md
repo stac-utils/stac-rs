@@ -6,7 +6,7 @@
 ![Crates.io](https://img.shields.io/crates/l/stac-cli?style=for-the-badge)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?style=for-the-badge)](./CODE_OF_CONDUCT)
 
-Command Line Interface (CLI) for [STAC](https://stacspec.org/) built with [stac-rs](https://github.com/stac-utils/stac-rs).
+Command Line Interface (CLI), named `stacrs` for [STAC](https://stacspec.org/) built with [stac-rs](https://github.com/stac-utils/stac-rs).
 
 ![stac-cli gif](./img/stac-cli.gif)
 
@@ -19,6 +19,12 @@ Then:
 cargo install stac-cli
 ```
 
+You can also install it from PyPI, where it is named **stacrs**:
+
+```shell
+pip install stacrs
+```
+
 ### Homebrew
 
 If you use [homebrew](https://brew.sh/), you can use [gadomski's](https://github.com/gadomski/) tap to install:
@@ -29,14 +35,14 @@ brew install gadomski/gadomski/stac
 
 ## Usage
 
-**stac-cli** provides the following subcommands:
+**stacrs** provides the following subcommands:
 
-- `stac item`: create STAC items and combine them into item collections
-- `stac search`: search STAC APIs
-- `stac serve`: serve a STAC API
-- `stac sort`: sort the fields of STAC items, catalogs, and collections
-- `stac translate`: convert STAC values from one format to another
-- `stac validate`: validate STAC items, catalogs, and collections using [json-schema](https://json-schema.org/)
+- `stacrs item`: create STAC items and combine them into item collections
+- `stacrs search`: search STAC APIs
+- `stacrs serve`: serve a STAC API
+- `stacrs sort`: sort the fields of STAC items, catalogs, and collections
+- `stacrs translate`: convert STAC values from one format to another
+- `stacrs validate`: validate STAC items, catalogs, and collections using [json-schema](https://json-schema.org/)
 
 Use the `--help` flag to see all available options for the CLI and the subcommands:
 
