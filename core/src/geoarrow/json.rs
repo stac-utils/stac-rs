@@ -15,6 +15,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
+//! Utilities for working with JSON and (geo)arrow.
+//!
 //! Taken from v51.0.0 of
 //! [arrow-json](https://docs.rs/arrow-json/51.0.0/arrow_json/index.html), we've
 //! lifted this code to convert record batches to vectors of
@@ -23,12 +25,31 @@
 
 #![allow(unused_results)]
 
+const TOP_LEVEL_KEYS: [&str; 10] = [
+    "type",
+    "stac_version",
+    "stac_extensions",
+    "id",
+    "geometry",
+    "bbox",
+    "properties",
+    "links",
+    "assets",
+    "collection",
+];
+
 use arrow_array::cast::*;
 use arrow_array::types::*;
 use arrow_array::*;
 use arrow_cast::display::{ArrayFormatter, FormatOptions};
 use arrow_json::JsonSerializable;
 use arrow_schema::*;
+use geoarrow::table::Table;
+use geoarrow::{
+    array::AsGeometryArray,
+    datatypes::{Dimension, GeoDataType},
+    trait_::GeometryArrayAccessor,
+};
 use serde_json::json;
 use serde_json::map::Map as JsonMap;
 use serde_json::Value;
@@ -400,9 +421,158 @@ fn set_column_for_json_rows(
     Ok(())
 }
 
-pub(crate) fn record_batches_to_json_rows(
+/// Converts a table to json rows.
+pub fn from_table(table: Table) -> Result<Vec<serde_json::Map<String, Value>>, crate::Error> {
+    use geojson::Value;
+    use GeoDataType::*;
+
+    let index = table
+        .schema()
+        .column_with_name("geometry")
+        .map(|(index, _)| index);
+    let mut json_rows = record_batches_to_json_rows(table.batches(), index)?;
+    let mut items = Vec::new();
+    if let Some(index) = index {
+        for chunk in table.geometry_column(Some(index))?.geometry_chunks() {
+            for i in 0..chunk.len() {
+                let value = match chunk.data_type() {
+                    Point(_, dimension) => match dimension {
+                        Dimension::XY => Value::from(&chunk.as_point_2d().value_as_geo(i)),
+                        Dimension::XYZ => Value::from(&chunk.as_point_3d().value_as_geo(i)),
+                    },
+                    LineString(_, dimension) => match dimension {
+                        Dimension::XY => Value::from(&chunk.as_line_string_2d().value_as_geo(i)),
+                        Dimension::XYZ => Value::from(&chunk.as_line_string_3d().value_as_geo(i)),
+                    },
+                    LargeLineString(_, dimension) => match dimension {
+                        Dimension::XY => {
+                            Value::from(&chunk.as_large_line_string_2d().value_as_geo(i))
+                        }
+                        Dimension::XYZ => {
+                            Value::from(&chunk.as_large_line_string_3d().value_as_geo(i))
+                        }
+                    },
+                    Polygon(_, dimension) => match dimension {
+                        Dimension::XY => Value::from(&chunk.as_polygon_2d().value_as_geo(i)),
+                        Dimension::XYZ => Value::from(&chunk.as_polygon_3d().value_as_geo(i)),
+                    },
+                    LargePolygon(_, dimension) => match dimension {
+                        Dimension::XY => Value::from(&chunk.as_large_polygon_2d().value_as_geo(i)),
+                        Dimension::XYZ => Value::from(&chunk.as_large_polygon_3d().value_as_geo(i)),
+                    },
+                    MultiPoint(_, dimension) => match dimension {
+                        Dimension::XY => Value::from(&chunk.as_multi_point_2d().value_as_geo(i)),
+                        Dimension::XYZ => Value::from(&chunk.as_multi_point_3d().value_as_geo(i)),
+                    },
+                    LargeMultiPoint(_, dimension) => match dimension {
+                        Dimension::XY => {
+                            Value::from(&chunk.as_large_multi_point_2d().value_as_geo(i))
+                        }
+                        Dimension::XYZ => {
+                            Value::from(&chunk.as_large_multi_point_3d().value_as_geo(i))
+                        }
+                    },
+                    MultiLineString(_, dimension) => match dimension {
+                        Dimension::XY => {
+                            Value::from(&chunk.as_multi_line_string_2d().value_as_geo(i))
+                        }
+                        Dimension::XYZ => {
+                            Value::from(&chunk.as_multi_line_string_3d().value_as_geo(i))
+                        }
+                    },
+                    LargeMultiLineString(_, dimension) => match dimension {
+                        Dimension::XY => {
+                            Value::from(&chunk.as_large_multi_line_string_2d().value_as_geo(i))
+                        }
+                        Dimension::XYZ => {
+                            Value::from(&chunk.as_large_multi_line_string_3d().value_as_geo(i))
+                        }
+                    },
+                    MultiPolygon(_, dimension) => match dimension {
+                        Dimension::XY => Value::from(&chunk.as_multi_polygon_2d().value_as_geo(i)),
+                        Dimension::XYZ => Value::from(&chunk.as_multi_polygon_3d().value_as_geo(i)),
+                    },
+                    LargeMultiPolygon(_, dimension) => match dimension {
+                        Dimension::XY => {
+                            Value::from(&chunk.as_large_multi_polygon_2d().value_as_geo(i))
+                        }
+                        Dimension::XYZ => {
+                            Value::from(&chunk.as_large_multi_polygon_3d().value_as_geo(i))
+                        }
+                    },
+                    Mixed(_, dimension) => match dimension {
+                        Dimension::XY => Value::from(&chunk.as_mixed_2d().value_as_geo(i)),
+                        Dimension::XYZ => Value::from(&chunk.as_mixed_3d().value_as_geo(i)),
+                    },
+                    LargeMixed(_, dimension) => match dimension {
+                        Dimension::XY => Value::from(&chunk.as_large_mixed_2d().value_as_geo(i)),
+                        Dimension::XYZ => Value::from(&chunk.as_large_mixed_3d().value_as_geo(i)),
+                    },
+                    GeometryCollection(_, dimension) => match dimension {
+                        Dimension::XY => {
+                            Value::from(&chunk.as_geometry_collection_2d().value_as_geo(i))
+                        }
+                        Dimension::XYZ => {
+                            Value::from(&chunk.as_geometry_collection_3d().value_as_geo(i))
+                        }
+                    },
+                    LargeGeometryCollection(_, dimension) => match dimension {
+                        Dimension::XY => {
+                            Value::from(&chunk.as_large_geometry_collection_2d().value_as_geo(i))
+                        }
+                        Dimension::XYZ => {
+                            Value::from(&chunk.as_large_geometry_collection_3d().value_as_geo(i))
+                        }
+                    },
+                    WKB => Value::from(&chunk.as_wkb().value_as_geo(i)),
+                    LargeWKB => Value::from(&chunk.as_large_wkb().value_as_geo(i)),
+                    Rect(dimension) => match dimension {
+                        Dimension::XY => Value::from(&chunk.as_rect_2d().value_as_geo(i)),
+                        Dimension::XYZ => Value::from(&chunk.as_rect_3d().value_as_geo(i)),
+                    },
+                };
+                let mut row = json_rows
+                    .next()
+                    .expect("we shouldn't run out of rows before we're done");
+                let _ = row.insert(
+                    "geometry".into(),
+                    serde_json::to_value(geojson::Geometry::new(value))?,
+                );
+                items.push(unflatten(row));
+            }
+        }
+    } else {
+        items = json_rows.map(unflatten).collect();
+    }
+    Ok(items)
+}
+
+fn unflatten(mut item: serde_json::Map<String, Value>) -> serde_json::Map<String, Value> {
+    let mut properties = serde_json::Map::new();
+    let keys: Vec<_> = item
+        .keys()
+        .filter_map(|key| {
+            if TOP_LEVEL_KEYS.contains(&key.as_str()) {
+                None
+            } else {
+                Some(key.to_string())
+            }
+        })
+        .collect();
+    for key in keys {
+        if let Some(value) = item.remove(&key) {
+            let _ = properties.insert(key, value);
+        }
+    }
+    if !properties.is_empty() {
+        let _ = item.insert("properties".to_string(), Value::Object(properties));
+    }
+    item
+}
+
+fn record_batches_to_json_rows(
     batches: &[RecordBatch],
-    geometry_index: usize,
+    geometry_index: Option<usize>,
 ) -> Result<impl Iterator<Item = JsonMap<String, Value>>, ArrowError> {
     // For backwards compatibility, default to skip nulls
     // Skip converting the geometry index, we'll do that later.
@@ -412,7 +582,7 @@ pub(crate) fn record_batches_to_json_rows(
 fn record_batches_to_json_rows_internal(
     batches: &[RecordBatch],
     explicit_nulls: bool,
-    geometry_index: usize,
+    geometry_index: Option<usize>,
 ) -> Result<impl Iterator<Item = JsonMap<String, Value>>, ArrowError> {
     let mut rows: Vec<Option<JsonMap<String, Value>>> = iter::repeat(Some(JsonMap::new()))
         .take(batches.iter().map(|b| b.num_rows()).sum())
@@ -425,7 +595,7 @@ fn record_batches_to_json_rows_internal(
             let row_count = batch.num_rows();
             let row_slice = &mut rows[base..base + batch.num_rows()];
             for (j, col) in batch.columns().iter().enumerate() {
-                if j == geometry_index {
+                if geometry_index.map(|v| v == j).unwrap_or_default() {
                     continue;
                 }
                 let col_name = schema.field(j).name();
