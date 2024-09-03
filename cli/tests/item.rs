@@ -3,13 +3,13 @@ use stac::{Item, ItemCollection};
 
 #[test]
 fn item() {
-    let mut command = Command::cargo_bin("stac").unwrap();
+    let mut command = Command::cargo_bin("stacrs").unwrap();
     command.arg("item").arg("an-id").assert().success();
 }
 
 #[test]
 fn item_collection() {
-    let mut command = Command::cargo_bin("stac").unwrap();
+    let mut command = Command::cargo_bin("stacrs").unwrap();
     let item_a = serde_json::to_string(&Item::new("item-a")).unwrap();
     let output = command
         .arg("item")

@@ -3,7 +3,7 @@ use std::{fs::File, io::Read};
 
 #[test]
 fn sort_stdin() {
-    let mut command = Command::cargo_bin("stac").unwrap();
+    let mut command = Command::cargo_bin("stacrs").unwrap();
     let mut item = String::new();
     File::open("examples/simple-item.json")
         .unwrap()
