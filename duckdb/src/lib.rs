@@ -1,15 +1,14 @@
 //! Use [duckdb](https://duckdb.org/) with [STAC](https://stacspec.org).
 
-use arrow::array::{AsArray, RecordBatch};
+#![deny(unused_crate_dependencies)]
+
+use arrow::array::RecordBatch;
 use duckdb::{types::Value, Connection};
 use geoarrow::table::Table;
-use parquet::arrow::arrow_reader::ParquetRecordBatchReaderBuilder;
 use stac_api::{Direction, Search};
 use std::{
     collections::{HashMap, HashSet},
     fmt::Debug,
-    fs::File,
-    path::{Path, PathBuf},
 };
 use thiserror::Error;
 
@@ -57,7 +56,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 #[derive(Debug)]
 pub struct Client {
     connection: Connection,
-    collections: HashMap<String, Vec<PathBuf>>,
+    collections: HashMap<String, Vec<String>>,
 }
 
 /// A SQL query.
@@ -71,10 +70,6 @@ pub struct Sql {
 
     /// The query parameters.
     pub params: Vec<Value>,
-}
-
-struct Metadata {
-    collections: HashSet<String>,
 }
 
 impl Client {
@@ -97,7 +92,7 @@ impl Client {
         })
     }
 
-    /// Adds a [stac-geoparquet](https://github.com/stac-utils/stac-geoparquet) path to this client.
+    /// Adds a [stac-geoparquet](https://github.com/stac-utils/stac-geoparquet) href to this client.
     ///
     /// # Examples
     ///
@@ -105,14 +100,19 @@ impl Client {
     /// use stac_duckdb::Client;
     ///
     /// let mut client = Client::new().unwrap();
-    /// client.add_path("data/100-sentinel-2-items.parquet").unwrap();
+    /// client.add_href("data/100-sentinel-2-items.parquet").unwrap();
     /// ```
-    pub fn add_path(&mut self, path: impl AsRef<Path>) -> Result<()> {
-        let path = path.as_ref();
-        let metadata = Metadata::from_path(path)?;
-        for collection in metadata.collections {
+    pub fn add_href(&mut self, href: impl ToString) -> Result<()> {
+        let href = href.to_string();
+        let mut statement = self
+            .connection
+            .prepare(&format!("SELECT collection FROM read_parquet('{}')", href))?;
+        let collections = statement
+            .query_map([], |row| row.get::<_, String>(0))?
+            .collect::<std::result::Result<HashSet<_>, duckdb::Error>>()?;
+        for collection in collections {
             let entry = self.collections.entry(collection).or_default();
-            entry.push(path.to_path_buf());
+            entry.push(href.clone());
         }
         Ok(())
     }
@@ -124,11 +124,11 @@ impl Client {
     /// ```
     /// use stac_duckdb::Client;
     ///
-    /// let client = Client::from_path("data/100-sentinel-2-items.parquet").unwrap();
+    /// let client = Client::from_href("data/100-sentinel-2-items.parquet").unwrap();
     /// ```
-    pub fn from_path(path: impl AsRef<Path>) -> Result<Client> {
+    pub fn from_href(href: impl ToString) -> Result<Client> {
         let mut client = Client::new()?;
-        client.add_path(path)?;
+        client.add_href(href)?;
         Ok(client)
     }
 
@@ -140,7 +140,7 @@ impl Client {
     /// use stac_duckdb::Client;
     /// use stac_api::Search;
     ///
-    /// let client = Client::from_path("data/100-sentinel-2-items.parquet").unwrap();
+    /// let client = Client::from_href("data/100-sentinel-2-items.parquet").unwrap();
     /// let item_collection = client.search(Search::default()).unwrap();
     /// assert_eq!(item_collection.items.len(), 100);
     /// ```
@@ -168,7 +168,7 @@ impl Client {
     /// use stac_duckdb::Client;
     /// use stac_api::Search;
     ///
-    /// let client = Client::from_path("data/100-sentinel-2-items.parquet").unwrap();
+    /// let client = Client::from_href("data/100-sentinel-2-items.parquet").unwrap();
     /// for record_batches in client.search_to_arrow(Search::default()).unwrap() {
     ///     // Schema can be different between groups of record batches
     ///     for record_batch in record_batches {
@@ -183,12 +183,12 @@ impl Client {
         let sql = Sql::new(search)?;
         for collection in collections.unwrap_or_else(|| self.collections.keys().cloned().collect())
         {
-            if let Some(paths) = self.collections.get(&collection) {
-                for path in paths {
+            if let Some(hrefs) = self.collections.get(&collection) {
+                for href in hrefs {
                     let mut statement = format!(
                         "SELECT {} FROM read_parquet('{}')",
                         sql.select.as_deref().unwrap_or("*"),
-                        path.display()
+                        href
                     );
                     if !sql.is_empty() {
                         statement.push(' ');
@@ -217,7 +217,7 @@ impl Client {
     /// use stac_duckdb::Client;
     /// use stac_api::Search;
     ///
-    /// let client = Client::from_path("data/100-sentinel-2-items.parquet").unwrap();
+    /// let client = Client::from_href("data/100-sentinel-2-items.parquet").unwrap();
     /// let item_collection = client.search_to_json(Search::default()).unwrap();
     /// assert_eq!(item_collection.items.len(), 100);
     /// ```
@@ -233,29 +233,6 @@ impl Client {
             items.extend(stac::geoarrow::json::from_table(table)?);
         }
         Ok(items.into())
-    }
-}
-
-impl Metadata {
-    fn from_path(path: impl AsRef<Path>) -> Result<Metadata> {
-        let file = File::open(path)?;
-        let builder = ParquetRecordBatchReaderBuilder::try_new(file)?;
-        let reader = builder.build()?;
-        let mut collections = HashSet::new();
-        for result in reader {
-            let record_batch = result?;
-            if let Some(column) = record_batch
-                .column_by_name("collection")
-                .and_then(|column| column.as_string_opt::<i32>())
-            {
-                collections.extend(
-                    column
-                        .iter()
-                        .filter_map(|collection| collection.map(String::from)),
-                );
-            }
-        }
-        Ok(Metadata { collections })
     }
 }
 
@@ -386,14 +363,14 @@ mod tests {
 
     #[duckdb_test]
     fn search_all() {
-        let client = Client::from_path("data/100-sentinel-2-items.parquet").unwrap();
+        let client = Client::from_href("data/100-sentinel-2-items.parquet").unwrap();
         let item_collection = client.search(Search::default()).unwrap();
         assert_eq!(item_collection.items.len(), 100);
     }
 
     #[duckdb_test]
     fn search_ids() {
-        let client = Client::from_path("data/100-sentinel-2-items.parquet").unwrap();
+        let client = Client::from_href("data/100-sentinel-2-items.parquet").unwrap();
         let search = Search {
             ids: Some(vec![
                 "S2B_MSIL2A_20240828T174909_R141_T13SEB_20240828T214916".to_string(),
@@ -409,9 +386,9 @@ mod tests {
     fn search_collections() {
         let mut client = Client::new().unwrap();
         client
-            .add_path("data/100-sentinel-2-items.parquet")
+            .add_href("data/100-sentinel-2-items.parquet")
             .unwrap();
-        client.add_path("data/100-landsat-items.parquet").unwrap();
+        client.add_href("data/100-landsat-items.parquet").unwrap();
         let search = Search {
             collections: Some(vec!["sentinel-2-l2a".to_string()]),
             ..Default::default()
@@ -422,7 +399,7 @@ mod tests {
 
     #[duckdb_test]
     fn search_intersects() {
-        let client = Client::from_path("data/100-sentinel-2-items.parquet").unwrap();
+        let client = Client::from_href("data/100-sentinel-2-items.parquet").unwrap();
         let search = Search {
             intersects: Some((&geo::point!(x: -105., y: 41.)).into()),
             ..Default::default()
@@ -433,7 +410,7 @@ mod tests {
 
     #[duckdb_test]
     fn search_limit() {
-        let client = Client::from_path("data/100-sentinel-2-items.parquet").unwrap();
+        let client = Client::from_href("data/100-sentinel-2-items.parquet").unwrap();
         let items = Items {
             limit: Some(10),
             ..Default::default()
@@ -444,7 +421,7 @@ mod tests {
 
     #[duckdb_test]
     fn search_bbox() {
-        let client = Client::from_path("data/100-sentinel-2-items.parquet").unwrap();
+        let client = Client::from_href("data/100-sentinel-2-items.parquet").unwrap();
         let items = Items {
             bbox: Some(vec![-105., 41., -104., 42.].try_into().unwrap()),
             ..Default::default()
@@ -455,7 +432,7 @@ mod tests {
 
     #[duckdb_test]
     fn search_datetime() {
-        let client = Client::from_path("data/100-sentinel-2-items.parquet").unwrap();
+        let client = Client::from_href("data/100-sentinel-2-items.parquet").unwrap();
         let items = Items {
             datetime: Some("2024-08-29T00:00:00Z/2024-09-01T00:00:00Z".to_string()),
             ..Default::default()
@@ -466,7 +443,7 @@ mod tests {
 
     #[duckdb_test]
     fn search_fields() {
-        let client = Client::from_path("data/100-sentinel-2-items.parquet").unwrap();
+        let client = Client::from_href("data/100-sentinel-2-items.parquet").unwrap();
         let items = Items {
             fields: Some(Fields {
                 include: vec!["id".to_string()],
@@ -481,7 +458,7 @@ mod tests {
 
     #[duckdb_test]
     fn search_sortby() {
-        let client = Client::from_path("data/100-sentinel-2-items.parquet").unwrap();
+        let client = Client::from_href("data/100-sentinel-2-items.parquet").unwrap();
         let items = Items {
             sortby: Some(vec![Sortby {
                 field: "datetime".to_string(),
