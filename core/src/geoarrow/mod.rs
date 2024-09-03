@@ -2,20 +2,14 @@
 //!
 //!  ⚠️ geoarrow support is currently experimental, and may break on any release.
 
-mod json;
+pub mod json;
 
-use crate::{Error, FlatItem, Item, ItemCollection, Result};
+use crate::{Error, ItemCollection, Result};
 use arrow_json::ReaderBuilder;
 use arrow_schema::{DataType, Field, SchemaBuilder, TimeUnit};
 use geo_types::Geometry;
-use geoarrow::{
-    array::{AsGeometryArray, MixedGeometryBuilder},
-    datatypes::{Dimension, GeoDataType},
-    table::Table,
-    trait_::GeometryArrayAccessor,
-};
-use geojson::Value;
-use serde_json::json;
+use geoarrow::{array::MixedGeometryBuilder, table::Table};
+use serde_json::{json, Value};
 use std::sync::Arc;
 
 const DATETIME_COLUMNS: [&str; 8] = [
@@ -136,112 +130,11 @@ pub fn to_table(item_collection: ItemCollection) -> Result<Table> {
 /// # }
 /// ```
 pub fn from_table(table: Table) -> Result<ItemCollection> {
-    use GeoDataType::*;
-
-    let (index, _) = table
-        .schema()
-        .column_with_name("geometry")
-        .ok_or(Error::MissingGeometry)?;
-    let mut json_rows = json::record_batches_to_json_rows(table.batches(), index)?;
-    let mut items = Vec::new();
-    for chunk in table.geometry_column(Some(index))?.geometry_chunks() {
-        for i in 0..chunk.len() {
-            let value = match chunk.data_type() {
-                Point(_, dimension) => match dimension {
-                    Dimension::XY => Value::from(&chunk.as_point_2d().value_as_geo(i)),
-                    Dimension::XYZ => Value::from(&chunk.as_point_3d().value_as_geo(i)),
-                },
-                LineString(_, dimension) => match dimension {
-                    Dimension::XY => Value::from(&chunk.as_line_string_2d().value_as_geo(i)),
-                    Dimension::XYZ => Value::from(&chunk.as_line_string_3d().value_as_geo(i)),
-                },
-                LargeLineString(_, dimension) => match dimension {
-                    Dimension::XY => Value::from(&chunk.as_large_line_string_2d().value_as_geo(i)),
-                    Dimension::XYZ => Value::from(&chunk.as_large_line_string_3d().value_as_geo(i)),
-                },
-                Polygon(_, dimension) => match dimension {
-                    Dimension::XY => Value::from(&chunk.as_polygon_2d().value_as_geo(i)),
-                    Dimension::XYZ => Value::from(&chunk.as_polygon_3d().value_as_geo(i)),
-                },
-                LargePolygon(_, dimension) => match dimension {
-                    Dimension::XY => Value::from(&chunk.as_large_polygon_2d().value_as_geo(i)),
-                    Dimension::XYZ => Value::from(&chunk.as_large_polygon_3d().value_as_geo(i)),
-                },
-                MultiPoint(_, dimension) => match dimension {
-                    Dimension::XY => Value::from(&chunk.as_multi_point_2d().value_as_geo(i)),
-                    Dimension::XYZ => Value::from(&chunk.as_multi_point_3d().value_as_geo(i)),
-                },
-                LargeMultiPoint(_, dimension) => match dimension {
-                    Dimension::XY => Value::from(&chunk.as_large_multi_point_2d().value_as_geo(i)),
-                    Dimension::XYZ => Value::from(&chunk.as_large_multi_point_3d().value_as_geo(i)),
-                },
-                MultiLineString(_, dimension) => match dimension {
-                    Dimension::XY => Value::from(&chunk.as_multi_line_string_2d().value_as_geo(i)),
-                    Dimension::XYZ => Value::from(&chunk.as_multi_line_string_3d().value_as_geo(i)),
-                },
-                LargeMultiLineString(_, dimension) => match dimension {
-                    Dimension::XY => {
-                        Value::from(&chunk.as_large_multi_line_string_2d().value_as_geo(i))
-                    }
-                    Dimension::XYZ => {
-                        Value::from(&chunk.as_large_multi_line_string_3d().value_as_geo(i))
-                    }
-                },
-                MultiPolygon(_, dimension) => match dimension {
-                    Dimension::XY => Value::from(&chunk.as_multi_polygon_2d().value_as_geo(i)),
-                    Dimension::XYZ => Value::from(&chunk.as_multi_polygon_3d().value_as_geo(i)),
-                },
-                LargeMultiPolygon(_, dimension) => match dimension {
-                    Dimension::XY => {
-                        Value::from(&chunk.as_large_multi_polygon_2d().value_as_geo(i))
-                    }
-                    Dimension::XYZ => {
-                        Value::from(&chunk.as_large_multi_polygon_3d().value_as_geo(i))
-                    }
-                },
-                Mixed(_, dimension) => match dimension {
-                    Dimension::XY => Value::from(&chunk.as_mixed_2d().value_as_geo(i)),
-                    Dimension::XYZ => Value::from(&chunk.as_mixed_3d().value_as_geo(i)),
-                },
-                LargeMixed(_, dimension) => match dimension {
-                    Dimension::XY => Value::from(&chunk.as_large_mixed_2d().value_as_geo(i)),
-                    Dimension::XYZ => Value::from(&chunk.as_large_mixed_3d().value_as_geo(i)),
-                },
-                GeometryCollection(_, dimension) => match dimension {
-                    Dimension::XY => {
-                        Value::from(&chunk.as_geometry_collection_2d().value_as_geo(i))
-                    }
-                    Dimension::XYZ => {
-                        Value::from(&chunk.as_geometry_collection_3d().value_as_geo(i))
-                    }
-                },
-                LargeGeometryCollection(_, dimension) => match dimension {
-                    Dimension::XY => {
-                        Value::from(&chunk.as_large_geometry_collection_2d().value_as_geo(i))
-                    }
-                    Dimension::XYZ => {
-                        Value::from(&chunk.as_large_geometry_collection_3d().value_as_geo(i))
-                    }
-                },
-                WKB => Value::from(&chunk.as_wkb().value_as_geo(i)),
-                LargeWKB => Value::from(&chunk.as_large_wkb().value_as_geo(i)),
-                Rect(dimension) => match dimension {
-                    Dimension::XY => Value::from(&chunk.as_rect_2d().value_as_geo(i)),
-                    Dimension::XYZ => Value::from(&chunk.as_rect_3d().value_as_geo(i)),
-                },
-            };
-            let mut row = json_rows
-                .next()
-                .expect("we shouldn't run out of rows before we're done");
-            let _ = row.insert(
-                "geometry".into(),
-                serde_json::to_value(geojson::Geometry::new(value))?,
-            );
-            let flat_item: FlatItem = serde_json::from_value(serde_json::Value::Object(row))?;
-            items.push(Item::try_from(flat_item)?);
-        }
-    }
-    Ok(items.into())
+    json::from_table(table)?
+        .into_iter()
+        .map(|item| serde_json::from_value(Value::Object(item)).map_err(Error::from))
+        .collect::<Result<Vec<_>>>()
+        .map(ItemCollection::from)
 }
 
 // We only run tests when the geoparquet feature is enabled so that we don't
