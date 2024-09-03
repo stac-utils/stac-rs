@@ -149,6 +149,15 @@ impl Default for ItemCollection {
     }
 }
 
+impl From<Vec<Item>> for ItemCollection {
+    fn from(items: Vec<Item>) -> Self {
+        ItemCollection {
+            items,
+            ..Default::default()
+        }
+    }
+}
+
 fn deserialize_type<'de, D>(deserializer: D) -> std::result::Result<String, D::Error>
 where
     D: serde::de::Deserializer<'de>,
