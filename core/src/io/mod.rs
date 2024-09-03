@@ -28,11 +28,7 @@ use url::Url;
 /// ```
 pub fn read<T: Href + DeserializeOwned>(href: impl ToString) -> Result<T> {
     let href = href.to_string();
-    if href
-        .rsplit_once('.')
-        .map(|(_, ext)| ext == "parquet" || ext == "geoparquet")
-        .unwrap_or_default()
-    {
+    if crate::geoparquet::has_extension(&href) {
         #[cfg(feature = "geoparquet")]
         {
             serde_json::from_value(serde_json::to_value(geoparquet::read(href)?)?)
