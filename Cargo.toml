@@ -1,12 +1,13 @@
 [workspace]
 resolver = "2"
 members = [
-    "core",
-    "pgstac",
-    "python",
     "api",
     "async",
     "cli",
+    "core",
+    "duckdb",
+    "pgstac",
+    "python",
     "server",
     "validate",
 ]
