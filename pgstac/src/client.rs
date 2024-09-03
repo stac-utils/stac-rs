@@ -560,12 +560,12 @@ mod tests {
         item.geometry = Some(longmont());
         client.add_item(item.clone()).await.unwrap();
         let mut search = Search::default();
-        search.items.bbox = Some(vec![-106., 40., -105., 41.]);
+        search.items.bbox = Some(vec![-106., 40., -105., 41.].try_into().unwrap());
         assert_eq!(
             client.search(search.clone()).await.unwrap().features.len(),
             1
         );
-        search.items.bbox = Some(vec![-106., 41., -105., 42.]);
+        search.items.bbox = Some(vec![-106., 41., -105., 42.].try_into().unwrap());
         assert!(client.search(search).await.unwrap().features.is_empty());
     }
 

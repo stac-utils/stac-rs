@@ -83,7 +83,7 @@ impl Backend for MemoryBackend {
                 return Ok(None);
             }
         };
-        let search = items.into_search(collection_id);
+        let search = items.search_collection(collection_id);
         self.search(search).await.map(Some)
     }
 
