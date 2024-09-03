@@ -257,6 +257,15 @@ impl TryFrom<GetSearch> for Search {
     }
 }
 
+impl From<Items> for Search {
+    fn from(items: Items) -> Self {
+        Search {
+            items,
+            ..Default::default()
+        }
+    }
+}
+
 impl stac::Fields for Search {
     fn fields(&self) -> &Map<String, Value> {
         &self.items.additional_fields
