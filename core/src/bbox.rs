@@ -225,6 +225,16 @@ impl From<geo::Rect> for Bbox {
     }
 }
 
+#[cfg(feature = "geo")]
+impl From<Bbox> for geo::Rect {
+    fn from(bbox: Bbox) -> geo::Rect {
+        geo::Rect::new(
+            geo::coord! {x: bbox.xmin(), y: bbox.ymin()},
+            geo::coord! {x: bbox.xmax(), y: bbox.ymax()},
+        )
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::Bbox;
