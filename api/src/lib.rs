@@ -88,7 +88,7 @@ pub use {
     items::{GetItems, Items},
     root::Root,
     search::{GetSearch, Search},
-    sort::Sortby,
+    sort::{Direction, Sortby},
     url_builder::UrlBuilder,
 };
 
