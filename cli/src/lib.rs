@@ -137,5 +137,6 @@ mod python {
     }
 }
 
+use tracing_subscriber as _;
 #[cfg(test)]
 use {assert_cmd as _, tokio_test as _};
