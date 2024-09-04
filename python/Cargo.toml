@@ -13,10 +13,7 @@ name = "stacrs"
 crate-type = ["cdylib"]
 
 [dependencies]
-clap = "4"
 pyo3 = "0.22"
 pythonize = "0.22"
 stac = { path = "../core", features = ["reqwest"] }
-stac-cli = { path = "../cli", default-features = false }
 stac-validate = { path = "../validate" }
-tokio = { version = "1", features = ["rt-multi-thread"] }

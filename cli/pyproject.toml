@@ -3,8 +3,8 @@ requires = ["maturin>=1.7,<2.0"]
 build-backend = "maturin"
 
 [project]
-name = "stacrs"
-description = "A small, no-dependency STAC library with Rust under the hood"
+name = "stacrs-cli"
+description = "A STAC command-line interface written in Rust"
 readme = "README.md"
 authors = [{ name = "Pete Gadomski", email = "pete.gadomski@gmail.com" }]
 requires-python = ">=3.8"
@@ -17,15 +17,17 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: PyPy",
     "License :: OSI Approved :: Apache Software License",
     "License :: OSI Approved :: MIT License",
-    "Typing :: Typed",
 ]
 keywords = ["stac", "geospatial"]
 dynamic = ["version"]
 
 [project.urls]
 Repository = "https://github.com/stac-utils/stac-rs"
-Documentation = "https://stacrs.readthedocs.io/"
 Issues = "https://github.com/stac-utils/stac-rs/issues"
 
+[project.scripts]
+stacrs = "stacrs_cli:main"
+
 [tool.maturin]
-features = ["pyo3/extension-module"]
+features = ["pyo3/extension-module", "python"]
+module-name = "stacrs_cli"

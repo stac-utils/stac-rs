@@ -16,11 +16,13 @@ duckdb = ["dep:stac-duckdb"]
 gdal = ["stac/gdal"]
 geoparquet = ["dep:bytes", "stac/geoparquet-compression"]
 pgstac = ["stac-server/pgstac"]
+python = ["dep:pyo3"]
 
 [dependencies]
 axum = "0.7"
 bytes = { version = "1", optional = true }
 clap = { version = "4", features = ["derive"] }
+pyo3 = { version = "0.22", optional = true }
 reqwest = "0.12"
 serde = "1"
 serde_json = "1"
@@ -42,6 +44,9 @@ url = "2"
 [dev-dependencies]
 assert_cmd = "2"
 tokio-test = "0.4"
+
+[lib]
+crate-type = ["lib", "cdylib"]
 
 [[bin]]
 name = "stacrs"
