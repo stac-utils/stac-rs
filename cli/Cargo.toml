@@ -16,7 +16,7 @@ duckdb = ["dep:stac-duckdb"]
 gdal = ["stac/gdal"]
 geoparquet = ["dep:bytes", "stac/geoparquet-compression"]
 pgstac = ["stac-server/pgstac"]
-python = ["dep:pyo3"]
+python = ["dep:pyo3", "pgstac", "duckdb", "stac-duckdb/bundled", "geoparquet"]
 
 [dependencies]
 axum = "0.7"

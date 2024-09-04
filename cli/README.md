@@ -6,32 +6,28 @@
 ![Crates.io](https://img.shields.io/crates/l/stac-cli?style=for-the-badge)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?style=for-the-badge)](./CODE_OF_CONDUCT)
 
-Command Line Interface (CLI), named `stacrs` for [STAC](https://stacspec.org/) built with [stac-rs](https://github.com/stac-utils/stac-rs).
-
-![stac-cli gif](./img/stac-cli.gif)
+Command Line Interface (CLI) for [STAC](https://stacspec.org/), named `stacrs`.
 
 ## Installation
-
-Install rust, e.g. with [rustup](https://rustup.rs/).
-Then:
 
 ```sh
 cargo install stac-cli
 ```
 
-You can also install it from PyPI, where it is named **stacrs**:
+Or:
 
 ```shell
-pip install stacrs
+pip install stacrs-cli
 ```
 
-### Homebrew
-
-If you use [homebrew](https://brew.sh/), you can use [gadomski's](https://github.com/gadomski/) tap to install:
+Then:
 
 ```shell
-brew install gadomski/gadomski/stac
+stacrs --help
 ```
+
+**NOTE:** the version from PyPI (installed with `pip`) does not include GDAL support.
+If you need to use [gdal](../core/README.md#gdal) features, install via `cargo install`.
 
 ## Usage
 

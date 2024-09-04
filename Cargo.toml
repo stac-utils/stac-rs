@@ -11,12 +11,4 @@ members = [
     "server",
     "validate",
 ]
-default-members = [
-    "api",
-    "async",
-    "cli",
-    "core",
-    "python",
-    "server",
-    "validate",
-]
+default-members = ["api", "async", "cli", "core", "server", "validate"]
