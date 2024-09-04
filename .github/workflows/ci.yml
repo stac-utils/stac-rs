@@ -30,7 +30,7 @@ jobs:
           - "-p stac-async"
           - "-p stac-cli --no-default-features"
           - "-p stac-cli --no-default-features -F geoparquet"
-          - "-p stac-duckdb -F duckdb/bundled"
+          - "-p stac-duckdb -F bundled"
           - "-p stac-server"
           - "-p stac-server -F axum"
           - "-p stac-validate"
@@ -50,7 +50,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install libgdal-dev
       - name: Test
-        run: cargo test -p stac -p stac-cli  # gdal is default for stac-cli
+        run: cargo test -p stac -p stac-cli --all-features
   test-ubuntu-with-pgstac:
     runs-on: ubuntu-latest
     services:
@@ -102,6 +102,22 @@ jobs:
         run: ruff check python && ruff format --check python && mypy python
       - name: Test
         run: pytest python/tests
+  test-python-cli:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
+      - name: Install dev requirements
+        run: pip install maturin
+      - name: Build
+        run: maturin build --manifest-path cli/Cargo.toml --out dist
+      - name: Install stacrs-cli
+        run: pip install stacrs-cli --find-links dist --no-index
+      - name: Smoke test
+        run: stacrs --version
   check:
     runs-on: ubuntu-latest
     steps:

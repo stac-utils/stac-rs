@@ -29,5 +29,6 @@ Issues = "https://github.com/stac-utils/stac-rs/issues"
 stacrs = "stacrs_cli:main"
 
 [tool.maturin]
+no-default-features = true
 features = ["pyo3/extension-module", "python"]
 module-name = "stacrs_cli"

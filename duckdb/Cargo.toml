@@ -3,6 +3,9 @@ name = "stac-duckdb"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+bundled = ["duckdb/bundled"]
+
 [dependencies]
 arrow = "52"
 duckdb = "1"
