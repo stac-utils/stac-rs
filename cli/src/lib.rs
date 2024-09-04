@@ -67,6 +67,8 @@ pub type Result<T> = std::result::Result<T, Error>;
 ///     compact: false,
 ///     input_format: None,
 ///     output_format: None,
+///     #[cfg(feature = "geoparquet")]
+///     geoparquet_compression: None,
 ///     subcommand: Subcommand::Sort(sort_args),
 /// };
 /// # tokio_test::block_on(async {
@@ -82,6 +84,8 @@ pub async fn run(args: Args) -> Result<()> {
         compact: args.compact,
         input_format,
         output_format,
+        #[cfg(feature = "geoparquet")]
+        geoparquet_compression: args.geoparquet_compression,
         writer,
         buffer: 100,
     };

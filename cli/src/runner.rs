@@ -16,6 +16,10 @@ where
     /// The output format.
     pub output_format: Format,
 
+    /// Geoparquet compression.
+    #[cfg(feature = "geoparquet")]
+    pub geoparquet_compression: Option<parquet::basic::Compression>,
+
     /// The output writeable stream.
     pub writer: W,
 
@@ -49,7 +53,19 @@ where
                 #[cfg(feature = "geoparquet")]
                 Format::Parquet => {
                     if let Some(value) = value.to_stac() {
-                        stac::geoparquet::to_writer(&mut self.writer, value)?;
+                        let mut options = geoarrow::io::parquet::GeoParquetWriterOptions::default();
+                        if let Some(compression) = self.geoparquet_compression {
+                            let writer_properites =
+                                parquet::file::properties::WriterProperties::builder()
+                                    .set_compression(compression)
+                                    .build();
+                            options.writer_properties = Some(writer_properites);
+                        }
+                        stac::geoparquet::to_writer_with_options(
+                            &mut self.writer,
+                            value,
+                            &options,
+                        )?;
                     } else {
                         writeln!(self.writer, "{}", value)?;
                     }
