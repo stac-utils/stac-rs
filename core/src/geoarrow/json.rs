@@ -437,98 +437,146 @@ pub fn from_table(table: Table) -> Result<Vec<serde_json::Map<String, Value>>, c
             for i in 0..chunk.len() {
                 let value = match chunk.data_type() {
                     Point(_, dimension) => match dimension {
-                        Dimension::XY => Value::from(&chunk.as_point_2d().value_as_geo(i)),
-                        Dimension::XYZ => Value::from(&chunk.as_point_3d().value_as_geo(i)),
+                        Dimension::XY => {
+                            Value::from(&chunk.as_ref().as_point::<2>().value_as_geo(i))
+                        }
+                        Dimension::XYZ => {
+                            Value::from(&chunk.as_ref().as_point::<3>().value_as_geo(i))
+                        }
                     },
                     LineString(_, dimension) => match dimension {
-                        Dimension::XY => Value::from(&chunk.as_line_string_2d().value_as_geo(i)),
-                        Dimension::XYZ => Value::from(&chunk.as_line_string_3d().value_as_geo(i)),
+                        Dimension::XY => {
+                            Value::from(&chunk.as_ref().as_line_string::<2>().value_as_geo(i))
+                        }
+                        Dimension::XYZ => {
+                            Value::from(&chunk.as_ref().as_line_string::<3>().value_as_geo(i))
+                        }
                     },
                     LargeLineString(_, dimension) => match dimension {
                         Dimension::XY => {
-                            Value::from(&chunk.as_large_line_string_2d().value_as_geo(i))
+                            Value::from(&chunk.as_ref().as_large_line_string::<2>().value_as_geo(i))
                         }
                         Dimension::XYZ => {
-                            Value::from(&chunk.as_large_line_string_3d().value_as_geo(i))
+                            Value::from(&chunk.as_ref().as_large_line_string::<3>().value_as_geo(i))
                         }
                     },
                     Polygon(_, dimension) => match dimension {
-                        Dimension::XY => Value::from(&chunk.as_polygon_2d().value_as_geo(i)),
-                        Dimension::XYZ => Value::from(&chunk.as_polygon_3d().value_as_geo(i)),
+                        Dimension::XY => {
+                            Value::from(&chunk.as_ref().as_polygon::<2>().value_as_geo(i))
+                        }
+                        Dimension::XYZ => {
+                            Value::from(&chunk.as_ref().as_polygon::<3>().value_as_geo(i))
+                        }
                     },
                     LargePolygon(_, dimension) => match dimension {
-                        Dimension::XY => Value::from(&chunk.as_large_polygon_2d().value_as_geo(i)),
-                        Dimension::XYZ => Value::from(&chunk.as_large_polygon_3d().value_as_geo(i)),
+                        Dimension::XY => {
+                            Value::from(&chunk.as_ref().as_large_polygon::<2>().value_as_geo(i))
+                        }
+                        Dimension::XYZ => {
+                            Value::from(&chunk.as_ref().as_large_polygon::<3>().value_as_geo(i))
+                        }
                     },
                     MultiPoint(_, dimension) => match dimension {
-                        Dimension::XY => Value::from(&chunk.as_multi_point_2d().value_as_geo(i)),
-                        Dimension::XYZ => Value::from(&chunk.as_multi_point_3d().value_as_geo(i)),
+                        Dimension::XY => {
+                            Value::from(&chunk.as_ref().as_multi_point::<2>().value_as_geo(i))
+                        }
+                        Dimension::XYZ => {
+                            Value::from(&chunk.as_ref().as_multi_point::<3>().value_as_geo(i))
+                        }
                     },
                     LargeMultiPoint(_, dimension) => match dimension {
                         Dimension::XY => {
-                            Value::from(&chunk.as_large_multi_point_2d().value_as_geo(i))
+                            Value::from(&chunk.as_ref().as_large_multi_point::<2>().value_as_geo(i))
                         }
                         Dimension::XYZ => {
-                            Value::from(&chunk.as_large_multi_point_3d().value_as_geo(i))
+                            Value::from(&chunk.as_ref().as_large_multi_point::<3>().value_as_geo(i))
                         }
                     },
                     MultiLineString(_, dimension) => match dimension {
                         Dimension::XY => {
-                            Value::from(&chunk.as_multi_line_string_2d().value_as_geo(i))
+                            Value::from(&chunk.as_ref().as_multi_line_string::<2>().value_as_geo(i))
                         }
                         Dimension::XYZ => {
-                            Value::from(&chunk.as_multi_line_string_3d().value_as_geo(i))
+                            Value::from(&chunk.as_ref().as_multi_line_string::<3>().value_as_geo(i))
                         }
                     },
                     LargeMultiLineString(_, dimension) => match dimension {
-                        Dimension::XY => {
-                            Value::from(&chunk.as_large_multi_line_string_2d().value_as_geo(i))
-                        }
-                        Dimension::XYZ => {
-                            Value::from(&chunk.as_large_multi_line_string_3d().value_as_geo(i))
-                        }
+                        Dimension::XY => Value::from(
+                            &chunk
+                                .as_ref()
+                                .as_large_multi_line_string::<2>()
+                                .value_as_geo(i),
+                        ),
+                        Dimension::XYZ => Value::from(
+                            &chunk
+                                .as_ref()
+                                .as_large_multi_line_string::<3>()
+                                .value_as_geo(i),
+                        ),
                     },
                     MultiPolygon(_, dimension) => match dimension {
-                        Dimension::XY => Value::from(&chunk.as_multi_polygon_2d().value_as_geo(i)),
-                        Dimension::XYZ => Value::from(&chunk.as_multi_polygon_3d().value_as_geo(i)),
+                        Dimension::XY => {
+                            Value::from(&chunk.as_ref().as_multi_polygon::<2>().value_as_geo(i))
+                        }
+                        Dimension::XYZ => {
+                            Value::from(&chunk.as_ref().as_multi_polygon::<3>().value_as_geo(i))
+                        }
                     },
                     LargeMultiPolygon(_, dimension) => match dimension {
-                        Dimension::XY => {
-                            Value::from(&chunk.as_large_multi_polygon_2d().value_as_geo(i))
-                        }
-                        Dimension::XYZ => {
-                            Value::from(&chunk.as_large_multi_polygon_3d().value_as_geo(i))
-                        }
+                        Dimension::XY => Value::from(
+                            &chunk.as_ref().as_large_multi_polygon::<2>().value_as_geo(i),
+                        ),
+                        Dimension::XYZ => Value::from(
+                            &chunk.as_ref().as_large_multi_polygon::<3>().value_as_geo(i),
+                        ),
                     },
                     Mixed(_, dimension) => match dimension {
-                        Dimension::XY => Value::from(&chunk.as_mixed_2d().value_as_geo(i)),
-                        Dimension::XYZ => Value::from(&chunk.as_mixed_3d().value_as_geo(i)),
+                        Dimension::XY => {
+                            Value::from(&chunk.as_ref().as_mixed::<2>().value_as_geo(i))
+                        }
+                        Dimension::XYZ => {
+                            Value::from(&chunk.as_ref().as_mixed::<3>().value_as_geo(i))
+                        }
                     },
                     LargeMixed(_, dimension) => match dimension {
-                        Dimension::XY => Value::from(&chunk.as_large_mixed_2d().value_as_geo(i)),
-                        Dimension::XYZ => Value::from(&chunk.as_large_mixed_3d().value_as_geo(i)),
+                        Dimension::XY => {
+                            Value::from(&chunk.as_ref().as_large_mixed::<2>().value_as_geo(i))
+                        }
+                        Dimension::XYZ => {
+                            Value::from(&chunk.as_ref().as_large_mixed::<3>().value_as_geo(i))
+                        }
                     },
                     GeometryCollection(_, dimension) => match dimension {
-                        Dimension::XY => {
-                            Value::from(&chunk.as_geometry_collection_2d().value_as_geo(i))
-                        }
-                        Dimension::XYZ => {
-                            Value::from(&chunk.as_geometry_collection_3d().value_as_geo(i))
-                        }
+                        Dimension::XY => Value::from(
+                            &chunk.as_ref().as_geometry_collection::<2>().value_as_geo(i),
+                        ),
+                        Dimension::XYZ => Value::from(
+                            &chunk.as_ref().as_geometry_collection::<3>().value_as_geo(i),
+                        ),
                     },
                     LargeGeometryCollection(_, dimension) => match dimension {
+                        Dimension::XY => Value::from(
+                            &chunk
+                                .as_ref()
+                                .as_large_geometry_collection::<2>()
+                                .value_as_geo(i),
+                        ),
+                        Dimension::XYZ => Value::from(
+                            &chunk
+                                .as_ref()
+                                .as_large_geometry_collection::<3>()
+                                .value_as_geo(i),
+                        ),
+                    },
+                    WKB => Value::from(&chunk.as_ref().as_wkb().value_as_geo(i)),
+                    LargeWKB => Value::from(&chunk.as_ref().as_large_wkb().value_as_geo(i)),
+                    Rect(dimension) => match dimension {
                         Dimension::XY => {
-                            Value::from(&chunk.as_large_geometry_collection_2d().value_as_geo(i))
+                            Value::from(&chunk.as_ref().as_rect::<2>().value_as_geo(i))
                         }
                         Dimension::XYZ => {
-                            Value::from(&chunk.as_large_geometry_collection_3d().value_as_geo(i))
+                            Value::from(&chunk.as_ref().as_rect::<3>().value_as_geo(i))
                         }
-                    },
-                    WKB => Value::from(&chunk.as_wkb().value_as_geo(i)),
-                    LargeWKB => Value::from(&chunk.as_large_wkb().value_as_geo(i)),
-                    Rect(dimension) => match dimension {
-                        Dimension::XY => Value::from(&chunk.as_rect_2d().value_as_geo(i)),
-                        Dimension::XYZ => Value::from(&chunk.as_rect_3d().value_as_geo(i)),
                     },
                 };
                 let mut row = json_rows
