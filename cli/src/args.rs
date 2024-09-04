@@ -19,6 +19,13 @@ pub struct Args {
     #[arg(short, long, value_enum)]
     pub output_format: Option<Format>,
 
+    /// The type of geoparquet compression to use.
+    ///
+    /// Possible values: uncompressed (default), snappy, gzip(level), lzo, brotli(level), lz4, zstd(level), lz4_raw
+    #[arg(long, value_enum)]
+    #[cfg(feature = "geoparquet")]
+    pub geoparquet_compression: Option<parquet::basic::Compression>,
+
     /// The subcommand to run.
     #[command(subcommand)]
     pub subcommand: Subcommand,

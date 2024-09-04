@@ -14,7 +14,12 @@ categories = ["science", "data-structures"]
 default = ["gdal", "geoparquet", "pgstac"]
 duckdb = ["dep:stac-duckdb"]
 gdal = ["stac/gdal"]
-geoparquet = ["dep:bytes", "stac/geoparquet-compression"]
+geoparquet = [
+    "dep:bytes",
+    "dep:geoarrow",
+    "stac/geoparquet-compression",
+    "parquet",
+]
 pgstac = ["stac-server/pgstac"]
 python = ["dep:pyo3", "pgstac", "duckdb", "stac-duckdb/bundled", "geoparquet"]
 
@@ -22,6 +27,8 @@ python = ["dep:pyo3", "pgstac", "duckdb", "stac-duckdb/bundled", "geoparquet"]
 axum = "0.7"
 bytes = { version = "1", optional = true }
 clap = { version = "4", features = ["derive"] }
+geoarrow = { git = "https://github.com/geoarrow/geoarrow-rs", rev = "6b877486bf98f280bc04b589eb7ce25b20e629f0", optional = true }
+parquet = { version = "52", optional = true }
 pyo3 = { version = "0.22", optional = true }
 reqwest = "0.12"
 serde = "1"

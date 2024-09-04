@@ -20,12 +20,12 @@ pub fn has_extension(href: &str) -> bool {
 }
 
 #[cfg(feature = "geoparquet")]
-pub use has_feature::{from_reader, to_writer};
+pub use has_feature::{from_reader, to_writer, to_writer_with_options};
 
 #[cfg(feature = "geoparquet")]
 mod has_feature {
     use crate::{Error, ItemCollection, Result, Value};
-    use geoarrow::io::parquet::GeoParquetRecordBatchReaderBuilder;
+    use geoarrow::io::parquet::{GeoParquetRecordBatchReaderBuilder, GeoParquetWriterOptions};
     use parquet::file::reader::ChunkReader;
     use std::io::Write;
 
@@ -49,13 +49,42 @@ mod has_feature {
     where
         W: Write + Send,
     {
+        to_writer_with_options(writer, value, &Default::default())
+    }
+
+    /// Writes a [Value] to a [std::io::Write] as
+    /// [stac-geoparquet](https://github.com/stac-utils/stac-geoparquet) with the provided options.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::io::Cursor;
+    /// use stac::Item;
+    /// use geoarrow::io::parquet::GeoParquetWriterOptions;
+    /// use parquet::{basic::Compression, file::properties::WriterProperties};
+    ///
+    /// let item: Item = stac::read("examples/simple-item.json").unwrap();
+    /// let mut cursor = Cursor::new(Vec::new());
+    /// let mut options = GeoParquetWriterOptions::default();
+    /// let writer_properties = WriterProperties::builder().set_compression(Compression::SNAPPY).build();
+    /// options.writer_properties = Some(writer_properties);
+    /// stac::geoparquet::to_writer_with_options(&mut cursor, item.into(), &options).unwrap();
+    /// ```
+    pub fn to_writer_with_options<W>(
+        writer: W,
+        value: Value,
+        options: &GeoParquetWriterOptions,
+    ) -> Result<()>
+    where
+        W: Write + Send,
+    {
         match value {
             Value::ItemCollection(item_collection) => {
                 let table = crate::geoarrow::to_table(item_collection)?;
                 geoarrow::io::parquet::write_geoparquet(
                     table.into_record_batch_reader(),
                     writer,
-                    &Default::default(),
+                    options,
                 )
                 .map_err(Error::from)
             }
