@@ -1,7 +1,10 @@
 use crate::{Format, Result, Subcommand};
 use clap::Parser;
 use stac::{Version, STAC_VERSION};
-use std::{fs::File, io::Write};
+use std::{
+    fs::File,
+    io::{BufWriter, Write},
+};
 
 /// CLI arguments.
 #[derive(Parser, Debug)]
@@ -243,7 +246,7 @@ impl Args {
     pub(crate) fn writer(&self) -> Result<Box<dyn Write + Send>> {
         if let Some(outfile) = self.subcommand.outfile() {
             let file = File::create(outfile)?;
-            Ok(Box::new(file))
+            Ok(Box::new(BufWriter::new(file)))
         } else {
             Ok(Box::new(std::io::stdout()))
         }
