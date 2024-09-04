@@ -96,5 +96,42 @@ pub async fn run(args: Args) -> Result<()> {
     result
 }
 
+#[cfg(feature = "python")]
+mod python {
+    use crate::Args;
+    use clap::Parser;
+    use pyo3::{
+        prelude::{PyModule, PyModuleMethods},
+        pyfunction, pymodule, wrap_pyfunction, Bound, PyResult,
+    };
+
+    #[pyfunction]
+    fn main() -> PyResult<i64> {
+        std::process::exit(
+            tokio::runtime::Builder::new_multi_thread()
+                .enable_all()
+                .build()
+                .unwrap()
+                .block_on(async {
+                    // We skip one because the first argument is going to be the python interpreter.
+                    let args = Args::parse_from(std::env::args_os().skip(1));
+                    match super::run(args).await {
+                        Ok(()) => 0,
+                        Err(err) => {
+                            eprintln!("ERROR: {}", err);
+                            err.code()
+                        }
+                    }
+                }),
+        )
+    }
+
+    #[pymodule]
+    fn stacrs_cli(m: &Bound<'_, PyModule>) -> PyResult<()> {
+        m.add_function(wrap_pyfunction!(main, m)?)?;
+        Ok(())
+    }
+}
+
 #[cfg(test)]
 use {assert_cmd as _, tokio_test as _};

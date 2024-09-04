@@ -1,35 +1,10 @@
-use clap::Parser;
+#![deny(unused_crate_dependencies)]
+
 use pyo3::{create_exception, exceptions::PyException, prelude::*, types::PyDict};
 use stac::{Migrate, Value};
-use stac_cli::Args;
 use stac_validate::Validate;
 
 create_exception!(stacrs, StacrsError, PyException, "An error in stacrs");
-
-/// Runs the command-line interface.
-///
-/// Returns:
-///     int: The exit code
-#[pyfunction]
-fn main() -> PyResult<i64> {
-    std::process::exit(
-        tokio::runtime::Builder::new_multi_thread()
-            .enable_all()
-            .build()
-            .unwrap()
-            .block_on(async {
-                // We skip one because the first argument is going to be the python interpreter.
-                let args = Args::parse_from(std::env::args_os().skip(1));
-                match stac_cli::run(args).await {
-                    Ok(()) => 0,
-                    Err(err) => {
-                        eprintln!("ERROR: {}", err);
-                        err.code()
-                    }
-                }
-            }),
-    )
-}
 
 /// Migrates a STAC dictionary to another version.
 ///
@@ -171,7 +146,6 @@ fn validate_value(value: Value) -> PyResult<()> {
 /// A collection of functions for working with STAC, using Rust under the hood.
 #[pymodule]
 fn stacrs(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(main, m)?)?;
     m.add_function(wrap_pyfunction!(migrate, m)?)?;
     m.add_function(wrap_pyfunction!(migrate_href, m)?)?;
     m.add_function(wrap_pyfunction!(validate_href, m)?)?;
