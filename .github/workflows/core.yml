@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - core/**
+  workflow_dispatch:
 
 defaults:
   run:

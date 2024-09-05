@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - validate/**
+  workflow_dispatch:
 
 defaults:
   run:

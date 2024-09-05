@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - duckdb/**
+  workflow_dispatch:
 
 defaults:
   run:
