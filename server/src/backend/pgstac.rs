@@ -1,5 +1,4 @@
 use crate::{Backend, Error, Result};
-use async_trait::async_trait;
 use bb8::Pool;
 use bb8_postgres::PostgresConnectionManager;
 use pgstac::Client;
@@ -36,7 +35,6 @@ impl PgstacBackend {
     }
 }
 
-#[async_trait]
 impl Backend for PgstacBackend {
     fn has_item_search(&self) -> bool {
         true

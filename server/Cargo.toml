@@ -9,13 +9,13 @@ repository = "https://github.com/stac-utils/stac-rs"
 license = "MIT OR Apache-2.0"
 keywords = ["geospatial", "stac", "metadata", "geo", "raster"]
 categories = ["science", "data-structures"]
+rust-version = "1.75"
 
 [features]
 axum = ["dep:axum", "dep:bytes", "dep:mime", "dep:tower-http"]
 pgstac = ["dep:pgstac", "dep:bb8", "dep:bb8-postgres", "dep:tokio-postgres"]
 
 [dependencies]
-async-trait = "0.1"
 axum = { version = "0.7", optional = true }
 bb8 = { version = "0.8", optional = true }
 bb8-postgres = { version = "0.8", optional = true }

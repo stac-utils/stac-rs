@@ -3,15 +3,14 @@ mod memory;
 mod pgstac;
 
 use crate::Result;
-use async_trait::async_trait;
 pub use memory::MemoryBackend;
 #[cfg(feature = "pgstac")]
 pub use pgstac::PgstacBackend;
 use stac::{Collection, Item};
 use stac_api::{ItemCollection, Items, Search};
+use std::future::Future;
 
 /// Storage backend for a STAC API.
-#[async_trait]
 pub trait Backend: Clone + Sync + Send + 'static {
     /// Returns true if this backend has item search capabilities.
     ///
@@ -36,7 +35,7 @@ pub trait Backend: Clone + Sync + Send + 'static {
     /// assert!(collections.is_empty());
     /// # })
     /// ```
-    async fn collections(&self) -> Result<Vec<Collection>>;
+    fn collections(&self) -> impl Future<Output = Result<Vec<Collection>>> + Send;
 
     /// Returns a single collection.
     ///
@@ -50,7 +49,7 @@ pub trait Backend: Clone + Sync + Send + 'static {
     /// assert!(collection.is_none());
     /// # })
     /// ```
-    async fn collection(&self, id: &str) -> Result<Option<Collection>>;
+    fn collection(&self, id: &str) -> impl Future<Output = Result<Option<Collection>>> + Send;
 
     /// Adds a collection.
     ///
@@ -65,7 +64,8 @@ pub trait Backend: Clone + Sync + Send + 'static {
     /// backend.add_collection(Collection::new("an-id", "a description")).await.unwrap();
     /// # })
     /// ```
-    async fn add_collection(&mut self, collection: Collection) -> Result<()>;
+    fn add_collection(&mut self, collection: Collection)
+        -> impl Future<Output = Result<()>> + Send;
 
     /// Adds an item.
     ///
@@ -86,7 +86,7 @@ pub trait Backend: Clone + Sync + Send + 'static {
     /// backend.add_item(Item::new("item-id").collection("collection-id")).await.unwrap();
     /// # })
     /// ```
-    async fn add_item(&mut self, item: Item) -> Result<()>;
+    fn add_item(&mut self, item: Item) -> impl Future<Output = Result<()>> + Send;
 
     /// Retrieves items for a given collection.
     ///
@@ -104,7 +104,11 @@ pub trait Backend: Clone + Sync + Send + 'static {
     /// let items = backend.items("collection-id", Items::default()).await.unwrap();
     /// # })
     /// ```
-    async fn items(&self, collection_id: &str, items: Items) -> Result<Option<ItemCollection>>;
+    fn items(
+        &self,
+        collection_id: &str,
+        items: Items,
+    ) -> impl Future<Output = Result<Option<ItemCollection>>> + Send;
 
     /// Retrieves an item from a collection.
     ///
@@ -121,7 +125,11 @@ pub trait Backend: Clone + Sync + Send + 'static {
     /// let item = backend.item("collection-id", "item-id").await.unwrap().unwrap();
     /// # })
     /// ```
-    async fn item(&self, collection_id: &str, item_id: &str) -> Result<Option<Item>>;
+    fn item(
+        &self,
+        collection_id: &str,
+        item_id: &str,
+    ) -> impl Future<Output = Result<Option<Item>>> + Send;
 
     /// Searches a backend.
     ///
@@ -136,5 +144,5 @@ pub trait Backend: Clone + Sync + Send + 'static {
     /// let item_collection = backend.search(Search::default()).await.unwrap();
     /// # })
     /// ```
-    async fn search(&self, search: Search) -> Result<ItemCollection>;
+    fn search(&self, search: Search) -> impl Future<Output = Result<ItemCollection>> + Send;
 }
