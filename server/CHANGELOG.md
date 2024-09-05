@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.2.0] - 2024-09-05
+
 ### Added
 
 - Auto-create collections on ingest ([#304](https://github.com/stac-utils/stac-rs/pull/304))
@@ -33,7 +35,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 Initial release.
 
-[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-server-v0.1.1..main
+[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-server-v0.2.0..main
+[0.2.0]: https://github.com/stac-utils/stac-rs/compare/stac-server-v0.1.1..stac-server-v0.2.0
 [0.1.1]: https://github.com/stac-utils/stac-rs/compare/stac-server-v0.1.0..stac-server-v0.1.1
 [0.1.0]: https://github.com/stac-utils/stac-rs/releases/tag/stac-server-v0.1.0
 
