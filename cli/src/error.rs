@@ -1,14 +1,10 @@
-use crate::Output;
+use crate::Value;
 use thiserror::Error;
 
 /// Crate specific error type.
-#[derive(Error, Debug)]
+#[derive(Debug, Error)]
 #[non_exhaustive]
 pub enum Error {
-    /// Custom error.
-    #[error("{0}")]
-    Custom(String),
-
     /// [std::io::Error]
     #[error(transparent)]
     Io(#[from] std::io::Error),
@@ -48,19 +44,19 @@ pub enum Error {
 
     /// [tokio::sync::mpsc::error::SendError]
     #[error(transparent)]
-    SendOutput(#[from] tokio::sync::mpsc::error::SendError<Output>),
+    TokioSend(#[from] tokio::sync::mpsc::error::SendError<Value>),
 
     /// [tokio::task::JoinError]
     #[error(transparent)]
     TokioJoinError(#[from] tokio::task::JoinError),
 
-    /// Unsupported output format.
-    #[error("unsupported output format: {0}")]
-    UnsupportedFormat(String),
+    /// [std::num::TryFromIntError]
+    #[error(transparent)]
+    TryFromInt(#[from] std::num::TryFromIntError),
 
-    /// Validation errors.
-    #[error("validation errors: {0:?}")]
-    Validation(Vec<serde_json::Value>),
+    /// Unsupported format.
+    #[error("unsupported (or unknown) format: {0}")]
+    UnsupportedFormat(String),
 }
 
 impl Error {

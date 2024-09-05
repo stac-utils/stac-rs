@@ -50,7 +50,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install libgdal-dev
       - name: Test
-        run: cargo test -p stac -p stac-cli --all-features
+        run: cargo test -p stac -p stac-duckdb -p stac-cli --all-features -F duckdb/bundled
   test-ubuntu-with-pgstac:
     runs-on: ubuntu-latest
     services:

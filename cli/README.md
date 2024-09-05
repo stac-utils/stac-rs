@@ -34,9 +34,9 @@ If you need to use [gdal](../core/README.md#gdal) features, install via `cargo i
 **stacrs** provides the following subcommands:
 
 - `stacrs item`: create STAC items and combine them into item collections
-- `stacrs search`: search STAC APIs
-- `stacrs serve`: serve a STAC API
-- `stacrs sort`: sort the fields of STAC items, catalogs, and collections
+- `stacrs migrate`: migrate a STAC object to another version
+- `stacrs search`: search STAC APIs (and geoparquet, with the experimental `duckdb` feature)
+- `stacrs serve`: serve a STAC API (optionally, with a [pgstac](https://github.com/stac-utils/pgstac) backend)
 - `stacrs translate`: convert STAC values from one format to another
 - `stacrs validate`: validate STAC items, catalogs, and collections using [json-schema](https://json-schema.org/)
 
@@ -44,8 +44,15 @@ Use the `--help` flag to see all available options for the CLI and the subcomman
 
 ## Features
 
-By default, the CLI builds w/ [GDAL](https://gdal.org) support, and will error if GDAL is not installed on your system.
-If you don't want to use GDAL, you can disable the default features:
+This crate has five features, three of them on by default:
+
+- `duckdb`: experimental support for querying [stac-geoparquet](https://github.com/stac-utils/stac-geoparquet) files using [DuckDB](https://duckdb.org/)
+- `gdal`: read geospatial data from rasters (enabled by default)
+- `geoparquet`: read and write [stac-geoparquet](https://github.com/stac-utils/stac-geoparquet) (enabled by default)
+- `pgstac`: enable a [pgstac](https://github.com/stac-utils/pgstac) backend for `stacrs serve` (enabled by default)
+- `python`: create an entrypoint that can be called from Python (used to enable `pip install stacrs-cli`)
+
+If you don't want to use GDAL or any of the other default features:
 
 ```shell
 cargo install stac-cli --no-default-features

@@ -4,12 +4,11 @@ use tracing_subscriber;
 
 #[tokio::main]
 async fn main() {
-    if std::env::var("STACRS_TRACING").is_ok() {
-        tracing_subscriber::fmt::init();
-    }
-
     let args = Args::parse();
-    std::process::exit(match stac_cli::run(args).await {
+    tracing_subscriber::fmt()
+        .with_max_level(args.log_level())
+        .init();
+    std::process::exit(match args.run(std::io::stdout()).await {
         Ok(()) => 0,
         Err(err) => {
             eprintln!("ERROR: {}", err);
