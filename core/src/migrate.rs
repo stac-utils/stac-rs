@@ -164,10 +164,12 @@ fn migrate_bands(asset: &mut Map<String, Value>) -> Result<()> {
             }
         }
     }
-    let _ = asset.insert(
-        "bands".into(),
-        Value::Array(bands.into_iter().map(Value::Object).collect()),
-    );
+    if bands.iter().any(|band| !band.is_empty()) {
+        let _ = asset.insert(
+            "bands".into(),
+            Value::Array(bands.into_iter().map(Value::Object).collect()),
+        );
+    }
     Ok(())
 }
 
@@ -234,5 +236,14 @@ mod tests {
         item.set_link(Link::self_("/an/absolute/href"));
         let item = item.migrate(Version::v1_1_0_beta_1).unwrap();
         assert_eq!(item.link("self").unwrap().href, "file:///an/absolute/href");
+    }
+
+    #[test]
+    fn remove_empty_bands() {
+        // https://github.com/stac-utils/stac-rs/issues/350
+        let item: Item = crate::read("data/20201211_223832_CS2.json").unwrap();
+        let item = item.migrate(Version::v1_1_0_beta_1).unwrap();
+        let asset = &item.assets["data"];
+        assert!(asset.bands.is_empty());
     }
 }

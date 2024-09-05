@@ -1,0 +1,101 @@
+{
+  "type": "Feature",
+  "stac_version": "1.0.0",
+  "stac_extensions": [
+    "https://stac-extensions.github.io/projection/v1.1.0/schema.json",
+    "https://stac-extensions.github.io/raster/v1.1.0/schema.json"
+  ],
+  "id": "20201211_223832_CS2",
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [
+          172.9117367,
+          1.3438852
+        ],
+        [
+          172.9546961,
+          1.3438852
+        ],
+        [
+          172.9546961,
+          90.0
+        ],
+        [
+          172.9117367,
+          90.0
+        ],
+        [
+          172.9117367,
+          1.3438852
+        ]
+      ]
+    ],
+    "bbox": [
+      172.9117367,
+      1.3438852,
+      172.9546961,
+      90.0
+    ]
+  },
+  "bbox": [
+    172.9117367,
+    1.3438852,
+    172.9546961,
+    90.0
+  ],
+  "properties": {
+    "datetime": "2024-09-05T22:33:45.900997Z",
+    "proj:epsg": 32659,
+    "proj:bbox": [
+      712710.0,
+      148627.0,
+      717489.5,
+      151406.0
+    ],
+    "proj:centroid": {
+      "lat": 1.3564664,
+      "lon": 172.9332164
+    },
+    "proj:shape": [
+      5558,
+      9559
+    ],
+    "proj:transform": [
+      0.5,
+      0.0,
+      712710.0,
+      0.0,
+      -0.5,
+      151406.0
+    ]
+  },
+  "links": [],
+  "assets": {
+    "data": {
+      "href": "/Users/gadomski/Downloads/20201211_223832_CS2.tif",
+      "roles": [
+        "data"
+      ],
+      "raster:bands": [
+        {
+          "data_type": "uint8",
+          "spatial_resolution": 0.5
+        },
+        {
+          "data_type": "uint8",
+          "spatial_resolution": 0.5
+        },
+        {
+          "data_type": "uint8",
+          "spatial_resolution": 0.5
+        },
+        {
+          "data_type": "uint8",
+          "spatial_resolution": 0.5
+        }
+      ]
+    }
+  }
+}
