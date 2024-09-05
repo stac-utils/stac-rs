@@ -1,0 +1,52 @@
+name: CI (core)
+
+on:
+  pull_request:
+    paths:
+      - core/**
+
+defaults:
+  run:
+    working-directory: core
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_TERM_VERBOSE: true
+
+jobs:
+  test:
+    strategy:
+      matrix: 
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
+        args:
+          - ""
+          - "-F geo"
+          - "-F geoarrow"
+          - "-F geoparquet"
+          - "-F geoparquet-compression"
+          - "-F reqwest"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Rust cache
+        uses: Swatinem/rust-cache@v2
+      - name: Test
+        run: cargo test ${{ matrix.args }}
+  test-with-gdal:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
+      - name: Install GDAL
+        run: |
+          sudo apt-get update
+          sudo apt-get install libgdal-dev
+      - name: Test
+        run: cargo test -F gdal

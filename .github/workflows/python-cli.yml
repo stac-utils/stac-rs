@@ -4,6 +4,9 @@ on:
   push:
     tags:
       - 'stac-cli-*'
+  pull_request:
+    paths:
+      - cli/**
   workflow_dispatch:
 
 permissions:
@@ -14,6 +17,22 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
+      - name: Install dev requirements
+        run: pip install maturin
+      - name: Build
+        run: maturin build --manifest-path cli/Cargo.toml --out dist
+      - name: Install stacrs-cli
+        run: pip install stacrs-cli --find-links dist --no-index
+      - name: Smoke test
+        run: stacrs --version
   linux:
     runs-on: ${{ matrix.platform.runner }}
     strategy:
