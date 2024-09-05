@@ -1,6 +1,7 @@
 use crate::{Href, Item, Link, Links, Migrate};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
+use std::vec::IntoIter;
 
 /// The type field for [ItemCollections](ItemCollection).
 pub const ITEM_COLLECTION_TYPE: &str = "FeatureCollection";
@@ -52,6 +53,14 @@ impl From<Vec<Item>> for ItemCollection {
 impl FromIterator<Item> for ItemCollection {
     fn from_iter<I: IntoIterator<Item = Item>>(iter: I) -> Self {
         iter.into_iter().collect::<Vec<_>>().into()
+    }
+}
+
+impl IntoIterator for ItemCollection {
+    type IntoIter = IntoIter<Item>;
+    type Item = Item;
+    fn into_iter(self) -> Self::IntoIter {
+        self.items.into_iter()
     }
 }
 
