@@ -26,7 +26,7 @@ pgstac = { version = "0.1", path = "../pgstac", optional = true }
 serde = "1"
 serde_json = "1"
 serde_urlencoded = "0.7"
-stac = { version = "0.8", path = "../core" }
+stac = { version = "0.9", path = "../core" }
 stac-api = { version = "0.4", path = "../api", features = ["geo"] }
 stac-async = { version = "0.5", path = "../async" }
 thiserror = "1"

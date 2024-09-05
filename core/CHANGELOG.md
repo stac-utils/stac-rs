@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.9.0] - 2024-09-05
+
 ### Added
 
 - `Bbox` ([#303](https://github.com/stac-utils/stac-rs/pull/303), [#328](https://github.com/stac-utils/stac-rs/pull/328))
@@ -346,7 +348,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 Initial release.
 
-[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-v0.8.0...main
+[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-v0.9.0...main
+[0.9.0]: https://github.com/stac-utils/stac-rs/compare/stac-v0.8.0...stac-v0.9.0
 [0.8.0]: https://github.com/stac-utils/stac-rs/compare/stac-v0.7.2...stac-v0.8.0
 [0.7.2]: https://github.com/stac-utils/stac-rs/compare/stac-v0.7.1...stac-v0.7.2
 [0.7.1]: https://github.com/stac-utils/stac-rs/compare/stac-v0.7.0...stac-v0.7.1
