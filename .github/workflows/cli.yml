@@ -1,4 +1,4 @@
-name: CI (cli)
+name: cli
 
 on:
   pull_request:

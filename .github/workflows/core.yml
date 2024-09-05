@@ -1,4 +1,4 @@
-name: CI (core)
+name: core
 
 on:
   pull_request:

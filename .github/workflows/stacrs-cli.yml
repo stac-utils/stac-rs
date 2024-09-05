@@ -1,4 +1,4 @@
-name: Python (stacrs-cli)
+name: stacrs-cli
 
 on:
   push:
