@@ -9,6 +9,7 @@ repository = "https://github.com/stac-utils/stac-rs"
 license = "MIT OR Apache-2.0"
 keywords = ["geospatial", "stac", "metadata", "geo", "raster"]
 categories = ["science", "data-structures"]
+rust-version = "1.75"
 
 [features]
 default = ["gdal", "geoparquet", "pgstac"]
@@ -47,7 +48,6 @@ tokio = { version = "1.23", features = ["macros", "rt-multi-thread"] }
 tokio-stream = "0.1"
 tracing = "0.1"
 tracing-subscriber = "0.3"
-url = "2"
 
 [dev-dependencies]
 assert_cmd = "2"
