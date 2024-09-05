@@ -5,7 +5,7 @@ use crate::{Error, Href, Result};
 #[cfg(feature = "reqwest")]
 use reqwest::blocking::Response;
 use serde::de::DeserializeOwned;
-use std::fs::File;
+use std::{fs::File, io::BufReader};
 
 /// Reads any STAC value from a JSON href.
 ///
@@ -22,7 +22,7 @@ struct JsonReader;
 
 impl<T: Href + DeserializeOwned> Read<T> for JsonReader {
     fn read_from_file(file: File) -> Result<T> {
-        serde_json::from_reader(file).map_err(Error::from)
+        serde_json::from_reader(BufReader::new(file)).map_err(Error::from)
     }
     #[cfg(feature = "reqwest")]
     fn from_response(response: Response) -> Result<T> {
