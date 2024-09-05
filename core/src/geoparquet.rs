@@ -43,9 +43,9 @@ mod has_feature {
     ///
     /// let item: Item = stac::read("examples/simple-item.json").unwrap();
     /// let mut cursor = Cursor::new(Vec::new());
-    /// stac::geoparquet::to_writer(&mut cursor, item.into()).unwrap();
+    /// stac::geoparquet::to_writer(&mut cursor, item).unwrap();
     /// ```
-    pub fn to_writer<W>(writer: W, value: Value) -> Result<()>
+    pub fn to_writer<W>(writer: W, value: impl Into<Value>) -> Result<()>
     where
         W: Write + Send,
     {
@@ -68,16 +68,17 @@ mod has_feature {
     /// let mut options = GeoParquetWriterOptions::default();
     /// let writer_properties = WriterProperties::builder().set_compression(Compression::SNAPPY).build();
     /// options.writer_properties = Some(writer_properties);
-    /// stac::geoparquet::to_writer_with_options(&mut cursor, item.into(), &options).unwrap();
+    /// stac::geoparquet::to_writer_with_options(&mut cursor, item, &options).unwrap();
     /// ```
     pub fn to_writer_with_options<W>(
         writer: W,
-        value: Value,
+        value: impl Into<Value>,
         options: &GeoParquetWriterOptions,
     ) -> Result<()>
     where
         W: Write + Send,
     {
+        let value = value.into();
         match value {
             Value::ItemCollection(item_collection) => {
                 let table = crate::geoarrow::to_table(item_collection)?;
@@ -88,7 +89,7 @@ mod has_feature {
                 )
                 .map_err(Error::from)
             }
-            Value::Item(item) => to_writer(writer, ItemCollection::from(vec![item.clone()]).into()),
+            Value::Item(item) => to_writer(writer, ItemCollection::from(vec![item])),
             _ => Err(Error::IncorrectType {
                 actual: value.type_name().to_string(),
                 expected: "Item or ItemCollection".to_string(),
@@ -118,21 +119,21 @@ mod has_feature {
 
     #[cfg(test)]
     mod tests {
-        use crate::{Href, Item, ItemCollection};
+        use crate::{Href, Item, ItemCollection, Value};
         use bytes::Bytes;
         use std::{fs::File, io::Cursor};
 
         #[test]
         fn to_writer_catalog() {
             let mut cursor = Cursor::new(Vec::new());
-            let catalog = crate::read("examples/catalog.json").unwrap();
+            let catalog: Value = crate::read("examples/catalog.json").unwrap();
             let _ = super::to_writer(&mut cursor, catalog).unwrap_err();
         }
 
         #[test]
         fn to_writer_collection() {
             let mut cursor = Cursor::new(Vec::new());
-            let collection = crate::read("examples/collection.json").unwrap();
+            let collection: Value = crate::read("examples/collection.json").unwrap();
             let _ = super::to_writer(&mut cursor, collection).unwrap_err();
         }
 
@@ -141,13 +142,13 @@ mod has_feature {
             let mut cursor = Cursor::new(Vec::new());
             let item = crate::read("examples/simple-item.json").unwrap();
             let item_collection = ItemCollection::from(vec![item]);
-            super::to_writer(&mut cursor, item_collection.into()).unwrap();
+            super::to_writer(&mut cursor, item_collection).unwrap();
         }
 
         #[test]
         fn to_writer_item() {
             let mut cursor = Cursor::new(Vec::new());
-            let item = crate::read("examples/simple-item.json").unwrap();
+            let item: Value = crate::read("examples/simple-item.json").unwrap();
             super::to_writer(&mut cursor, item).unwrap();
         }
 
@@ -163,7 +164,7 @@ mod has_feature {
             let mut item: Item = crate::read("examples/simple-item.json").unwrap();
             item.clear_href();
             let mut cursor = Cursor::new(Vec::new());
-            super::to_writer(&mut cursor, item.clone().into()).unwrap();
+            super::to_writer(&mut cursor, item.clone()).unwrap();
             let bytes = Bytes::from(cursor.into_inner());
             let item_collection = super::from_reader(bytes).unwrap();
             assert_eq!(item_collection.items[0], item);
