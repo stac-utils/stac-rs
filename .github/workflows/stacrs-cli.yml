@@ -4,9 +4,6 @@ on:
   push:
     tags:
       - 'stac-cli-*'
-  pull_request:
-    paths:
-      - cli/**
   workflow_dispatch:
 
 permissions:

@@ -4,9 +4,6 @@ on:
   push:
     tags:
       - 'python-*'
-  pull_request:
-    paths:
-      - python/**
   workflow_dispatch:
 
 permissions:
