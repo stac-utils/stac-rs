@@ -50,7 +50,7 @@ Then, items created from rasters will include the projection and raster extensio
 #[cfg(feature = "gdal")]
 {
     use stac::{extensions::{Raster, Projection}, Extensions, item::Builder};
-    let item = Builder::new("an-id").asset("data", "assets/dataset_geo.tif").into_item().unwrap();
+    let item = Builder::new("an-id").asset("data", "assets/dataset_geo.tif").build().unwrap();
     assert!(item.has_extension::<Projection>());
     assert!(item.has_extension::<Raster>());
 }

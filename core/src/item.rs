@@ -306,17 +306,17 @@ impl Builder {
         self
     }
 
-    /// Creates an [Item] by consuming this builder.
+    /// Builds an [Item] from this builder.
     ///
     /// # Examples
     ///
     /// ```
     /// use stac::item::Builder;
     /// let builder = Builder::new("an-id").asset("data", "assets/dataset.tif");
-    /// let item = builder.into_item().unwrap();
+    /// let item = builder.build().unwrap();
     /// assert_eq!(item.assets.len(), 1);
     /// ```
-    pub fn into_item(self) -> Result<Item> {
+    pub fn build(self) -> Result<Item> {
         let mut item = Item::new(self.id);
         for (key, mut asset) in self.assets {
             if Url::parse(&asset.href).is_err() && self.canonicalize_paths {
@@ -889,7 +889,7 @@ mod tests {
     #[test]
     fn builder() {
         let builder = Builder::new("an-id").asset("data", "assets/dataset.tif");
-        let item = builder.into_item().unwrap();
+        let item = builder.build().unwrap();
         assert_eq!(item.assets.len(), 1);
         let asset = item.assets.get("data").unwrap();
         assert!(asset
@@ -902,7 +902,7 @@ mod tests {
         let builder = Builder::new("an-id")
             .canonicalize_paths(false)
             .asset("data", "assets/dataset.tif");
-        let item = builder.into_item().unwrap();
+        let item = builder.build().unwrap();
         let asset = item.assets.get("data").unwrap();
         assert_eq!(asset.href, "assets/dataset.tif");
     }
@@ -911,7 +911,7 @@ mod tests {
     fn builder_asset_roles() {
         let item = Builder::new("an-id")
             .asset("data", Asset::new("assets/dataset.tif").role("data"))
-            .into_item()
+            .build()
             .unwrap();
         let asset = item.assets.get("data").unwrap();
         assert_eq!(asset.roles, vec!["data"]);
@@ -921,7 +921,7 @@ mod tests {
     fn builder_uses_gdal() {
         let item = Builder::new("an-id")
             .asset("data", "assets/dataset.tif")
-            .into_item()
+            .build()
             .unwrap();
         if cfg!(feature = "gdal") {
             assert!(item.has_extension::<Raster>());
