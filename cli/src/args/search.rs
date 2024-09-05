@@ -193,13 +193,10 @@ impl Run for Args {
         let sender = if self.stream { Some(sender) } else { None };
         #[cfg(feature = "duckdb")]
         {
-            if self.duckdb.unwrap_or_else(|| {
-                tracing::info!(
-                    "inferring whether to use duckdb based on href '{}'",
-                    self.href
-                );
-                stac::geoparquet::has_extension(&self.href)
-            }) {
+            if self
+                .duckdb
+                .unwrap_or_else(|| stac::geoparquet::has_extension(&self.href))
+            {
                 search_geoparquet(self.href, search, sender, self.max_items).await
             } else {
                 search_api(self.href, search, sender, self.max_items).await

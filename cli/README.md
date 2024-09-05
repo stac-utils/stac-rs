@@ -17,6 +17,9 @@ cargo install stac-cli
 Or:
 
 ```shell
+# NOTE: The version from PyPI does not include GDAL or DuckDB support. If you
+# need to use these features, install via `cargo install` (GDAL is enabled by
+# default) or `cargo install -F duckdb` (DuckDB is not).
 pip install stacrs-cli
 ```
 
@@ -25,9 +28,6 @@ Then:
 ```shell
 stacrs --help
 ```
-
-**NOTE:** the version from PyPI (installed with `pip`) does not include GDAL support.
-If you need to use [gdal](../core/README.md#gdal) features, install via `cargo install`.
 
 ## Usage
 

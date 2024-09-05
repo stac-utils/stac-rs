@@ -259,26 +259,24 @@ impl Sql {
             params.extend(collections.into_iter().map(Value::from));
         }
         if let Some(intersects) = search.intersects {
-            wheres.push(format!(
-                "ST_Intersects(ST_GeomFromWKB(geometry), ST_GeomFromGeoJSON(?))"
-            ));
+            wheres
+                .push("ST_Intersects(ST_GeomFromWKB(geometry), ST_GeomFromGeoJSON(?))".to_string());
             params.push(Value::from(intersects.to_string()));
         }
         if let Some(bbox) = search.items.bbox {
-            wheres.push(format!(
-                "ST_Intersects(ST_GeomFromWKB(geometry), ST_GeomFromGeoJSON(?))"
-            ));
+            wheres
+                .push("ST_Intersects(ST_GeomFromWKB(geometry), ST_GeomFromGeoJSON(?))".to_string());
             params.push(Value::from(bbox.to_geometry().to_string()));
         }
         if let Some(datetime) = search.items.datetime {
             // TODO support start and end datetimes
             let (start, end) = stac::datetime::parse(&datetime)?;
             if let Some(start) = start {
-                wheres.push(format!("datetime >= make_timestamp(?)"));
+                wheres.push("datetime >= make_timestamp(?)".to_string());
                 params.push(Value::from(start.timestamp_micros()));
             }
             if let Some(end) = end {
-                wheres.push(format!("datetime <= make_timestamp(?)"));
+                wheres.push("datetime <= make_timestamp(?)".to_string());
                 params.push(Value::from(end.timestamp_micros()));
             }
         }

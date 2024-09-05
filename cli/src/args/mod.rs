@@ -194,7 +194,7 @@ impl Input {
     fn read(self, infile: Option<String>) -> Result<stac::Value> {
         let format = self
             .format
-            .or_else(|| infile.as_deref().and_then(|infile| Format::infer(infile)))
+            .or_else(|| infile.as_deref().and_then(Format::infer))
             .unwrap_or(Format::CompactJson);
         if let Some(infile) =
             infile.and_then(|infile| if infile == "-" { None } else { Some(infile) })

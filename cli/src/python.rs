@@ -4,7 +4,6 @@ use pyo3::{
     prelude::{PyModule, PyModuleMethods},
     pyfunction, pymodule, wrap_pyfunction, Bound, PyResult,
 };
-use tracing_subscriber;
 
 #[pyfunction]
 fn main() -> PyResult<i64> {

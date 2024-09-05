@@ -30,7 +30,7 @@ jobs:
           - "-p stac-async"
           - "-p stac-cli --no-default-features"
           - "-p stac-cli --no-default-features -F geoparquet"
-          - "-p stac-duckdb -F bundled"
+          - "-p stac-duckdb -F duckdb/bundled"
           - "-p stac-server"
           - "-p stac-server -F axum"
           - "-p stac-validate"

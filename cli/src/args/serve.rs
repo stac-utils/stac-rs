@@ -145,7 +145,7 @@ impl Run for Args {
                 backend.add_items(items).await?;
             }
         } else if !items.is_empty() {
-            let collection_ids: Vec<_> = items.into_keys().filter_map(|o| o).collect();
+            let collection_ids: Vec<_> = items.into_keys().flatten().collect();
             warn!("--create-collections=false, but some items don't have collections and will not be loaded (collection ids: {})", collection_ids.join(","));
         }
 
