@@ -44,8 +44,8 @@ gdal-sys = { version = "0.10", optional = true }
 geo = { version = "0.28", optional = true }
 geo-types = { version = "0.7", optional = true }
 geoarrow = { version = "0.3.0-beta.3", optional = true }
-geojson = { version = "0.24" }
-log = { version = "0.4" }
+geojson = "0.24"
+log = "0.4"
 mime = "0.3"
 parquet = { version = "52", default-features = false, optional = true }
 reqwest = { version = "0.12", optional = true, features = ["json", "blocking"] }
