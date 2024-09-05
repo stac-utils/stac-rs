@@ -31,11 +31,17 @@ pub fn update_item(
     force_statistics: bool,
     is_approx_statistics_ok: bool,
 ) -> Result<()> {
+    log::debug!(
+        "updating item={} with force_statistics={} and is_approx_statistics_ok={}",
+        item.id,
+        force_statistics,
+        is_approx_statistics_ok
+    );
     gdal::config::set_error_handler(|err, code, msg| log::warn!("{:?} ({}): {}", err, code, msg));
     let mut has_raster = false;
     let mut has_projection = false;
     let mut projections = Vec::new();
-    let mut bbox = Bbox::default(); // TODO support 2D
+    let mut bbox = Bbox::new(180., 90., -180., 90.); // Intentionally invalid bbox so the first update always takes
     for asset in item.assets.values_mut() {
         update_asset(asset, force_statistics, is_approx_statistics_ok)?;
         if let Some(projection) = asset.extension::<Projection>()? {
