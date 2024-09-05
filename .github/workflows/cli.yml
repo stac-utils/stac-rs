@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - cli/**
+  workflow_dispatch:
 
 defaults:
   run:

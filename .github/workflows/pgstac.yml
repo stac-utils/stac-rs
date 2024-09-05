@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - pgstac/**
+  workflow_dispatch:
 
 defaults:
   run:
