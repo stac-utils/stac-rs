@@ -14,6 +14,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Experimental GeoParquet and GeoArrow support ([#316](https://github.com/stac-utils/stac-rs/pull/316), [#319](https://github.com/stac-utils/stac-rs/pull/319), [#328](https://github.com/stac-utils/stac-rs/pull/328))
 - Public `stac::io` module ([#319](https://github.com/stac-utils/stac-rs/pull/319))
 
+### Fixed
+
+- Don't add a `bands` attribute if all bands are empty when migrating ([#351](https://github.com/stac-utils/stac-rs/pull/351))
+
 ### Changed
 
 - Use `DateTime<Utc>` instead of `String` for datetimes ([#297](https://github.com/stac-utils/stac-rs/pull/297), [#304](https://github.com/stac-utils/stac-rs/pull/304))
