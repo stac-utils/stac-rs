@@ -1,6 +1,5 @@
 use clap::Parser;
 use stac_cli::Args;
-use tracing_subscriber;
 
 #[tokio::main]
 async fn main() {

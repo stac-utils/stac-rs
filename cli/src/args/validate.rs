@@ -22,7 +22,7 @@ impl Run for Args {
                 stac::Value::Item(item) => format!("[item={}] ", item.id),
                 stac::Value::Catalog(catalog) => format!("[catalog={}] ", catalog.id),
                 stac::Value::Collection(collection) => format!("[collection={}] ", collection.id),
-                stac::Value::ItemCollection(_) => format!("[item-collection] "),
+                stac::Value::ItemCollection(_) => "[item-collection] ".to_string(),
             };
             for error in errors {
                 let message = format!(
