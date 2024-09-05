@@ -19,7 +19,7 @@ env:
   CARGO_TERM_VERBOSE: true
 
 jobs:
-  test:
+  test-pgstac:
     runs-on: ubuntu-latest
     services:
       pgstac:

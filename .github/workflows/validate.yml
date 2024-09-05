@@ -1,4 +1,4 @@
-name: CI (validate)
+name: validate
 
 on:
   pull_request:
@@ -19,7 +19,7 @@ env:
   CARGO_TERM_VERBOSE: true
 
 jobs:
-  test:
+  test-validate:
     strategy:
       matrix: 
         os:
