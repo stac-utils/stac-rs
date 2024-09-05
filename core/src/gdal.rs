@@ -172,7 +172,7 @@ mod tests {
     fn raster_data_type() {
         let mut item = Builder::new("an-id")
             .asset("data", "assets/dataset.tif")
-            .into_item()
+            .build()
             .unwrap();
         super::update_item(&mut item, false, true).unwrap();
         assert!(item.has_extension::<Raster>());
@@ -193,7 +193,7 @@ mod tests {
     fn raster_spatial_resolution() {
         let mut item = Builder::new("an-id")
             .asset("data", "assets/dataset_geo.tif")
-            .into_item()
+            .build()
             .unwrap();
         super::update_item(&mut item, false, true).unwrap();
         let raster: Raster = item
@@ -213,7 +213,7 @@ mod tests {
     fn projection() {
         let mut item = Builder::new("an-id")
             .asset("data", "assets/dataset_geo.tif")
-            .into_item()
+            .build()
             .unwrap();
         super::update_item(&mut item, false, true).unwrap();
         let projection: Projection = item.extension().unwrap().unwrap();
