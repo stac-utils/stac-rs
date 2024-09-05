@@ -1,5 +1,4 @@
 use crate::{Backend, Error, Result, DEFAULT_LIMIT};
-use async_trait::async_trait;
 use serde_json::Map;
 use stac::{Collection, Item};
 use stac_api::{ItemCollection, Items, Search};
@@ -34,7 +33,6 @@ impl MemoryBackend {
     }
 }
 
-#[async_trait]
 impl Backend for MemoryBackend {
     fn has_item_search(&self) -> bool {
         true
