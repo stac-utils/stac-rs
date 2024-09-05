@@ -4,6 +4,7 @@ use serde_json::Value;
 use stac::Version;
 use std::{
     collections::HashMap,
+    io::BufReader,
     sync::Arc,
     thread::{self, JoinHandle},
 };
@@ -305,7 +306,7 @@ impl SchemaResolver for Resolver {
                 "file" => {
                     if let Ok(path) = url.to_file_path() {
                         let f = std::fs::File::open(path)?;
-                        let document: Value = serde_json::from_reader(f)?;
+                        let document: Value = serde_json::from_reader(BufReader::new(f))?;
                         Ok(Arc::new(document))
                     } else {
                         Err(Error::InvalidFilePath(url.clone()).into())
