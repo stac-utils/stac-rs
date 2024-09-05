@@ -17,7 +17,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
+  test-stacrs-cli:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

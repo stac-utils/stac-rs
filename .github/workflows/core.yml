@@ -19,7 +19,7 @@ env:
   CARGO_TERM_VERBOSE: true
 
 jobs:
-  test:
+  test-core:
     strategy:
       matrix: 
         os:
@@ -40,7 +40,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
       - name: Test
         run: cargo test ${{ matrix.args }}
-  test-with-gdal:
+  test-core-with-gdal:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
