@@ -1,4 +1,4 @@
-name: CI (async)
+name: async
 
 on:
   pull_request:

@@ -1,4 +1,4 @@
-name: CI (server)
+name: server
 
 on:
   pull_request:
