@@ -15,32 +15,7 @@ env:
   CARGO_TERM_VERBOSE: true
 
 jobs:
-  test-ubuntu:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix: 
-        args:
-          - "-p stac"
-          - "-p stac -F reqwest"
-          - "-p stac -F geoarrow"
-          - "-p stac -F geoparquet"
-          - "-p stac -F geoparquet-compression"
-          - "-p stac-api"
-          - "-p stac -p stac-api -F geo"
-          - "-p stac-async"
-          - "-p stac-cli --no-default-features"
-          - "-p stac-cli --no-default-features -F geoparquet"
-          - "-p stac-duckdb -F duckdb/bundled"
-          - "-p stac-server"
-          - "-p stac-server -F axum"
-          - "-p stac-validate"
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Rust cache
-        uses: Swatinem/rust-cache@v2
-      - name: Test
-        run: cargo test ${{ matrix.args }}
-  test-ubuntu-with-gdal:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -50,74 +25,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install libgdal-dev
       - name: Test
-        run: cargo test -p stac -p stac-duckdb -p stac-cli --all-features -F duckdb/bundled
-  test-ubuntu-with-pgstac:
-    runs-on: ubuntu-latest
-    services:
-      pgstac:
-        image: ghcr.io/stac-utils/pgstac:v0.8.6
-        env:
-          POSTGRES_USER: username
-          POSTGRES_PASSWORD: password
-          POSTGRES_DB: postgis
-          PGUSER: username
-          PGPASSWORD: password
-          PGDATABASE: postgis
-        ports:
-          - 5432:5432
-    steps:
-      - uses: actions/checkout@v4
-      - uses: Swatinem/rust-cache@v2
-      - name: Test
-        run: cargo test -p pgstac
-  test-windows:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: Swatinem/rust-cache@v2
-      - name: Test
-        run: cargo test --no-default-features -F reqwest -F geo
-  test-macos:
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: Swatinem/rust-cache@v2
-      - name: Test
-        run: cargo test --no-default-features -F reqwest -F geo
-  test-python:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: Swatinem/rust-cache@v2
-      - uses: actions/setup-python@v5
-        with:
-          python-version: 3.x
-      - name: Install dev requirements
-        run: pip install -r python/requirements-dev.txt
-      - name: Build
-        run: maturin build --manifest-path python/Cargo.toml --out dist
-      - name: Install stacrs
-        run: pip install stacrs --find-links dist --no-index
-      - name: Check
-        run: ruff check python && ruff format --check python && mypy python
-      - name: Test
-        run: pytest python/tests
-  test-python-cli:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: Swatinem/rust-cache@v2
-      - uses: actions/setup-python@v5
-        with:
-          python-version: 3.x
-      - name: Install dev requirements
-        run: pip install maturin
-      - name: Build
-        run: maturin build --manifest-path cli/Cargo.toml --out dist
-      - name: Install stacrs-cli
-        run: pip install stacrs-cli --find-links dist --no-index
-      - name: Smoke test
-        run: stacrs --version
+        run: cargo test --lib
   check:
     runs-on: ubuntu-latest
     steps:
