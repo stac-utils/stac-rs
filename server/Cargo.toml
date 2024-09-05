@@ -27,7 +27,7 @@ serde = "1"
 serde_json = "1"
 serde_urlencoded = "0.7"
 stac = { version = "0.9", path = "../core" }
-stac-api = { version = "0.4", path = "../api", features = ["geo"] }
+stac-api = { version = "0.5", path = "../api", features = ["geo"] }
 stac-async = { version = "0.5", path = "../async" }
 thiserror = "1"
 tokio-postgres = { version = "0.7", optional = true }
