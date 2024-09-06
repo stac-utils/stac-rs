@@ -254,7 +254,7 @@ fn level_value(level: Option<Level>) -> i8 {
 
 #[cfg(feature = "geoparquet")]
 fn parquet_compression_help() -> &'static str {
-    "The parquet compression to use when writing stac-geoparquet [possible values: uncompressed, snappy, gzip(level), lzo, brotli(level), lz4, zstd(level), lz4_raw"
+    "The parquet compression to use when writing stac-geoparquet [possible values: uncompressed, snappy, gzip(level), lzo, brotli(level), lz4, zstd(level), lz4_raw]"
 }
 
 #[cfg(feature = "geoparquet")]
