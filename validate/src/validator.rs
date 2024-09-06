@@ -297,8 +297,13 @@ impl SchemaResolver for Resolver {
                     serde_json::from_str(include_str!("../schemas/v1.0.0/provider.json")).unwrap(),
                 ))
             }
+            "http://json-schema.org/draft-07/schema"
+            | "https://json-schema.org/draft-07/schema" => Ok(Arc::new(
+                serde_json::from_str(include_str!("../schemas/json-schema/draft-07.json")).unwrap(),
+            )),
             _ => match url.scheme() {
                 "http" | "https" => {
+                    log::debug!("fetching schema: {}", url);
                     let response = reqwest::blocking::get(url.as_str())?;
                     let document: Value = response.json()?;
                     Ok(Arc::new(document))
@@ -320,6 +325,7 @@ impl SchemaResolver for Resolver {
 }
 
 fn get_extension(href: String) -> Result<(String, JSONSchema)> {
+    log::debug!("fetching extension href: {}", href);
     let response = reqwest::blocking::get(&href)?;
     let response = response.error_for_status()?;
     let json: Value = response.json()?;
