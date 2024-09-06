@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.5.3] - 2024-09-05
+
+### Changed
+
+- Bump **stac** and **stac-api** versions
+
 ## [0.5.2] - 2024-08-12
 
 ### Added
@@ -66,7 +72,8 @@ No changes.
 
 Initial release of **stac-async**.
 
-[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-async-v0.5.2...main
+[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-async-v0.5.3...main
+[0.5.3]: https://github.com/stac-utils/stac-rs/compare/stac-async-v0.5.2...stac-async-v0.5.3
 [0.5.2]: https://github.com/stac-utils/stac-rs/compare/stac-async-v0.5.1...stac-async-v0.5.2
 [0.5.1]: https://github.com/stac-utils/stac-rs/compare/stac-async-v0.5.0...stac-async-v0.5.1
 [0.5.0]: https://github.com/stac-utils/stac-rs/compare/stac-async-v0.4.1...stac-async-v0.5.0
