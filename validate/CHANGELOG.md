@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.2.2] - 2024-09-06
+
+### Added
+
+- json-schema draft 07 and item resolver ([#358](https://github.com/stac-utils/stac-rs/pull/358))
+
 ## [0.2.1] - 2024-09-05
 
 ### Changed
@@ -43,7 +49,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 Initial release.
 
-[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-validate-v0.2.1...main
+[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-validate-v0.2.2...main
+[0.2.2]: https://github.com/stac-utils/stac-rs/compare/stac-validate-v0.2.1..stac-validate-v0.2.2
 [0.2.1]: https://github.com/stac-utils/stac-rs/compare/stac-validate-v0.2.0..stac-validate-v0.2.1
 [0.2.0]: https://github.com/stac-utils/stac-rs/compare/stac-validate-v0.1.2..stac-validate-v0.2.0
 [0.1.2]: https://github.com/stac-utils/stac-rs/compare/stac-validate-v0.1.1..stac-validate-v0.1.2

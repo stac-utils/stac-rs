@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.3.1] - 2024-09-06
+
 ### Added
 
 - `stacrs items` ([#360](https://github.com/stac-utils/stac-rs/pull/360))
@@ -91,7 +93,8 @@ Moved over from [stac-incubator-rs](https://github.com/gadomski/stac-incubator-r
 - Downloading ([#142](https://github.com/stac-utils/stac-rs/pull/142), [#152](https://github.com/stac-utils/stac-rs/pull/152))
 - Validation ([#155](https://github.com/stac-utils/stac-rs/pull/155))
 
-[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-cli-v0.3.0..main
+[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-cli-v0.3.1..main
+[0.3.1]: https://github.com/stac-utils/stac-rs/compare/stac-cli-v0.3.0..stac-cli-v0.3.1
 [0.3.0]: https://github.com/stac-utils/stac-rs/compare/stac-cli-v0.2.0..stac-cli-v0.3.0
 [0.2.0]: https://github.com/stac-utils/stac-rs/compare/stac-cli-v0.1.0..stac-cli-v0.2.0
 [0.1.0]: https://github.com/stac-utils/stac-rs/compare/stac-cli-v0.0.8..stac-cli-v0.1.0
