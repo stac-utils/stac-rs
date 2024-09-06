@@ -26,14 +26,16 @@ jobs:
           - ubuntu-latest
           - macos-latest
           - windows-latest
-        args:
-          - ""
-          - "-F axum"
-          - "-F pgstac"
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - name: Set up Rust cache
         uses: Swatinem/rust-cache@v2
+      - name: Check
+        run: cargo check
+      - name: Check
+        run: cargo check -F axum
+      - name: Check
+        run: cargo check -F pgstac
       - name: Test
-        run: cargo test ${{ matrix.args }}
+        run: cargo test -F axum -F pgstac

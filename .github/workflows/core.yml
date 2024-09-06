@@ -26,20 +26,25 @@ jobs:
           - ubuntu-latest
           - macos-latest
           - windows-latest
-        args:
-          - ""
-          - "-F geo"
-          - "-F geoarrow"
-          - "-F geoparquet"
-          - "-F geoparquet-compression"
-          - "-F reqwest"
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - name: Set up Rust cache
         uses: Swatinem/rust-cache@v2
+      - name: Check
+        run: cargo check
+      - name: Check w/ geo
+        run: cargo check -F geo
+      - name: Check w/ geoarrow
+        run: cargo check -F geoarrow
+      - name: Check w/ geoparquet
+        run: cargo check -F geoparquet
+      - name: Check w/ geoparquet-compression
+        run: cargo check -F geoparquet-compression
+      - name: Check w/ reqwest
+        run: cargo check -F reqwest
       - name: Test
-        run: cargo test ${{ matrix.args }}
+        run: cargo test -F geo -F geoarrow -F geoparquet -F geoparquet-compression -F reqwest
   test-core-with-gdal:
     runs-on: ubuntu-latest
     steps:

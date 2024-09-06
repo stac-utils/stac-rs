@@ -43,6 +43,8 @@ pub use {args::Args, error::Error, format::Format, value::Value};
 /// Crate-specific result type.
 pub type Result<T> = std::result::Result<T, Error>;
 
+#[cfg(feature = "duckdb")]
+use duckdb as _;
 use tracing_subscriber as _;
 
 #[cfg(test)]
