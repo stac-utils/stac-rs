@@ -3,6 +3,7 @@
 // The verbosity stuff is cribbed from https://github.com/clap-rs/clap-verbosity-flag/blob/c621a6a8a7c0b6df8f1464a985a5d076b4915693/src/lib.rs and updated for tracing
 
 mod item;
+mod items;
 mod migrate;
 mod search;
 mod serve;
@@ -75,6 +76,9 @@ pub struct Args {
 pub enum Subcommand {
     /// Create a STAC Item from an id or the href to an asset
     Item(item::Args),
+
+    /// Creates a STAC item collection from one or more asset hrefs
+    Items(items::Args),
 
     /// Migrate a STAC value from one version to another
     Migrate(migrate::Args),
@@ -170,6 +174,7 @@ impl Run for Subcommand {
     async fn run(self, input: Input, sender: Sender<Value>) -> Result<Option<Value>> {
         match self {
             Subcommand::Item(args) => args.run(input, sender).await,
+            Subcommand::Items(args) => args.run(input, sender).await,
             Subcommand::Migrate(args) => args.run(input, sender).await,
             Subcommand::Search(args) => args.run(input, sender).await,
             Subcommand::Serve(args) => args.run(input, sender).await,
@@ -181,6 +186,7 @@ impl Run for Subcommand {
     fn take_outfile(&mut self) -> Option<String> {
         match self {
             Subcommand::Item(args) => args.take_outfile(),
+            Subcommand::Items(args) => args.take_outfile(),
             Subcommand::Migrate(args) => args.take_outfile(),
             Subcommand::Search(args) => args.take_outfile(),
             Subcommand::Serve(args) => args.take_outfile(),
