@@ -57,3 +57,10 @@ jobs:
           sudo apt-get install libgdal-dev
       - name: Test
         run: cargo test ${{ matrix.args }}
+  test-cli-with-duckdb:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
+      - name: Test
+        run: cargo test --no-default-features -F duckdb -F duckdb/bundled
