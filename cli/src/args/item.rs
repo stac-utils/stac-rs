@@ -8,27 +8,27 @@ use tokio::sync::mpsc::Sender;
 #[derive(clap::Args, Debug)]
 pub struct Args {
     /// The item id or asset href
-    id_or_href: String,
+    pub(crate) id_or_href: String,
 
     /// The output file, if not provided the item will be printed to standard output
-    outfile: Option<String>,
+    pub(crate) outfile: Option<String>,
 
     /// The asset's key
     #[arg(short, long, default_value = "data")]
-    key: String,
+    pub(crate) key: String,
 
     /// Roles to use for the created asset
     #[arg(short, long = "role", default_values_t = ["data".to_string()])]
-    roles: Vec<String>,
+    pub(crate) roles: Vec<String>,
 
     /// Don't use GDAL to add geospatial metadata to the item
     #[cfg(feature = "gdal")]
     #[arg(long)]
-    disable_gdal: bool,
+    pub(crate) disable_gdal: bool,
 
     /// Allow assets to have relative hrefs
     #[arg(long)]
-    allow_relative_hrefs: bool,
+    pub(crate) allow_relative_hrefs: bool,
 }
 
 impl Run for Args {
