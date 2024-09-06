@@ -156,8 +156,7 @@ impl Validator {
     fn fetch_schema(&mut self, url: &str) -> Result<JSONSchema> {
         let response = reqwest::blocking::get(url)?;
         let value: Value = response.json()?;
-        let options = self.compilation_options.with_resolver(Resolver);
-        options
+        self.compilation_options
             .compile(&value)
             .map_err(|_| Error::InvalidSchema(url.to_string()))
     }
@@ -270,6 +269,11 @@ impl SchemaResolver for Resolver {
             )),
             "https://geojson.org/schema/Geometry.json" => Ok(Arc::new(
                 serde_json::from_str(include_str!("../schemas/geojson/Geometry.json")).unwrap(),
+            )),
+            // Include the item schema because collection references it
+            // https://github.com/stac-utils/stac-rs/issues/336
+            "https://schemas.stacspec.org/v1.0.0/item-spec/json-schema/item.json" => Ok(Arc::new(
+                serde_json::from_str(include_str!("../schemas/v1.0.0/item.json")).unwrap(),
             )),
             "https://schemas.stacspec.org/v1.0.0/item-spec/json-schema/basics.json" => {
                 Ok(Arc::new(
