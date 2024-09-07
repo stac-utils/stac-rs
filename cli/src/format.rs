@@ -1,6 +1,7 @@
 use crate::{Error, Result, Value};
 use stac::{Item, ItemCollection};
 use std::{
+    fs::File,
     io::{BufRead, BufReader, Read, Write},
     str::FromStr,
 };
@@ -153,8 +154,12 @@ impl Format {
     /// ```
     pub fn from_file(&self, file: &str) -> Result<stac::Value> {
         match self {
-            Format::CompactJson | Format::PrettyJson | Format::Streaming => {
+            Format::CompactJson | Format::PrettyJson => {
                 stac::io::json::read(file).map_err(Error::from)
+            }
+            Format::Streaming => {
+                let reader = BufReader::new(File::open(file)?);
+                self.from_reader(reader)
             }
             #[cfg(feature = "geoparquet")]
             Format::Geoparquet(_) => stac::io::geoparquet::read(file)
