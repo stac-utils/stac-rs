@@ -23,6 +23,9 @@
 //! let item = items.next().await.unwrap().unwrap();
 //! # })
 //! ```
+//!
+//! Use the traits in [object_store] to get and put STAC values from blob
+//! storage, e.g. AWS, GCP, or Azure.
 
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 #![deny(
@@ -59,6 +62,7 @@ mod api_client;
 mod client;
 mod error;
 mod io;
+pub mod object_store;
 
 pub use {
     api_client::ApiClient,
