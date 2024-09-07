@@ -7,6 +7,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Outfile and stream arguments to `items` ([#363](https://github.com/stac-utils/stac-rs/pull/363))
+
+### Fixed
+
+- ndjson reads ([363](https://github.com/stac-utils/stac-rs/pull/363))
+
 ## [0.3.1] - 2024-09-06
 
 ### Added
