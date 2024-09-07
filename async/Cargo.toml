@@ -9,12 +9,18 @@ repository = "https://github.com/stac-utils/stac-rs"
 license = "MIT OR Apache-2.0"
 keywords = ["geospatial", "stac", "metadata", "geo", "raster"]
 categories = ["science", "data-structures"]
+rust-version = "1.75"
+
+[features]
+geoparquet = ["stac/geoparquet", "dep:geoarrow"]
 
 [dependencies]
 async-stream = "0.3"
 futures-core = "0.3"
 futures-util = "0.3"
+geoarrow = { version = "0.3.0-beta.3", optional = true }
 http = "1"
+object_store = "0.11"
 reqwest = { version = "0.12", features = ["json"] }
 serde = "1"
 serde_json = "1"
