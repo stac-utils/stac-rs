@@ -8,6 +8,14 @@ pub struct Args {
     /// The asset hrefs
     hrefs: Vec<String>,
 
+    /// The output file, if not provided the items will be printed to standard output
+    #[arg(long)]
+    outfile: Option<String>,
+
+    /// Stream the items as they are created as ndjson
+    #[arg(short, long)]
+    stream: bool,
+
     /// The assets' key
     #[arg(short, long, default_value = "data")]
     key: String,
@@ -46,9 +54,21 @@ impl Run for Args {
         }
         while let Some(result) = join_set.join_next().await {
             if let Some(Value::Stac(stac::Value::Item(item))) = result?? {
-                items.push(item);
+                if self.stream {
+                    sender.send(stac::Value::Item(item).into()).await?;
+                } else {
+                    items.push(item);
+                }
             }
         }
-        Ok(Some(stac::Value::ItemCollection(items.into()).into()))
+        if self.stream {
+            Ok(None)
+        } else {
+            Ok(Some(stac::Value::ItemCollection(items.into()).into()))
+        }
+    }
+
+    fn take_outfile(&mut self) -> Option<String> {
+        self.outfile.take()
     }
 }
