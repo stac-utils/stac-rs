@@ -17,15 +17,7 @@ stac-async = "0.5"
 
 ## Examples
 
-```rust
-// Read an item.
-let url = "https://raw.githubusercontent.com/radiantearth/stac-spec/v1.0.0/examples/simple-item.json";
-let value: stac::Item = tokio_test::block_on(async {
-    stac_async::read(url).await.unwrap()
-});
-```
-
-Please see the [documentation](https://docs.rs/stac-async) for more usage examples.
+Please see the [documentation](https://docs.rs/stac-async) for usage examples.
 
 ## Other info
 
