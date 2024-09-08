@@ -2,14 +2,6 @@
 //!
 //! # Examples
 //!
-//! Read a single STAC item:
-//!
-//! ```
-//! # tokio_test::block_on(async {
-//! let item: stac::Item = stac_async::read("examples/simple-item.json").await.unwrap();
-//! # })
-//! ```
-//!
 //! Build an API client to read from a [STAC API](https://github.com/radiantearth/stac-api-spec):
 //!
 //! ```no_run
@@ -61,15 +53,9 @@
 mod api_client;
 mod client;
 mod error;
-mod io;
 pub mod object_store;
 
-pub use {
-    api_client::ApiClient,
-    client::Client,
-    error::Error,
-    io::{read, read_json, write_json_to_path},
-};
+pub use {api_client::ApiClient, client::Client, error::Error};
 
 /// Crate-specific result type.
 pub type Result<T> = std::result::Result<T, Error>;
