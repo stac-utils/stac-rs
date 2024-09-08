@@ -6,13 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
-### Added
-
-- `object_store` traits ([#363](https://github.com/stac-utils/stac-rs/pull/363))
-
 ### Changed
 
 - Update **geoarrow** to v0.3.0 ([#367](https://github.com/stac-utils/stac-rs/pull/367))
+
+### Removed
+
+- `io` module ([#369](https://github.com/stac-utils/stac-rs/pull/369))
 
 ## [0.5.3] - 2024-09-05
 

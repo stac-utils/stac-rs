@@ -1,9 +1,12 @@
-use crate::{Client, Error, Result};
+use crate::{Error, Result};
 use async_stream::try_stream;
 use futures_core::stream::Stream;
 use futures_util::{pin_mut, StreamExt};
-use reqwest::Method;
-use stac::{Collection, Links};
+use http::header::HeaderName;
+use reqwest::{header::HeaderMap, Client, IntoUrl, Method, StatusCode};
+use serde::{de::DeserializeOwned, Serialize};
+use serde_json::{Map, Value};
+use stac::{Collection, Href, Link, Links};
 use stac_api::{GetItems, Item, ItemCollection, Items, Search, UrlBuilder};
 use tokio::{
     sync::mpsc::{self, error::SendError},
@@ -13,7 +16,7 @@ use tokio::{
 const DEFAULT_CHANNEL_BUFFER: usize = 4;
 
 /// A client for interacting with STAC APIs.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct ApiClient {
     client: Client,
     channel_buffer: usize,
@@ -42,7 +45,9 @@ impl ApiClient {
     /// # Examples
     ///
     /// ```
-    /// use stac_async::{Client, ApiClient};
+    /// use reqwest::Client;
+    /// use stac_async::ApiClient;
+    ///
     /// let client = Client::new();
     /// let api_client = ApiClient::with_client(client, "https://earth-search.aws.element84.com/v1/").unwrap();
     /// ```
@@ -67,7 +72,7 @@ impl ApiClient {
     /// ```
     pub async fn collection(&self, id: &str) -> Result<Option<Collection>> {
         let url = self.url_builder.collection(id)?;
-        self.client.get(url).await
+        self.get(url).await
     }
 
     /// Returns a stream of items belonging to a collection, using the [items
@@ -111,11 +116,10 @@ impl ApiClient {
             None
         };
         let page: Option<ItemCollection> = self
-            .client
             .request(Method::GET, url.clone(), items.as_ref(), None)
             .await?;
         if let Some(page) = page {
-            Ok(stream_items(self.client.clone(), page, self.channel_buffer))
+            Ok(stream_items(self.clone(), page, self.channel_buffer))
         } else {
             Err(Error::NotFound(url))
         }
@@ -147,17 +151,104 @@ impl ApiClient {
     pub async fn search(&self, search: Search) -> Result<impl Stream<Item = Result<Item>>> {
         let url = self.url_builder.search().clone();
         // TODO support GET
-        let page: Option<ItemCollection> = self.client.post(url.clone(), &search).await?;
+        let page: Option<ItemCollection> = self.post(url.clone(), &search).await?;
         if let Some(page) = page {
-            Ok(stream_items(self.client.clone(), page, self.channel_buffer))
+            Ok(stream_items(self.clone(), page, self.channel_buffer))
         } else {
             Err(Error::NotFound(url))
         }
     }
+
+    async fn get<V>(&self, url: impl IntoUrl) -> Result<Option<V>>
+    where
+        V: DeserializeOwned + Href,
+    {
+        let url = url.into_url()?;
+        if let Some(mut value) = self
+            .request::<(), V>(Method::GET, url.clone(), None, None)
+            .await?
+        {
+            value.set_href(url);
+            Ok(Some(value))
+        } else {
+            Ok(None)
+        }
+    }
+
+    async fn post<S, R>(&self, url: impl IntoUrl, data: &S) -> Result<Option<R>>
+    where
+        S: Serialize + 'static,
+        R: DeserializeOwned,
+    {
+        self.request(Method::POST, url, Some(data), None).await
+    }
+
+    async fn request<S, R>(
+        &self,
+        method: Method,
+        url: impl IntoUrl,
+        params: impl Into<Option<&S>>,
+        headers: impl Into<Option<HeaderMap>>,
+    ) -> Result<Option<R>>
+    where
+        S: Serialize + 'static,
+        R: DeserializeOwned,
+    {
+        let url = url.into_url()?;
+        let mut request = match method {
+            Method::GET => {
+                let mut request = self.client.get(url);
+                if let Some(query) = params.into() {
+                    request = request.query(query);
+                }
+                request
+            }
+            Method::POST => {
+                let mut request = self.client.post(url);
+                if let Some(data) = params.into() {
+                    request = request.json(&data);
+                }
+                request
+            }
+            _ => unimplemented!(),
+        };
+        if let Some(headers) = headers.into() {
+            request = request.headers(headers);
+        }
+        let response = request.send().await?;
+        if response.status() == StatusCode::NOT_FOUND {
+            return Ok(None);
+        }
+        let response = response.error_for_status()?;
+        response.json().await.map_err(Error::from)
+    }
+
+    async fn request_from_link<R>(&self, link: Link) -> Result<Option<R>>
+    where
+        R: DeserializeOwned,
+    {
+        let method = if let Some(method) = link.method {
+            method.parse()?
+        } else {
+            Method::GET
+        };
+        let headers = if let Some(headers) = link.headers {
+            let mut header_map = HeaderMap::new();
+            for (key, value) in headers.into_iter() {
+                let header_name: HeaderName = key.parse()?;
+                let _ = header_map.insert(header_name, value.to_string().parse()?);
+            }
+            Some(header_map)
+        } else {
+            None
+        };
+        self.request::<Map<String, Value>, R>(method, link.href, &link.body, headers)
+            .await
+    }
 }
 
 fn stream_items(
-    client: Client,
+    client: ApiClient,
     page: ItemCollection,
     channel_buffer: usize,
 ) -> impl Stream<Item = Result<Item>> {
@@ -188,7 +279,7 @@ fn stream_items(
 }
 
 fn stream_pages(
-    client: Client,
+    client: ApiClient,
     mut page: ItemCollection,
 ) -> impl Stream<Item = Result<ItemCollection>> {
     try_stream! {
