@@ -51,11 +51,10 @@
 )]
 
 mod api_client;
-mod client;
 mod error;
 pub mod object_store;
 
-pub use {api_client::ApiClient, client::Client, error::Error};
+pub use {api_client::ApiClient, error::Error};
 
 /// Crate-specific result type.
 pub type Result<T> = std::result::Result<T, Error>;
