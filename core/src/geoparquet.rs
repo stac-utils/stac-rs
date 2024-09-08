@@ -20,14 +20,38 @@ pub fn has_extension(href: &str) -> bool {
 }
 
 #[cfg(feature = "geoparquet")]
-pub use has_feature::{from_reader, to_writer, to_writer_with_options};
+pub use has_feature::{from_reader, read, to_writer, to_writer_with_options};
 
 #[cfg(feature = "geoparquet")]
 mod has_feature {
-    use crate::{Error, ItemCollection, Result, Value};
+    use crate::{io::Read, Error, ItemCollection, Result, Value};
     use geoarrow::io::parquet::{GeoParquetRecordBatchReaderBuilder, GeoParquetWriterOptions};
     use parquet::file::reader::ChunkReader;
-    use std::io::Write;
+    use std::{fs::File, io::Write};
+
+    struct GeoparquetReader;
+
+    impl Read<ItemCollection> for GeoparquetReader {
+        fn read_from_file(file: File) -> Result<ItemCollection> {
+            from_reader(file)
+        }
+
+        #[cfg(feature = "reqwest")]
+        fn from_response(response: reqwest::blocking::Response) -> Result<ItemCollection> {
+            from_reader(response.bytes()?)
+        }
+    }
+
+    /// Reads an [ItemCollection] from a geoparquet href.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let item_collection = stac::geoparquet::read("data/extended-item.parquet").unwrap();
+    /// ```
+    pub fn read(href: impl ToString) -> Result<ItemCollection> {
+        GeoparquetReader::read(href)
+    }
 
     /// Writes a [Value] to a [std::io::Write] as
     /// [stac-geoparquet](https://github.com/stac-utils/stac-geoparquet).

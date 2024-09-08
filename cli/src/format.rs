@@ -154,15 +154,13 @@ impl Format {
     /// ```
     pub fn from_file(&self, file: &str) -> Result<stac::Value> {
         match self {
-            Format::CompactJson | Format::PrettyJson => {
-                stac::io::json::read(file).map_err(Error::from)
-            }
+            Format::CompactJson | Format::PrettyJson => stac::json::read(file).map_err(Error::from),
             Format::Streaming => {
                 let reader = BufReader::new(File::open(file)?);
                 self.from_reader(reader)
             }
             #[cfg(feature = "geoparquet")]
-            Format::Geoparquet(_) => stac::io::geoparquet::read(file)
+            Format::Geoparquet(_) => stac::geoparquet::read(file)
                 .map(stac::Value::from)
                 .map_err(Error::from),
         }

@@ -1,9 +1,5 @@
 //! Input and output (IO) functions.
 
-#[cfg(feature = "geoparquet")]
-pub mod geoparquet;
-pub mod json;
-
 use crate::{Href, Result};
 #[cfg(feature = "reqwest")]
 use reqwest::blocking::Response;
@@ -16,10 +12,10 @@ use url::Url;
 /// If the `geoparquet` feature is enabled, and the href's extension is
 /// `geoparquet` or `parquet`, the data will be read as
 /// [stac-geoparquet](https://github.com/stac-utils/stac-geoparquet). This is
-/// more inefficient than using [crate::io::geoparquet::read], so prefer that if you
+/// more inefficient than using [crate::geoparquet::read], so prefer that if you
 /// know your href points to geoparquet data.
 ///
-/// Use [crate::io::json::read] if you want to ensure that your data are read as JSON.
+/// Use [crate::json::read] if you want to ensure that your data are read as JSON.
 ///
 /// # Examples
 ///
@@ -31,20 +27,20 @@ pub fn read<T: Href + DeserializeOwned>(href: impl ToString) -> Result<T> {
     if crate::geoparquet::has_extension(&href) {
         #[cfg(feature = "geoparquet")]
         {
-            serde_json::from_value(serde_json::to_value(geoparquet::read(href)?)?)
+            serde_json::from_value(serde_json::to_value(crate::geoparquet::read(href)?)?)
                 .map_err(crate::Error::from)
         }
         #[cfg(not(feature = "geoparquet"))]
         {
             log::warn!("{} has a geoparquet extension, but this crate was not built with the `geoparquet` feature. Reading as JSON.", href);
-            json::read(href)
+            crate::json::read(href)
         }
     } else {
-        json::read(href)
+        crate::json::read(href)
     }
 }
 
-trait Read<T: Href + DeserializeOwned> {
+pub(crate) trait Read<T: Href + DeserializeOwned> {
     fn read(href: impl ToString) -> Result<T> {
         let href = href.to_string();
         let mut value: T = if let Some(url) = crate::href_to_url(&href) {

@@ -136,6 +136,7 @@ mod href;
 pub mod io;
 pub mod item;
 mod item_collection;
+pub mod json;
 pub mod link;
 mod migrate;
 pub mod mime;
