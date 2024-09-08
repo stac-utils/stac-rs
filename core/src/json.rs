@@ -1,6 +1,6 @@
 //! Input and output (IO) functions for JSON data.
 
-use super::Read;
+use crate::io::Read;
 use crate::{Error, Href, Result};
 #[cfg(feature = "reqwest")]
 use reqwest::blocking::Response;
@@ -12,7 +12,7 @@ use std::{fs::File, io::BufReader};
 /// # Examples
 ///
 /// ```
-/// let item: stac::Item = stac::io::json::read("examples/simple-item.json").unwrap();
+/// let item: stac::Item = stac::json::read("examples/simple-item.json").unwrap();
 /// ```
 pub fn read<T: Href + DeserializeOwned>(href: impl ToString) -> Result<T> {
     JsonReader::read(href)
@@ -24,6 +24,7 @@ impl<T: Href + DeserializeOwned> Read<T> for JsonReader {
     fn read_from_file(file: File) -> Result<T> {
         serde_json::from_reader(BufReader::new(file)).map_err(Error::from)
     }
+
     #[cfg(feature = "reqwest")]
     fn from_response(response: Response) -> Result<T> {
         response.json().map_err(Error::from)
