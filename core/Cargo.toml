@@ -43,7 +43,7 @@ gdal = { version = "0.17", optional = true }
 gdal-sys = { version = "0.10", optional = true }
 geo = { version = "0.28", optional = true }
 geo-types = { version = "0.7", optional = true }
-geoarrow = { version = "0.3.0-beta.3", optional = true }
+geoarrow = { version = "0.3", optional = true }
 geojson = "0.24"
 log = "0.4"
 mime = "0.3"
