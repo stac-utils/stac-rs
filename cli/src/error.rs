@@ -9,6 +9,10 @@ pub enum Error {
     #[error(transparent)]
     Io(#[from] std::io::Error),
 
+    /// [parquet::errors::ParquetError]
+    #[error(transparent)]
+    Parquet(#[from] parquet::errors::ParquetError),
+
     /// [reqwest::Error]
     #[error(transparent)]
     Reqwest(#[from] reqwest::Error),

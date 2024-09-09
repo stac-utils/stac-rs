@@ -10,13 +10,8 @@ mod serve;
 mod translate;
 mod validate;
 
-use crate::{Format, Result, Value};
+use crate::{Input, Output, Result, Value};
 use clap::Parser;
-use std::fs::File;
-use std::{
-    io::{BufWriter, Write},
-    path::Path,
-};
 use tokio::sync::mpsc::Sender;
 use tokio::task::JoinHandle;
 use tracing::metadata::Level;
@@ -29,20 +24,19 @@ const BUFFER: usize = 100;
 pub struct Args {
     /// The input format, if not provided will be inferred from the input file's extension, falling back to json
     #[arg(short, long, global = true)]
-    input_format: Option<Format>,
+    input_format: Option<stac::Format>,
 
     /// The output format, if not provided will be inferred from the output file's extension, falling back to json
     #[arg(short, long, global = true)]
-    output_format: Option<Format>,
+    output_format: Option<crate::output::Format>,
+
+    /// Stream the items to output as ndjson, default behavior is to return them all at the end of the operation
+    #[arg(short, long)]
+    stream: bool,
 
     /// If output is being written to a file, create any directories in that file's path
     #[arg(long, global = true)]
     create_directories: bool,
-
-    /// The parquet compression to use when writing stac-geoparquet
-    #[arg(long, global = true, help = parquet_compression_help(), long_help = parquet_compression_long_help())]
-    #[cfg(feature = "geoparquet")]
-    parquet_compression: Option<parquet::basic::Compression>,
 
     #[arg(
         long,
@@ -99,13 +93,12 @@ pub enum Subcommand {
 #[derive(Copy, Clone, Debug, Default)]
 struct ErrorLevel;
 
-#[derive(Clone, Debug)]
-struct Input {
-    format: Option<Format>,
-}
-
 trait Run {
-    async fn run(self, input: Input, sender: Sender<Value>) -> Result<Option<Value>>;
+    async fn run(self, input: Input, stream: Option<Sender<Value>>) -> Result<Option<Value>>;
+
+    fn take_infile(&mut self) -> Option<String> {
+        None
+    }
 
     fn take_outfile(&mut self) -> Option<String> {
         None
@@ -123,63 +116,68 @@ impl Args {
     }
 
     /// Runs whatever these arguments say that we should run.
-    #[cfg_attr(not(feature = "geoparquet"), allow(unused_mut))]
-    pub async fn run(mut self, output: impl Write + Send + 'static) -> Result<()> {
-        let mut writer: Box<dyn Write + Send> = if let Some(outfile) =
-            self.subcommand.take_outfile()
-        {
-            if self.output_format.is_none() {
-                self.output_format = Some(Format::infer(&outfile).unwrap_or(Format::CompactJson));
-            }
-            if self.create_directories && stac::href_to_url(&outfile).is_none() {
-                let path = Path::new(&outfile);
-                if let Some(parent) = path.parent() {
-                    std::fs::create_dir_all(parent)?;
+    pub async fn run(mut self) -> Result<()> {
+        let input = Input::new(self.subcommand.take_infile(), self.input_format)?;
+        let mut output = Output::new(
+            self.subcommand.take_outfile(),
+            self.output_format.or_else(|| {
+                if self.stream {
+                    Some(crate::output::Format::NdJson)
+                } else {
+                    None
                 }
+            }),
+            self.create_directories,
+        )?;
+        let value = if self.stream {
+            if output.format != crate::output::Format::NdJson {
+                tracing::warn!(
+                    "format was set to {}, but stream=true so re-setting to nd-json",
+                    output.format
+                );
             }
-            Box::new(BufWriter::new(File::create(outfile)?))
+            let (stream, mut receiver) = tokio::sync::mpsc::channel(BUFFER);
+            let streamer: JoinHandle<Result<_>> = tokio::task::spawn(async move {
+                while let Some(value) = receiver.recv().await {
+                    output.stream(value)?;
+                }
+                Ok(output)
+            });
+            let value = self.subcommand.run(input, Some(stream)).await?;
+            output = streamer.await??;
+            value
         } else {
-            Box::new(output)
+            self.subcommand.run(input, None).await?
         };
-        let mut output_format = self.output_format.unwrap_or(Format::PrettyJson);
-        #[cfg(feature = "geoparquet")]
-        if let Format::Geoparquet(ref mut compression) = output_format {
-            *compression = self.parquet_compression;
-        }
-        let (sender, mut receiver) = tokio::sync::mpsc::channel(BUFFER);
-        let receiver: JoinHandle<Result<_>> = tokio::task::spawn(async move {
-            while let Some(value) = receiver.recv().await {
-                Format::Streaming.to_writer(&mut writer, value)?;
-            }
-            Ok(writer)
-        });
-        let value = self
-            .subcommand
-            .run(
-                Input {
-                    format: self.input_format,
-                },
-                sender,
-            )
-            .await?;
-        let writer = receiver.await??;
         if let Some(value) = value {
-            output_format.to_writer(writer, value)?;
+            output.put(value)?;
         }
         Ok(())
     }
 }
 
 impl Run for Subcommand {
-    async fn run(self, input: Input, sender: Sender<Value>) -> Result<Option<Value>> {
+    async fn run(self, input: Input, stream: Option<Sender<Value>>) -> Result<Option<Value>> {
         match self {
-            Subcommand::Item(args) => args.run(input, sender).await,
-            Subcommand::Items(args) => args.run(input, sender).await,
-            Subcommand::Migrate(args) => args.run(input, sender).await,
-            Subcommand::Search(args) => args.run(input, sender).await,
-            Subcommand::Serve(args) => args.run(input, sender).await,
-            Subcommand::Translate(args) => args.run(input, sender).await,
-            Subcommand::Validate(args) => args.run(input, sender).await,
+            Subcommand::Item(args) => args.run(input, stream).await,
+            Subcommand::Items(args) => args.run(input, stream).await,
+            Subcommand::Migrate(args) => args.run(input, stream).await,
+            Subcommand::Search(args) => args.run(input, stream).await,
+            Subcommand::Serve(args) => args.run(input, stream).await,
+            Subcommand::Translate(args) => args.run(input, stream).await,
+            Subcommand::Validate(args) => args.run(input, stream).await,
+        }
+    }
+
+    fn take_infile(&mut self) -> Option<String> {
+        match self {
+            Subcommand::Item(args) => args.take_infile(),
+            Subcommand::Items(args) => args.take_infile(),
+            Subcommand::Migrate(args) => args.take_infile(),
+            Subcommand::Search(args) => args.take_infile(),
+            Subcommand::Serve(args) => args.take_infile(),
+            Subcommand::Translate(args) => args.take_infile(),
+            Subcommand::Validate(args) => args.take_infile(),
         }
     }
 
@@ -192,24 +190,6 @@ impl Run for Subcommand {
             Subcommand::Serve(args) => args.take_outfile(),
             Subcommand::Translate(args) => args.take_outfile(),
             Subcommand::Validate(args) => args.take_outfile(),
-        }
-    }
-}
-
-impl Input {
-    fn read(self, infile: Option<String>) -> Result<stac::Value> {
-        let format = self
-            .format
-            .or_else(|| infile.as_deref().and_then(Format::infer))
-            .unwrap_or(Format::CompactJson);
-        if let Some(infile) =
-            infile.and_then(|infile| if infile == "-" { None } else { Some(infile) })
-        {
-            tracing::info!("reading '{}'", infile);
-            format.from_file(&infile)
-        } else {
-            tracing::info!("reading from standard input");
-            format.from_reader(std::io::stdin())
         }
     }
 }
@@ -256,24 +236,4 @@ fn level_value(level: Option<Level>) -> i8 {
         Some(Level::DEBUG) => 3,
         Some(Level::TRACE) => 4,
     }
-}
-
-#[cfg(feature = "geoparquet")]
-fn parquet_compression_help() -> &'static str {
-    "The parquet compression to use when writing stac-geoparquet [possible values: uncompressed, snappy, gzip(level), lzo, brotli(level), lz4, zstd(level), lz4_raw]"
-}
-
-#[cfg(feature = "geoparquet")]
-fn parquet_compression_long_help() -> &'static str {
-    "The parquet compression to use when writing stac-geoparquet
-
-Possible values:
-- uncompressed
-- snappy
-- gzip(level)
-- lzo
-- brotli(level)
-- lz4
-- zstd(level)
-- lz4_raw"
 }

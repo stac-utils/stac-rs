@@ -9,9 +9,6 @@ pub enum Value {
 
     /// A JSON value.
     Json(serde_json::Value),
-
-    /// A string value.
-    String(String),
 }
 
 impl From<stac::Value> for Value {
@@ -32,19 +29,12 @@ impl From<serde_json::Value> for Value {
     }
 }
 
-impl From<String> for Value {
-    fn from(value: String) -> Self {
-        Self::String(value)
-    }
-}
-
 impl TryFrom<Value> for stac::Value {
     type Error = serde_json::Error;
     fn try_from(value: Value) -> Result<Self, Self::Error> {
         match value {
             Value::Stac(value) => Ok(value),
             Value::Json(value) => serde_json::from_value(value),
-            Value::String(string) => serde_json::from_str(&string),
         }
     }
 }

@@ -13,8 +13,12 @@ pub struct Args {
 }
 
 impl Run for Args {
-    async fn run(self, input: Input, _: Sender<Value>) -> Result<Option<Value>> {
-        input.read(self.infile).map(|value| Some(value.into()))
+    async fn run(self, input: Input, _: Option<Sender<Value>>) -> Result<Option<Value>> {
+        input.get().map(|value| Some(value.into()))
+    }
+
+    fn take_infile(&mut self) -> Option<String> {
+        self.infile.take()
     }
 
     fn take_outfile(&mut self) -> Option<String> {

@@ -73,10 +73,6 @@ pub struct Args {
     #[arg(long)]
     query: Option<String>,
 
-    /// Stream the items to output as ndjson, default behavior is to return all the items as one item collection after the search is complete
-    #[arg(short, long)]
-    stream: bool,
-
     /// Whether to search with DuckDB instead of a STAC API client.
     ///
     /// ⚠ Experimental: this is a new feature whose behavior might change without warning.
@@ -164,7 +160,7 @@ async fn search_geoparquet(
 }
 
 impl Run for Args {
-    async fn run(self, _: Input, sender: Sender<Value>) -> Result<Option<Value>> {
+    async fn run(self, _: Input, stream: Option<Sender<Value>>) -> Result<Option<Value>> {
         let get_items = GetItems {
             bbox: self.bbox,
             datetime: self.datetime,
@@ -190,16 +186,15 @@ impl Run for Args {
         } else {
             Some(self.collections)
         };
-        let sender = if self.stream { Some(sender) } else { None };
         #[cfg(feature = "duckdb")]
         {
             if self
                 .duckdb
                 .unwrap_or_else(|| stac::geoparquet::has_extension(&self.href))
             {
-                search_geoparquet(self.href, search, sender, self.max_items).await
+                search_geoparquet(self.href, search, stream, self.max_items).await
             } else {
-                search_api(self.href, search, sender, self.max_items).await
+                search_api(self.href, search, stream, self.max_items).await
             }
         }
         #[cfg(not(feature = "duckdb"))]
@@ -207,7 +202,7 @@ impl Run for Args {
             if stac::geoparquet::has_extension(&self.href) {
                 tracing::warn!("'{}' has a geoparquet extension, but the `duckdb` feature is not enabled — attempting to search with an ApiClient", self.href);
             }
-            search_api(self.href, search, sender, self.max_items).await
+            search_api(self.href, search, stream, self.max_items).await
         }
     }
 

@@ -32,7 +32,7 @@ pub struct Args {
 }
 
 impl Run for Args {
-    async fn run(self, _: Input, _: Sender<Value>) -> Result<Option<Value>> {
+    async fn run(self, _: Input, _: Option<Sender<Value>>) -> Result<Option<Value>> {
         let (id, href): (Option<String>, Option<String>) = if stac::href_to_url(&self.id_or_href)
             .is_none()
             && !Path::new(&self.id_or_href).exists()
