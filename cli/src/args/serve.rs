@@ -44,7 +44,7 @@ struct Info {
 }
 
 impl Run for Args {
-    async fn run(self, input: Input, sender: Sender<Value>) -> Result<Option<Value>> {
+    async fn run(self, _: Input, _: Option<Sender<Value>>) -> Result<Option<Value>> {
         use stac::Value;
 
         let mut info = Info::default();
@@ -79,8 +79,8 @@ impl Run for Args {
                     reading_from_stdin = true;
                 }
             }
-            let input = input.clone();
-            let _ = join_set.spawn(async move { input.read(Some(href)) });
+            let input = Input::new(Some(href), None)?;
+            let _ = join_set.spawn(async move { input.get() });
         }
         let mut item_join_set = JoinSet::new();
         let mut collections = HashSet::new();
@@ -99,8 +99,8 @@ impl Run for Args {
                         collection.make_relative_links_absolute(href)?;
                         for link in collection.iter_item_links() {
                             let href = link.href.to_string();
-                            let input = input.clone();
-                            let _ = item_join_set.spawn(async move { input.read(Some(href)) });
+                            let input = Input::new(Some(href), None)?;
+                            let _ = item_join_set.spawn(async move { input.get() });
                         }
                     }
                     let _ = collections.insert(collection.id.clone());
@@ -151,18 +151,14 @@ impl Run for Args {
 
         info!("starting server");
         match backend {
-            Backend::Memory(backend) => start_server(backend, self.addr, sender, info)
-                .await
-                .and(Ok(None)),
+            Backend::Memory(backend) => start_server(backend, self.addr, info).await.and(Ok(None)),
             #[cfg(feature = "pgstac")]
-            Backend::Pgstac(backend) => start_server(backend, self.addr, sender, info)
-                .await
-                .and(Ok(None)),
+            Backend::Pgstac(backend) => start_server(backend, self.addr, info).await.and(Ok(None)),
         }
     }
 }
 
-async fn start_server<B>(backend: B, addr: String, sender: Sender<Value>, info: Info) -> Result<()>
+async fn start_server<B>(backend: B, addr: String, info: Info) -> Result<()>
 where
     B: stac_server::Backend,
 {
@@ -170,17 +166,12 @@ where
     let api = Api::new(backend, &root)?;
     let router = stac_server::routes::from_api(api);
     let listener = TcpListener::bind(addr).await?;
-    sender
-        .send(
-            format!(
-                "Serving a STAC API at {} using a {} backend{}",
-                root,
-                info.backend,
-                info.counts()
-            )
-            .into(),
-        )
-        .await?;
+    eprintln!(
+        "Serving a STAC API at {} using a {} backend{}",
+        root,
+        info.backend,
+        info.counts()
+    );
     axum::serve(listener, router).await.map_err(Error::from)
 }
 

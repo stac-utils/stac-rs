@@ -14,8 +14,8 @@ pub struct Args {
 }
 
 impl Run for Args {
-    async fn run(self, input: Input, sender: Sender<Value>) -> Result<Option<Value>> {
-        let value = input.read(self.infile)?;
+    async fn run(self, input: Input, _: Option<Sender<Value>>) -> Result<Option<Value>> {
+        let value = input.get()?;
         let result = tokio::task::spawn_blocking(move || {
             if let Err(err) = value.validate() {
                 Err((err, value))
@@ -32,14 +32,17 @@ impl Run for Args {
                 stac::Value::ItemCollection(_) => "[item-collection] ".to_string(),
             };
             for error in errors {
-                let message = format!(
+                eprintln!(
                     "{}{} (instance path: '{}', schema path: '{}')",
                     message_base, error, error.instance_path, error.schema_path
                 );
-                sender.send(message.into()).await?;
             }
         }
         result.and(Ok(None)).map_err(|(err, _)| Error::from(err))
+    }
+
+    fn take_infile(&mut self) -> Option<String> {
+        self.infile.take()
     }
 
     fn take_outfile(&mut self) -> Option<String> {

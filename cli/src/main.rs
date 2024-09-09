@@ -7,7 +7,7 @@ async fn main() {
     tracing_subscriber::fmt()
         .with_max_level(args.log_level())
         .init();
-    std::process::exit(match args.run(std::io::stdout()).await {
+    std::process::exit(match args.run().await {
         Ok(()) => 0,
         Err(err) => {
             eprintln!("ERROR: {}", err);

@@ -12,10 +12,6 @@ pub struct Args {
     #[arg(long)]
     outfile: Option<String>,
 
-    /// Stream the items as they are created as ndjson
-    #[arg(short, long)]
-    stream: bool,
-
     /// The assets' key
     #[arg(short, long, default_value = "data")]
     key: String,
@@ -35,12 +31,12 @@ pub struct Args {
 }
 
 impl Run for Args {
-    async fn run(self, input: Input, sender: Sender<Value>) -> Result<Option<Value>> {
+    async fn run(self, input: Input, stream: Option<Sender<Value>>) -> Result<Option<Value>> {
         let mut join_set = JoinSet::new();
         let mut items = Vec::with_capacity(self.hrefs.len());
         for href in self.hrefs {
             let input = input.clone();
-            let sender = sender.clone();
+            let sender = stream.clone();
             let args = ItemArgs {
                 id_or_href: href,
                 outfile: None,
@@ -54,14 +50,14 @@ impl Run for Args {
         }
         while let Some(result) = join_set.join_next().await {
             if let Some(Value::Stac(stac::Value::Item(item))) = result?? {
-                if self.stream {
-                    sender.send(stac::Value::Item(item).into()).await?;
+                if let Some(ref stream) = stream {
+                    stream.send(stac::Value::Item(item).into()).await?;
                 } else {
                     items.push(item);
                 }
             }
         }
-        if self.stream {
+        if stream.is_some() {
             Ok(None)
         } else {
             Ok(Some(stac::Value::ItemCollection(items.into()).into()))

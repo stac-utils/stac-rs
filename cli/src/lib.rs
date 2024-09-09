@@ -1,7 +1,7 @@
 //! STAC command-line interface (CLI).
 
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
-#![deny(
+#![warn(
     elided_lifetimes_in_paths,
     explicit_outlives_requirements,
     keyword_idents,
@@ -33,12 +33,13 @@
 
 pub mod args;
 mod error;
-mod format;
+mod input;
+pub mod output;
 #[cfg(feature = "python")]
 mod python;
 mod value;
 
-pub use {args::Args, error::Error, format::Format, value::Value};
+pub use {args::Args, error::Error, input::Input, output::Output, value::Value};
 
 /// Crate-specific result type.
 pub type Result<T> = std::result::Result<T, Error>;

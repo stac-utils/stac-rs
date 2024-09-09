@@ -18,7 +18,7 @@ fn main() -> PyResult<i64> {
             .unwrap()
             .block_on(async {
                 // We skip one because the first argument is going to be the python interpreter.
-                match args.run(std::io::stdout()).await {
+                match args.run().await {
                     Ok(()) => 0,
                     Err(err) => {
                         eprintln!("ERROR: {}", err);
