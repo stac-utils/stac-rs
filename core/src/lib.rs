@@ -68,6 +68,24 @@
 //! }
 //! ```
 //!
+//! if the `object_store` feature is enabled, use the
+//! [Get](crate::object_store::Get) and [Put](crate::object_store::Put) traits
+//! to get and put STAC values to and from an [object_store](https://docs.rs/object_store/latest/object_store/):
+//!
+//! ```
+//! #[cfg(feature = "object_store")]
+//! {
+//! use object_store::{path::Path, local::LocalFileSystem};
+//! use stac::{Item, object_store::Get};
+//!
+//! let store = LocalFileSystem::new();
+//! let location = Path::from_filesystem_path("examples/simple-item.json").unwrap();
+//! # tokio_test::block_on(async {
+//! let item: Item = store.get_json(&location).await.unwrap();
+//! # })
+//! }
+//! ```
+//!
 //! ## Hrefs
 //!
 //! When objects are read from the filesystem or from a remote location, they store the href from which they were read.
@@ -140,6 +158,8 @@ pub mod json;
 pub mod link;
 mod migrate;
 pub mod mime;
+#[cfg(feature = "object_store")]
+pub mod object_store;
 mod statistics;
 mod value;
 mod version;
@@ -223,6 +243,9 @@ mod tests {
     #[cfg(not(feature = "geoparquet"))]
     use bytes as _;
     use rstest as _;
+    #[cfg(not(feature = "object_store"))]
+    use tokio as _;
+    use tokio_test as _;
 
     macro_rules! roundtrip {
         ($function:ident, $filename:expr, $object:ident) => {

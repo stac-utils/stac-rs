@@ -1,11 +1,10 @@
 //! Use [object_store](https://docs.rs/object_store/latest/object_store/) to read and write STAC.
 
-use crate::{Error, Result};
+use crate::{Error, Href, Item, ItemCollection, Result};
 #[cfg(feature = "geoparquet")]
 use geoarrow::io::parquet::GeoParquetWriterOptions;
 use object_store::{path::Path, GetOptions, ObjectStore, PutOptions, PutResult};
 use serde::{de::DeserializeOwned, Serialize};
-use stac::{Href, Item, ItemCollection};
 use std::future::Future;
 
 /// Get STAC from an object store.
@@ -16,8 +15,7 @@ pub trait Get {
     ///
     /// ```
     /// use object_store::{path::Path, local::LocalFileSystem};
-    /// use stac::Item;
-    /// use stac_async::object_store::Get;
+    /// use stac::{Item, object_store::Get};
     ///
     /// let store = LocalFileSystem::new();
     /// let location = Path::from_filesystem_path("examples/simple-item.json").unwrap();
@@ -45,8 +43,7 @@ pub trait Get {
     ///
     /// ```
     /// use object_store::{path::Path, local::LocalFileSystem};
-    /// use stac::Item;
-    /// use stac_async::object_store::Get;
+    /// use stac::{Item, object_store::Get};
     ///
     /// let store = LocalFileSystem::new();
     /// let location = Path::from_filesystem_path("data/items.ndjson").unwrap();
@@ -71,8 +68,7 @@ pub trait Get {
     ///
     /// ```
     /// use object_store::{path::Path, local::LocalFileSystem};
-    /// use stac::Item;
-    /// use stac_async::object_store::Get;
+    /// use stac::{Item, object_store::Get};
     ///
     /// let store = LocalFileSystem::new();
     /// let location = Path::from_filesystem_path("data/extended-item.parquet").unwrap();
@@ -102,8 +98,7 @@ pub trait Put {
     ///
     /// ```
     /// use object_store::{path::Path, memory::InMemory};
-    /// use stac::Item;
-    /// use stac_async::object_store::Put;
+    /// use stac::{Item, object_store::Put};
     ///
     /// let store = InMemory::new();
     /// let item: Item = stac::read("examples/simple-item.json").unwrap();
@@ -134,8 +129,7 @@ pub trait Put {
     ///
     /// ```
     /// use object_store::{path::Path, memory::InMemory};
-    /// use stac::Item;
-    /// use stac_async::object_store::Put;
+    /// use stac::{Item, object_store::Put};
     ///
     /// let store = InMemory::new();
     /// let item: Item = stac::read("examples/simple-item.json").unwrap();
@@ -166,8 +160,7 @@ pub trait Put {
     ///
     /// ```
     /// use object_store::{path::Path, memory::InMemory};
-    /// use stac::Item;
-    /// use stac_async::object_store::Put;
+    /// use stac::{Item, object_store::Put};
     ///
     /// let store = InMemory::new();
     /// let item: Item = stac::read("examples/simple-item.json").unwrap();
@@ -239,7 +232,7 @@ impl<O: ObjectStore> Get for O {
         options: GetOptions,
     ) -> Result<ItemCollection> {
         let get_result = self.get_opts(location, options).await?;
-        stac::geoparquet::from_reader(get_result.bytes().await?).map_err(Error::from)
+        crate::geoparquet::from_reader(get_result.bytes().await?).map_err(Error::from)
     }
 }
 
@@ -282,7 +275,7 @@ impl<O: ObjectStore> Put for O {
         put_options: PutOptions,
     ) -> Result<PutResult> {
         let mut buf = Vec::new();
-        stac::geoparquet::to_writer_with_options(&mut buf, item_collection, &geoparquet_options)?;
+        crate::geoparquet::to_writer_with_options(&mut buf, item_collection, &geoparquet_options)?;
         self.put_opts(location, buf.into(), put_options)
             .await
             .map_err(Error::from)
@@ -292,8 +285,8 @@ impl<O: ObjectStore> Put for O {
 #[cfg(test)]
 mod tests {
     use super::{Get, Put};
+    use crate::{Item, ItemCollection};
     use object_store::{local::LocalFileSystem, memory::InMemory, path::Path};
-    use stac::{Item, ItemCollection};
 
     #[tokio::test]
     async fn get_json() {
@@ -305,7 +298,7 @@ mod tests {
     #[tokio::test]
     async fn put_json() {
         let store = InMemory::new();
-        let item: Item = stac::read("examples/simple-item.json").unwrap();
+        let item: Item = crate::read("examples/simple-item.json").unwrap();
         let location = Path::from("simple-item.json");
         let _ = store.put_json(&location, &item).await.unwrap();
         let item: Item = store.get_json(&location).await.unwrap();
@@ -323,7 +316,7 @@ mod tests {
     #[tokio::test]
     async fn put_ndjson() {
         let store = InMemory::new();
-        let item: Item = stac::read("examples/simple-item.json").unwrap();
+        let item: Item = crate::read("examples/simple-item.json").unwrap();
         let item_collection: ItemCollection = vec![item].into();
         let location = Path::from("items.json");
         let _ = store.put_ndjson(&location, &item_collection).await.unwrap();
@@ -344,7 +337,7 @@ mod tests {
     #[cfg(feature = "geoparquet")]
     async fn put_geoparquet() {
         let store = InMemory::new();
-        let item: Item = stac::read("examples/simple-item.json").unwrap();
+        let item: Item = crate::read("examples/simple-item.json").unwrap();
         let item_collection: ItemCollection = vec![item].into();
         let location = Path::from("items.json");
         let _ = store

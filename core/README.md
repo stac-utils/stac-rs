@@ -33,12 +33,13 @@ Please see the [documentation](https://docs.rs/stac) for more usage examples.
 
 ## Features
 
-There are five opt-in features:
+There are six opt-in features:
 
 - `gdal`
 - `geo`
 - `geoarrow` (experimental)
 - `geoparquet` (experimental)
+- `object_store`
 - `reqwest`
 
 ### gdal
@@ -112,6 +113,24 @@ It's support in **stac-rs** is currently experimental:
 }
 ```
 
+### object_store
+
+`object_store` adds traits to read and write from an [object_store](https://docs.rs/object_store/latest/object_store/):
+
+```rust
+#[cfg(feature = "object_store")]
+{
+tokio_test::block_on(async {
+    use object_store::{path::Path, local::LocalFileSystem};
+    use stac::{Item, object_store::Get};
+
+    let store = LocalFileSystem::new();
+    let location = Path::from_filesystem_path("examples/simple-item.json").unwrap();
+    let item: Item = store.get_json(&location).await.unwrap();
+});
+}
+```
+
 ### reqwest
 
 `reqwest` enables blocking remote reads:
@@ -129,8 +148,6 @@ let href = "https://raw.githubusercontent.com/radiantearth/stac-spec/master/exam
 #[cfg(not(feature = "reqwest"))]
 let err = stac::read::<stac::Item>(href).unwrap_err();
 ```
-
-For non-blocking IO, use the [**stac-async**](https://crates.io/crates/stac-async) crate.
 
 ## Other info
 
