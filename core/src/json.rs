@@ -1,7 +1,6 @@
 //! Input and output (IO) functions for JSON data.
 
-use crate::io::Read;
-use crate::{Error, Href, Result};
+use crate::{io::Read, Error, Href, Result};
 #[cfg(feature = "reqwest")]
 use reqwest::blocking::Response;
 use serde::de::DeserializeOwned;
