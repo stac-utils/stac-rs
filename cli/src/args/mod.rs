@@ -10,10 +10,11 @@ mod serve;
 mod translate;
 mod validate;
 
-use crate::{Input, Output, Result, Value};
+use crate::{Entry, Input, Output, Result, Value};
 use clap::Parser;
 use tokio::sync::mpsc::Sender;
 use tokio::task::JoinHandle;
+use tracing::info;
 use tracing::metadata::Level;
 
 const BUFFER: usize = 100;
@@ -26,17 +27,21 @@ pub struct Args {
     #[arg(short, long, global = true)]
     input_format: Option<stac::Format>,
 
+    /// key=value pairs to use for the input object store
+    #[arg(short = 'k', long)]
+    input_config: Vec<Entry>,
+
     /// The output format, if not provided will be inferred from the output file's extension, falling back to json
     #[arg(short, long, global = true)]
     output_format: Option<crate::output::Format>,
 
+    /// key=value pairs to use for the input object store
+    #[arg(short = 'c', long)]
+    output_config: Vec<Entry>,
+
     /// Stream the items to output as ndjson, default behavior is to return them all at the end of the operation
     #[arg(short, long)]
     stream: bool,
-
-    /// If output is being written to a file, create any directories in that file's path
-    #[arg(long, global = true)]
-    create_directories: bool,
 
     #[arg(
         long,
@@ -117,7 +122,11 @@ impl Args {
 
     /// Runs whatever these arguments say that we should run.
     pub async fn run(mut self) -> Result<()> {
-        let input = Input::new(self.subcommand.take_infile(), self.input_format)?;
+        let input = Input::new(
+            self.subcommand.take_infile(),
+            self.input_format,
+            self.input_config,
+        )?;
         let mut output = Output::new(
             self.subcommand.take_outfile(),
             self.output_format.or_else(|| {
@@ -127,7 +136,7 @@ impl Args {
                     None
                 }
             }),
-            self.create_directories,
+            self.output_config,
         )?;
         let value = if self.stream {
             if output.format != crate::output::Format::NdJson {
@@ -139,7 +148,7 @@ impl Args {
             let (stream, mut receiver) = tokio::sync::mpsc::channel(BUFFER);
             let streamer: JoinHandle<Result<_>> = tokio::task::spawn(async move {
                 while let Some(value) = receiver.recv().await {
-                    output.stream(value)?;
+                    output.stream(value).await?;
                 }
                 Ok(output)
             });
@@ -150,7 +159,13 @@ impl Args {
             self.subcommand.run(input, None).await?
         };
         if let Some(value) = value {
-            output.put(value)?;
+            if let Some(put_result) = output.put(value).await? {
+                info!(
+                    "put result: etag={}, version={}",
+                    put_result.e_tag.as_deref().unwrap_or("<none>"),
+                    put_result.version.as_deref().unwrap_or("<none>")
+                );
+            }
         }
         Ok(())
     }

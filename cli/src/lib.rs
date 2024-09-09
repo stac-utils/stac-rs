@@ -32,14 +32,23 @@
 )]
 
 pub mod args;
+mod config;
 mod error;
 mod input;
+mod object_store;
 pub mod output;
 #[cfg(feature = "python")]
 mod python;
 mod value;
 
-pub use {args::Args, error::Error, input::Input, output::Output, value::Value};
+pub use {
+    args::Args,
+    config::{Config, Entry},
+    error::Error,
+    input::Input,
+    output::Output,
+    value::Value,
+};
 
 /// Crate-specific result type.
 pub type Result<T> = std::result::Result<T, Error>;

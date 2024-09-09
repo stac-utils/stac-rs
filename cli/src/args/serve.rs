@@ -44,7 +44,7 @@ struct Info {
 }
 
 impl Run for Args {
-    async fn run(self, _: Input, _: Option<Sender<Value>>) -> Result<Option<Value>> {
+    async fn run(self, input: Input, _: Option<Sender<Value>>) -> Result<Option<Value>> {
         use stac::Value;
 
         let mut info = Info::default();
@@ -68,8 +68,7 @@ impl Run for Args {
         };
 
         // TODO maybe this is worth pulling out into something more general?
-        info!("loading items into the backend");
-        let mut join_set = JoinSet::new();
+        let mut join_set: JoinSet<Result<Value>> = JoinSet::new();
         let mut reading_from_stdin = false;
         for href in self.hrefs {
             if href == "-" {
@@ -79,8 +78,12 @@ impl Run for Args {
                     reading_from_stdin = true;
                 }
             }
-            let input = Input::new(Some(href), None)?;
-            let _ = join_set.spawn(async move { input.get() });
+            let input = input.with_href(&href)?;
+            let _ = join_set.spawn(async move {
+                let mut value = input.get().await?;
+                value.set_href(href);
+                Ok(value)
+            });
         }
         let mut item_join_set = JoinSet::new();
         let mut collections = HashSet::new();
@@ -99,8 +102,8 @@ impl Run for Args {
                         collection.make_relative_links_absolute(href)?;
                         for link in collection.iter_item_links() {
                             let href = link.href.to_string();
-                            let input = Input::new(Some(href), None)?;
-                            let _ = item_join_set.spawn(async move { input.get() });
+                            let input = input.with_href(&href)?;
+                            let _ = item_join_set.spawn(async move { input.get().await });
                         }
                     }
                     let _ = collections.insert(collection.id.clone());
