@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 
 - Outfile and stream arguments to `items` ([#363](https://github.com/stac-utils/stac-rs/pull/363))
+- `object_store` ([#371](https://github.com/stac-utils/stac-rs/pull/371))
 
 ### Fixed
 
