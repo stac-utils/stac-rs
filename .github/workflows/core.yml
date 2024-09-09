@@ -41,10 +41,12 @@ jobs:
         run: cargo check -F geoparquet
       - name: Check w/ geoparquet-compression
         run: cargo check -F geoparquet-compression
+      - name: Check w/ object_store
+        run: cargo check -F object_store
       - name: Check w/ reqwest
         run: cargo check -F reqwest
       - name: Test
-        run: cargo test -F geo -F geoarrow -F geoparquet -F geoparquet-compression -F reqwest
+        run: cargo test -F geo -F geoarrow -F geoparquet -F geoparquet-compression -F reqwest -F object_store
   test-core-with-gdal:
     runs-on: ubuntu-latest
     steps:
