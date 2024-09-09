@@ -125,25 +125,25 @@ impl Args {
     /// Runs whatever these arguments say that we should run.
     #[cfg_attr(not(feature = "geoparquet"), allow(unused_mut))]
     pub async fn run(mut self, output: impl Write + Send + 'static) -> Result<()> {
-        let (mut writer, mut format): (Box<dyn Write + Send>, Format) =
-            if let Some(outfile) = self.subcommand.take_outfile() {
-                if self.create_directories && stac::href_to_url(&outfile).is_none() {
-                    let path = Path::new(&outfile);
-                    if let Some(parent) = path.parent() {
-                        std::fs::create_dir_all(parent)?;
-                    }
+        let mut writer: Box<dyn Write + Send> = if let Some(outfile) =
+            self.subcommand.take_outfile()
+        {
+            if self.output_format.is_none() {
+                self.output_format = Some(Format::infer(&outfile).unwrap_or(Format::CompactJson));
+            }
+            if self.create_directories && stac::href_to_url(&outfile).is_none() {
+                let path = Path::new(&outfile);
+                if let Some(parent) = path.parent() {
+                    std::fs::create_dir_all(parent)?;
                 }
-                let format = self
-                    .output_format
-                    .or_else(|| Format::infer(&outfile))
-                    .unwrap_or(Format::CompactJson);
-                (Box::new(BufWriter::new(File::create(outfile)?)), format)
-            } else {
-                let format = self.output_format.unwrap_or(Format::PrettyJson);
-                (Box::new(output), format)
-            };
+            }
+            Box::new(BufWriter::new(File::create(outfile)?))
+        } else {
+            Box::new(output)
+        };
+        let mut output_format = self.output_format.unwrap_or(Format::PrettyJson);
         #[cfg(feature = "geoparquet")]
-        if let Format::Geoparquet(ref mut compression) = format {
+        if let Format::Geoparquet(ref mut compression) = output_format {
             *compression = self.parquet_compression;
         }
         let (sender, mut receiver) = tokio::sync::mpsc::channel(BUFFER);
@@ -151,7 +151,7 @@ impl Args {
             while let Some(value) = receiver.recv().await {
                 Format::Streaming.to_writer(&mut writer, value)?;
             }
-            Ok((writer, format))
+            Ok(writer)
         });
         let value = self
             .subcommand
@@ -162,9 +162,9 @@ impl Args {
                 sender,
             )
             .await?;
-        let (writer, format) = receiver.await??;
+        let writer = receiver.await??;
         if let Some(value) = value {
-            format.to_writer(writer, value)?;
+            output_format.to_writer(writer, value)?;
         }
         Ok(())
     }
