@@ -257,10 +257,7 @@ impl<O: ObjectStore> Put for O {
         options: PutOptions,
     ) -> Result<PutResult> {
         let mut buf = Vec::new();
-        for item in &item_collection.items {
-            serde_json::to_writer(&mut buf, item)?;
-            buf.push(b'\n');
-        }
+        crate::ndjson::to_writer(&mut buf, item_collection.items.iter())?;
         self.put_opts(location, buf.into(), options)
             .await
             .map_err(Error::from)

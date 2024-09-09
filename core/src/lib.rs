@@ -158,6 +158,7 @@ pub mod json;
 pub mod link;
 mod migrate;
 pub mod mime;
+pub mod ndjson;
 #[cfg(feature = "object_store")]
 pub mod object_store;
 mod statistics;
