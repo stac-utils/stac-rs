@@ -31,6 +31,7 @@ geoparquet-compression = [
     "parquet/lz4",
     "parquet/zstd",
 ]
+object_store = ["dep:object_store"]
 reqwest = ["dep:reqwest"]
 
 [dependencies]
@@ -47,6 +48,7 @@ geoarrow = { version = "0.3", optional = true }
 geojson = "0.24"
 log = "0.4"
 mime = "0.3"
+object_store = { version = "0.11", optional = true }
 parquet = { version = "52", default-features = false, optional = true }
 reqwest = { version = "0.12", optional = true, features = ["json", "blocking"] }
 serde = { version = "1", features = ["derive"] }
@@ -58,6 +60,8 @@ url = "2"
 assert-json-diff = "2"
 bytes = "1"
 rstest = "0.22"
+tokio = { version = "1", features = ["macros"] }
+tokio-test = "0.4"
 
 [package.metadata.docs.rs]
 all-features = true

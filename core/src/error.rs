@@ -99,6 +99,11 @@ pub enum Error {
     #[error("not an object")]
     NotAnObject(serde_json::Value),
 
+    /// [object_store::Error]
+    #[error(transparent)]
+    #[cfg(feature = "object_store")]
+    ObjectStore(#[from] object_store::Error),
+
     /// Returned when trying to read from a url but the `reqwest` feature is not enabled.
     #[error("reqwest is not enabled")]
     ReqwestNotEnabled,

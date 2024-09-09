@@ -32,10 +32,6 @@ pub enum Error {
     #[error("not found: {0}")]
     NotFound(Url),
 
-    /// [object_store::Error]
-    #[error(transparent)]
-    ObjectStore(#[from] object_store::Error),
-
     /// [serde_json::Error]
     #[error(transparent)]
     SerdeJson(#[from] serde_json::Error),
