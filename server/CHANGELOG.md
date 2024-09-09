@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Removed
+
+- **stac-async** dependency ([#369](https://github.com/stac-utils/stac-rs/pull/369))
+
 ## [0.2.0] - 2024-09-05
 
 ### Added
