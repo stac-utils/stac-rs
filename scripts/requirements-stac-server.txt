@@ -35,7 +35,7 @@ ordered-set==4.1.0
     # via deepdiff
 orjson==3.10.7
     # via pystac
-pystac==1.10.1
+pystac[orjson,validation]==1.10.1
     # via
     #   pystac-client
     #   stac-api-validator
@@ -65,14 +65,12 @@ rpds-py==0.20.0
     # via
     #   jsonschema
     #   referencing
-setuptools==74.0.0
-    # via -r scripts/requirements-stac-server.in
 shapely==2.0.6
     # via stac-api-validator
 six==1.16.0
     # via python-dateutil
 stac-api-validator==0.6.2
-    # via -r scripts/requirements-stac-server.in
+    # via -r requirements-stac-server.in
 stac-check==1.3.3
     # via stac-api-validator
 stac-validator==3.3.2
