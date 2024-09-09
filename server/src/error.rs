@@ -37,10 +37,6 @@ pub enum Error {
     #[error(transparent)]
     StacApi(#[from] stac_api::Error),
 
-    /// [stac_async::Error]
-    #[error(transparent)]
-    StacAsync(#[from] stac_async::Error),
-
     /// [tokio_postgres::Error]
     #[cfg(feature = "pgstac")]
     #[error(transparent)]

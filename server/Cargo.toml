@@ -28,7 +28,6 @@ serde_json = "1"
 serde_urlencoded = "0.7"
 stac = { version = "0.9.0", path = "../core" }
 stac-api = { version = "0.5.0", path = "../api", features = ["geo"] }
-stac-async = { version = "0.5.3", path = "../async" }
 thiserror = "1"
 tokio-postgres = { version = "0.7", optional = true }
 tower-http = { version = "0.5", features = ["cors"], optional = true }
