@@ -29,7 +29,7 @@ jsonschema-specifications==2023.12.1
     # via jsonschema
 more-itertools==8.14.0
     # via stac-api-validator
-numpy==2.1.0
+numpy==2.1.1
     # via shapely
 ordered-set==4.1.0
     # via deepdiff
@@ -65,7 +65,7 @@ rpds-py==0.20.0
     # via
     #   jsonschema
     #   referencing
-setuptools==74.0.0
+setuptools==74.1.2
     # via -r scripts/requirements-stac-server.in
 shapely==2.0.6
     # via stac-api-validator
