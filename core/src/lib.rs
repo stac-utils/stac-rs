@@ -143,6 +143,7 @@ pub mod datetime;
 mod error;
 pub mod extensions;
 mod fields;
+mod format;
 #[cfg(feature = "gdal")]
 pub mod gdal;
 #[cfg(feature = "geo")]
@@ -175,6 +176,7 @@ pub use {
     error::Error,
     extensions::{Extension, Extensions},
     fields::Fields,
+    format::Format,
     href::{href_to_url, Href},
     io::read,
     item::{FlatItem, Item, Properties, ITEM_TYPE},
