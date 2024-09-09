@@ -33,7 +33,5 @@ jobs:
         uses: Swatinem/rust-cache@v2
       - name: Check
         run: cargo check
-      - name: Check w/ geoparquet
-        run: cargo check -F geoparquet
       - name: Test
-        run: cargo test -F geoparquet
+        run: cargo test
