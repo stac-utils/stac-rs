@@ -35,7 +35,7 @@ impl Run for Args {
         let mut join_set = JoinSet::new();
         let mut items = Vec::with_capacity(self.hrefs.len());
         for href in self.hrefs {
-            let input = input.clone();
+            let input = input.with_href(&href)?;
             let sender = stream.clone();
             let args = ItemArgs {
                 id_or_href: href,

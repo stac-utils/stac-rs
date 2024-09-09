@@ -1,85 +1,99 @@
-use crate::{Error, Result};
-use bytes::Bytes;
-use stac::{Format, Href, Value};
-use std::{
-    fs::File,
-    io::{BufReader, Read},
-};
+use crate::{Config, Error, Result};
+use object_store::{path::Path, ObjectStore};
+use stac::{Format, Item, ItemCollection, Value};
+use std::io::BufReader;
 
 /// The input to a CLI run.
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct Input {
-    /// The format of the input data.
-    pub format: Format,
+    format: Format,
+    reader: Reader,
+    config: Config,
+}
 
-    /// The input file.
-    ///
-    /// If not provided, this will be read from stdin.
-    pub infile: Option<String>,
+#[derive(Debug)]
+enum Reader {
+    ObjectStore {
+        object_store: Box<dyn ObjectStore>,
+        path: Path,
+    },
+    Stdin,
 }
 
 impl Input {
     /// Creates a new input from an optional infile and an optional format.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use stac_cli::Input;
-    ///
-    /// let input = Input::new(None, None); // defaults to stdin, json
-    /// ```
-    pub fn new(infile: Option<String>, format: Option<Format>) -> Result<Input> {
+    pub fn new(
+        infile: Option<String>,
+        format: Option<Format>,
+        config: impl Into<Config>,
+    ) -> Result<Input> {
         let infile = infile.and_then(|infile| if infile == "-" { None } else { Some(infile) });
         let format = format
             .or_else(|| infile.as_deref().and_then(Format::infer_from_href))
             .unwrap_or_default();
-        Ok(Input { format, infile })
+        let config = config.into();
+        let reader = if let Some(infile) = infile {
+            let (object_store, path) =
+                crate::object_store::parse_href_opts(&infile, config.iter())?;
+            Reader::ObjectStore { object_store, path }
+        } else {
+            Reader::Stdin
+        };
+        Ok(Input {
+            format,
+            reader,
+            config,
+        })
+    }
+
+    /// Creates a new input with the given href.
+    pub fn with_href(&self, href: &str) -> Result<Input> {
+        let (object_store, path) = crate::object_store::parse_href_opts(&href, self.config.iter())?;
+        let reader = Reader::ObjectStore { object_store, path };
+        Ok(Input {
+            format: self.format,
+            reader,
+            config: self.config.clone(),
+        })
     }
 
     /// Gets a STAC value from the input.
     ///
     /// Uses the infile that this input was created with, if there was one ... otherwise, gets from stdin.
-    pub fn get(&self) -> Result<Value> {
-        if let Some(infile) = self.infile.as_ref() {
-            let mut file = File::open(infile)?;
-            match self.format {
-                Format::Json => {
-                    let mut buf = Vec::new();
-                    let _ = file.read_to_end(&mut buf)?;
-                    let mut value: Value = serde_json::from_slice(&buf)?;
-                    value.set_href(infile);
-                    Ok(value)
-                }
-                Format::NdJson => {
-                    let mut value: Value =
-                        stac::ndjson::from_buf_reader(BufReader::new(file))?.into();
-                    value.set_href(infile);
-                    Ok(value)
-                }
-                #[cfg(feature = "geoparquet")]
-                Format::Geoparquet => {
-                    let mut buf = Vec::new();
-                    let _ = file.read_to_end(&mut buf)?;
-                    stac::geoparquet::from_reader(Bytes::from(buf))
+    pub async fn get(&self) -> Result<Value> {
+        match &self.reader {
+            Reader::ObjectStore { object_store, path } => {
+                let bytes = object_store.get(&path).await?.bytes().await?;
+                match self.format {
+                    Format::Json => serde_json::from_slice(&bytes).map_err(Error::from),
+                    Format::NdJson => bytes
+                        .split(|c| *c == b'\n')
+                        .map(|line| serde_json::from_slice::<Item>(line).map_err(Error::from))
+                        .collect::<Result<Vec<_>>>()
+                        .map(ItemCollection::from)
+                        .map(Value::from),
+                    #[cfg(feature = "geoparquet")]
+                    Format::Geoparquet => stac::geoparquet::from_reader(bytes)
                         .map(Value::from)
-                        .map_err(Error::from)
+                        .map_err(Error::from),
                 }
             }
-        } else {
-            match self.format {
+            Reader::Stdin => match self.format {
                 Format::Json => serde_json::from_reader(std::io::stdin()).map_err(Error::from),
                 Format::NdJson => stac::ndjson::from_buf_reader(BufReader::new(std::io::stdin()))
                     .map(Value::from)
                     .map_err(Error::from),
                 #[cfg(feature = "geoparquet")]
                 Format::Geoparquet => {
+                    use std::io::Read;
+
                     let mut buf = Vec::new();
                     let _ = std::io::stdin().read_to_end(&mut buf)?;
-                    stac::geoparquet::from_reader(Bytes::from(buf))
+                    stac::geoparquet::from_reader(bytes::Bytes::from(buf))
                         .map(Value::from)
                         .map_err(Error::from)
                 }
-            }
+            },
         }
     }
 }

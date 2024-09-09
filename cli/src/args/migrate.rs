@@ -19,7 +19,7 @@ pub struct Args {
 
 impl Run for Args {
     async fn run(self, input: Input, _: Option<Sender<Value>>) -> Result<Option<Value>> {
-        let value = input.get()?;
+        let value = input.get().await?;
         value
             .migrate(self.version)
             .map(Value::from)

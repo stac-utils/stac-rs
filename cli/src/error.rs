@@ -9,8 +9,17 @@ pub enum Error {
     #[error(transparent)]
     Io(#[from] std::io::Error),
 
+    /// [object_store::Error]
+    #[error(transparent)]
+    ObjectStore(#[from] object_store::Error),
+
+    /// [object_store::path::Error]
+    #[error(transparent)]
+    ObjectStorePath(#[from] object_store::path::Error),
+
     /// [parquet::errors::ParquetError]
     #[error(transparent)]
+    #[cfg(feature = "geoparquet")]
     Parquet(#[from] parquet::errors::ParquetError),
 
     /// [reqwest::Error]

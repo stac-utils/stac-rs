@@ -15,7 +15,7 @@ pub struct Args {
 
 impl Run for Args {
     async fn run(self, input: Input, _: Option<Sender<Value>>) -> Result<Option<Value>> {
-        let value = input.get()?;
+        let value = input.get().await?;
         let result = tokio::task::spawn_blocking(move || {
             if let Err(err) = value.validate() {
                 Err((err, value))
