@@ -133,6 +133,10 @@ pub enum Error {
     #[error("unsupported migration: {0} to {1}")]
     UnsupportedMigration(Version, Version),
 
+    /// Unsupported file format.
+    #[error("unsupported format: {0}")]
+    UnsupportedFormat(String),
+
     /// [url::ParseError]
     #[error(transparent)]
     Url(#[from] url::ParseError),
