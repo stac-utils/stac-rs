@@ -58,11 +58,12 @@ impl FromStr for Format {
 
 #[cfg(test)]
 mod tests {
-    use super::Format;
-
     #[test]
     #[cfg(feature = "geoparquet")]
     fn parse_geoparquet() {
-        assert_eq!("parquet".parse::<Format>().unwrap(), Format::Geoparquet);
+        assert_eq!(
+            "parquet".parse::<super::Format>().unwrap(),
+            super::Format::Geoparquet
+        );
     }
 }
