@@ -6,7 +6,7 @@ use tokio::sync::mpsc::Sender;
 
 /// Arguments for the `item` subcommand.
 #[derive(clap::Args, Debug)]
-pub struct Args {
+pub(crate) struct Args {
     /// The item id or asset href
     pub(crate) id_or_href: String,
 

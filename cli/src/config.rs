@@ -1,19 +1,19 @@
 use std::{convert::Infallible, str::FromStr};
 
 /// A collection of configuration entries.
-#[derive(Clone, Debug)]
-pub struct Config(Vec<Entry>);
+#[derive(Clone, Debug, Default)]
+pub(crate) struct Config(Vec<Entry>);
 
-/// key=value pairs for object store configuration
+/// `key=value`` pairs for object store configuration
 #[derive(Clone, Debug)]
-pub struct Entry {
+pub(crate) struct Entry {
     key: String,
     value: String,
 }
 
 impl Config {
     /// Returns an iterator over this config's key value pairs.
-    pub fn iter(&self) -> impl Iterator<Item = (&str, &str)> {
+    pub(crate) fn iter(&self) -> impl Iterator<Item = (&str, &str)> {
         self.0
             .iter()
             .map(|entry| (entry.key.as_str(), entry.value.as_str()))

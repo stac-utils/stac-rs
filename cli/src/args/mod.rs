@@ -10,7 +10,7 @@ mod serve;
 mod translate;
 mod validate;
 
-use crate::{Entry, Input, Output, Result, Value};
+use crate::{config::Entry, input::Input, output::Output, Result, Value};
 use clap::Parser;
 use tokio::sync::mpsc::Sender;
 use tokio::task::JoinHandle;
@@ -35,9 +35,13 @@ pub struct Args {
     #[arg(short, long, global = true)]
     output_format: Option<crate::output::Format>,
 
-    /// key=value pairs to use for the input object store
+    /// key=value pairs to use for the output object store
     #[arg(short = 'c', long)]
     output_config: Vec<Entry>,
+
+    /// If the output is a local file, create its parent directories before creating the file
+    #[arg(long, default_value_t = true)]
+    create_parent_directories: bool,
 
     /// Stream the items to output as ndjson, default behavior is to return them all at the end of the operation
     #[arg(short, long)]
@@ -69,10 +73,10 @@ pub struct Args {
     subcommand: Subcommand,
 }
 
-/// A sucommand.
+/// A subcommand.
 #[derive(Debug, clap::Subcommand)]
 #[allow(clippy::large_enum_variant)]
-pub enum Subcommand {
+enum Subcommand {
     /// Create a STAC Item from an id or the href to an asset
     Item(item::Args),
 
@@ -137,7 +141,9 @@ impl Args {
                 }
             }),
             self.output_config,
-        )?;
+            self.create_parent_directories,
+        )
+        .await?;
         let value = if self.stream {
             if output.format != crate::output::Format::NdJson {
                 tracing::warn!(

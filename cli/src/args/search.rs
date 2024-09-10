@@ -9,7 +9,7 @@ use tokio_stream::StreamExt;
 use tracing::info;
 
 #[derive(Debug, clap::Args)]
-pub struct Args {
+pub(crate) struct Args {
     /// The href of the STAC API or the stac-geoparquet file to search
     #[cfg(feature = "duckdb")]
     href: String,

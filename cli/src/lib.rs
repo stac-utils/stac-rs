@@ -1,4 +1,16 @@
 //! STAC command-line interface (CLI).
+//!
+//! # Examples
+//!
+//! ```no_run
+//! use stac_cli::Args;
+//! use clap::Parser;
+//!
+//! let args = Args::parse_from(["stacrs", "--help"]);
+//! # tokio_test::block_on(async {
+//! args.run().await.unwrap();
+//! # })
+//! ```
 
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 #![warn(
@@ -31,24 +43,16 @@
     warnings
 )]
 
-pub mod args;
+mod args;
 mod config;
 mod error;
 mod input;
-mod object_store;
-pub mod output;
+mod output;
 #[cfg(feature = "python")]
 mod python;
 mod value;
 
-pub use {
-    args::Args,
-    config::{Config, Entry},
-    error::Error,
-    input::Input,
-    output::Output,
-    value::Value,
-};
+pub use {args::Args, error::Error, value::Value};
 
 /// Crate-specific result type.
 pub type Result<T> = std::result::Result<T, Error>;

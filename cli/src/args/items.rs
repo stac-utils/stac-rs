@@ -4,7 +4,7 @@ use tokio::{sync::mpsc::Sender, task::JoinSet};
 
 /// Arguments for the `items` subcommand.
 #[derive(clap::Args, Debug)]
-pub struct Args {
+pub(crate) struct Args {
     /// The asset hrefs
     hrefs: Vec<String>,
 
