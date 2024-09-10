@@ -1,13 +1,17 @@
 //! Structures for writing output data.
 
-use crate::{Config, Error, Result, Value};
+use crate::{config::Config, value::Value, Error, Result};
 use object_store::{buffered::BufWriter, path::Path, ObjectStore, PutPayload, PutResult};
 use std::{fmt::Display, io::IsTerminal, pin::Pin, str::FromStr, sync::Arc};
-use tokio::io::{AsyncWrite, AsyncWriteExt};
+use tokio::{
+    fs::File,
+    io::{AsyncWrite, AsyncWriteExt},
+};
+use url::Url;
 
 /// The output from a CLI run.
 #[allow(missing_debug_implementations)]
-pub struct Output {
+pub(crate) struct Output {
     /// The output format.
     pub format: Format,
 
@@ -15,8 +19,8 @@ pub struct Output {
 }
 
 /// The output format.
-#[derive(Clone, Debug, PartialEq)]
-pub enum Format {
+#[derive(Clone, Debug, PartialEq, Copy)]
+pub(crate) enum Format {
     /// Pretty-printed JSON, good for terminals.
     PrettyJson,
     /// Compact JSON, good for files.
@@ -35,10 +39,11 @@ struct Writer {
 
 impl Output {
     /// Creates a new output from an optional outfile and an optional format.
-    pub fn new(
+    pub(crate) async fn new(
         outfile: Option<String>,
         format: Option<Format>,
         config: impl Into<Config>,
+        create_parent_directories: bool,
     ) -> Result<Output> {
         let format = format
             .or_else(|| outfile.as_deref().and_then(Format::infer_from_href))
@@ -50,13 +55,31 @@ impl Output {
                 }
             });
         let writer = if let Some(outfile) = outfile {
-            let (object_store, path) =
-                crate::object_store::parse_href_opts(&outfile, config.into().iter())?;
-            let object_store = Arc::new(object_store);
-            let stream = BufWriter::new(object_store.clone(), path.clone());
-            Writer {
-                stream: Box::pin(stream),
-                object_store: Some((object_store, path)),
+            if let Some(url) = Url::parse(&outfile).ok().and_then(|url| {
+                if url.scheme() == "file" {
+                    None
+                } else {
+                    Some(url)
+                }
+            }) {
+                let (object_store, path) =
+                    object_store::parse_url_opts(&url, config.into().iter())?;
+                let object_store = Arc::new(object_store);
+                let stream = BufWriter::new(object_store.clone(), path.clone());
+                Writer {
+                    stream: Box::pin(stream),
+                    object_store: Some((object_store, path)),
+                }
+            } else {
+                if create_parent_directories {
+                    if let Some(parent) = std::path::Path::new(&outfile).parent() {
+                        std::fs::create_dir_all(parent)?;
+                    }
+                }
+                Writer {
+                    stream: Box::pin(File::create(outfile).await?),
+                    object_store: None,
+                }
             }
         } else {
             Writer {
@@ -68,118 +91,26 @@ impl Output {
     }
 
     /// Streams a value to the output
-    pub async fn stream(&mut self, value: Value) -> Result<()> {
-        match value {
-            Value::Json(ref json) => {
-                if let serde_json::Value::Array(array) = json {
-                    for value in array {
-                        let value = serde_json::to_vec(value)?;
-                        let _ = self.writer.stream.write_all(&value).await?;
-                        self.writer.stream.write_u8(b'\n').await?;
-                    }
-                } else {
-                    let value = serde_json::to_vec(&value)?;
-                    let _ = self.writer.stream.write_all(&value).await?;
-                    self.writer.stream.write_u8(b'\n').await?;
-                }
-            }
-            Value::Stac(stac) => {
-                if let stac::Value::ItemCollection(item_collection) = stac {
-                    for value in item_collection.items {
-                        let value = serde_json::to_vec(&value)?;
-                        let _ = self.writer.stream.write_all(&value).await?;
-                        self.writer.stream.write_u8(b'\n').await?;
-                    }
-                } else {
-                    let value = serde_json::to_vec(&stac)?;
-                    let _ = self.writer.stream.write_all(&value).await?;
-                    self.writer.stream.write_u8(b'\n').await?;
-                }
-            }
-        }
+    pub(crate) async fn stream(&mut self, value: Value) -> Result<()> {
+        let bytes = value.into_bytes(Format::NdJson)?;
+        self.writer.stream.write_all(&bytes).await?;
         self.writer.stream.flush().await?;
         Ok(())
     }
 
     /// Puts a value to the output.
-    pub async fn put(&mut self, value: Value) -> Result<Option<PutResult>> {
+    pub(crate) async fn put(&mut self, value: Value) -> Result<Option<PutResult>> {
+        let bytes = value.into_bytes(self.format)?;
         if let Some((object_store, path)) = &self.writer.object_store {
-            let bytes = match self.format {
-                Format::PrettyJson => serde_json::to_vec_pretty(&value)?,
-                Format::CompactJson => serde_json::to_vec(&value)?,
-                Format::NdJson => {
-                    let mut bytes = Vec::new();
-                    match value {
-                        Value::Json(ref json) => {
-                            if let serde_json::Value::Array(array) = json {
-                                for value in array {
-                                    serde_json::to_writer(&mut bytes, value)?;
-                                    bytes.push(b'\n');
-                                }
-                            } else {
-                                serde_json::to_writer(&mut bytes, json)?;
-                                bytes.push(b'\n');
-                            }
-                        }
-                        Value::Stac(stac) => {
-                            if let stac::Value::ItemCollection(item_collection) = stac {
-                                for value in item_collection.items {
-                                    serde_json::to_writer(&mut bytes, &value)?;
-                                    bytes.push(b'\n');
-                                }
-                            } else {
-                                serde_json::to_writer(&mut bytes, &stac)?;
-                                bytes.push(b'\n');
-                            }
-                        }
-                    }
-                    todo!()
-                }
-                #[cfg(feature = "geoparquet")]
-                Format::Geoparquet(compression) => {
-                    let value = stac::Value::try_from(value)?;
-                    let mut options = geoarrow::io::parquet::GeoParquetWriterOptions::default();
-                    let writer_properties = parquet::file::properties::WriterProperties::builder()
-                        .set_compression(compression)
-                        .build();
-                    options.writer_properties = Some(writer_properties);
-                    let mut bytes = Vec::new();
-                    stac::geoparquet::to_writer_with_options(&mut bytes, value, &options)?;
-                    bytes
-                }
-            };
             object_store
                 .put(path, PutPayload::from_bytes(bytes.into()))
                 .await
                 .map(Some)
                 .map_err(Error::from)
         } else {
-            match self.format {
-                Format::PrettyJson => {
-                    let value = serde_json::to_vec_pretty(&value)?;
-                    self.writer.stream.write_all(&value).await?;
-                }
-                Format::CompactJson => {
-                    let value = serde_json::to_vec(&value)?;
-                    self.writer.stream.write_all(&value).await?;
-                }
-                Format::NdJson => {
-                    self.stream(value).await?;
-                }
-                #[cfg(feature = "geoparquet")]
-                Format::Geoparquet(compression) => {
-                    // We cheat here b/c we know it's stdout ... could bite us later
-                    let value = stac::Value::try_from(value)?;
-                    let mut options = geoarrow::io::parquet::GeoParquetWriterOptions::default();
-                    let writer_properties = parquet::file::properties::WriterProperties::builder()
-                        .set_compression(compression)
-                        .build();
-                    options.writer_properties = Some(writer_properties);
-                    stac::geoparquet::to_writer_with_options(std::io::stdout(), value, &options)?;
-                }
-            }
+            let output = self.writer.stream.write_all(&bytes).await.map(|_| None)?;
             self.writer.stream.flush().await?;
-            Ok(None)
+            Ok(output)
         }
     }
 }
@@ -195,7 +126,7 @@ impl FromStr for Format {
                 #[cfg(feature = "geoparquet")]
                 if s.starts_with("parquet") || s.starts_with("geoparquet") {
                     if let Some((_, compression)) = s.split_once('[') {
-                        if let Some(stop) = s.find(']') {
+                        if let Some(stop) = compression.find(']') {
                             Ok(Self::Geoparquet(compression[..stop].parse()?))
                         } else {
                             Err(Error::UnsupportedFormat(s.to_string()))
@@ -234,5 +165,18 @@ impl Display for Format {
 impl Format {
     fn infer_from_href(href: &str) -> Option<Format> {
         href.rsplit_once('.').and_then(|(_, ext)| ext.parse().ok())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    #[cfg(feature = "geoparquet")]
+    fn geoparquet_compression() {
+        let format: super::Format = "geoparquet[snappy]".parse().unwrap();
+        assert_eq!(
+            format,
+            super::Format::Geoparquet(parquet::basic::Compression::SNAPPY)
+        );
     }
 }

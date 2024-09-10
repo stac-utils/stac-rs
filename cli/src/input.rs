@@ -1,40 +1,44 @@
-use crate::{Config, Error, Result};
-use object_store::{path::Path, ObjectStore};
+use crate::{config::Config, Error, Result};
+use object_store::{local::LocalFileSystem, path::Path, ObjectStore};
 use stac::{Format, Item, ItemCollection, Value};
 use std::io::BufReader;
+use url::Url;
 
 /// The input to a CLI run.
-#[derive(Debug)]
-pub struct Input {
+#[derive(Debug, Default)]
+pub(crate) struct Input {
     format: Format,
     reader: Reader,
     config: Config,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 enum Reader {
     ObjectStore {
         object_store: Box<dyn ObjectStore>,
         path: Path,
     },
+    #[default]
     Stdin,
 }
 
 impl Input {
-    /// Creates a new input from an optional infile and an optional format.
-    pub fn new(
-        infile: Option<String>,
-        format: Option<Format>,
+    /// Creates a new input.
+    pub(crate) fn new(
+        infile: impl Into<Option<String>>,
+        format: impl Into<Option<Format>>,
         config: impl Into<Config>,
     ) -> Result<Input> {
-        let infile = infile.and_then(|infile| if infile == "-" { None } else { Some(infile) });
+        let infile = infile
+            .into()
+            .and_then(|infile| if infile == "-" { None } else { Some(infile) });
         let format = format
+            .into()
             .or_else(|| infile.as_deref().and_then(Format::infer_from_href))
             .unwrap_or_default();
         let config = config.into();
         let reader = if let Some(infile) = infile {
-            let (object_store, path) =
-                crate::object_store::parse_href_opts(&infile, config.iter())?;
+            let (object_store, path) = parse_href_opts(&infile, config.iter())?;
             Reader::ObjectStore { object_store, path }
         } else {
             Reader::Stdin
@@ -47,8 +51,8 @@ impl Input {
     }
 
     /// Creates a new input with the given href.
-    pub fn with_href(&self, href: &str) -> Result<Input> {
-        let (object_store, path) = crate::object_store::parse_href_opts(&href, self.config.iter())?;
+    pub(crate) fn with_href(&self, href: &str) -> Result<Input> {
+        let (object_store, path) = parse_href_opts(&href, self.config.iter())?;
         let reader = Reader::ObjectStore { object_store, path };
         Ok(Input {
             format: self.format,
@@ -58,9 +62,8 @@ impl Input {
     }
 
     /// Gets a STAC value from the input.
-    ///
-    /// Uses the infile that this input was created with, if there was one ... otherwise, gets from stdin.
-    pub async fn get(&self) -> Result<Value> {
+    pub(crate) async fn get(&self) -> Result<Value> {
+        tracing::debug!("getting {}", self.format);
         match &self.reader {
             Reader::ObjectStore { object_store, path } => {
                 let bytes = object_store.get(&path).await?.bytes().await?;
@@ -95,5 +98,23 @@ impl Input {
                 }
             },
         }
+    }
+}
+
+pub(crate) fn parse_href_opts<I, K, V>(
+    href: &str,
+    options: I,
+) -> Result<(Box<dyn ObjectStore>, Path)>
+where
+    I: IntoIterator<Item = (K, V)>,
+    K: AsRef<str>,
+    V: Into<String>,
+{
+    if let Some(url) = Url::parse(href).ok() {
+        object_store::parse_url_opts(&url, options).map_err(Error::from)
+    } else {
+        let path = Path::from_filesystem_path(href)?;
+        let object_store = LocalFileSystem::new();
+        Ok((Box::new(object_store), path))
     }
 }

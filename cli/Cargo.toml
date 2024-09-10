@@ -15,18 +15,13 @@ rust-version = "1.75"
 default = ["gdal", "geoparquet", "pgstac"]
 duckdb = ["dep:stac-duckdb", "dep:duckdb"]
 gdal = ["stac/gdal"]
-geoparquet = [
-    "dep:bytes",
-    "dep:geoarrow",
-    "stac/geoparquet-compression",
-    "parquet",
-]
+geoparquet = ["dep:geoarrow", "stac/geoparquet-compression", "parquet"]
 pgstac = ["stac-server/pgstac"]
 python = ["dep:pyo3", "pgstac", "geoparquet"]
 
 [dependencies]
 axum = "0.7"
-bytes = { version = "1", optional = true }
+bytes = { version = "1" }
 clap = { version = "4", features = ["derive"] }
 duckdb = { version = "1", optional = true }                                      # We have this dependency only to allow us to bundle it
 geoarrow = { version = "0.3", optional = true }

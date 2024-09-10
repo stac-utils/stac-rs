@@ -4,7 +4,7 @@ use tokio::sync::mpsc::Sender;
 
 /// Arguments for the `translate` subcommand.
 #[derive(clap::Args, Debug)]
-pub struct Args {
+pub(crate) struct Args {
     /// The input file, if not provided or `-` the input will be read from standard input
     infile: Option<String>,
 

@@ -45,7 +45,7 @@ fn translate() {
         .arg("translate")
         .arg("examples/simple-item.json")
         .arg("-o")
-        .arg("parquet")
+        .arg("ndjson")
         .assert()
         .success();
 }

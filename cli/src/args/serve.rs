@@ -10,7 +10,7 @@ const DEFAULT_COLLECTION_ID: &str = "auto-generated-collection";
 
 /// Arguments for serving an API.
 #[derive(Debug, clap::Args)]
-pub struct Args {
+pub(crate) struct Args {
     /// Hrefs of collections, items, and item collections to load into the server on start
     ///
     /// If this is a single `-`, the data will be read from standard input.
