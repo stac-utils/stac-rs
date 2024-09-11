@@ -2,7 +2,6 @@
 resolver = "2"
 members = [
     "api",
-    "async",
     "cli",
     "core",
     "duckdb",
@@ -11,4 +10,4 @@ members = [
     "server",
     "validate",
 ]
-default-members = ["api", "async", "cli", "core", "server", "validate"]
+default-members = ["api", "cli", "core", "server", "validate"]

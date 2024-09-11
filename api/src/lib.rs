@@ -63,6 +63,8 @@
     warnings
 )]
 
+#[cfg(feature = "client")]
+mod client;
 mod collections;
 mod conformance;
 mod error;
@@ -75,6 +77,8 @@ mod search;
 mod sort;
 mod url_builder;
 
+#[cfg(feature = "client")]
+pub use client::Client;
 pub use {
     collections::Collections,
     conformance::{
@@ -106,7 +110,9 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub type Item = serde_json::Map<String, serde_json::Value>;
 
 #[cfg(test)]
-use geojson as _;
+use {geojson as _, tokio_test as _};
+#[cfg(all(not(feature = "client"), test))]
+use {mockito as _, tokio as _};
 
 // From https://github.com/rust-lang/cargo/issues/383#issuecomment-720873790,
 // may they be forever blessed.

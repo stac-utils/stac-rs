@@ -1,8 +1,7 @@
 use super::{Input, Run};
 use crate::{Error, Result, Value};
 use serde::de::DeserializeOwned;
-use stac_api::{GetItems, ItemCollection, Items, Search};
-use stac_async::ApiClient;
+use stac_api::{Client, GetItems, ItemCollection, Items, Search};
 use std::{fs::File, io::BufReader};
 use tokio::sync::mpsc::Sender;
 use tokio_stream::StreamExt;
@@ -95,7 +94,7 @@ async fn search_api(
     max_items: Option<usize>,
 ) -> Result<Option<Value>> {
     info!("searching '{}' using an api client", href);
-    let client = ApiClient::new(&href)?;
+    let client = Client::new(&href)?;
     let stream = client.search(search).await?;
     tokio::pin!(stream);
     let mut count = 0;

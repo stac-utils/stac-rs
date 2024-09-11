@@ -38,10 +38,6 @@ pub enum Error {
     #[error(transparent)]
     Stac(#[from] stac::Error),
 
-    /// [stac_async::Error]
-    #[error(transparent)]
-    StacAsync(#[from] stac_async::Error),
-
     /// [stac_duckdb::Error]
     #[cfg(feature = "duckdb")]
     #[error(transparent)]

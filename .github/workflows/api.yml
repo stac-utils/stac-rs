@@ -34,6 +34,8 @@ jobs:
       - name: Check
         run: cargo check
       - name: Check w/ geo
-        run: cargo check
+        run: cargo check -F geo
+      - name: Check w/ client
+        run: cargo check -F client
       - name: Test
         run: cargo test --all-features
