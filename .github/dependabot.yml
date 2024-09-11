@@ -21,10 +21,6 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "cargo"
-    directory: "/stac-async"
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "cargo"
     directory: "/stac-cli"
     schedule:
       interval: "weekly"

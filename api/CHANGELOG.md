@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+
+- `Client` (from now-defunkt **stac-async**) ([#372](https://github.com/stac-utils/stac-rs/pull/372))
+
 ## [0.5.0] - 2024-09-05
 
 ### Added

@@ -1,13 +1,11 @@
-use crate::{Error, Result};
+use crate::{Error, GetItems, Item, ItemCollection, Items, Result, Search, UrlBuilder};
 use async_stream::try_stream;
-use futures_core::stream::Stream;
-use futures_util::{pin_mut, StreamExt};
+use futures::{pin_mut, Stream, StreamExt};
 use http::header::HeaderName;
-use reqwest::{header::HeaderMap, Client, IntoUrl, Method, StatusCode};
+use reqwest::{header::HeaderMap, IntoUrl, Method, StatusCode};
 use serde::{de::DeserializeOwned, Serialize};
 use serde_json::{Map, Value};
 use stac::{Collection, Href, Link, Links};
-use stac_api::{GetItems, Item, ItemCollection, Items, Search, UrlBuilder};
 use tokio::{
     sync::mpsc::{self, error::SendError},
     task::JoinHandle,
@@ -17,24 +15,24 @@ const DEFAULT_CHANNEL_BUFFER: usize = 4;
 
 /// A client for interacting with STAC APIs.
 #[derive(Clone, Debug)]
-pub struct ApiClient {
-    client: Client,
+pub struct Client {
+    client: reqwest::Client,
     channel_buffer: usize,
     url_builder: UrlBuilder,
 }
 
-impl ApiClient {
+impl Client {
     /// Creates a new API client.
     ///
     /// # Examples
     ///
     /// ```
-    /// # use stac_async::ApiClient;
-    /// let client = ApiClient::new("https://planetarycomputer.microsoft.com/api/stac/v1").unwrap();
+    /// # use stac_api::Client;
+    /// let client = Client::new("https://planetarycomputer.microsoft.com/api/stac/v1").unwrap();
     /// ```
-    pub fn new(url: &str) -> Result<ApiClient> {
+    pub fn new(url: &str) -> Result<Client> {
         // TODO support HATEOS (aka look up the urls from the root catalog)
-        ApiClient::with_client(Client::new(), url)
+        Client::with_client(reqwest::Client::new(), url)
     }
 
     /// Creates a new API client with the given [Client].
@@ -45,14 +43,13 @@ impl ApiClient {
     /// # Examples
     ///
     /// ```
-    /// use reqwest::Client;
-    /// use stac_async::ApiClient;
+    /// use stac_api::Client;
     ///
-    /// let client = Client::new();
-    /// let api_client = ApiClient::with_client(client, "https://earth-search.aws.element84.com/v1/").unwrap();
+    /// let client = reqwest::Client::new();
+    /// let client = Client::with_client(client, "https://earth-search.aws.element84.com/v1/").unwrap();
     /// ```
-    pub fn with_client(client: Client, url: &str) -> Result<ApiClient> {
-        Ok(ApiClient {
+    pub fn with_client(client: reqwest::Client, url: &str) -> Result<Client> {
+        Ok(Client {
             client,
             channel_buffer: DEFAULT_CHANNEL_BUFFER,
             url_builder: UrlBuilder::new(url)?,
@@ -64,15 +61,15 @@ impl ApiClient {
     /// # Examples
     ///
     /// ```no_run
-    /// # use stac_async::ApiClient;
-    /// let client = ApiClient::new("https://planetarycomputer.microsoft.com/api/stac/v1").unwrap();
+    /// # use stac_api::Client;
+    /// let client = Client::new("https://planetarycomputer.microsoft.com/api/stac/v1").unwrap();
     /// # tokio_test::block_on(async {
     /// let collection = client.collection("sentinel-2-l2a").await.unwrap().unwrap();
     /// # })
     /// ```
     pub async fn collection(&self, id: &str) -> Result<Option<Collection>> {
         let url = self.url_builder.collection(id)?;
-        self.get(url).await
+        not_found_to_none(self.get(url).await)
     }
 
     /// Returns a stream of items belonging to a collection, using the [items
@@ -84,11 +81,10 @@ impl ApiClient {
     /// # Examples
     ///
     /// ```no_run
-    /// use stac_api::Items;
-    /// use stac_async::ApiClient;
-    /// use futures_util::stream::StreamExt;
+    /// use stac_api::{Items, Client};
+    /// use futures::StreamExt;
     ///
-    /// let client = ApiClient::new("https://planetarycomputer.microsoft.com/api/stac/v1").unwrap();
+    /// let client = Client::new("https://planetarycomputer.microsoft.com/api/stac/v1").unwrap();
     /// let items = Items {
     ///     limit: Some(1),
     ///     ..Default::default()
@@ -115,14 +111,10 @@ impl ApiClient {
         } else {
             None
         };
-        let page: Option<ItemCollection> = self
+        let page = self
             .request(Method::GET, url.clone(), items.as_ref(), None)
             .await?;
-        if let Some(page) = page {
-            Ok(stream_items(self.clone(), page, self.channel_buffer))
-        } else {
-            Err(Error::NotFound(url))
-        }
+        Ok(stream_items(self.clone(), page, self.channel_buffer))
     }
 
     /// Searches an API, returning a stream of items.
@@ -130,11 +122,10 @@ impl ApiClient {
     /// # Examples
     ///
     /// ```no_run
-    /// use stac_api::Search;
-    /// use stac_async::ApiClient;
-    /// use futures_util::stream::StreamExt;
+    /// use stac_api::{Search, Client};
+    /// use futures::StreamExt;
     ///
-    /// let client = ApiClient::new("https://planetarycomputer.microsoft.com/api/stac/v1").unwrap();
+    /// let client = Client::new("https://planetarycomputer.microsoft.com/api/stac/v1").unwrap();
     /// let mut search = Search { collections: Some(vec!["sentinel-2-l2a".to_string()]), ..Default::default() };
     /// search.items.limit = Some(1);
     /// # tokio_test::block_on(async {
@@ -151,31 +142,23 @@ impl ApiClient {
     pub async fn search(&self, search: Search) -> Result<impl Stream<Item = Result<Item>>> {
         let url = self.url_builder.search().clone();
         // TODO support GET
-        let page: Option<ItemCollection> = self.post(url.clone(), &search).await?;
-        if let Some(page) = page {
-            Ok(stream_items(self.clone(), page, self.channel_buffer))
-        } else {
-            Err(Error::NotFound(url))
-        }
+        let page = self.post(url.clone(), &search).await?;
+        Ok(stream_items(self.clone(), page, self.channel_buffer))
     }
 
-    async fn get<V>(&self, url: impl IntoUrl) -> Result<Option<V>>
+    async fn get<V>(&self, url: impl IntoUrl) -> Result<V>
     where
         V: DeserializeOwned + Href,
     {
         let url = url.into_url()?;
-        if let Some(mut value) = self
+        let mut value = self
             .request::<(), V>(Method::GET, url.clone(), None, None)
-            .await?
-        {
-            value.set_href(url);
-            Ok(Some(value))
-        } else {
-            Ok(None)
-        }
+            .await?;
+        value.set_href(url);
+        Ok(value)
     }
 
-    async fn post<S, R>(&self, url: impl IntoUrl, data: &S) -> Result<Option<R>>
+    async fn post<S, R>(&self, url: impl IntoUrl, data: &S) -> Result<R>
     where
         S: Serialize + 'static,
         R: DeserializeOwned,
@@ -189,7 +172,7 @@ impl ApiClient {
         url: impl IntoUrl,
         params: impl Into<Option<&S>>,
         headers: impl Into<Option<HeaderMap>>,
-    ) -> Result<Option<R>>
+    ) -> Result<R>
     where
         S: Serialize + 'static,
         R: DeserializeOwned,
@@ -215,15 +198,11 @@ impl ApiClient {
         if let Some(headers) = headers.into() {
             request = request.headers(headers);
         }
-        let response = request.send().await?;
-        if response.status() == StatusCode::NOT_FOUND {
-            return Ok(None);
-        }
-        let response = response.error_for_status()?;
+        let response = request.send().await?.error_for_status()?;
         response.json().await.map_err(Error::from)
     }
 
-    async fn request_from_link<R>(&self, link: Link) -> Result<Option<R>>
+    async fn request_from_link<R>(&self, link: Link) -> Result<R>
     where
         R: DeserializeOwned,
     {
@@ -248,7 +227,7 @@ impl ApiClient {
 }
 
 fn stream_items(
-    client: ApiClient,
+    client: Client,
     page: ItemCollection,
     channel_buffer: usize,
 ) -> impl Stream<Item = Result<Item>> {
@@ -279,7 +258,7 @@ fn stream_items(
 }
 
 fn stream_pages(
-    client: ApiClient,
+    client: Client,
     mut page: ItemCollection,
 ) -> impl Stream<Item = Result<ItemCollection>> {
     try_stream! {
@@ -302,14 +281,28 @@ fn stream_pages(
     }
 }
 
+fn not_found_to_none<T>(result: Result<T>) -> Result<Option<T>> {
+    let mut result = result.map(Some);
+    if let Err(Error::Reqwest(ref err)) = result {
+        if err
+            .status()
+            .map(|s| s == StatusCode::NOT_FOUND)
+            .unwrap_or_default()
+        {
+            result = Ok(None);
+        }
+    }
+    result
+}
+
 #[cfg(test)]
 mod tests {
-    use super::ApiClient;
-    use futures_util::stream::StreamExt;
+    use super::Client;
+    use crate::{ItemCollection, Items, Search};
+    use futures::StreamExt;
     use mockito::{Matcher, Server};
     use serde_json::json;
     use stac::Links;
-    use stac_api::{ItemCollection, Items, Search};
     use url::Url;
 
     #[tokio::test]
@@ -323,7 +316,7 @@ mod tests {
             .create_async()
             .await;
 
-        let client = ApiClient::new(&server.url()).unwrap();
+        let client = Client::new(&server.url()).unwrap();
         assert!(client
             .collection("not-a-collection")
             .await
@@ -362,7 +355,7 @@ mod tests {
             .create_async()
             .await;
 
-        let client = ApiClient::new(&server.url()).unwrap();
+        let client = Client::new(&server.url()).unwrap();
         let mut search = Search {
             collections: Some(vec!["sentinel-2-l2a".to_string()]),
             ..Default::default()
@@ -409,7 +402,7 @@ mod tests {
             .create_async()
             .await;
 
-        let client = ApiClient::new(&server.url()).unwrap();
+        let client = Client::new(&server.url()).unwrap();
         let items = Items {
             limit: Some(1),
             ..Default::default()
@@ -450,7 +443,7 @@ mod tests {
             .create_async()
             .await;
 
-        let client = ApiClient::new(&server.url()).unwrap();
+        let client = Client::new(&server.url()).unwrap();
         let items = Items {
             limit: Some(1),
             ..Default::default()

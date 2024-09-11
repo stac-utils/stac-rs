@@ -11,10 +11,21 @@ keywords = ["geospatial", "stac", "metadata", "geo", "raster"]
 categories = ["science", "data-structures", "web-programming"]
 
 [features]
+client = [
+    "dep:async-stream",
+    "dep:futures",
+    "dep:http",
+    "dep:reqwest",
+    "dep:tokio",
+]
 geo = ["dep:geo", "stac/geo"]
 
 [dependencies]
+async-stream = { version = "0.3", optional = true }
 chrono = "0.4"
+futures = { version = "0.3", optional = true }
+http = { version = "1", optional = true }
+reqwest = { version = "0.12", features = ["json"], optional = true }
 geo = { version = "0.28", optional = true }
 geojson = "0.24"
 serde = "1"
@@ -22,7 +33,11 @@ serde_json = "1"
 serde_urlencoded = "0.7"
 stac = { version = "0.9.0", path = "../core" }
 thiserror = "1"
+tokio = { version = "1.23", optional = true }
 url = "2.3"
 
 [dev-dependencies]
 geojson = "0.24"
+mockito = "1"
+tokio = { version = "1.23", features = ["rt", "macros"] }
+tokio-test = "0.4"
