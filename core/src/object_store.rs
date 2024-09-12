@@ -1,14 +1,18 @@
 //! Use [object_store](https://docs.rs/object_store/latest/object_store/) to read and write STAC.
 
+#![allow(async_fn_in_trait)]
+
 use crate::{Error, Href, Item, ItemCollection, Result};
 #[cfg(feature = "geoparquet")]
 use geoarrow::io::parquet::GeoParquetWriterOptions;
 use object_store::{path::Path, GetOptions, ObjectStore, PutOptions, PutResult};
 use serde::{de::DeserializeOwned, Serialize};
-use std::future::Future;
 
 /// Get STAC from an object store.
-pub trait Get {
+///
+/// These traits are not intended to be implemented outside of this crate, hence
+/// we allow the `async_fn_in_trait` nit.
+pub trait Get: ObjectStore {
     /// Gets STAC from JSON in an object store.
     ///
     /// # Examples
@@ -23,19 +27,16 @@ pub trait Get {
     /// let item: Item = store.get_json(&location).await.unwrap();
     /// # })
     /// ```
-    fn get_json<T: Href + DeserializeOwned>(
-        &self,
-        location: &Path,
-    ) -> impl Future<Output = Result<T>> {
-        self.get_json_opts(location, GetOptions::default())
+    async fn get_json<T: Href + DeserializeOwned>(&self, location: &Path) -> Result<T> {
+        self.get_json_opts(location, GetOptions::default()).await
     }
 
     /// Gets STAC from JSON in an object store with options.
-    fn get_json_opts<T: Href + DeserializeOwned>(
+    async fn get_json_opts<T: Href + DeserializeOwned>(
         &self,
         location: &Path,
         options: GetOptions,
-    ) -> impl Future<Output = Result<T>>;
+    ) -> Result<T>;
 
     /// Gets an [ItemCollection] from newline-delimited JSON in an object store.
     ///
@@ -51,16 +52,13 @@ pub trait Get {
     /// let items = store.get_ndjson(&location).await.unwrap();
     /// # })
     /// ```
-    fn get_ndjson(&self, location: &Path) -> impl Future<Output = Result<ItemCollection>> {
-        self.get_ndjson_opts(location, GetOptions::default())
+    async fn get_ndjson(&self, location: &Path) -> Result<ItemCollection> {
+        self.get_ndjson_opts(location, GetOptions::default()).await
     }
 
     /// Gets an [ItemCollection] from newline-delimited JSON in an object store with options.
-    fn get_ndjson_opts(
-        &self,
-        location: &Path,
-        options: GetOptions,
-    ) -> impl Future<Output = Result<ItemCollection>>;
+    async fn get_ndjson_opts(&self, location: &Path, options: GetOptions)
+        -> Result<ItemCollection>;
 
     /// Gets an [ItemCollection] from geoparquet in an object store.
     ///
@@ -77,21 +75,25 @@ pub trait Get {
     /// # })
     /// ```
     #[cfg(feature = "geoparquet")]
-    fn get_geoparquet(&self, location: &Path) -> impl Future<Output = Result<ItemCollection>> {
+    async fn get_geoparquet(&self, location: &Path) -> Result<ItemCollection> {
         self.get_geoparquet_opts(location, GetOptions::default())
+            .await
     }
 
     /// Gets an [ItemCollection] from geoparquet in an object store with options.
     #[cfg(feature = "geoparquet")]
-    fn get_geoparquet_opts(
+    async fn get_geoparquet_opts(
         &self,
         location: &Path,
         options: GetOptions,
-    ) -> impl Future<Output = Result<ItemCollection>>;
+    ) -> Result<ItemCollection>;
 }
 
 /// Puts STAC to an object store.
-pub trait Put {
+///
+/// These traits are not intended to be implemented outside of this crate, hence
+/// we allow the `async_fn_in_trait` nit.
+pub trait Put: ObjectStore {
     /// Puts STAC to JSON in an object store.
     ///
     /// # Examples
@@ -107,21 +109,18 @@ pub trait Put {
     /// let _ = store.put_json(&location, &item).await.unwrap();
     /// # })
     /// ```
-    fn put_json<T: Serialize>(
-        &self,
-        location: &Path,
-        value: &T,
-    ) -> impl Future<Output = Result<PutResult>> {
+    async fn put_json<T: Serialize>(&self, location: &Path, value: &T) -> Result<PutResult> {
         self.put_json_opts(location, value, PutOptions::default())
+            .await
     }
 
     /// Puts STAC to JSON in an object store.
-    fn put_json_opts<T: Serialize>(
+    async fn put_json_opts<T: Serialize>(
         &self,
         location: &Path,
         value: &T,
         options: PutOptions,
-    ) -> impl Future<Output = Result<PutResult>>;
+    ) -> Result<PutResult>;
 
     /// Puts an [ItemCollection] as newline-delimited JSON in an object store.
     ///
@@ -138,21 +137,22 @@ pub trait Put {
     /// let _ = store.put_ndjson(&location, &vec![item].into()).await.unwrap();
     /// # })
     /// ```
-    fn put_ndjson(
+    async fn put_ndjson(
         &self,
         location: &Path,
         item_collection: &ItemCollection,
-    ) -> impl Future<Output = Result<PutResult>> {
+    ) -> Result<PutResult> {
         self.put_ndjson_opts(location, item_collection, PutOptions::default())
+            .await
     }
 
     /// Puts an [ItemCollection] as newline-delimited JSON in an object store.
-    fn put_ndjson_opts(
+    async fn put_ndjson_opts(
         &self,
         location: &Path,
         item_collection: &ItemCollection,
         options: PutOptions,
-    ) -> impl Future<Output = Result<PutResult>>;
+    ) -> Result<PutResult>;
 
     /// Puts an [ItemCollection] as geoparquet in an object store.
     ///
@@ -170,28 +170,29 @@ pub trait Put {
     /// # })
     /// ```
     #[cfg(feature = "geoparquet")]
-    fn put_geoparquet(
+    async fn put_geoparquet(
         &self,
         location: &Path,
         item_collection: ItemCollection,
-    ) -> impl Future<Output = Result<PutResult>> {
+    ) -> Result<PutResult> {
         self.put_geoparquet_opts(
             location,
             item_collection,
             GeoParquetWriterOptions::default(),
             PutOptions::default(),
         )
+        .await
     }
 
     /// Puts an [ItemCollection] as geoparquet in an object store with options.
     #[cfg(feature = "geoparquet")]
-    fn put_geoparquet_opts(
+    async fn put_geoparquet_opts(
         &self,
         location: &Path,
         item_collection: ItemCollection,
         geoparquet_writer_options: GeoParquetWriterOptions,
         put_options: PutOptions,
-    ) -> impl Future<Output = Result<PutResult>>;
+    ) -> Result<PutResult>;
 }
 
 impl<O: ObjectStore> Get for O {

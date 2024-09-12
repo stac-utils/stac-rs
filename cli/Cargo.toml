@@ -15,29 +15,34 @@ rust-version = "1.75"
 default = ["gdal", "geoparquet", "pgstac"]
 duckdb = ["dep:stac-duckdb", "dep:duckdb"]
 gdal = ["stac/gdal"]
-geoparquet = ["dep:geoarrow", "stac/geoparquet-compression", "parquet"]
+geoparquet = ["stac/geoparquet-compression"]
 pgstac = ["stac-server/pgstac"]
 python = ["dep:pyo3", "pgstac", "geoparquet"]
 
 [dependencies]
 axum = "0.7"
-bytes = { version = "1" }
 clap = { version = "4", features = ["derive"] }
-duckdb = { version = "1", optional = true }                                      # We have this dependency only to allow us to bundle it
-geoarrow = { version = "0.3", optional = true }
-object_store = { version = "0.11", features = ["aws", "gcp", "azure", "http"] }
-parquet = { version = "52", optional = true }
+duckdb = { version = "1", optional = true } # We have this dependency only to allow us to bundle it
+object_store = "0.11"
 pyo3 = { version = "0.22", optional = true }
 reqwest = "0.12"
 serde = "1"
 serde_json = "1"
-stac = { version = "0.9.0", path = "../core", features = ["reqwest"] }
+stac = { version = "0.9.0", path = "../core", features = [
+    "reqwest",
+    "object-store-full",
+] }
 stac-api = { version = "0.5.0", path = "../api", features = ["client"] }
 stac-duckdb = { version = "0.0.1", path = "../duckdb", optional = true }
 stac-server = { version = "0.2.0", path = "../server", features = ["axum"] }
 stac-validate = { version = "0.2.2", path = "../validate" }
 thiserror = "1"
-tokio = { version = "1.23", features = ["macros", "io-std", "rt-multi-thread"] }
+tokio = { version = "1.23", features = [
+    "macros",
+    "io-std",
+    "rt-multi-thread",
+    "fs",
+] }
 tokio-stream = "0.1"
 tracing = "0.1"
 tracing-subscriber = "0.3"

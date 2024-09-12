@@ -113,12 +113,12 @@ It's support in **stac-rs** is currently experimental:
 }
 ```
 
-### object_store
+### object-store
 
-`object_store` adds traits to read and write from an [object_store](https://docs.rs/object_store/latest/object_store/):
+`object-store` adds traits to read and write from an [object_store](https://docs.rs/object_store/latest/object_store/):
 
 ```rust
-#[cfg(feature = "object_store")]
+#[cfg(feature = "object-store")]
 {
 tokio_test::block_on(async {
     use object_store::{path::Path, local::LocalFileSystem};

@@ -101,8 +101,18 @@ pub enum Error {
 
     /// [object_store::Error]
     #[error(transparent)]
-    #[cfg(feature = "object_store")]
+    #[cfg(feature = "object-store")]
     ObjectStore(#[from] object_store::Error),
+
+    /// [object_store::path::Error]
+    #[error(transparent)]
+    #[cfg(feature = "object-store")]
+    ObjectStorePath(#[from] object_store::path::Error),
+
+    /// [parquet::errors::ParquetError]
+    #[error(transparent)]
+    #[cfg(feature = "geoparquet")]
+    Parquet(#[from] parquet::errors::ParquetError),
 
     /// Returned when trying to read from a url but the `reqwest` feature is not enabled.
     #[error("reqwest is not enabled")]

@@ -1,4 +1,4 @@
-use crate::{Href, Item, Link, Links, Migrate};
+use crate::{Error, Href, Item, Link, Links, Migrate};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::{ops::Deref, vec::IntoIter};
@@ -116,6 +116,27 @@ impl Migrate for ItemCollection {
         }
         self.items = items;
         Ok(self)
+    }
+}
+
+impl TryFrom<Value> for ItemCollection {
+    type Error = Error;
+
+    fn try_from(value: Value) -> Result<Self, Self::Error> {
+        match serde_json::from_value::<ItemCollection>(value.clone()) {
+            Ok(item_collection) => Ok(item_collection),
+            Err(err) => {
+                if let Value::Array(array) = value {
+                    let mut items = Vec::new();
+                    for item in array {
+                        items.push(serde_json::from_value(item)?);
+                    }
+                    Ok(items.into())
+                } else {
+                    Err(Error::from(err))
+                }
+            }
+        }
     }
 }
 

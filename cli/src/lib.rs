@@ -13,7 +13,7 @@
 //! ```
 
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
-#![warn(
+#![deny(
     elided_lifetimes_in_paths,
     explicit_outlives_requirements,
     keyword_idents,
@@ -44,9 +44,9 @@
 )]
 
 mod args;
-mod config;
 mod error;
 mod input;
+mod options;
 mod output;
 #[cfg(feature = "python")]
 mod python;
