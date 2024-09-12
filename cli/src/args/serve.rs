@@ -78,12 +78,8 @@ impl Run for Args {
                     reading_from_stdin = true;
                 }
             }
-            let input = input.with_href(&href)?;
-            let _ = join_set.spawn(async move {
-                let mut value = input.get().await?;
-                value.set_href(href);
-                Ok(value)
-            });
+            let input = input.with_href(href);
+            let _ = join_set.spawn(async move { input.get().await });
         }
         let mut item_join_set = JoinSet::new();
         let mut collections = HashSet::new();
@@ -102,7 +98,7 @@ impl Run for Args {
                         collection.make_relative_links_absolute(href)?;
                         for link in collection.iter_item_links() {
                             let href = link.href.to_string();
-                            let input = input.with_href(&href)?;
+                            let input = input.with_href(href);
                             let _ = item_join_set.spawn(async move { input.get().await });
                         }
                     }

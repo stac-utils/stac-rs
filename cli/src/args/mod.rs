@@ -10,11 +10,11 @@ mod serve;
 mod translate;
 mod validate;
 
-use crate::{config::Entry, input::Input, output::Output, Result, Value};
+use crate::{input::Input, options::KeyValue, output::Output, Result, Value};
 use clap::Parser;
+use stac::Format;
 use tokio::sync::mpsc::Sender;
 use tokio::task::JoinHandle;
-use tracing::info;
 use tracing::metadata::Level;
 
 const BUFFER: usize = 100;
@@ -25,19 +25,23 @@ const BUFFER: usize = 100;
 pub struct Args {
     /// The input format, if not provided will be inferred from the input file's extension, falling back to json
     #[arg(short, long, global = true)]
-    input_format: Option<stac::Format>,
+    input_format: Option<Format>,
 
     /// key=value pairs to use for the input object store
-    #[arg(short = 'k', long)]
-    input_config: Vec<Entry>,
+    #[arg(long = "input-option")]
+    input_options: Vec<KeyValue>,
 
     /// The output format, if not provided will be inferred from the output file's extension, falling back to json
     #[arg(short, long, global = true)]
-    output_format: Option<crate::output::Format>,
+    output_format: Option<Format>,
 
     /// key=value pairs to use for the output object store
-    #[arg(short = 'c', long)]
-    output_config: Vec<Entry>,
+    #[arg(long = "output-option")]
+    output_options: Vec<KeyValue>,
+
+    /// key=value pairs to use for both the input and the output object store
+    #[arg(short = 'c', long = "option")]
+    options: Vec<KeyValue>,
 
     /// If the output is a local file, create its parent directories before creating the file
     #[arg(long, default_value_t = true)]
@@ -129,23 +133,30 @@ impl Args {
         let input = Input::new(
             self.subcommand.take_infile(),
             self.input_format,
-            self.input_config,
-        )?;
+            self.options
+                .clone()
+                .into_iter()
+                .chain(self.input_options)
+                .collect::<Vec<_>>(),
+        );
         let mut output = Output::new(
             self.subcommand.take_outfile(),
             self.output_format.or({
                 if self.stream {
-                    Some(crate::output::Format::NdJson)
+                    Some(Format::NdJson)
                 } else {
                     None
                 }
             }),
-            self.output_config,
+            self.options
+                .into_iter()
+                .chain(self.output_options)
+                .collect::<Vec<_>>(),
             self.create_parent_directories,
         )
         .await?;
         let value = if self.stream {
-            if output.format != crate::output::Format::NdJson {
+            if output.format != Format::NdJson {
                 tracing::warn!(
                     "format was set to {}, but stream=true so re-setting to nd-json",
                     output.format
@@ -166,10 +177,10 @@ impl Args {
         };
         if let Some(value) = value {
             if let Some(put_result) = output.put(value).await? {
-                info!(
-                    "put result: etag={}, version={}",
-                    put_result.e_tag.as_deref().unwrap_or("<none>"),
-                    put_result.version.as_deref().unwrap_or("<none>")
+                tracing::info!(
+                    "put result: etag={} version={}",
+                    put_result.e_tag.unwrap_or_default(),
+                    put_result.version.unwrap_or_default()
                 );
             }
         }

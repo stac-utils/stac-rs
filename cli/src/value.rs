@@ -1,6 +1,6 @@
-use crate::{output::Format, Error, Result};
-use bytes::Bytes;
+use crate::{Error, Result};
 use serde::Serialize;
+use stac::Format;
 
 /// An output value, which can either be a [serde_json::Value] or a [stac::Value].
 #[derive(Debug, Serialize)]
@@ -14,77 +14,12 @@ pub enum Value {
 }
 
 impl Value {
-    pub(crate) fn into_bytes(self, format: Format) -> Result<Bytes> {
+    pub(crate) fn into_ndjson(self) -> Result<Vec<u8>> {
         match self {
-            Self::Stac(value) => match format {
-                Format::CompactJson => serde_json::to_vec(&value)
-                    .map(Bytes::from)
-                    .map_err(Error::from),
-                Format::PrettyJson => serde_json::to_vec_pretty(&value)
-                    .map(Bytes::from)
-                    .map_err(Error::from),
-                Format::NdJson => {
-                    if let stac::Value::ItemCollection(item_collection) = value {
-                        let mut buf = Vec::new();
-                        for item in item_collection.items {
-                            serde_json::to_writer(&mut buf, &item)?;
-                            buf.push(b'\n');
-                        }
-                        Ok(buf.into())
-                    } else {
-                        serde_json::to_vec(&value)
-                            .map(Bytes::from)
-                            .map_err(Error::from)
-                    }
-                }
-                #[cfg(feature = "geoparquet")]
-                Format::Geoparquet(compression) => geoparquet_bytes(value, compression),
-            },
-            Self::Json(value) => match format {
-                Format::CompactJson => serde_json::to_vec(&value)
-                    .map(Bytes::from)
-                    .map_err(Error::from),
-                Format::PrettyJson => serde_json::to_vec_pretty(&value)
-                    .map(Bytes::from)
-                    .map_err(Error::from),
-                Format::NdJson => {
-                    if let serde_json::Value::Array(array) = value {
-                        let mut buf = Vec::new();
-                        for value in array {
-                            serde_json::to_writer(&mut buf, &value)?;
-                            buf.push(b'\n');
-                        }
-                        Ok(buf.into())
-                    } else {
-                        serde_json::to_vec(&value)
-                            .map(Bytes::from)
-                            .map_err(Error::from)
-                    }
-                }
-                #[cfg(feature = "geoparquet")]
-                Format::Geoparquet(compression) => {
-                    geoparquet_bytes(serde_json::from_value(value)?, compression)
-                }
-            },
+            Value::Json(value) => Format::NdJson.json_to_vec(value).map_err(Error::from),
+            Value::Stac(value) => Format::NdJson.value_to_vec(value).map_err(Error::from),
         }
     }
-}
-
-#[cfg(feature = "geoparquet")]
-fn geoparquet_bytes(value: stac::Value, compression: parquet::basic::Compression) -> Result<Bytes> {
-    tracing::debug!(
-        "converting STAC {} to geoparquet bytes using {} compression",
-        value.type_name(),
-        compression
-    );
-    let mut options = geoarrow::io::parquet::GeoParquetWriterOptions::default();
-    let writer_properties = parquet::file::properties::WriterProperties::builder()
-        .set_compression(compression)
-        .build();
-    options.writer_properties = Some(writer_properties);
-    let mut bytes = Vec::new();
-    stac::geoparquet::to_writer_with_options(&mut bytes, value, &options)?;
-    Ok(bytes.into())
 }
 
 impl From<stac::Value> for Value {

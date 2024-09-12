@@ -17,11 +17,6 @@ pub enum Error {
     #[error(transparent)]
     ObjectStorePath(#[from] object_store::path::Error),
 
-    /// [parquet::errors::ParquetError]
-    #[error(transparent)]
-    #[cfg(feature = "geoparquet")]
-    Parquet(#[from] parquet::errors::ParquetError),
-
     /// [reqwest::Error]
     #[error(transparent)]
     Reqwest(#[from] reqwest::Error),

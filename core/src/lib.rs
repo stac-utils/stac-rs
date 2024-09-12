@@ -73,7 +73,7 @@
 //! to get and put STAC values to and from an [object_store](https://docs.rs/object_store/latest/object_store/):
 //!
 //! ```
-//! #[cfg(feature = "object_store")]
+//! #[cfg(feature = "object-store")]
 //! {
 //! use object_store::{path::Path, local::LocalFileSystem};
 //! use stac::{Item, object_store::Get};
@@ -160,12 +160,14 @@ pub mod link;
 mod migrate;
 pub mod mime;
 pub mod ndjson;
-#[cfg(feature = "object_store")]
+#[cfg(feature = "object-store")]
 pub mod object_store;
 mod statistics;
 mod value;
 mod version;
 
+#[cfg(feature = "object-store")]
+pub use io::get;
 pub use {
     asset::{Asset, Assets},
     band::Band,
@@ -246,7 +248,7 @@ mod tests {
     #[cfg(not(feature = "geoparquet"))]
     use bytes as _;
     use rstest as _;
-    #[cfg(not(feature = "object_store"))]
+    #[cfg(not(feature = "object-store"))]
     use tokio as _;
     use tokio_test as _;
 
