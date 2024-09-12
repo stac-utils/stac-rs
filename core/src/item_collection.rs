@@ -109,7 +109,7 @@ where
 }
 
 impl Migrate for ItemCollection {
-    fn migrate(mut self, version: crate::Version) -> crate::Result<Self> {
+    fn migrate(mut self, version: &crate::Version) -> crate::Result<Self> {
         let mut items = Vec::with_capacity(self.items.len());
         for item in self.items {
             items.push(item.migrate(version)?);

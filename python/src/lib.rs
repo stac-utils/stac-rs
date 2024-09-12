@@ -36,12 +36,10 @@ fn migrate<'py>(value: &Bound<'py, PyDict>, version: Option<&str>) -> PyResult<B
     let py = value.py();
     let value: Value = pythonize::depythonize(value)?;
     let version = version
-        .map(|version| version.parse())
-        .transpose()
-        .map_err(|err: stac::Error| StacrsError::new_err(err.to_string()))?
+        .map(|version| version.parse().unwrap())
         .unwrap_or_default();
     let value = value
-        .migrate(version)
+        .migrate(&version)
         .map_err(|err| StacrsError::new_err(err.to_string()))?;
     let value = pythonize::pythonize(py, &value)?;
     value.downcast_into().map_err(PyErr::from)
@@ -75,12 +73,10 @@ fn migrate_href<'py>(
 ) -> PyResult<Bound<'py, PyDict>> {
     let value: Value = stac::read(href).map_err(|err| StacrsError::new_err(err.to_string()))?;
     let version = version
-        .map(|version| version.parse())
-        .transpose()
-        .map_err(|err: stac::Error| StacrsError::new_err(err.to_string()))?
+        .map(|version| version.parse().unwrap())
         .unwrap_or_default();
     let value = value
-        .migrate(version)
+        .migrate(&version)
         .map_err(|err| StacrsError::new_err(err.to_string()))?;
     let value = pythonize::pythonize(py, &value)?;
     value.downcast_into().map_err(PyErr::from)

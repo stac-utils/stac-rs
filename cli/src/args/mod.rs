@@ -133,7 +133,7 @@ impl Args {
         )?;
         let mut output = Output::new(
             self.subcommand.take_outfile(),
-            self.output_format.or_else(|| {
+            self.output_format.or({
                 if self.stream {
                     Some(crate::output::Format::NdJson)
                 } else {

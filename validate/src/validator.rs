@@ -103,7 +103,7 @@ impl Validator {
                 "https://schemas.stacspec.org/v{}/item-spec/json-schema/item.json",
                 version
             ))?;
-            let _ = self.item_schemas.insert(version, schema);
+            let _ = self.item_schemas.insert(version.clone(), schema);
         }
         Ok(self
             .item_schemas
@@ -124,7 +124,7 @@ impl Validator {
                 "https://schemas.stacspec.org/v{}/catalog-spec/json-schema/catalog.json",
                 version
             ))?;
-            let _ = self.catalog_schemas.insert(version, schema);
+            let _ = self.catalog_schemas.insert(version.clone(), schema);
         }
         Ok(self
             .catalog_schemas
@@ -145,7 +145,7 @@ impl Validator {
                 "https://schemas.stacspec.org/v{}/collection-spec/json-schema/collection.json",
                 version
             ))?;
-            let _ = self.collection_schemas.insert(version, schema);
+            let _ = self.collection_schemas.insert(version.clone(), schema);
         }
         Ok(self
             .collection_schemas
@@ -347,6 +347,7 @@ fn version(value: &Value) -> Result<Version> {
         .and_then(|object| object.get("stac_version"))
         .and_then(|value| value.as_str())
         .map(|version| version.parse())
-        .transpose()?
+        .transpose()
+        .unwrap()
         .ok_or(Error::MissingStacVersion)
 }

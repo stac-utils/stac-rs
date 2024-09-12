@@ -21,7 +21,7 @@ impl Run for Args {
     async fn run(self, input: Input, _: Option<Sender<Value>>) -> Result<Option<Value>> {
         let value = input.get().await?;
         value
-            .migrate(self.version)
+            .migrate(&self.version)
             .map(Value::from)
             .map(Some)
             .map_err(Error::from)
