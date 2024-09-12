@@ -1,11 +1,10 @@
-use std::collections::HashMap;
-
 use crate::{Error, Result, Version};
 use serde::{de::DeserializeOwned, Serialize};
 use serde_json::{Map, Value};
+use std::collections::HashMap;
 
 /// Migrates a STAC object from one version to another.
-pub trait Migrate: Sized + Serialize + DeserializeOwned {
+pub trait Migrate: Sized + Serialize + DeserializeOwned + std::fmt::Debug {
     /// Migrates this object to another version.
     ///
     /// # Examples
@@ -14,17 +13,17 @@ pub trait Migrate: Sized + Serialize + DeserializeOwned {
     /// use stac::{Item, Migrate, Version};
     ///
     /// let mut item: Item = stac::read("../spec-examples/v1.0.0/simple-item.json").unwrap();
-    /// let item = item.migrate(Version::v1_1_0_beta_1).unwrap();
+    /// let item = item.migrate(&Version::v1_1_0_beta_1).unwrap();
     /// assert_eq!(item.version, Version::v1_1_0_beta_1);
     /// ```
-    fn migrate(self, to: Version) -> Result<Self> {
+    fn migrate(self, to: &Version) -> Result<Self> {
         let mut value = serde_json::to_value(self)?;
         if let Some(version) = value
             .as_object()
             .and_then(|object| object.get("stac_version"))
             .and_then(|version| version.as_str())
         {
-            let from: Version = version.parse()?;
+            let from: Version = version.parse().unwrap(); // infallible
             let steps = from.steps(to)?;
             for step in steps {
                 value = step.migrate(value)?;
@@ -46,16 +45,18 @@ enum Step {
 }
 
 impl Version {
-    fn steps(self, to: Version) -> Result<Vec<Step>> {
+    fn steps(self, to: &Version) -> Result<Vec<Step>> {
         match self {
             Version::v1_0_0 => match to {
                 Version::v1_0_0 => Ok(Vec::new()),
                 Version::v1_1_0_beta_1 => Ok(vec![Step::v1_0_0_to_v1_1_0_beta_1]),
+                _ => Err(Error::UnsupportedMigration(self, to.clone())),
             },
             Version::v1_1_0_beta_1 => match to {
-                Version::v1_0_0 => Err(Error::UnsupportedMigration(self, to)),
                 Version::v1_1_0_beta_1 => Ok(Vec::new()),
+                _ => Err(Error::UnsupportedMigration(self, to.clone())),
             },
+            Version::Unknown(_) => Err(Error::UnsupportedMigration(self, to.clone())),
         }
     }
 }
@@ -215,7 +216,7 @@ mod tests {
     #[test]
     fn migrate_v1_0_0_to_v1_1_0_beta_1() {
         let item: Item = crate::read("data/bands-v1.0.0.json").unwrap();
-        let item = item.migrate(Version::v1_1_0_beta_1).unwrap();
+        let item = item.migrate(&Version::v1_1_0_beta_1).unwrap();
         let asset = &item.assets["example"];
         assert_eq!(asset.data_type.as_ref().unwrap(), &DataType::UInt16);
         assert_eq!(asset.bands[0].name.as_ref().unwrap(), "r");
@@ -229,12 +230,12 @@ mod tests {
         assert_json_eq!(expected, serde_json::to_value(item).unwrap());
 
         let collection = Collection::new("an-id", "a description");
-        let collection = collection.migrate(Version::v1_1_0_beta_1).unwrap();
+        let collection = collection.migrate(&Version::v1_1_0_beta_1).unwrap();
         assert_eq!(collection.license, "other");
 
         let mut item = Item::new("an-id");
         item.set_link(Link::self_("/an/absolute/href"));
-        let item = item.migrate(Version::v1_1_0_beta_1).unwrap();
+        let item = item.migrate(&Version::v1_1_0_beta_1).unwrap();
         assert_eq!(item.link("self").unwrap().href, "file:///an/absolute/href");
     }
 
@@ -242,7 +243,7 @@ mod tests {
     fn remove_empty_bands() {
         // https://github.com/stac-utils/stac-rs/issues/350
         let item: Item = crate::read("data/20201211_223832_CS2.json").unwrap();
-        let item = item.migrate(Version::v1_1_0_beta_1).unwrap();
+        let item = item.migrate(&Version::v1_1_0_beta_1).unwrap();
         let asset = &item.assets["data"];
         assert!(asset.bands.is_empty());
     }

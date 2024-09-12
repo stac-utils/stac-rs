@@ -52,7 +52,7 @@ impl Input {
 
     /// Creates a new input with the given href.
     pub(crate) fn with_href(&self, href: &str) -> Result<Input> {
-        let (object_store, path) = parse_href_opts(&href, self.config.iter())?;
+        let (object_store, path) = parse_href_opts(href, self.config.iter())?;
         let reader = Reader::ObjectStore { object_store, path };
         Ok(Input {
             format: self.format,
@@ -66,7 +66,7 @@ impl Input {
         tracing::debug!("getting {}", self.format);
         match &self.reader {
             Reader::ObjectStore { object_store, path } => {
-                let bytes = object_store.get(&path).await?.bytes().await?;
+                let bytes = object_store.get(path).await?.bytes().await?;
                 match self.format {
                     Format::Json => serde_json::from_slice(&bytes).map_err(Error::from),
                     Format::NdJson => bytes
@@ -110,7 +110,7 @@ where
     K: AsRef<str>,
     V: Into<String>,
 {
-    if let Some(url) = Url::parse(href).ok() {
+    if let Ok(url) = Url::parse(href) {
         object_store::parse_url_opts(&url, options).map_err(Error::from)
     } else {
         let path = Path::from_filesystem_path(href)?;

@@ -103,7 +103,7 @@ impl Output {
         let bytes = value.into_bytes(self.format)?;
         if let Some((object_store, path)) = &self.writer.object_store {
             object_store
-                .put(path, PutPayload::from_bytes(bytes.into()))
+                .put(path, PutPayload::from_bytes(bytes))
                 .await
                 .map(Some)
                 .map_err(Error::from)

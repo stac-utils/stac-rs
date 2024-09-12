@@ -274,7 +274,7 @@ impl From<ItemCollection> for Value {
 }
 
 impl Migrate for Value {
-    fn migrate(self, version: Version) -> Result<Value> {
+    fn migrate(self, version: &Version) -> Result<Value> {
         match self {
             Value::Item(item) => item.migrate(version).map(Value::Item),
             Value::Catalog(catalog) => catalog.migrate(version).map(Value::Catalog),
