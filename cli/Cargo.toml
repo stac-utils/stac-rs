@@ -16,7 +16,7 @@ default = ["gdal", "geoparquet", "pgstac"]
 duckdb = ["dep:stac-duckdb", "dep:duckdb"]
 gdal = ["stac/gdal"]
 geoparquet = ["stac/geoparquet-compression"]
-pgstac = ["stac-server/pgstac"]
+pgstac = ["stac-server/pgstac", "dep:pgstac"]
 python = ["dep:pyo3", "pgstac", "geoparquet"]
 
 [dependencies]
@@ -24,6 +24,7 @@ axum = "0.7"
 clap = { version = "4", features = ["derive"] }
 duckdb = { version = "1", optional = true } # We have this dependency only to allow us to bundle it
 object_store = "0.11"
+pgstac = { version = "0.1", path = "../pgstac", optional = true }
 pyo3 = { version = "0.22", optional = true }
 reqwest = "0.12"
 serde = "1"

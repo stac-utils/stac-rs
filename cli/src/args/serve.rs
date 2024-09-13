@@ -177,7 +177,7 @@ where
 enum Backend {
     Memory(MemoryBackend),
     #[cfg(feature = "pgstac")]
-    Pgstac(stac_server::PgstacBackend),
+    Pgstac(stac_server::PgstacBackend<pgstac::MakeRustlsConnect>),
 }
 
 impl Backend {
