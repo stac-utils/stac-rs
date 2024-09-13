@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+- Make TLS the default for `PgstacBackend` ([#383](https://github.com/stac-utils/stac-rs/pull/383))
+
 ### Removed
 
 - **stac-async** dependency ([#369](https://github.com/stac-utils/stac-rs/pull/369))

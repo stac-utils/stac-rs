@@ -36,8 +36,12 @@
 
 mod client;
 mod page;
+#[cfg(feature = "tls")]
+mod tls;
 
 pub use {client::Client, page::Page};
+#[cfg(feature = "tls")]
+pub use {tls::make_unverified_tls, tokio_postgres_rustls::MakeRustlsConnect};
 
 /// Crate-specific error enum.
 #[derive(Debug, thiserror::Error)]
