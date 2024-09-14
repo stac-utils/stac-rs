@@ -2,7 +2,7 @@
 
 use crate::{options::Options, value::Value, Error, Result};
 use object_store::PutResult;
-use stac::io::{Format, IntoFormattedBytes};
+use stac::io::{Format, FormatIntoBytes};
 use std::{path::Path, pin::Pin};
 use tokio::{
     fs::File,
@@ -57,7 +57,7 @@ impl Output {
 
     /// Streams a value to the output
     pub(crate) async fn stream(&mut self, value: Value) -> Result<()> {
-        let bytes = value.into_formatted_bytes(Format::NdJson)?;
+        let bytes = value.format_into_bytes(Format::NdJson)?;
         self.stream.write_all(&bytes).await?;
         self.stream.flush().await?;
         Ok(())
@@ -70,7 +70,7 @@ impl Output {
                 .await
                 .map_err(Error::from)
         } else {
-            let bytes = value.into_formatted_bytes(self.format)?;
+            let bytes = value.format_into_bytes(self.format)?;
             self.stream.write_all(&bytes).await?;
             self.stream.flush().await?;
             Ok(None)

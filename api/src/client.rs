@@ -7,7 +7,7 @@ use http::header::HeaderName;
 use reqwest::{header::HeaderMap, IntoUrl, Method, StatusCode};
 use serde::{de::DeserializeOwned, Serialize};
 use serde_json::{Map, Value};
-use stac::{Collection, Href, Link, Links};
+use stac::{Collection, Link, Links, Object};
 use std::pin::Pin;
 use tokio::{
     runtime::{Builder, Runtime},
@@ -163,13 +163,13 @@ impl Client {
 
     async fn get<V>(&self, url: impl IntoUrl) -> Result<V>
     where
-        V: DeserializeOwned + Href,
+        V: DeserializeOwned + Object,
     {
         let url = url.into_url()?;
         let mut value = self
             .request::<(), V>(Method::GET, url.clone(), None, None)
             .await?;
-        value.set_href(url);
+        *value.href_mut() = Some(url.to_string());
         Ok(value)
     }
 

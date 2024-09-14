@@ -1,7 +1,7 @@
 use std::io::Read;
 
 use crate::{options::Options, Error, Result};
-use stac::{io::Format, Value};
+use stac::{io::Format, Object, Value};
 
 /// The input to a CLI run.
 #[derive(Debug, Default)]
@@ -46,10 +46,7 @@ impl Input {
         } else {
             let mut buf = Vec::new();
             let _ = std::io::stdin().read_to_end(&mut buf);
-            self.format
-                .unwrap_or_default()
-                .from_bytes(buf.into())
-                .map_err(Error::from)
+            Value::format_from_bytes(self.format.unwrap_or_default(), buf).map_err(Error::from)
         }
     }
 }

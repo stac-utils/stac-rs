@@ -1,6 +1,6 @@
 use crate::{Error, Result};
 use serde::Serialize;
-use stac::io::{Format, IntoFormattedBytes};
+use stac::io::{Format, FormatIntoBytes};
 
 /// An output value, which can either be a [serde_json::Value] or a [stac::Value].
 #[derive(Debug, Serialize)]
@@ -41,11 +41,11 @@ impl TryFrom<Value> for stac::Value {
     }
 }
 
-impl IntoFormattedBytes for Value {
-    fn into_formatted_bytes(self, format: Format) -> stac::Result<Vec<u8>> {
+impl FormatIntoBytes for Value {
+    fn format_into_bytes(self, format: Format) -> stac::Result<Vec<u8>> {
         match self {
-            Self::Json(value) => value.into_formatted_bytes(format),
-            Self::Stac(value) => value.into_formatted_bytes(format),
+            Self::Json(value) => value.format_into_bytes(format),
+            Self::Stac(value) => value.format_into_bytes(format),
         }
     }
 }

@@ -2,7 +2,7 @@
 //!
 //!  ⚠️ geoparquet support is currently experimental, and may break on any release.
 
-use crate::{Error, ItemCollection, Result, Value};
+use crate::{Error, ItemCollection, Result};
 use geoarrow::io::parquet::{GeoParquetRecordBatchReaderBuilder, GeoParquetWriterOptions};
 use parquet::{
     basic::Compression,
@@ -46,11 +46,11 @@ where
 /// let mut cursor = Cursor::new(Vec::new());
 /// stac::io::geoparquet::to_writer(&mut cursor, item).unwrap();
 /// ```
-pub fn to_writer<W>(writer: W, value: impl Into<Value>) -> Result<()>
+pub fn to_writer<W>(writer: W, item_collection: ItemCollection) -> Result<()>
 where
     W: Write + Send,
 {
-    to_writer_with_options(writer, value, &Default::default())
+    to_writer_with_options(writer, item_collection, &Default::default())
 }
 
 /// Writes a [Value] to a [std::io::Write] as
@@ -69,7 +69,7 @@ where
 /// ```
 pub fn to_writer_with_compression<W>(
     writer: W,
-    value: impl Into<Value>,
+    item_collection: ItemCollection,
     compression: Compression,
 ) -> Result<()>
 where
@@ -80,7 +80,7 @@ where
         .set_compression(compression)
         .build();
     options.writer_properties = Some(writer_properties);
-    to_writer_with_options(writer, value, &options)
+    to_writer_with_options(writer, item_collection, &options)
 }
 
 /// Writes a [Value] to a [std::io::Write] as
@@ -95,54 +95,26 @@ where
 ///
 /// let item: Item = stac::read("examples/simple-item.json").unwrap();
 /// let mut cursor = Cursor::new(Vec::new());
-/// stac::io::geoparquet::to_writer_with_options(&mut cursor, item, &Default::default()).unwrap();
+/// stac::io::geoparquet::to_writer_with_options(&mut cursor, vec![item].into(), &Default::default()).unwrap();
 /// ```
 pub fn to_writer_with_options<W>(
     writer: W,
-    value: impl Into<Value>,
+    item_collection: ItemCollection,
     options: &GeoParquetWriterOptions,
 ) -> Result<()>
 where
     W: Write + Send,
 {
-    let value = value.into();
-    match value {
-        Value::ItemCollection(item_collection) => {
-            let table = crate::io::geoarrow::to_table(item_collection)?;
-            geoarrow::io::parquet::write_geoparquet(
-                table.into_record_batch_reader(),
-                writer,
-                options,
-            )
-            .map_err(Error::from)
-        }
-        Value::Item(item) => to_writer(writer, ItemCollection::from(vec![item])),
-        _ => Err(Error::IncorrectType {
-            actual: value.type_name().to_string(),
-            expected: "Item or ItemCollection".to_string(),
-        }),
-    }
+    let table = crate::io::geoarrow::to_table(item_collection)?;
+    geoarrow::io::parquet::write_geoparquet(table.into_record_batch_reader(), writer, options)
+        .map_err(Error::from)
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{Href, Item, ItemCollection, Value};
+    use crate::{Item, ItemCollection, Object};
     use bytes::Bytes;
     use std::{fs::File, io::Cursor};
-
-    #[test]
-    fn to_writer_catalog() {
-        let mut cursor = Cursor::new(Vec::new());
-        let catalog: Value = crate::read("examples/catalog.json").unwrap();
-        let _ = super::to_writer(&mut cursor, catalog).unwrap_err();
-    }
-
-    #[test]
-    fn to_writer_collection() {
-        let mut cursor = Cursor::new(Vec::new());
-        let collection: Value = crate::read("examples/collection.json").unwrap();
-        let _ = super::to_writer(&mut cursor, collection).unwrap_err();
-    }
 
     #[test]
     fn to_writer_item_collection() {
@@ -150,13 +122,6 @@ mod tests {
         let item = crate::read("examples/simple-item.json").unwrap();
         let item_collection = ItemCollection::from(vec![item]);
         super::to_writer(&mut cursor, item_collection).unwrap();
-    }
-
-    #[test]
-    fn to_writer_item() {
-        let mut cursor = Cursor::new(Vec::new());
-        let item: Value = crate::read("examples/simple-item.json").unwrap();
-        super::to_writer(&mut cursor, item).unwrap();
     }
 
     #[test]
@@ -169,9 +134,9 @@ mod tests {
     #[test]
     fn roundtrip() {
         let mut item: Item = crate::read("examples/simple-item.json").unwrap();
-        item.clear_href();
+        *item.href_mut() = None;
         let mut cursor = Cursor::new(Vec::new());
-        super::to_writer(&mut cursor, item.clone()).unwrap();
+        super::to_writer(&mut cursor, vec![item.clone()].into()).unwrap();
         let bytes = Bytes::from(cursor.into_inner());
         let item_collection = super::from_reader(bytes).unwrap();
         assert_eq!(item_collection.items[0], item);

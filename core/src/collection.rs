@@ -1,5 +1,5 @@
 use crate::{
-    Asset, Assets, Bbox, Error, Extensions, Fields, Href, Item, Link, Links, Migrate, Result,
+    Asset, Assets, Bbox, Error, Extensions, Fields, Item, Link, Links, Migrate, Object, Result,
     Version, STAC_VERSION,
 };
 use chrono::{DateTime, Utc};
@@ -288,17 +288,14 @@ impl Collection {
     }
 }
 
-impl Href for Collection {
+impl Object for Collection {
+    const TYPE: &str = COLLECTION_TYPE;
+
     fn href(&self) -> Option<&str> {
         self.href.as_deref()
     }
-
-    fn set_href(&mut self, href: impl ToString) {
-        self.href = Some(href.to_string())
-    }
-
-    fn clear_href(&mut self) {
-        self.href = None;
+    fn href_mut(&mut self) -> &mut Option<String> {
+        &mut self.href
     }
 }
 

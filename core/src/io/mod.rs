@@ -50,9 +50,9 @@ pub mod geoarrow;
 #[cfg(feature = "geoparquet")]
 pub mod geoparquet;
 
-use crate::{Href, Result};
-pub use format::{Format, IntoFormattedBytes};
-use serde::de::DeserializeOwned;
+use crate::{Object, Result};
+pub use format::{Format, FormatIntoBytes};
+use std::{fs::File, io::Write};
 
 /// Reads any STAC value from an href.
 ///
@@ -61,10 +61,24 @@ use serde::de::DeserializeOwned;
 /// ```
 /// let item: stac::Item = stac::read("examples/simple-item.json").unwrap();
 /// ```
-pub fn read<T: Href + DeserializeOwned>(href: impl ToString) -> Result<T> {
+pub fn read<T: Object>(href: impl ToString) -> Result<T> {
     let href = href.to_string();
     let format = Format::infer_from_href(&href).unwrap_or_default();
-    format.read(href)
+    T::format_read(format, href)
+}
+
+/// Writes any STAC value to an href.
+///
+/// # Examples
+///
+/// ```no_run
+/// let item = stac::Item::new("an-id");
+/// stac::write("an-id.json", item).unwrwap();
+/// ```
+pub fn write<T: Object>(href: impl ToString, value: T) -> Result<()> {
+    let href = href.to_string();
+    let format = Format::infer_from_href(&href).unwrap_or_default();
+    value.format_write(format, href)
 }
 
 /// Gets a value, maybe from an object store.
@@ -94,7 +108,7 @@ pub async fn get_format_opts<T, I, K, V>(
     options: I,
 ) -> Result<T>
 where
-    T: Href + DeserializeOwned,
+    T: Object,
     I: IntoIterator<Item = (K, V)>,
     K: AsRef<str>,
     V: Into<String>,
@@ -109,11 +123,11 @@ where
 
         let (object_store, path) = object_store::parse_url_opts(&url, options)?;
         let get_result = object_store.get(&path).await?;
-        let mut value: T = format.from_bytes(get_result.bytes().await?)?;
-        value.set_href(href);
+        let mut value: T = T::format_from_bytes(format, get_result.bytes().await?)?;
+        *value.href_mut() = Some(href);
         Ok(value)
     } else {
-        format.read(href)
+        T::format_read(format, href)
     }
 }
 
@@ -141,7 +155,7 @@ where
 #[cfg(feature = "object-store")]
 pub async fn put_format_opts<I, K, V>(
     href: impl ToString,
-    value: impl IntoFormattedBytes,
+    value: impl FormatIntoBytes,
     format: impl Into<Option<Format>>,
     options: I,
 ) -> Result<Option<object_store::PutResult>>
@@ -155,18 +169,20 @@ where
         .into()
         .or_else(|| Format::infer_from_href(&href))
         .unwrap_or_default();
+    let bytes = value.format_into_bytes(format)?;
     if let Ok(url) = url::Url::parse(&href) {
         use object_store::ObjectStore;
 
         let (object_store, path) = object_store::parse_url_opts(&url, options)?;
-        let bytes = value.into_formatted_bytes(format)?;
         object_store
             .put(&path, bytes.into())
             .await
             .map(Some)
             .map_err(crate::Error::from)
     } else {
-        format.write(href, value).map(|_| None)
+        let mut file = File::create(href)?;
+        file.write_all(&bytes)?;
+        Ok(None)
     }
 }
 
@@ -179,7 +195,7 @@ mod tests {
             #[test]
             $(#[$meta])?
             fn $function() {
-                use crate::Href;
+                use crate::Object;
 
                 let value: $value = crate::read($filename).unwrap();
                 assert!(value.href().is_some());

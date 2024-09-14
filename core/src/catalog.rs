@@ -1,4 +1,6 @@
-use crate::{Error, Extensions, Fields, Href, Link, Links, Migrate, Result, Version, STAC_VERSION};
+use crate::{
+    Error, Extensions, Fields, Link, Links, Migrate, Object, Result, Version, STAC_VERSION,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
@@ -85,17 +87,13 @@ impl Catalog {
     }
 }
 
-impl Href for Catalog {
+impl Object for Catalog {
+    const TYPE: &str = CATALOG_TYPE;
     fn href(&self) -> Option<&str> {
         self.href.as_deref()
     }
-
-    fn set_href(&mut self, href: impl ToString) {
-        self.href = Some(href.to_string())
-    }
-
-    fn clear_href(&mut self) {
-        self.href = None;
+    fn href_mut(&mut self) -> &mut Option<String> {
+        &mut self.href
     }
 }
 

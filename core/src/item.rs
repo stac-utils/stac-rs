@@ -1,7 +1,7 @@
 //! STAC Items.
 
 use crate::{
-    Asset, Assets, Bbox, Error, Extensions, Fields, Href, Link, Links, Migrate, Result, Version,
+    Asset, Assets, Bbox, Error, Extensions, Fields, Link, Links, Migrate, Object, Result, Version,
     STAC_VERSION,
 };
 use chrono::{DateTime, FixedOffset, Utc};
@@ -99,7 +99,7 @@ pub struct Item {
     pub additional_fields: Map<String, Value>,
 
     #[serde(skip)]
-    href: Option<String>,
+    pub(crate) href: Option<String>,
 }
 
 /// A [FlatItem] has all of its properties at the top level.
@@ -611,17 +611,14 @@ impl Item {
     }
 }
 
-impl Href for Item {
+impl Object for Item {
+    const TYPE: &str = ITEM_TYPE;
+
     fn href(&self) -> Option<&str> {
         self.href.as_deref()
     }
-
-    fn set_href(&mut self, href: impl ToString) {
-        self.href = Some(href.to_string())
-    }
-
-    fn clear_href(&mut self) {
-        self.href = None;
+    fn href_mut(&mut self) -> &mut Option<String> {
+        &mut self.href
     }
 }
 

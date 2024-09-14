@@ -1,6 +1,6 @@
 use super::{Input, Run};
 use crate::{Error, Result, Value};
-use stac::{Collection, Href, Item, Links};
+use stac::{Collection, Object, Item, Links};
 use stac_server::{Api, Backend as _, MemoryBackend};
 use std::collections::{HashMap, HashSet};
 use tokio::{net::TcpListener, sync::mpsc::Sender, task::JoinSet};

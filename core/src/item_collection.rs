@@ -1,7 +1,7 @@
-use crate::{Error, Href, Item, Link, Links, Migrate};
+use crate::{Error, Item, Link, Links, Migrate, Object, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use std::{ops::Deref, vec::IntoIter};
+use std::{io::Write, ops::Deref, vec::IntoIter};
 
 /// The type field for [ItemCollections](ItemCollection).
 pub const ITEM_COLLECTION_TYPE: &str = "FeatureCollection";
@@ -71,17 +71,33 @@ impl Deref for ItemCollection {
     }
 }
 
-impl Href for ItemCollection {
+impl Object for ItemCollection {
+    const TYPE: &str = ITEM_COLLECTION_TYPE;
     fn href(&self) -> Option<&str> {
         self.href.as_deref()
     }
-
-    fn set_href(&mut self, href: impl ToString) {
-        self.href = Some(href.to_string())
+    fn href_mut(&mut self) -> &mut Option<String> {
+        &mut self.href
     }
-
-    fn clear_href(&mut self) {
-        self.href = None;
+    #[cfg(feature = "geoparquet")]
+    fn geoparquet_from_bytes(bytes: impl Into<bytes::Bytes>) -> Result<Self> {
+        crate::io::geoparquet::from_reader(bytes.into())
+    }
+    #[cfg(feature = "geoparquet")]
+    fn geoparquet_from_file(file: std::fs::File) -> Result<Self> {
+        crate::io::geoparquet::from_reader(file)
+    }
+    #[cfg(feature = "geoparquet")]
+    fn geoparquet_into_writer(
+        self,
+        writer: impl Write + Send,
+        compression: Option<parquet::basic::Compression>,
+    ) -> Result<()> {
+        if let Some(compression) = compression {
+            crate::io::geoparquet::to_writer_with_compression(writer, self, compression)
+        } else {
+            crate::io::geoparquet::to_writer(writer, self)
+        }
     }
 }
 
@@ -94,14 +110,14 @@ impl Links for ItemCollection {
     }
 }
 
-fn deserialize_type<'de, D>(deserializer: D) -> Result<String, D::Error>
+fn deserialize_type<'de, D>(deserializer: D) -> std::result::Result<String, D::Error>
 where
     D: serde::de::Deserializer<'de>,
 {
     crate::deserialize_type(deserializer, ITEM_COLLECTION_TYPE)
 }
 
-fn serialize_type<S>(r#type: &String, serializer: S) -> Result<S::Ok, S::Error>
+fn serialize_type<S>(r#type: &String, serializer: S) -> std::result::Result<S::Ok, S::Error>
 where
     S: serde::ser::Serializer,
 {
@@ -109,7 +125,7 @@ where
 }
 
 impl Migrate for ItemCollection {
-    fn migrate(mut self, version: &crate::Version) -> crate::Result<Self> {
+    fn migrate(mut self, version: &crate::Version) -> Result<Self> {
         let mut items = Vec::with_capacity(self.items.len());
         for item in self.items {
             items.push(item.migrate(version)?);
@@ -122,7 +138,7 @@ impl Migrate for ItemCollection {
 impl TryFrom<Value> for ItemCollection {
     type Error = Error;
 
-    fn try_from(value: Value) -> Result<Self, Self::Error> {
+    fn try_from(value: Value) -> Result<Self> {
         match serde_json::from_value::<ItemCollection>(value.clone()) {
             Ok(item_collection) => Ok(item_collection),
             Err(err) => {

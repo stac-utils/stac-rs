@@ -147,13 +147,13 @@ mod fields;
 pub mod gdal;
 #[cfg(feature = "geo")]
 pub mod geo;
-mod href;
 pub mod io;
 pub mod item;
 mod item_collection;
 pub mod link;
 mod migrate;
 pub mod mime;
+mod object;
 mod statistics;
 mod value;
 mod version;
@@ -168,12 +168,12 @@ pub use {
     error::Error,
     extensions::{Extension, Extensions},
     fields::Fields,
-    href::Href,
     io::read,
     item::{FlatItem, Item, Properties, ITEM_TYPE},
     item_collection::{ItemCollection, ITEM_COLLECTION_TYPE},
     link::{Link, Links},
     migrate::Migrate,
+    object::Object,
     statistics::Statistics,
     value::Value,
     version::Version,

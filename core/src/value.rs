@@ -1,5 +1,5 @@
 use crate::{
-    Catalog, Collection, Error, Href, Item, ItemCollection, Link, Links, Migrate, Result, Version,
+    Catalog, Collection, Error, Item, ItemCollection, Link, Links, Migrate, Object, Result, Version,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Map;
@@ -184,7 +184,9 @@ impl Value {
     }
 }
 
-impl Href for Value {
+impl Object for Value {
+    const TYPE: &str = "Value";
+
     fn href(&self) -> Option<&str> {
         use Value::*;
         match self {
@@ -194,25 +196,19 @@ impl Href for Value {
             ItemCollection(item_collection) => item_collection.href(),
         }
     }
-
-    fn set_href(&mut self, href: impl ToString) {
+    fn href_mut(&mut self) -> &mut Option<String> {
         use Value::*;
         match self {
-            Catalog(catalog) => catalog.set_href(href),
-            Collection(collection) => collection.set_href(href),
-            Item(item) => item.set_href(href),
-            ItemCollection(item_collection) => item_collection.set_href(href),
+            Catalog(catalog) => catalog.href_mut(),
+            Collection(collection) => collection.href_mut(),
+            Item(item) => item.href_mut(),
+            ItemCollection(item_collection) => item_collection.href_mut(),
         }
     }
 
-    fn clear_href(&mut self) {
-        use Value::*;
-        match self {
-            Catalog(catalog) => catalog.clear_href(),
-            Collection(collection) => collection.clear_href(),
-            Item(item) => item.clear_href(),
-            ItemCollection(item_collection) => item_collection.clear_href(),
-        }
+    #[cfg(feature = "geoparquet")]
+    fn geoparquet_from_bytes(bytes: impl Into<bytes::Bytes>) -> Result<Self> {
+        ItemCollection::geoparquet_from_bytes(bytes).map(Self::from)
     }
 }
 
