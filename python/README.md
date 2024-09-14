@@ -21,6 +21,16 @@ Then:
 ```python
 import stacrs
 
+# Searches a STAC API
+items = stacrs.search(
+    "https://landsatlook.usgs.gov/stac-server",
+    collections="landsat-c2l2-sr",
+    intersects={"type": "Point", "coordinates": [-105.119, 40.173]},
+    sortby="-properties.datetime",
+    max_items=1,
+)
+
+# Validates a href using json-schema
 stacrs.validate_href("https://raw.githubusercontent.com/radiantearth/stac-spec/v1.0.0/examples/simple-item.json")
 ```
 

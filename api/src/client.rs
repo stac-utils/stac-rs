@@ -1,3 +1,5 @@
+//! A STAC API client.
+
 use crate::{Error, GetItems, Item, ItemCollection, Items, Result, Search, UrlBuilder};
 use async_stream::try_stream;
 use futures::{pin_mut, Stream, StreamExt};
@@ -6,7 +8,9 @@ use reqwest::{header::HeaderMap, IntoUrl, Method, StatusCode};
 use serde::{de::DeserializeOwned, Serialize};
 use serde_json::{Map, Value};
 use stac::{Collection, Href, Link, Links};
+use std::pin::Pin;
 use tokio::{
+    runtime::{Builder, Runtime},
     sync::mpsc::{self, error::SendError},
     task::JoinHandle,
 };
@@ -19,6 +23,17 @@ pub struct Client {
     client: reqwest::Client,
     channel_buffer: usize,
     url_builder: UrlBuilder,
+}
+
+/// A client for interacting with STAC APIs without async.
+#[derive(Debug)]
+pub struct BlockingClient(Client);
+
+/// A blocking iterator over items.
+#[allow(missing_debug_implementations)]
+pub struct BlockingIterator {
+    runtime: Runtime,
+    stream: Pin<Box<dyn Stream<Item = Result<Item>>>>,
 }
 
 impl Client {
@@ -127,12 +142,12 @@ impl Client {
     ///
     /// let client = Client::new("https://planetarycomputer.microsoft.com/api/stac/v1").unwrap();
     /// let mut search = Search { collections: Some(vec!["sentinel-2-l2a".to_string()]), ..Default::default() };
-    /// search.items.limit = Some(1);
     /// # tokio_test::block_on(async {
     /// let items: Vec<_> = client
     ///     .search(search)
     ///     .await
     ///     .unwrap()
+    ///     .take(1)
     ///     .map(|result| result.unwrap())
     ///     .collect()
     ///     .await;
@@ -223,6 +238,57 @@ impl Client {
         };
         self.request::<Map<String, Value>, R>(method, link.href, &link.body, headers)
             .await
+    }
+}
+
+impl BlockingClient {
+    /// Creates a new blocking client.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac_api::BlockingClient;
+    ///
+    /// let client = BlockingClient::new("https://planetarycomputer.microsoft.com/api/stac/vi").unwrap();
+    /// ```
+    pub fn new(url: &str) -> Result<BlockingClient> {
+        Client::new(url).map(Self)
+    }
+
+    /// Searches an API, returning an iterable of items.
+    ///
+    /// To prevent fetching _all_ the items (which might be a lot), it is recommended to pass a `max_items`.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use stac_api::{Search, BlockingClient};
+    ///
+    /// let client = BlockingClient::new("https://planetarycomputer.microsoft.com/api/stac/v1").unwrap();
+    /// let mut search = Search { collections: Some(vec!["sentinel-2-l2a".to_string()]), ..Default::default() };
+    /// let items: Vec<_> = client
+    ///     .search(search)
+    ///     .unwrap()
+    ///     .map(|result| result.unwrap())
+    ///     .take(1)
+    ///     .collect();
+    /// assert_eq!(items.len(), 1);
+    /// ```
+    pub fn search(&self, search: Search) -> Result<BlockingIterator> {
+        let runtime = Builder::new_current_thread().enable_all().build()?;
+        let stream = runtime.block_on(async move { self.0.search(search).await })?;
+        Ok(BlockingIterator {
+            runtime,
+            stream: Box::pin(stream),
+        })
+    }
+}
+
+impl Iterator for BlockingIterator {
+    type Item = Result<Item>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.runtime.block_on(self.stream.next())
     }
 }
 

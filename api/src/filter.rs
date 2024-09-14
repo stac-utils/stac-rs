@@ -1,3 +1,5 @@
+use std::{convert::Infallible, str::FromStr};
+
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
@@ -17,6 +19,13 @@ pub enum Filter {
 impl Default for Filter {
     fn default() -> Self {
         Filter::Cql2Json(Default::default())
+    }
+}
+
+impl FromStr for Filter {
+    type Err = Infallible;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Filter::Cql2Text(s.to_string()))
     }
 }
 

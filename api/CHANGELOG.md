@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 
 - `Client` (from now-defunkt **stac-async**) ([#372](https://github.com/stac-utils/stac-rs/pull/372))
+- `BlockingClient` ([#387](https://github.com/stac-utils/stac-rs/pull/387))
 
 ## [0.5.0] - 2024-09-05
 

@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 - `migrate_href` ([#334](https://github.com/stac-utils/stac-rs/pull/334))
+- `search` and `search_to` ([#387](https://github.com/stac-utils/stac-rs/pull/387))
 
 ## [0.0.3] - 2024-08-29
 
