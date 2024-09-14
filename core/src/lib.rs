@@ -40,7 +40,7 @@
 //! item.links.push(Link::new("an/href", "a-rel-type"));
 //! ```
 //!
-//! # Reading
+//! # Input and output
 //!
 //! Synchronous reads from the filesystem are supported via [read]:
 //!
@@ -58,49 +58,49 @@
 //! }
 //! ```
 //!
-//! If `reqwest` is not enabled, reading from a url will return an error:
+//! To write, use [io::Format::write]:
 //!
-//! ```
-//! #[cfg(not(feature = "reqwest"))]
-//! {
-//!     let url = "https://raw.githubusercontent.com/radiantearth/stac-spec/master/examples/simple-item.json";
-//!     let error = stac::read::<stac::Item>(url).unwrap_err();
-//! }
+//! ```no_run
+//! use stac::io::Format;
+//!
+//! Format::Json(true).write("an-id.json", stac::Item::new("an-id")).unwrap();
 //! ```
 //!
-//! if the `object_store` feature is enabled, use the
-//! [Get](crate::object_store::Get) and [Put](crate::object_store::Put) traits
-//! to get and put STAC values to and from an [object_store](https://docs.rs/object_store/latest/object_store/):
+//! With the `object-store` feature, we can get and put objects from storage:
 //!
-//! ```
+//! ```no_run
+//! use stac::Item;
+//!
 //! #[cfg(feature = "object-store")]
 //! {
-//! use object_store::{path::Path, local::LocalFileSystem};
-//! use stac::{Item, object_store::Get};
-//!
-//! let store = LocalFileSystem::new();
-//! let location = Path::from_filesystem_path("examples/simple-item.json").unwrap();
-//! # tokio_test::block_on(async {
-//! let item: Item = store.get_json(&location).await.unwrap();
-//! # })
+//!     # tokio_test::block_on(async {
+//!     stac::io::put_format_opts("s3://bucket/item.json", Item::new("an-id"), None, [("foo", "bar")]).await.unwrap();
+//!     let item: Item = stac::io::get_format_opts("s3://bucket/item.json", None, [("foo", "bar")]).await.unwrap();
+//!     # })
 //! }
 //! ```
 //!
-//! ## Hrefs
-//!
-//! When objects are read from the filesystem or from a remote location, they store the href from which they were read.
-//! The href is accessible via the [Href] trait:
-//!
-//! ```
-//! use stac::{Href, Item};
-//! let item: Item = stac::read("examples/simple-item.json").unwrap();
-//! assert!(item.href().as_deref().unwrap().ends_with("examples/simple-item.json"));
-//! ```
+//! For more, see the documentation in the [io] module.
 //!
 //! # Extensions
 //!
 //! STAC is intentionally designed with a minimal core and flexible extension mechanism to support a broad set of use cases.
 //! See [the extensions module](extensions) for more information.
+//!
+//! # Features
+//!
+//! - `gdal`: read raster assets, see [gdal]
+//! - `geo`: add some geo-enabled methods, see [geo]
+//! - `geoarrow`: read and write [geoarrow](https://geoarrow.org/), see [io::geoarrow]
+//! - `geoparquet`: read and write [geoparquet](https://geoparquet.org/), see [io::geoparquet]
+//!     - `geoparquet-compression`: enable parquet compression
+//! - `object-store`: get and put from object stores. Sub-features turn on specific protocols:
+//!     - `object-store-aws`
+//!     - `object-store-azure`
+//!     - `object-store-gcp`
+//!     - `object-store-http`
+//!     - `object-store-full` (to turn them all on)
+//! - `reqwest`: enable `http` and `https` in [read]
 
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 #![deny(
@@ -143,31 +143,21 @@ pub mod datetime;
 mod error;
 pub mod extensions;
 mod fields;
-mod format;
 #[cfg(feature = "gdal")]
 pub mod gdal;
 #[cfg(feature = "geo")]
 pub mod geo;
-#[cfg(feature = "geoarrow")]
-pub mod geoarrow;
-pub mod geoparquet;
 mod href;
 pub mod io;
 pub mod item;
 mod item_collection;
-pub mod json;
 pub mod link;
 mod migrate;
 pub mod mime;
-pub mod ndjson;
-#[cfg(feature = "object-store")]
-pub mod object_store;
 mod statistics;
 mod value;
 mod version;
 
-#[cfg(feature = "object-store")]
-pub use io::get;
 pub use {
     asset::{Asset, Assets},
     band::Band,
@@ -178,8 +168,7 @@ pub use {
     error::Error,
     extensions::{Extension, Extensions},
     fields::Fields,
-    format::Format,
-    href::{href_to_url, Href},
+    href::Href,
     io::read,
     item::{FlatItem, Item, Properties, ITEM_TYPE},
     item_collection::{ItemCollection, ITEM_COLLECTION_TYPE},
@@ -245,11 +234,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    #[cfg(not(feature = "geoparquet"))]
-    use bytes as _;
     use rstest as _;
-    #[cfg(not(feature = "object-store"))]
-    use tokio as _;
     use tokio_test as _;
 
     macro_rules! roundtrip {

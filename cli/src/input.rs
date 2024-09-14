@@ -1,10 +1,13 @@
+use std::io::Read;
+
 use crate::{options::Options, Error, Result};
-use stac::{io::Config, Format, Value};
+use stac::{io::Format, Value};
 
 /// The input to a CLI run.
 #[derive(Debug, Default)]
 pub(crate) struct Input {
-    config: Config,
+    format: Option<Format>,
+    options: Options,
     href: Option<String>,
 }
 
@@ -18,25 +21,34 @@ impl Input {
         let href = href
             .into()
             .and_then(|href| if href == "-" { None } else { Some(href) });
-        let config = Config::new().format(format).options(options.into());
-        Input { config, href }
+        Input {
+            format: format.into(),
+            href,
+            options: options.into(),
+        }
     }
 
     /// Creates a new input with the given href.
     pub(crate) fn with_href(&self, href: impl Into<Option<String>>) -> Input {
         Input {
-            config: self.config.clone(),
+            format: self.format,
             href: href.into(),
+            options: self.options.clone(),
         }
     }
 
     /// Gets a STAC value from the input.
     pub(crate) async fn get(&self) -> Result<Value> {
-        if let Some(href) = self.href.as_ref() {
-            self.config.get(href.clone()).await.map_err(Error::from)
+        if let Some(href) = self.href.as_deref() {
+            stac::io::get_format_opts(href, self.format, self.options.iter())
+                .await
+                .map_err(Error::from)
         } else {
-            self.config
-                .from_reader(std::io::stdin())
+            let mut buf = Vec::new();
+            let _ = std::io::stdin().read_to_end(&mut buf);
+            self.format
+                .unwrap_or_default()
+                .from_bytes(buf.into())
                 .map_err(Error::from)
         }
     }

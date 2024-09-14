@@ -11,6 +11,12 @@ pub(crate) struct KeyValue {
     value: String,
 }
 
+impl Options {
+    pub(crate) fn iter(&self) -> impl Iterator<Item = (&str, &str)> {
+        self.0.iter().map(|kv| (kv.key.as_str(), kv.value.as_str()))
+    }
+}
+
 impl FromStr for KeyValue {
     type Err = Infallible;
     fn from_str(s: &str) -> Result<Self, Infallible> {

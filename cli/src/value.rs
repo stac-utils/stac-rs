@@ -1,6 +1,6 @@
 use crate::{Error, Result};
 use serde::Serialize;
-use stac::Format;
+use stac::io::{Format, IntoFormattedBytes};
 
 /// An output value, which can either be a [serde_json::Value] or a [stac::Value].
 #[derive(Debug, Serialize)]
@@ -11,15 +11,6 @@ pub enum Value {
 
     /// A JSON value.
     Json(serde_json::Value),
-}
-
-impl Value {
-    pub(crate) fn into_ndjson(self) -> Result<Vec<u8>> {
-        match self {
-            Value::Json(value) => Format::NdJson.json_to_vec(value).map_err(Error::from),
-            Value::Stac(value) => Format::NdJson.value_to_vec(value).map_err(Error::from),
-        }
-    }
 }
 
 impl From<stac::Value> for Value {
@@ -46,6 +37,15 @@ impl TryFrom<Value> for stac::Value {
         match value {
             Value::Stac(value) => Ok(value),
             Value::Json(value) => serde_json::from_value(value).map_err(Error::from),
+        }
+    }
+}
+
+impl IntoFormattedBytes for Value {
+    fn into_formatted_bytes(self, format: Format) -> stac::Result<Vec<u8>> {
+        match self {
+            Self::Json(value) => value.into_formatted_bytes(format),
+            Self::Stac(value) => value.into_formatted_bytes(format),
         }
     }
 }

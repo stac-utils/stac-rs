@@ -12,9 +12,8 @@ mod validate;
 
 use crate::{input::Input, options::KeyValue, output::Output, Result, Value};
 use clap::Parser;
-use stac::Format;
-use tokio::sync::mpsc::Sender;
-use tokio::task::JoinHandle;
+use stac::io::Format;
+use tokio::{sync::mpsc::Sender, task::JoinHandle};
 use tracing::metadata::Level;
 
 const BUFFER: usize = 100;

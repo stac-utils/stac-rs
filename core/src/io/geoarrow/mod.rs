@@ -35,7 +35,7 @@ const DATETIME_COLUMNS: [&str; 8] = [
 ///
 /// let item = stac::read("examples/simple-item.json").unwrap();
 /// let item_collection = ItemCollection::from(vec![item]);
-/// let table = stac::geoarrow::to_table(item_collection).unwrap();
+/// let table = stac::io::geoarrow::to_table(item_collection).unwrap();
 /// ```
 pub fn to_table(item_collection: ItemCollection) -> Result<Table> {
     let mut values = Vec::with_capacity(item_collection.items.len());
@@ -126,7 +126,7 @@ pub fn to_table(item_collection: ItemCollection) -> Result<Table> {
 ///     .build()
 ///     .unwrap();
 /// let table = reader.read_table().unwrap();
-/// let item_collection = stac::geoarrow::from_table(table).unwrap();
+/// let item_collection = stac::io::geoarrow::from_table(table).unwrap();
 /// # }
 /// ```
 pub fn from_table(table: Table) -> Result<ItemCollection> {

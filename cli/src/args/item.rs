@@ -3,6 +3,7 @@ use crate::{Result, Value};
 use stac::{item::Builder, Asset};
 use std::path::Path;
 use tokio::sync::mpsc::Sender;
+use url::Url;
 
 /// Arguments for the `item` subcommand.
 #[derive(clap::Args, Debug)]
@@ -33,14 +34,12 @@ pub(crate) struct Args {
 
 impl Run for Args {
     async fn run(self, _: Input, _: Option<Sender<Value>>) -> Result<Option<Value>> {
-        let (id, href): (Option<String>, Option<String>) = if stac::href_to_url(&self.id_or_href)
-            .is_none()
-            && !Path::new(&self.id_or_href).exists()
-        {
-            (Some(self.id_or_href), None)
-        } else {
-            (None, Some(self.id_or_href))
-        };
+        let (id, href): (Option<String>, Option<String>) =
+            if Url::parse(&self.id_or_href).is_err() && !Path::new(&self.id_or_href).exists() {
+                (Some(self.id_or_href), None)
+            } else {
+                (None, Some(self.id_or_href))
+            };
         let id = id
             .or_else(|| {
                 Path::new(href.as_ref().expect("if id is none, href should exist"))

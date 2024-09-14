@@ -185,12 +185,14 @@ impl Run for Args {
         } else {
             Some(self.collections)
         };
-        #[cfg(feature = "duckdb")]
+        #[cfg(all(feature = "duckdb", feature = "geoparquet"))]
         {
-            if self
-                .duckdb
-                .unwrap_or_else(|| stac::geoparquet::has_extension(&self.href))
-            {
+            if self.duckdb.unwrap_or_else(|| {
+                matches!(
+                    stac::io::Format::infer_from_href(&self.href),
+                    Some(stac::io::Format::Geoparquet(_))
+                )
+            }) {
                 search_geoparquet(self.href, search, stream, self.max_items).await
             } else {
                 search_api(self.href, search, stream, self.max_items).await
@@ -198,9 +200,6 @@ impl Run for Args {
         }
         #[cfg(not(feature = "duckdb"))]
         {
-            if stac::geoparquet::has_extension(&self.href) {
-                tracing::warn!("'{}' has a geoparquet extension, but the `duckdb` feature is not enabled — attempting to search with an ApiClient", self.href);
-            }
             search_api(self.href, search, stream, self.max_items).await
         }
     }
