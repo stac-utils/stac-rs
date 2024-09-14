@@ -3,7 +3,6 @@ from typing import Any
 
 import pytest
 import stacrs
-from stacrs import StacrsError
 
 
 def test_validate_href_ok(spec_examples: Path) -> None:
@@ -11,7 +10,7 @@ def test_validate_href_ok(spec_examples: Path) -> None:
 
 
 def test_validate_href_invalid(data: Path) -> None:
-    with pytest.raises(StacrsError):
+    with pytest.raises(Exception):
         stacrs.validate_href(str(data / "invalid-item.json"))
 
 

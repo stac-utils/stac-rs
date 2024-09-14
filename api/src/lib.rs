@@ -64,7 +64,7 @@
 )]
 
 #[cfg(feature = "client")]
-mod client;
+pub mod client;
 mod collections;
 mod conformance;
 mod error;
@@ -78,7 +78,7 @@ mod sort;
 mod url_builder;
 
 #[cfg(feature = "client")]
-pub use client::Client;
+pub use client::{BlockingClient, Client};
 pub use {
     collections::Collections,
     conformance::{

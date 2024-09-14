@@ -4,6 +4,9 @@ on:
   push:
     tags:
       - 'python-*'
+  pull_request:
+    paths:
+      - python/**
   workflow_dispatch:
 
 permissions:
@@ -25,11 +28,11 @@ jobs:
       - name: Install dev requirements
         run: pip install -r python/requirements-dev.txt
       - name: Build
-        run: maturin build --manifest-path python/Cargo.toml --out dist
+        run: maturin build --manifest-path python/Cargo.toml --out dist -F geoparquet
       - name: Install stacrs
         run: pip install stacrs --find-links dist --no-index
       - name: Check
-        run: ruff check python && ruff format --check python && mypy python
+        run: ruff check python && ruff format --check python && mypy python --config-file=python/pyproject.toml
       - name: Test
         run: pytest python/tests
   linux:
@@ -60,7 +63,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist --find-interpreter --manifest-path python/Cargo.toml
+          args: --release --out dist --find-interpreter --manifest-path python/Cargo.toml -F geoparquet
           sccache: 'true'
       - name: Upload wheels
         uses: actions/upload-artifact@v4
@@ -120,7 +123,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist --find-interpreter --manifest-path python/Cargo.toml
+          args: --release --out dist --find-interpreter --manifest-path python/Cargo.toml -F geoparquet
           sccache: 'true'
       - name: Upload wheels
         uses: actions/upload-artifact@v4
@@ -148,7 +151,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist --find-interpreter --manifest-path python/Cargo.toml
+          args: --release --out dist --find-interpreter --manifest-path python/Cargo.toml -F geoparquet
           sccache: 'true'
       - name: Upload wheels
         uses: actions/upload-artifact@v4

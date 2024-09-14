@@ -29,3 +29,7 @@ Issues = "https://github.com/stac-utils/stac-rs/issues"
 
 [tool.maturin]
 features = ["pyo3/extension-module"]
+
+[[tool.mypy.overrides]]
+module = "pyarrow.*"
+ignore_missing_imports = true

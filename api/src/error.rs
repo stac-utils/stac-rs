@@ -52,6 +52,11 @@ pub enum Error {
     #[cfg(feature = "client")]
     InvalidMethod(#[from] http::method::InvalidMethod),
 
+    /// [std::io::Error]
+    #[error(transparent)]
+    #[cfg(feature = "client")]
+    Io(#[from] std::io::Error),
+
     /// [tokio::task::JoinError]
     #[error(transparent)]
     #[cfg(feature = "client")]
