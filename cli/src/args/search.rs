@@ -132,7 +132,7 @@ async fn search_api(
     }
 }
 
-#[cfg(feature = "duckdb")]
+#[cfg(all(feature = "duckdb", feature = "geoparquet"))]
 async fn search_geoparquet(
     href: String,
     mut search: Search,
@@ -198,7 +198,7 @@ impl Run for Args {
                 search_api(self.href, search, stream, self.max_items).await
             }
         }
-        #[cfg(not(feature = "duckdb"))]
+        #[cfg(any(not(feature = "duckdb"), not(feature = "geoparquet")))]
         {
             search_api(self.href, search, stream, self.max_items).await
         }
