@@ -1,5 +1,3 @@
-use url::Url;
-
 /// Implemented by all three STAC objects, the [Href] trait allows getting and setting an object's href.
 ///
 /// Though the href isn't part of the data structure, it is useful to know where a given STAC object was read from.
@@ -52,28 +50,4 @@ pub trait Href {
     /// assert!(item.href().is_none());
     /// ```
     fn clear_href(&mut self);
-}
-
-/// Parses an href into a [Url] if the scheme is `http` or `https`.
-///
-/// Otherwise, returns `None`. This is useful for determining whether
-/// a given href should be opened with a local filesystem reader or
-/// [reqwest](https://docs.rs/reqwest/latest/reqwest/).
-///
-/// # Examples
-///
-/// ```
-/// assert!(stac::href_to_url("C:\\\\data").is_none());
-/// assert!(stac::href_to_url("http://stac-rs.test").is_some());
-/// ```
-pub fn href_to_url(href: &str) -> Option<Url> {
-    if let Ok(url) = Url::parse(href) {
-        if url.scheme().starts_with("http") {
-            Some(url)
-        } else {
-            None
-        }
-    } else {
-        None
-    }
 }

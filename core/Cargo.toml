@@ -21,7 +21,7 @@ geoarrow = [
     "dep:arrow-schema",
     "dep:geo-types",
 ]
-geoparquet = ["geoarrow", "geoarrow/parquet", "dep:parquet", "dep:bytes"]
+geoparquet = ["geoarrow", "geoarrow/parquet", "dep:parquet"]
 geoparquet-compression = [
     "geoparquet",
     "geoarrow/parquet_compression",
@@ -31,7 +31,7 @@ geoparquet-compression = [
     "parquet/lz4",
     "parquet/zstd",
 ]
-object-store = ["dep:object_store", "dep:send-future"]
+object-store = ["dep:object_store"]
 object-store-aws = ["object-store", "object_store/aws"]
 object-store-azure = ["object-store", "object_store/azure"]
 object-store-gcp = ["object-store", "object_store/gcp"]
@@ -49,7 +49,7 @@ arrow-array = { version = "52", optional = true }
 arrow-cast = { version = "52", optional = true }
 arrow-json = { version = "52", optional = true }
 arrow-schema = { version = "52", optional = true }
-bytes = { version = "1", optional = true }
+bytes = "1"
 chrono = { version = "0.4", features = ["serde"] }
 gdal = { version = "0.17", optional = true }
 gdal-sys = { version = "0.10", optional = true }
@@ -62,7 +62,6 @@ mime = "0.3"
 object_store = { version = "0.11", optional = true }
 parquet = { version = "52", default-features = false, optional = true }
 reqwest = { version = "0.12", optional = true, features = ["json", "blocking"] }
-send-future = { version = "0.1", optional = true }                               # https://github.com/rust-lang/rust/issues/96865
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
 thiserror = "1"
@@ -72,7 +71,6 @@ url = "2"
 assert-json-diff = "2"
 bytes = "1"
 rstest = "0.22"
-tokio = { version = "1", features = ["macros"] }
 tokio-test = "0.4"
 
 [package.metadata.docs.rs]
