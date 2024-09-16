@@ -17,7 +17,7 @@ click==8.1.7
     #   stac-validator
 deepdiff==6.7.1
     # via stac-api-validator
-idna==3.8
+idna==3.10
     # via requests
 jsonschema==4.23.0
     # via
@@ -65,7 +65,7 @@ rpds-py==0.20.0
     # via
     #   jsonschema
     #   referencing
-setuptools==74.1.2
+setuptools==75.0.0
     # via -r scripts/requirements-stac-server.in
 shapely==2.0.6
     # via stac-api-validator
@@ -79,5 +79,5 @@ stac-validator==3.3.2
     # via
     #   stac-api-validator
     #   stac-check
-urllib3==2.2.2
+urllib3==2.2.3
     # via requests
