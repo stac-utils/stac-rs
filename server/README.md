@@ -29,7 +29,7 @@ To use this library in another application:
 
 ```toml
 [dependencies]
-stac-server = "0.2"
+stac-server = "0.3"
 ```
 
 ### Deploying

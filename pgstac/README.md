@@ -13,7 +13,7 @@ In your `Cargo.toml`:
 
 ```toml
 [dependencies]
-pgstac = "0.1"
+pgstac = "0.2"
 ```
 
 See the [documentation](https://docs.rs/pgstac) for more.
