@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.2.0] - 2024-09-16
+
+### Added
+
+- Unverified tls provider ([#383](https://github.com/stac-utils/stac-rs/pull/383))
+
 ## [0.1.2] - 2024-09-05
 
 ### Changed
@@ -59,7 +65,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 Initial release
 
-[unreleased]: https://github.com/stac-utils/stac-rs/compare/pgstac-v0.1.2...HEAD
+[unreleased]: https://github.com/stac-utils/stac-rs/compare/pgstac-v0.2.0...HEAD
+[0.2.0]: https://github.com/stac-utils/stac-rs/compare/pgstac-v0.1.2..pgstac-v0.2.0
 [0.1.2]: https://github.com/stac-utils/stac-rs/compare/pgstac-v0.1.1..pgstac-v0.1.2
 [0.1.1]: https://github.com/stac-utils/stac-rs/compare/pgstac-v0.1.0..pgstac-v0.1.1
 [0.1.0]: https://github.com/stac-utils/stac-rs/releases/tag/pgstac-v0.1.0

@@ -31,6 +31,10 @@
 //! transaction.commit().await.unwrap();
 //! # })
 //! ```
+//!
+//! # Features
+//!
+//! - `tls`: provide a function to create an unverified tls provider, which can be useful in some circumstances (see <https://github.com/stac-utils/stac-rs/issues/375>)
 
 #![deny(missing_docs)]
 

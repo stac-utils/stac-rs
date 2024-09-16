@@ -6,7 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
-- Make TLS the default for `PgstacBackend` ([#383](https://github.com/stac-utils/stac-rs/pull/383))
+## [0.3.0] - 2024-09-16
+
+### Added
+
+- Parameterize `PgstacBackend` on tls provider ([#383](https://github.com/stac-utils/stac-rs/pull/383))
 
 ### Removed
 
@@ -41,7 +45,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 Initial release.
 
-[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-server-v0.2.0..main
+[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-server-v0.3.0..main
+[0.3.0]: https://github.com/stac-utils/stac-rs/compare/stac-server-v0.2.0..stac-server-v0.3.0
 [0.2.0]: https://github.com/stac-utils/stac-rs/compare/stac-server-v0.1.1..stac-server-v0.2.0
 [0.1.1]: https://github.com/stac-utils/stac-rs/compare/stac-server-v0.1.0..stac-server-v0.1.1
 [0.1.0]: https://github.com/stac-utils/stac-rs/releases/tag/stac-server-v0.1.0
