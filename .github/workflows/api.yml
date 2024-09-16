@@ -1,9 +1,14 @@
-name: api
+name: Api
 
 on:
   pull_request:
     paths:
       - api/**
+  push:
+    paths:
+      - api/**
+    branches:
+      - main
   workflow_dispatch:
 
 defaults:

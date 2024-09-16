@@ -1,7 +1,12 @@
-name: cli
+name: Cli
 
 on:
   pull_request:
+    paths:
+      - cli/**
+  push:
+    branches:
+      - main
     paths:
       - cli/**
   workflow_dispatch:

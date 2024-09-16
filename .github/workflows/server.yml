@@ -1,7 +1,12 @@
-name: server
+name: Server
 
 on:
   pull_request:
+    paths:
+      - server/**
+  push:
+    branches:
+      - main
     paths:
       - server/**
   workflow_dispatch:
