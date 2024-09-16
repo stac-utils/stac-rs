@@ -1,7 +1,12 @@
-name: duckdb
+name: Duckdb
 
 on:
   pull_request:
+    paths:
+      - duckdb/**
+  push:
+    branches:
+      - main
     paths:
       - duckdb/**
   workflow_dispatch:

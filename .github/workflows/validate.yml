@@ -1,7 +1,12 @@
-name: validate
+name: Validate
 
 on:
   pull_request:
+    paths:
+      - validate/**
+  push:
+    branches:
+      - main
     paths:
       - validate/**
   workflow_dispatch:

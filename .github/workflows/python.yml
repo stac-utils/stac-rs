@@ -1,9 +1,12 @@
-name: stacrs-cli
+name: Python
 
 on:
   push:
     tags:
-      - 'stac-cli-*'
+      - 'python-*'
+  pull_request:
+    paths:
+      - python/**
   workflow_dispatch:
 
 permissions:
@@ -14,7 +17,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test-stacrs-cli:
+  test-stacrs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -23,13 +26,15 @@ jobs:
         with:
           python-version: 3.x
       - name: Install dev requirements
-        run: pip install maturin
+        run: pip install -r python/requirements-dev.txt
       - name: Build
-        run: maturin build --manifest-path cli/Cargo.toml --out dist
-      - name: Install stacrs-cli
-        run: pip install stacrs-cli --find-links dist --no-index
-      - name: Smoke test
-        run: stacrs --version
+        run: maturin build --manifest-path python/Cargo.toml --out dist -F geoparquet
+      - name: Install stacrs
+        run: pip install stacrs --find-links dist --no-index
+      - name: Check
+        run: ruff check python && ruff format --check python && mypy python --config-file=python/pyproject.toml
+      - name: Test
+        run: pytest python/tests
   linux:
     runs-on: ${{ matrix.platform.runner }}
     strategy:
@@ -58,7 +63,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist --find-interpreter --manifest-path cli/Cargo.toml
+          args: --release --out dist --find-interpreter --manifest-path python/Cargo.toml -F geoparquet
           sccache: 'true'
       - name: Upload wheels
         uses: actions/upload-artifact@v4
@@ -88,7 +93,7 @@ jobs:
   #       uses: PyO3/maturin-action@v1
   #       with:
   #         target: ${{ matrix.platform.target }}
-  #         args: --release --out dist --find-interpreter --manifest-path cli/Cargo.toml -F openssl-vendored
+  #         args: --release --out dist --find-interpreter --manifest-path python/Cargo.toml -F openssl-vendored
   #         sccache: 'true'
   #         manylinux: musllinux_1_2
   #     - name: Upload wheels
@@ -118,7 +123,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist --find-interpreter --manifest-path cli/Cargo.toml
+          args: --release --out dist --find-interpreter --manifest-path python/Cargo.toml -F geoparquet
           sccache: 'true'
       - name: Upload wheels
         uses: actions/upload-artifact@v4
@@ -146,7 +151,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist --find-interpreter --manifest-path cli/Cargo.toml
+          args: --release --out dist --find-interpreter --manifest-path python/Cargo.toml -F geoparquet
           sccache: 'true'
       - name: Upload wheels
         uses: actions/upload-artifact@v4
@@ -164,7 +169,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           command: sdist
-          args: --out dist --manifest-path cli/Cargo.toml
+          args: --out dist --manifest-path python/Cargo.toml
       - name: Upload sdist
         uses: actions/upload-artifact@v4
         with:
@@ -180,7 +185,7 @@ jobs:
       - windows
       - macos
       - sdist
-    if: startsWith(github.ref, 'refs/tags/stac-cli-')
+    if: startsWith(github.ref, 'refs/tags/python-')
     environment:
       name: pypi
       url: https://pypi.org/p/stacrs

@@ -1,7 +1,12 @@
-name: pgstac
+name: Pgstac
 
 on:
   pull_request:
+    paths:
+      - pgstac/**
+  push:
+    branches:
+      - main
     paths:
       - pgstac/**
   workflow_dispatch:
