@@ -1,14 +1,12 @@
-//! The Authentication extension to the STAC specification provides a standard
-//! set of fields to describe authentication and authorization schemes, flows,
-//! and scopes required to access [Assets](crate::Asset) and
-//! [Links](crate::Link) that align with the [OpenAPI security
-//! spec](https://swagger.io/docs/specification/authentication/).
+//! Provides a standard set of fields to describe authentication and
+//! authorization schemes, flows, and scopes required to access
+//! [Assets](crate::Asset) and [Links](crate::Link) that align with the [OpenAPI
+//! security spec](https://swagger.io/docs/specification/authentication/).
 
+use crate::Extension;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
-
-use crate::Extension;
 
 /// The authentication extension fields.
 #[derive(Debug, Serialize, Deserialize)]

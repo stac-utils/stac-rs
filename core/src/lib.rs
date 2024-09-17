@@ -3,7 +3,7 @@
 //! The SpatioTemporal Asset Catalog (STAC) specification provides a common language to describe a range of geospatial information, so it can more easily be indexed and discovered.
 //! A 'spatiotemporal asset' is any file that represents information about the earth captured in a certain space and time.
 //!
-//! This is a Rust implementation of the specification, with associated utilities.
+//! This is a Rust implementation of the specification.
 //! Similar projects in other languages include:
 //!
 //! - Python: [PySTAC](https://pystac.readthedocs.io/en/1.0/)
@@ -13,10 +13,10 @@
 //!
 //! # Data structures
 //!
-//! STAC has three data structures:
+//! STAC has three core data structures:
 //!
 //! - [Item] is a [GeoJSON](http://geojson.org/) [Feature](https://tools.ietf.org/html/rfc7946#section-3.2) augmented with [foreign members](https://tools.ietf.org/html/rfc7946#section-6)
-//! - [Catalog] represents a logical group of other `Catalogs`, `Collections`, and `Items`
+//! - [Catalog] represents a logical group of other [Catalogs](Catalog), [Collections](Collection), and [Items](Item)
 //! - [Collection] shares all fields with the `Catalog` (with different allowed values for `type` and `stac_extensions`) and adds fields to describe the whole dataset and the included set of `Items`
 //!
 //! All three are provided as [serde](https://serde.rs/) (de)serializable structures with public attributes.
@@ -40,6 +40,25 @@
 //! item.links.push(Link::new("an/href", "a-rel-type"));
 //! ```
 //!
+//! # [Value]
+//!
+//! A [Value] can represent any of the three core data structures, as well as an [ItemCollection], akin to [serde_json::Value]:
+//!
+//! ```
+//! use stac::{Value, Item};
+//!
+//! let value = Value::Item(Item::new("an-id"));
+//! ```
+//!
+//! [Value] implements most traits that are shared between the data structures, so users of this library can do work (e.g. [migration](Migrate)) without needing to know what type of object the value represents:
+//!
+//! ```
+//! use stac::{Value, Migrate, Version};
+//!
+//! let value: Value = stac::read("examples/simple-item.json").unwrap();
+//! let value = value.migrate(&Version::v1_1_0_beta_1).unwrap();
+//! ```
+//!
 //! # Input and output
 //!
 //! Synchronous reads from the filesystem are supported via [read]:
@@ -58,15 +77,15 @@
 //! }
 //! ```
 //!
-//! To write, use [io::Format::write]:
+//! To write, use [write()]:
 //!
 //! ```no_run
-//! use stac::io::Format;
+//! use stac::Format;
 //!
-//! Format::Json(true).write("an-id.json", stac::Item::new("an-id")).unwrap();
+//! stac::write("an-id.json", stac::Item::new("an-id")).unwrap();
 //! ```
 //!
-//! With the `object-store` feature, we can get and put objects from storage:
+//! Enable the `object-store` feature to get and put objects from e.g. AWS s3 (with the `object-store-aws` feature) or from other backends (see [features](#features) for a complete listing):
 //!
 //! ```no_run
 //! use stac::Item;
@@ -74,33 +93,28 @@
 //! #[cfg(feature = "object-store")]
 //! {
 //!     # tokio_test::block_on(async {
-//!     stac::io::put_format_opts("s3://bucket/item.json", Item::new("an-id"), None, [("foo", "bar")]).await.unwrap();
-//!     let item: Item = stac::io::get_format_opts("s3://bucket/item.json", None, [("foo", "bar")]).await.unwrap();
+//!     stac::io::put_opts("s3://bucket/item.json", Item::new("an-id"), [("foo", "bar")]).await.unwrap();
+//!     let item: Item = stac::io::get_opts("s3://bucket/item.json", [("foo", "bar")]).await.unwrap();
 //!     # })
 //! }
 //! ```
 //!
 //! For more, see the documentation in the [io] module.
 //!
-//! # Extensions
-//!
-//! STAC is intentionally designed with a minimal core and flexible extension mechanism to support a broad set of use cases.
-//! See [the extensions module](extensions) for more information.
-//!
 //! # Features
 //!
 //! - `gdal`: read raster assets, see [gdal]
 //! - `geo`: add some geo-enabled methods, see [geo]
-//! - `geoarrow`: read and write [geoarrow](https://geoarrow.org/), see [io::geoarrow]
-//! - `geoparquet`: read and write [geoparquet](https://geoparquet.org/), see [io::geoparquet]
+//! - `geoarrow`: read and write [geoarrow](https://geoarrow.org/), see [geoarrow]
+//! - `geoparquet`: read and write [geoparquet](https://geoparquet.org/), see [geoparquet]
 //!     - `geoparquet-compression`: enable parquet compression
-//! - `object-store`: get and put from object stores. Sub-features turn on specific protocols:
+//! - `object-store`: get and put from object stores. Sub-features enable specific protocols:
 //!     - `object-store-aws`
 //!     - `object-store-azure`
 //!     - `object-store-gcp`
 //!     - `object-store-http`
-//!     - `object-store-full` (to turn them all on)
-//! - `reqwest`: enable `http` and `https` in [read]
+//!     - `object-store-all` (enable them all)
+//! - `reqwest`: get from `http` and `https` urls when using [read]
 
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 #![deny(
@@ -143,17 +157,23 @@ pub mod datetime;
 mod error;
 pub mod extensions;
 mod fields;
+mod format;
 #[cfg(feature = "gdal")]
 pub mod gdal;
 #[cfg(feature = "geo")]
 pub mod geo;
+#[cfg(feature = "geoarrow")]
+pub mod geoarrow;
+pub mod geoparquet;
 mod href;
 pub mod io;
 pub mod item;
 mod item_collection;
+mod json;
 pub mod link;
 mod migrate;
 pub mod mime;
+mod ndjson;
 mod statistics;
 mod value;
 mod version;
@@ -168,19 +188,22 @@ pub use {
     error::Error,
     extensions::{Extension, Extensions},
     fields::Fields,
+    format::Format,
+    geoparquet::{FromGeoparquet, IntoGeoparquet},
     href::Href,
-    io::read,
+    io::{read, write},
     item::{FlatItem, Item, Properties, ITEM_TYPE},
     item_collection::{ItemCollection, ITEM_COLLECTION_TYPE},
+    json::{FromJson, ToJson},
     link::{Link, Links},
     migrate::Migrate,
+    ndjson::{FromNdjson, ToNdjson},
     statistics::Statistics,
     value::Value,
     version::Version,
 };
 
-/// The default STAC version supported by this library.
-// When updating this value, make sure to update the `Default` implementation of `Version` as well.
+/// The default STAC version of this library.
 pub const STAC_VERSION: Version = Version::v1_0_0;
 
 /// Custom [Result](std::result::Result) type for this crate.
@@ -188,8 +211,26 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 /// Utility function to deserialize the type field on an object.
 ///
-/// Use this, via a wrapper function, in `#[serde(deserialize_with)]`.  See
-/// [Item] for one example.
+/// Use this, via a wrapper function, for `#[serde(deserialize_with)]`.
+///
+/// # Examples
+///
+/// ```
+/// use serde::Deserialize;
+///
+/// #[derive(Deserialize)]
+/// struct Foo {
+///     #[serde(deserialize_with = "deserialize_type")]
+///     r#type: String,     
+/// }
+///
+/// fn deserialize_type<'de, D>(deserializer: D) -> Result<String, D::Error>
+/// where
+///     D: serde::de::Deserializer<'de>
+/// {
+///     stac::deserialize_type(deserializer, "Foo")
+/// }
+/// ```
 pub fn deserialize_type<'de, D>(
     deserializer: D,
     expected: &str,
@@ -211,8 +252,26 @@ where
 
 /// Utility function to serialize the type field on an object.
 ///
-/// Use this, via a wrapper function, in `#[serde(serialize_with)]`.  See [Item]
-/// for one example.
+/// Use this, via a wrapper function, in `#[serde(serialize_with)]`.
+///
+/// # Examples
+///
+/// ```
+/// use serde::Serialize;
+///
+/// #[derive(Serialize)]
+/// struct Foo {
+///     #[serde(serialize_with = "serialize_type")]
+///     r#type: String,     
+/// }
+///
+/// fn serialize_type<S>(r#type: &String, serializer: S) -> Result<S::Ok, S::Error>
+/// where
+///     S: serde::ser::Serializer
+/// {
+///     stac::serialize_type(r#type, serializer, "Foo")
+/// }
+/// ```
 pub fn serialize_type<S>(
     r#type: &String,
     serializer: S,
@@ -235,6 +294,7 @@ where
 #[cfg(test)]
 mod tests {
     use rstest as _;
+    use tokio as _;
     use tokio_test as _;
 
     macro_rules! roundtrip {

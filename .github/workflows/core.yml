@@ -48,7 +48,7 @@ jobs:
       - name: Check w/ reqwest
         run: cargo check -F reqwest
       - name: Test
-        run: cargo test -F geo -F geoparquet-compression -F reqwest -F object-store-full
+        run: cargo test -F geo -F geoparquet-compression -F reqwest -F object-store-all
   test-core-with-gdal:
     runs-on: ubuntu-latest
     steps:

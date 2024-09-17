@@ -36,7 +36,7 @@ object-store-aws = ["object-store", "object_store/aws"]
 object-store-azure = ["object-store", "object_store/azure"]
 object-store-gcp = ["object-store", "object_store/gcp"]
 object-store-http = ["object-store", "object_store/http"]
-object-store-full = [
+object-store-all = [
     "object-store-aws",
     "object-store-azure",
     "object-store-gcp",
@@ -71,6 +71,8 @@ url = "2"
 assert-json-diff = "2"
 bytes = "1"
 rstest = "0.22"
+tempdir = "0.3"
+tokio = "1"
 tokio-test = "0.4"
 
 [package.metadata.docs.rs]

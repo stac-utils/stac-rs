@@ -12,7 +12,7 @@ mod validate;
 
 use crate::{input::Input, options::KeyValue, output::Output, Result, Value};
 use clap::Parser;
-use stac::io::Format;
+use stac::Format;
 use tokio::{sync::mpsc::Sender, task::JoinHandle};
 use tracing::metadata::Level;
 

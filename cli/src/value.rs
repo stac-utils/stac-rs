@@ -1,6 +1,6 @@
 use crate::{Error, Result};
 use serde::Serialize;
-use stac::io::{Format, IntoFormattedBytes};
+use stac::{IntoGeoparquet, ToNdjson};
 
 /// An output value, which can either be a [serde_json::Value] or a [stac::Value].
 #[derive(Debug, Serialize)]
@@ -41,11 +41,31 @@ impl TryFrom<Value> for stac::Value {
     }
 }
 
-impl IntoFormattedBytes for Value {
-    fn into_formatted_bytes(self, format: Format) -> stac::Result<Vec<u8>> {
+impl ToNdjson for Value {
+    fn to_ndjson_vec(&self) -> stac::Result<Vec<u8>> {
         match self {
-            Self::Json(value) => value.into_formatted_bytes(format),
-            Self::Stac(value) => value.into_formatted_bytes(format),
+            Value::Json(json) => json.to_ndjson_vec(),
+            Value::Stac(stac) => stac.to_ndjson_vec(),
+        }
+    }
+
+    fn to_ndjson_writer(&self, writer: impl std::io::Write) -> stac::Result<()> {
+        match self {
+            Value::Json(json) => json.to_ndjson_writer(writer),
+            Value::Stac(stac) => stac.to_ndjson_writer(writer),
+        }
+    }
+}
+
+impl IntoGeoparquet for Value {
+    fn into_geoparquet_writer(
+        self,
+        writer: impl std::io::Write + Send,
+        compression: Option<stac::geoparquet::Compression>,
+    ) -> stac::Result<()> {
+        match self {
+            Value::Json(json) => json.into_geoparquet_writer(writer, compression),
+            Value::Stac(stac) => stac.into_geoparquet_writer(writer, compression),
         }
     }
 }

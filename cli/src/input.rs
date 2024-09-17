@@ -1,7 +1,7 @@
 use std::io::Read;
 
 use crate::{options::Options, Error, Result};
-use stac::{io::Format, Value};
+use stac::{Format, Value};
 
 /// The input to a CLI run.
 #[derive(Debug, Default)]
@@ -40,7 +40,10 @@ impl Input {
     /// Gets a STAC value from the input.
     pub(crate) async fn get(&self) -> Result<Value> {
         if let Some(href) = self.href.as_deref() {
-            stac::io::get_format_opts(href, self.format, self.options.iter())
+            self.format
+                .or_else(|| Format::infer_from_href(href))
+                .unwrap_or_default()
+                .get_opts(href, self.options.iter())
                 .await
                 .map_err(Error::from)
         } else {
@@ -48,7 +51,7 @@ impl Input {
             let _ = std::io::stdin().read_to_end(&mut buf);
             self.format
                 .unwrap_or_default()
-                .from_bytes(buf.into())
+                .from_bytes(buf)
                 .map_err(Error::from)
         }
     }

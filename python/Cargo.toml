@@ -21,7 +21,7 @@ pyo3 = "0.22"
 pythonize = "0.22"
 serde = "1"
 serde_json = "1"
-stac = { path = "../core", features = ["reqwest", "object-store-full"] }
+stac = { path = "../core", features = ["reqwest", "object-store-all"] }
 stac-api = { path = "../api", features = ["client"] }
 stac-validate = { path = "../validate" }
 tokio = { version = "1", features = ["rt"] }

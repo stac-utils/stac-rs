@@ -249,27 +249,52 @@ impl TryFrom<Value> for Map<String, serde_json::Value> {
     }
 }
 
-impl From<Item> for Value {
-    fn from(item: Item) -> Self {
-        Value::Item(item)
-    }
+macro_rules! impl_from {
+    ($object:ident) => {
+        impl From<$object> for Value {
+            fn from(o: $object) -> Value {
+                Value::$object(o)
+            }
+        }
+    };
 }
 
-impl From<Catalog> for Value {
-    fn from(catalog: Catalog) -> Self {
-        Value::Catalog(catalog)
-    }
+macro_rules! impl_try_from {
+    ($object:ident, $name:expr) => {
+        impl TryFrom<Value> for $object {
+            type Error = Error;
+            fn try_from(value: Value) -> Result<$object> {
+                if let Value::$object(o) = value {
+                    Ok(o)
+                } else {
+                    Err(Error::IncorrectType {
+                        actual: value.type_name().to_string(),
+                        expected: $name.to_string(),
+                    })
+                }
+            }
+        }
+    };
 }
+impl_from!(Item);
+impl_from!(Catalog);
+impl_from!(Collection);
+impl_from!(ItemCollection);
+impl_try_from!(Item, "Item");
+impl_try_from!(Catalog, "Catalog");
+impl_try_from!(Collection, "Collection");
 
-impl From<Collection> for Value {
-    fn from(collection: Collection) -> Self {
-        Value::Collection(collection)
-    }
-}
-
-impl From<ItemCollection> for Value {
-    fn from(item_collection: ItemCollection) -> Self {
-        Value::ItemCollection(item_collection)
+impl TryFrom<Value> for ItemCollection {
+    type Error = Error;
+    fn try_from(value: Value) -> Result<Self> {
+        match value {
+            Value::Item(item) => Ok(ItemCollection::from(vec![item])),
+            Value::ItemCollection(item_collection) => Ok(item_collection),
+            Value::Catalog(_) | Value::Collection(_) => Err(Error::IncorrectType {
+                actual: value.type_name().to_string(),
+                expected: "ItemCollection".to_string(),
+            }),
+        }
     }
 }
 
@@ -289,6 +314,7 @@ impl Migrate for Value {
 #[cfg(test)]
 mod tests {
     use super::Value;
+    use crate::{Catalog, Error, Item};
     use serde_json::json;
 
     #[test]
@@ -370,5 +396,17 @@ mod tests {
             "links": []
         });
         assert!(serde_json::from_value::<Value>(catalog).is_err());
+    }
+
+    #[test]
+    fn try_from() {
+        let value = Value::Item(Item::new("an-id"));
+        let err = Catalog::try_from(value).unwrap_err();
+        if let Error::IncorrectType { actual, expected } = err {
+            assert_eq!(actual, "Item");
+            assert_eq!(expected, "Catalog");
+        } else {
+            panic!("wrong error type: {}", err)
+        }
     }
 }

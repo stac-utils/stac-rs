@@ -132,7 +132,7 @@ async fn search_api(
     }
 }
 
-#[cfg(all(feature = "duckdb", feature = "geoparquet"))]
+#[cfg(feature = "duckdb")]
 async fn search_geoparquet(
     href: String,
     mut search: Search,
@@ -185,12 +185,12 @@ impl Run for Args {
         } else {
             Some(self.collections)
         };
-        #[cfg(all(feature = "duckdb", feature = "geoparquet"))]
+        #[cfg(feature = "duckdb")]
         {
             if self.duckdb.unwrap_or_else(|| {
                 matches!(
-                    stac::io::Format::infer_from_href(&self.href),
-                    Some(stac::io::Format::Geoparquet(_))
+                    stac::Format::infer_from_href(&self.href),
+                    Some(stac::Format::Geoparquet(_))
                 )
             }) {
                 search_geoparquet(self.href, search, stream, self.max_items).await
@@ -198,7 +198,7 @@ impl Run for Args {
                 search_api(self.href, search, stream, self.max_items).await
             }
         }
-        #[cfg(any(not(feature = "duckdb"), not(feature = "geoparquet")))]
+        #[cfg(not(feature = "duckdb"))]
         {
             search_api(self.href, search, stream, self.max_items).await
         }
