@@ -2,12 +2,11 @@ use serde::{Deserialize, Serialize};
 use std::{convert::Infallible, fmt::Display, str::FromStr};
 
 /// A version of the STAC specification.
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize, Eq, Hash, PartialOrd)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Eq, Hash, PartialOrd)]
 #[allow(non_camel_case_types)]
 #[non_exhaustive]
 pub enum Version {
     /// [v1.0.0](https://github.com/radiantearth/stac-spec/releases/tag/v1.0.0)
-    #[default]
     #[serde(rename = "1.0.0")]
     v1_0_0,
 
@@ -43,5 +42,11 @@ impl Display for Version {
                 Version::Unknown(v) => v,
             }
         )
+    }
+}
+
+impl Default for Version {
+    fn default() -> Self {
+        crate::STAC_VERSION
     }
 }

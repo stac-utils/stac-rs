@@ -4,7 +4,7 @@ use pyo3::{
     types::{PyDict, PyList},
 };
 use serde::de::DeserializeOwned;
-use stac::io::Format;
+use stac::Format;
 use stac_api::{BlockingClient, Fields, Item, ItemCollection, Items, Search};
 use std::str::FromStr;
 use tokio::runtime::Builder;
@@ -182,10 +182,9 @@ pub fn search_to(
     let item_collection = ItemCollection::from(items);
     Builder::new_current_thread()
         .build()?
-        .block_on(stac::io::put_format_opts(
+        .block_on(format.put_opts(
             outfile,
             serde_json::to_value(item_collection).map_err(Error::from)?,
-            format,
             options.unwrap_or_default(),
         ))
         .map_err(Error::from)?;

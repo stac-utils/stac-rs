@@ -20,9 +20,9 @@ pub enum Error {
     #[error(transparent)]
     GdalError(#[from] gdal::errors::GdalError),
 
-    /// GDAL is not enabled.
-    #[error("gdal is not enabled")]
-    GdalNotEnabled,
+    /// A required feature is not enabled.
+    #[error("{0} is not enabled")]
+    FeatureNotEnabled(&'static str),
 
     /// [geoarrow::error::GeoArrowError]
     #[error(transparent)]
@@ -114,10 +114,6 @@ pub enum Error {
     #[cfg(feature = "geoparquet")]
     Parquet(#[from] parquet::errors::ParquetError),
 
-    /// Returned when trying to read from a url but the `reqwest` feature is not enabled.
-    #[error("reqwest is not enabled")]
-    ReqwestNotEnabled,
-
     /// [reqwest::Error]
     #[cfg(feature = "reqwest")]
     #[error(transparent)]
@@ -146,6 +142,10 @@ pub enum Error {
     /// Unsupported file format.
     #[error("unsupported format: {0}")]
     UnsupportedFormat(String),
+
+    /// Unsupported geoparquet type
+    #[error("unsupported geoparquet type")]
+    UnsupportedGeoparquetType,
 
     /// [url::ParseError]
     #[error(transparent)]

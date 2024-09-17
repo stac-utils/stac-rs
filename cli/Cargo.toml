@@ -31,7 +31,7 @@ serde = "1"
 serde_json = "1"
 stac = { version = "0.9.0", path = "../core", features = [
     "reqwest",
-    "object-store-full",
+    "object-store-all",
 ] }
 stac-api = { version = "0.5.0", path = "../api", features = ["client"] }
 stac-duckdb = { version = "0.0.1", path = "../duckdb", optional = true }

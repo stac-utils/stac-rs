@@ -2,7 +2,7 @@
 
 use crate::{options::Options, value::Value, Error, Result};
 use object_store::PutResult;
-use stac::io::{Format, IntoFormattedBytes};
+use stac::{Format, ToNdjson};
 use std::{path::Path, pin::Pin};
 use tokio::{
     fs::File,
@@ -57,7 +57,7 @@ impl Output {
 
     /// Streams a value to the output
     pub(crate) async fn stream(&mut self, value: Value) -> Result<()> {
-        let bytes = value.into_formatted_bytes(Format::NdJson)?;
+        let bytes = value.to_ndjson_vec()?;
         self.stream.write_all(&bytes).await?;
         self.stream.flush().await?;
         Ok(())
@@ -66,11 +66,12 @@ impl Output {
     /// Puts a value to the output.
     pub(crate) async fn put(&mut self, value: Value) -> Result<Option<PutResult>> {
         if let Some(href) = self.href.as_deref() {
-            stac::io::put_format_opts(href, value, self.format, self.options.iter())
+            self.format
+                .put_opts(href, value, self.options.iter())
                 .await
                 .map_err(Error::from)
         } else {
-            let bytes = value.into_formatted_bytes(self.format)?;
+            let bytes = self.format.into_vec(value)?;
             self.stream.write_all(&bytes).await?;
             self.stream.flush().await?;
             Ok(None)

@@ -335,7 +335,7 @@ impl Builder {
                 self.is_approx_statistics_ok,
             )?;
             #[cfg(not(feature = "gdal"))]
-            return Err(Error::GdalNotEnabled);
+            return Err(Error::FeatureNotEnabled("gdal"));
         }
         Ok(item)
     }

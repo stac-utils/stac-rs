@@ -153,7 +153,7 @@ impl Client {
         {
             let schema = record_batches[0].schema();
             let table = Table::try_new(record_batches, schema)?;
-            items.extend(stac::io::geoarrow::from_table(table)?.items);
+            items.extend(stac::geoarrow::from_table(table)?.items);
         }
         Ok(items.into())
     }
@@ -230,7 +230,7 @@ impl Client {
         {
             let schema = record_batches[0].schema();
             let table = Table::try_new(record_batches, schema)?;
-            items.extend(stac::io::geoarrow::json::from_table(table)?);
+            items.extend(stac::geoarrow::json::from_table(table)?);
         }
         Ok(items.into())
     }

@@ -35,9 +35,10 @@ const DATETIME_COLUMNS: [&str; 8] = [
 ///
 /// let item = stac::read("examples/simple-item.json").unwrap();
 /// let item_collection = ItemCollection::from(vec![item]);
-/// let table = stac::io::geoarrow::to_table(item_collection).unwrap();
+/// let table = stac::geoarrow::to_table(item_collection).unwrap();
 /// ```
-pub fn to_table(item_collection: ItemCollection) -> Result<Table> {
+pub fn to_table(item_collection: impl Into<ItemCollection>) -> Result<Table> {
+    let item_collection = item_collection.into();
     let mut values = Vec::with_capacity(item_collection.items.len());
     let mut builder = MixedGeometryBuilder::<i32, 2>::new();
     for mut item in item_collection.items {
@@ -126,7 +127,7 @@ pub fn to_table(item_collection: ItemCollection) -> Result<Table> {
 ///     .build()
 ///     .unwrap();
 /// let table = reader.read_table().unwrap();
-/// let item_collection = stac::io::geoarrow::from_table(table).unwrap();
+/// let item_collection = stac::geoarrow::from_table(table).unwrap();
 /// # }
 /// ```
 pub fn from_table(table: Table) -> Result<ItemCollection> {
@@ -141,14 +142,14 @@ pub fn from_table(table: Table) -> Result<ItemCollection> {
 // have to add geoarrow as a dev dependency for all builds.
 #[cfg(all(test, feature = "geoparquet"))]
 mod tests {
-    use crate::ItemCollection;
+    use crate::{Item, ItemCollection};
     use geoarrow::io::parquet::GeoParquetRecordBatchReaderBuilder;
     use std::fs::File;
 
     #[test]
     fn to_table() {
-        let item = crate::read("examples/simple-item.json").unwrap();
-        let _ = super::to_table(vec![item].into()).unwrap();
+        let item: Item = crate::read("examples/simple-item.json").unwrap();
+        let _ = super::to_table(vec![item]).unwrap();
     }
 
     #[test]
@@ -165,8 +166,8 @@ mod tests {
 
     #[test]
     fn roundtrip() {
-        let item = crate::read("examples/simple-item.json").unwrap();
-        let table = super::to_table(vec![item].into()).unwrap();
+        let item: Item = crate::read("examples/simple-item.json").unwrap();
+        let table = super::to_table(vec![item]).unwrap();
         let _ = super::from_table(table).unwrap();
     }
 

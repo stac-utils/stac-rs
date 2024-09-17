@@ -9,13 +9,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 
 - Deref `ItemCollection` ([#363](https://github.com/stac-utils/stac-rs/pull/363))
-- `io::Format` ([#372](https://github.com/stac-utils/stac-rs/pull/371))
+- `Format` ([#371](https://github.com/stac-utils/stac-rs/pull/371), [#396](https://github.com/stac-utils/stac-rs/pull/396))
+- `Error::FeatureNotEnabled` and `Error::UnsupportedGeoparquetType` ([#396](https://github.com/stac-utils/stac-rs/pull/396))
 - Read unknown versions ([#378](https://github.com/stac-utils/stac-rs/pull/378))
-- `io::IntoFormattedBytes` ([#386](https://github.com/stac-utils/stac-rs/pull/386))
+- Conversion traits for the three formats ([#396](https://github.com/stac-utils/stac-rs/pull/396))
+- `object_store` ([#382](https://github.com/stac-utils/stac-rs/pull/382))
+- `stac::geoparquet::Compression`, even if geoparquet is not enabled ([#396](https://github.com/stac-utils/stac-rs/pull/396))
 
 ### Changed
 
 - Update **geoarrow** to v0.3.0 ([#367](https://github.com/stac-utils/stac-rs/pull/367))
+
+### Removed
+
+- `Error::ReqwestNotEnabled` and `Error::GdalNotEnabled` ([#396](https://github.com/stac-utils/stac-rs/pull/382))
 
 ## [0.9.0] - 2024-09-05
 
