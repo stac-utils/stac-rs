@@ -418,7 +418,7 @@ mod tests {
         let root = api.root().await.unwrap();
         assert!(!root.conformance.conforms_to.is_empty());
         let catalog: Catalog = serde_json::from_value(serde_json::to_value(root).unwrap()).unwrap();
-        catalog.validate().unwrap();
+        catalog.validate().await.unwrap();
         assert_eq!(catalog.id, "an-id");
         assert_eq!(catalog.description, "a description");
         assert_link!(
@@ -511,7 +511,7 @@ mod tests {
         );
         assert_eq!(collections.collections.len(), 1);
         let collection = &collections.collections[0];
-        collection.validate().unwrap();
+        collection.validate().await.unwrap();
         assert_link!(
             collection.link("root"),
             "http://stac.test/",
@@ -543,7 +543,7 @@ mod tests {
             .unwrap();
         let api = test_api(backend);
         let collection = api.collection("a-collection").await.unwrap().unwrap();
-        collection.validate().unwrap();
+        collection.validate().await.unwrap();
         assert_link!(
             collection.link("root"),
             "http://stac.test/",

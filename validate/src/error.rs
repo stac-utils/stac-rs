@@ -1,5 +1,6 @@
 use jsonschema::ValidationError;
-use std::borrow::Cow;
+use serde_json::Value;
+use std::{borrow::Cow, sync::Arc};
 use thiserror::Error;
 use url::Url;
 
@@ -7,29 +8,21 @@ use url::Url;
 #[derive(Debug, Error)]
 #[non_exhaustive]
 pub enum Error {
-    /// Cannot resolve schemas with a json-schema scheme.
-    #[error("cannot resolve json-schema scheme: {0}")]
-    CannotResolveJsonSchemaScheme(Url),
+    /// Cannot validate a non-object, non-array
+    #[error("value is not an object or an array, cannot validate")]
+    CannotValidate(Value),
 
-    /// Missing stac_version.
-    #[error("missing stac_version attribute")]
-    MissingStacVersion,
+    /// [std::io::Error]
+    #[error(transparent)]
+    Io(#[from] std::io::Error),
 
-    /// The `stac_extensions` vector, or its contents, are not the correct type.
-    #[error("incorrect stac extensions type")]
-    IncorrectStacExtensionsType(serde_json::Value),
+    /// No type field on an object.
+    #[error("no type field")]
+    NoType,
 
-    /// The url is not a valid file path.
-    #[error("invalid file path: {0}")]
-    InvalidFilePath(Url),
-
-    /// We cannot handle this url scheme.
-    #[error("invalid url scheme: {0}")]
-    InvalidUrlScheme(Url),
-
-    /// Invalid JSONSchema.
-    #[error("invalid json-schema at url: {0}")]
-    InvalidSchema(String),
+    /// No version field on an object.
+    #[error("no version field")]
+    NoVersion,
 
     /// [reqwest::Error]
     #[error(transparent)]
@@ -43,6 +36,28 @@ pub enum Error {
     #[error(transparent)]
     Stac(#[from] stac::Error),
 
+    /// [tokio::task::JoinError]
+    #[error(transparent)]
+    TokioJoin(#[from] tokio::task::JoinError),
+
+    /// [tokio::sync::mpsc::error::SendError]
+    #[error(transparent)]
+    TokioSend(
+        #[from]
+        tokio::sync::mpsc::error::SendError<(
+            Url,
+            tokio::sync::oneshot::Sender<crate::Result<Arc<Value>>>,
+        )>,
+    ),
+
+    /// [tokio::sync::oneshot::error::RecvError]
+    #[error(transparent)]
+    TokioRecv(#[from] tokio::sync::oneshot::error::RecvError),
+
+    /// [url::ParseError]
+    #[error(transparent)]
+    UrlParse(#[from] url::ParseError),
+
     /// A list of validation errors.
     ///
     /// Since we usually don't have the original [serde_json::Value] (because we
@@ -50,16 +65,14 @@ pub enum Error {
     /// lifetime.
     #[error("validation errors")]
     Validation(Vec<ValidationError<'static>>),
-
-    /// [jsonschema::ValidationError]
-    #[error(transparent)]
-    JSONSchemaValidation(#[from] ValidationError<'static>),
 }
 
 impl Error {
     /// Creates an [crate::Error] from an iterator over [jsonschema::ValidationError].
-    #[allow(single_use_lifetimes)]
-    pub fn from_validation_errors<'a>(errors: impl Iterator<Item = ValidationError<'a>>) -> Error {
+    pub fn from_validation_errors<'a, I>(errors: I) -> Error
+    where
+        I: Iterator<Item = ValidationError<'a>>,
+    {
         let mut error_vec = Vec::new();
         for error in errors {
             // Cribbed from https://docs.rs/jsonschema/latest/src/jsonschema/error.rs.html#21-30
@@ -71,16 +84,5 @@ impl Error {
             })
         }
         Error::Validation(error_vec)
-    }
-
-    /// Creates an [crate::Error] from a single [jsonschema::ValidationError].
-    pub fn from_validation_error(error: ValidationError<'_>) -> Error {
-        // Cribbed from https://docs.rs/jsonschema/latest/src/jsonschema/error.rs.html#21-30
-        Error::JSONSchemaValidation(ValidationError {
-            instance_path: error.instance_path.clone(),
-            instance: Cow::Owned(error.instance.into_owned()),
-            kind: error.kind,
-            schema_path: error.schema_path,
-        })
     }
 }

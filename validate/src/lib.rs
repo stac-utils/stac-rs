@@ -1,4 +1,4 @@
-//! Validate STAC objects with jsonschema.
+//! Validate STAC objects with [json-schema](https://json-schema.org/).
 //!
 //! # Examples
 //!
@@ -7,23 +7,40 @@
 //! ```
 //! use stac::Item;
 //! use stac_validate::Validate;
-//! Item::new("an-id").validate().unwrap();
+//!
+//! # tokio_test::block_on(async {
+//! Item::new("an-id").validate().await.unwrap();
+//! # })
 //! ```
 //!
-//! [stac::Collection], [stac::Catalog], and [stac::Item] all have their schemas built into the library, so they don't need to be fetched from the network.
-//! Any extension schemas are fetched using [reqwest](https://docs.rs/reqwest/latest/reqwest/), and cached for later use.
-//! This means that, if you're doing multiple validations, you should re-use the same [Validator]:
+//! If you're working in a blocking context (not async), enable the `blocking` feature and use [ValidateBlocking]:
 //!
 //! ```
 //! # use stac::Item;
-//! use stac_validate::Validator;
-//!
-//! let mut items: Vec<_> = (0..10).map(|n| Item::new(format!("item-{}", n))).collect();
-//! let mut validator = Validator::new();
-//! for item in items {
-//!     validator.validate(item).unwrap();
+//! #[cfg(feature = "blocking")]
+//! {
+//!     use stac_validate::ValidateBlocking;
+//!     Item::new("an-id").validate_blocking().unwrap();
 //! }
 //! ```
+//!
+//! All fetched schemas are cached, so if you're you're doing multiple
+//! validations, you should re-use the same [Validator]:
+//!
+//! ```
+//! # use stac::Item;
+//! # use stac_validate::Validator;
+//! let mut items: Vec<_> = (0..10).map(|n| Item::new(format!("item-{}", n))).collect();
+//! # tokio_test::block_on(async {
+//! let mut validator = Validator::new().await;
+//! for item in items {
+//!     validator.validate(&item).await.unwrap();
+//! }
+//! # })
+//! ```
+//!
+//! [Validator] is cheap to clone, so you are encouraged to validate a large
+//! number of objects at the same time if that's your use-case.
 
 #![deny(
     elided_lifetimes_in_paths,
@@ -54,72 +71,21 @@
     unused_results
 )]
 
+#[cfg(feature = "blocking")]
+mod blocking;
 mod error;
 mod validate;
 mod validator;
 
-pub use {
-    error::Error,
-    validate::{Validate, ValidateCore},
-    validator::Validator,
-};
+#[cfg(feature = "blocking")]
+pub use blocking::ValidateBlocking;
+pub use {error::Error, validate::Validate, validator::Validator};
 
 /// Crate-specific result type.
 pub type Result<T> = std::result::Result<T, Error>;
 
 #[cfg(test)]
-mod tests {
-    use crate::Validate;
-    use geojson::{Geometry, Value};
-    use rstest as _;
-    use stac::{Catalog, Collection, Item};
-
-    #[test]
-    fn item() {
-        let item = Item::new("an-id");
-        item.validate().unwrap();
-    }
-
-    #[test]
-    fn item_with_geometry() {
-        let mut item = Item::new("an-id");
-        item.set_geometry(Geometry::new(Value::Point(vec![-105.1, 40.1])))
-            .unwrap();
-        item.validate().unwrap();
-    }
-
-    #[test]
-    fn item_with_extensions() {
-        let item: Item =
-            stac::read("examples/extensions-collection/proj-example/proj-example.json").unwrap();
-        item.validate().unwrap();
-    }
-
-    #[test]
-    fn catalog() {
-        let catalog = Catalog::new("an-id", "a description");
-        catalog.validate().unwrap();
-    }
-
-    #[test]
-    fn collection() {
-        let collection = Collection::new("an-id", "a description");
-        collection.validate().unwrap();
-    }
-
-    #[test]
-    fn value() {
-        let value: stac::Value = stac::read("examples/simple-item.json").unwrap();
-        value.validate().unwrap();
-    }
-
-    #[test]
-    fn item_collection() {
-        let item = stac::read("examples/simple-item.json").unwrap();
-        let item_collection = stac::ItemCollection::from(vec![item]);
-        item_collection.validate().unwrap();
-    }
-}
+use {geojson as _, rstest as _, tokio_test as _};
 
 // From https://github.com/rust-lang/cargo/issues/383#issuecomment-720873790,
 // may they be forever blessed.

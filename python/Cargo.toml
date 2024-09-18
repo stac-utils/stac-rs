@@ -23,5 +23,5 @@ serde = "1"
 serde_json = "1"
 stac = { path = "../core", features = ["reqwest", "object-store-all"] }
 stac-api = { path = "../api", features = ["client"] }
-stac-validate = { path = "../validate" }
+stac-validate = { path = "../validate", features = ["blocking"] }
 tokio = { version = "1", features = ["rt"] }

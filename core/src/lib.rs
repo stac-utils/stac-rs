@@ -209,6 +209,90 @@ pub const STAC_VERSION: Version = Version::v1_0_0;
 /// Custom [Result](std::result::Result) type for this crate.
 pub type Result<T> = std::result::Result<T, Error>;
 
+/// Enum for the four "types" of STAC values.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum Type {
+    /// An item.
+    Item,
+
+    /// A collection.
+    Collection,
+
+    /// A catalog.
+    Catalog,
+
+    /// An item collection.
+    ///
+    /// While not technically part of the STAC specification, it's used all over the place.
+    ItemCollection,
+}
+
+impl Type {
+    /// Returns this type as a str.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::Type;
+    ///
+    /// assert_eq!(Type::Item.as_str(), "Feature");
+    /// ```
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Type::Item => "Feature",
+            Type::Catalog => "Catalog",
+            Type::Collection => "Collection",
+            Type::ItemCollection => "FeatureCollection",
+        }
+    }
+
+    /// Returns the schema path for this type.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::{Type, Version};
+    ///
+    /// assert_eq!(Type::Item.spec_path(&Version::v1_0_0).unwrap(), "/v1.0.0/item-spec/json-schema/item.json");
+    /// ```
+    pub fn spec_path(&self, version: &Version) -> Option<String> {
+        match self {
+            Type::Item => Some(format!("/v{}/item-spec/json-schema/item.json", version)),
+            Type::Catalog => Some(format!(
+                "/v{}/catalog-spec/json-schema/catalog.json",
+                version
+            )),
+            Type::Collection => Some(format!(
+                "/v{}/collection-spec/json-schema/collection.json",
+                version
+            )),
+            Type::ItemCollection => None,
+        }
+    }
+}
+
+impl std::str::FromStr for Type {
+    type Err = Error;
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        match s {
+            "Feature" => Ok(Type::Item),
+            "Catalog" => Ok(Type::Catalog),
+            "Collection" => Ok(Type::Collection),
+            "FeatureCollection" => Ok(Type::ItemCollection),
+            _ => Err(Error::UnknownType(s.to_string())),
+        }
+    }
+}
+
+impl<T> PartialEq<T> for Type
+where
+    T: AsRef<str>,
+{
+    fn eq(&self, other: &T) -> bool {
+        self.as_str() == other.as_ref()
+    }
+}
+
 /// Utility function to deserialize the type field on an object.
 ///
 /// Use this, via a wrapper function, for `#[serde(deserialize_with)]`.

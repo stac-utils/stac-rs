@@ -6,7 +6,7 @@
 ![Crates.io](https://img.shields.io/crates/l/stac-validate?style=for-the-badge)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?style=for-the-badge)](./CODE_OF_CONDUCT)
 
-Validate [STAC](https://stacspec.org/) with [jsonschema](https://json-schema.org/).
+Validate [STAC](https://stacspec.org/) with [json-schema](https://json-schema.org/).
 
 ## Usage
 
@@ -22,7 +22,9 @@ stac-validate = "0.2"
 ```rust
 use stac_validate::Validate;
 let item: stac::Item = stac::read("examples/simple-item.json").unwrap();
-item.validate().unwrap();
+tokio_test::block_on(async {
+    item.validate().await.unwrap();
+});
 ```
 
 Please see the [documentation](https://docs.rs/stac-validate) for more usage examples.
