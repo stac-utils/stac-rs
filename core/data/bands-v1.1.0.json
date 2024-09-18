@@ -1,6 +1,6 @@
 {
     "type": "Feature",
-    "stac_version": "1.1.0-beta.1",
+    "stac_version": "1.1.0",
     "id": "bands-migration",
     "geometry": null,
     "properties": {

@@ -310,6 +310,14 @@ fn schemas(compilation_options: &CompilationOptions) -> HashMap<Url, Arc<JSONSch
         "../schemas/v1.0.0/collection.json",
         schemas
     );
+    schema!(Item, v1_1_0, "../schemas/v1.1.0/item.json", schemas);
+    schema!(Catalog, v1_1_0, "../schemas/v1.1.0/catalog.json", schemas);
+    schema!(
+        Collection,
+        v1_1_0,
+        "../schemas/v1.1.0/collection.json",
+        schemas
+    );
 
     schemas
 }
@@ -326,6 +334,7 @@ fn cache() -> HashMap<Url, Arc<Value>> {
         };
     }
 
+    // General
     resolve!(
         "https://geojson.org/schema/Feature.json",
         "../schemas/geojson/Feature.json"
@@ -338,6 +347,8 @@ fn cache() -> HashMap<Url, Arc<Value>> {
         "http://json-schema.org/draft-07/schema",
         "../schemas/json-schema/draft-07.json"
     );
+
+    // STAC v1.0.0
     resolve!(
         "https://schemas.stacspec.org/v1.0.0/item-spec/json-schema/basics.json",
         "../schemas/v1.0.0/basics.json"
@@ -361,6 +372,44 @@ fn cache() -> HashMap<Url, Arc<Value>> {
     resolve!(
         "https://schemas.stacspec.org/v1.0.0/item-spec/json-schema/provider.json",
         "../schemas/v1.0.0/provider.json"
+    );
+
+    // STAC v1.1.0
+    resolve!(
+        "https://schemas.stacspec.org/v1.1.0/item-spec/json-schema/bands.json",
+        "../schemas/v1.1.0/bands.json"
+    );
+    resolve!(
+        "https://schemas.stacspec.org/v1.1.0/item-spec/json-schema/basics.json",
+        "../schemas/v1.1.0/basics.json"
+    );
+    resolve!(
+        "https://schemas.stacspec.org/v1.1.0/item-spec/json-schema/common.json",
+        "../schemas/v1.1.0/common.json"
+    );
+    resolve!(
+        "https://schemas.stacspec.org/v1.1.0/item-spec/json-schema/data-values.json",
+        "../schemas/v1.1.0/data-values.json"
+    );
+    resolve!(
+        "https://schemas.stacspec.org/v1.1.0/item-spec/json-schema/datetime.json",
+        "../schemas/v1.1.0/datetime.json"
+    );
+    resolve!(
+        "https://schemas.stacspec.org/v1.1.0/item-spec/json-schema/instrument.json",
+        "../schemas/v1.1.0/instrument.json"
+    );
+    resolve!(
+        "https://schemas.stacspec.org/v1.1.0/item-spec/json-schema/item.json",
+        "../schemas/v1.1.0/item.json"
+    );
+    resolve!(
+        "https://schemas.stacspec.org/v1.1.0/item-spec/json-schema/licensing.json",
+        "../schemas/v1.1.0/licensing.json"
+    );
+    resolve!(
+        "https://schemas.stacspec.org/v1.1.0/item-spec/json-schema/provider.json",
+        "../schemas/v1.1.0/provider.json"
     );
 
     cache

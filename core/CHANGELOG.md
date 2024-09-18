@@ -20,6 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Changed
 
 - Update **geoarrow** to v0.3.0 ([#367](https://github.com/stac-utils/stac-rs/pull/367))
+- Default STAC version is now v1.1.0 ([#399](https://github.com/stac-utils/stac-rs/pull/399))
 
 ### Removed
 

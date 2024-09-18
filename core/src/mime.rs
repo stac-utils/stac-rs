@@ -82,3 +82,15 @@ pub const APPLICATION_HDF: &str = "application/x-hdf";
 
 /// The OpenAPI 3.0 content type.
 pub const APPLICATION_OPENAPI_3_0: &str = "application/vnd.oai.openapi+json;version=3.0";
+
+/// [COPC](https://copc.io/) Cloud optimized point cloud
+pub const APPLICATION_COPC: &str = "application/vnd.laszip+copc";
+
+/// Apache [Geoparquet](https://geoparquet.org/)
+pub const APPLICATION_PARQUET: &str = "application/vnd.apache.parquet";
+
+/// [OGC 3D Tiles](https://www.ogc.org/standard/3dtiles/)       
+pub const APPLICATION_3DTILES: &str = "application/3dtiles+json";
+
+/// Protomaps [PMTiles](https://github.com/protomaps/PMTiles/blob/main/spec/v3/spec.md)
+pub const APPLICATION_PMTILES: &str = "application/vnd.pmtiles";

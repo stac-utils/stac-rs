@@ -6,7 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
-## Changed
+### Added
+
+- STAC v1.1.0 schemas ([#399](https://github.com/stac-utils/stac-rs/pull/399))
+
+### Changed
 
 - Moved to async-first, with a blocking interface ([#397](https://github.com/stac-utils/stac-rs/pull/397))
 
