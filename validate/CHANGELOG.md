@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## Changed
+
+- Moved to async-first, with a blocking interface ([#397](https://github.com/stac-utils/stac-rs/pull/397))
+
 ## [0.2.2] - 2024-09-06
 
 ### Added

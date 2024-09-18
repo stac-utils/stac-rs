@@ -1,30 +1,42 @@
-use crate::{Error, Result, Validate};
+use crate::{Error, Result};
 use jsonschema::{CompilationOptions, JSONSchema, SchemaResolver, SchemaResolverError};
-use serde_json::Value;
-use stac::Version;
+use reqwest::Client;
+use serde::Serialize;
+use serde_json::{Map, Value};
+use stac::{Type, Version};
 use std::{
-    collections::HashMap,
-    io::BufReader,
-    sync::Arc,
-    thread::{self, JoinHandle},
+    collections::{HashMap, HashSet},
+    future::Future,
+    pin::Pin,
+    sync::{Arc, Mutex},
+};
+use tokio::{
+    sync::{
+        mpsc::{error::TryRecvError, Receiver, Sender},
+        oneshot::Sender as OneshotSender,
+        RwLock,
+    },
+    task::JoinSet,
 };
 use url::Url;
 
-/// A structure for validating one or more STAC objects.
-///
-/// The structure stores the core json schemas, and has a cache for extension
-/// schemas.
-#[derive(Debug)]
+const SCHEMA_BASE: &str = "https://schemas.stacspec.org";
+const BUFFER: usize = 10;
+
+/// A cloneable structure for validating STAC.
+#[derive(Clone, Debug)]
 pub struct Validator {
-    item_schemas: HashMap<Version, JSONSchema>,
-    catalog_schemas: HashMap<Version, JSONSchema>,
-    collection_schemas: HashMap<Version, JSONSchema>,
-    extension_schemas: HashMap<String, JSONSchema>,
     compilation_options: CompilationOptions,
+    cache: Arc<std::sync::RwLock<HashMap<Url, Arc<Value>>>>,
+    schemas: Arc<RwLock<HashMap<Url, Arc<JSONSchema>>>>,
+    urls: Arc<Mutex<HashSet<Url>>>,
+    sender: Sender<(Url, OneshotSender<Result<Arc<Value>>>)>,
 }
 
-#[derive(Default)]
-struct Resolver;
+struct Resolver {
+    cache: Arc<std::sync::RwLock<HashMap<Url, Arc<Value>>>>,
+    urls: Arc<Mutex<HashSet<Url>>>,
+}
 
 impl Validator {
     /// Creates a new validator.
@@ -33,226 +45,213 @@ impl Validator {
     ///
     /// ```
     /// use stac_validate::Validator;
-    /// let validator = Validator::new();
+    ///
+    /// # tokio_test::block_on(async {
+    /// let validator = Validator::new().await;
+    /// });
     /// ```
-    pub fn new() -> Validator {
-        let mut options = JSONSchema::options();
-        let options_with_resolver = options.with_resolver(Resolver);
-        let mut item_schemas = HashMap::new();
-        let _ = item_schemas.insert(
-            Version::v1_0_0,
-            options_with_resolver
-                .compile(
-                    &serde_json::from_str(include_str!("../schemas/v1.0.0/item.json")).unwrap(),
-                )
-                .unwrap(),
-        );
-        let mut catalog_schemas = HashMap::new();
-        let _ = catalog_schemas.insert(
-            Version::v1_0_0,
-            options_with_resolver
-                .compile(
-                    &serde_json::from_str(include_str!("../schemas/v1.0.0/catalog.json")).unwrap(),
-                )
-                .unwrap(),
-        );
-        let mut collection_schemas = HashMap::new();
-        let _ = collection_schemas.insert(
-            Version::v1_0_0,
-            options_with_resolver
-                .compile(
-                    &serde_json::from_str(include_str!("../schemas/v1.0.0/collection.json"))
-                        .unwrap(),
-                )
-                .unwrap(),
-        );
-        Validator {
-            item_schemas,
-            catalog_schemas,
-            collection_schemas,
-            extension_schemas: HashMap::new(),
-            compilation_options: options,
-        }
+    pub async fn new() -> Validator {
+        let cache = Arc::new(std::sync::RwLock::new(cache()));
+        let urls = Arc::new(Mutex::new(HashSet::new()));
+        let resolver = Resolver {
+            cache: cache.clone(),
+            urls: urls.clone(),
+        };
+        let mut compilation_options = JSONSchema::options();
+        let _ = compilation_options.with_resolver(resolver);
+        let (sender, receiver) = tokio::sync::mpsc::channel(BUFFER);
+        let _ = tokio::spawn(async move { get_urls(receiver).await });
+        let validator = Validator {
+            schemas: Arc::new(RwLock::new(schemas(&compilation_options))),
+            compilation_options,
+            cache,
+            urls,
+            sender,
+        };
+        validator
     }
 
-    /// Validates a STAC object.
-    ///
-    /// Needs to be mutable because extension schemas are cached.
+    /// Validates a single value.
     ///
     /// # Examples
     ///
     /// ```
     /// use stac_validate::Validator;
-    /// let mut validator = Validator::new();
-    /// validator.validate(stac::Item::new("an-id")).unwrap();
+    /// use stac::Item;
+    ///
+    /// let item = Item::new("an-id");
+    /// # tokio_test::block_on(async {
+    /// let validator = Validator::new().await;
+    /// validator.validate(&item).await.unwrap();
+    /// });
     /// ```
-    pub fn validate<V: Validate>(&mut self, validatable: V) -> Result<()> {
-        validatable.validate_with_validator(self)
-    }
-
-    pub(crate) fn validate_item(&mut self, item: &Value) -> Result<()> {
-        let version = version(item)?;
-        self.item_schema_for(version)?
-            .validate(item)
-            .map_err(Error::from_validation_errors)
-    }
-
-    fn item_schema_for(&mut self, version: Version) -> Result<&JSONSchema> {
-        if !self.item_schemas.contains_key(&version) {
-            let schema = self.fetch_schema(&format!(
-                "https://schemas.stacspec.org/v{}/item-spec/json-schema/item.json",
-                version
-            ))?;
-            let _ = self.item_schemas.insert(version.clone(), schema);
-        }
-        Ok(self
-            .item_schemas
-            .get(&version)
-            .expect("if we didn't have it, we should have just fetched it"))
-    }
-
-    pub(crate) fn validate_catalog(&mut self, catalog: &Value) -> Result<()> {
-        let version = version(catalog)?;
-        self.catalog_schema_for(version)?
-            .validate(catalog)
-            .map_err(Error::from_validation_errors)
-    }
-
-    fn catalog_schema_for(&mut self, version: Version) -> Result<&JSONSchema> {
-        if !self.catalog_schemas.contains_key(&version) {
-            let schema = self.fetch_schema(&format!(
-                "https://schemas.stacspec.org/v{}/catalog-spec/json-schema/catalog.json",
-                version
-            ))?;
-            let _ = self.catalog_schemas.insert(version.clone(), schema);
-        }
-        Ok(self
-            .catalog_schemas
-            .get(&version)
-            .expect("if we didn't have it, we should have just fetched it"))
-    }
-
-    pub(crate) fn validate_collection(&mut self, collection: &Value) -> Result<()> {
-        let version = version(collection)?;
-        self.collection_schema_for(version)?
-            .validate(collection)
-            .map_err(Error::from_validation_errors)
-    }
-
-    fn collection_schema_for(&mut self, version: Version) -> Result<&JSONSchema> {
-        if !self.collection_schemas.contains_key(&version) {
-            let schema = self.fetch_schema(&format!(
-                "https://schemas.stacspec.org/v{}/collection-spec/json-schema/collection.json",
-                version
-            ))?;
-            let _ = self.collection_schemas.insert(version.clone(), schema);
-        }
-        Ok(self
-            .collection_schemas
-            .get(&version)
-            .expect("if we didn't have it, we should have just fetched it"))
-    }
-
-    fn fetch_schema(&mut self, url: &str) -> Result<JSONSchema> {
-        let response = reqwest::blocking::get(url)?;
-        let value: Value = response.json()?;
-        self.compilation_options
-            .compile(&value)
-            .map_err(|_| Error::InvalidSchema(url.to_string()))
-    }
-
-    pub(crate) fn validate_item_collection(&mut self, item_collection: &Value) -> Result<()> {
-        if let Some(items) = item_collection.get("features") {
-            if let Some(items) = items.as_array() {
-                let mut errors = Vec::new();
-                for item in items {
-                    match self.validate_item(item) {
-                        Ok(()) => {}
-                        Err(Error::Validation(e)) => errors.extend(e),
-                        Err(e) => return Err(e),
-                    }
-                }
-                if errors.is_empty() {
-                    Ok(())
-                } else {
-                    Err(Error::Validation(errors))
-                }
-            } else {
-                // FIXME these errors aren't quite correct but there's probably
-                // a refactor to be done around getting the items from a
-                // serde_json::Value feature collection.
-                Err(stac::Error::UnknownType("features".to_string()).into())
-            }
+    pub async fn validate<T>(&self, value: &T) -> Result<()>
+    where
+        T: Serialize,
+    {
+        let value = serde_json::to_value(value)?;
+        if let Value::Object(object) = value {
+            self.validate_object(object).await
+        } else if let Value::Array(array) = value {
+            self.validate_array(array).await
         } else {
-            Err(stac::Error::MissingType.into())
+            Err(Error::CannotValidate(value))
         }
     }
 
-    pub(crate) fn validate_extensions(&mut self, value: &Value) -> Result<()> {
-        if let Some(extensions) = value.get("stac_extensions") {
-            if let Some(extensions) = extensions.as_array() {
-                let mut errors = Vec::new();
-                let mut handles: Vec<JoinHandle<_>> = Vec::new();
-                for extension in extensions {
-                    if let Some(extension) = extension.as_str() {
-                        if let Some(schema) = self.extension_schemas.get(extension) {
-                            match self.validate_extension(value, schema) {
-                                Ok(()) => {}
-                                Err(Error::Validation(extension_errors)) => {
-                                    errors.extend(extension_errors)
-                                }
-                                Err(error) => {
-                                    for handle in handles {
-                                        let _ = handle.join().unwrap();
-                                    }
-                                    return Err(error);
-                                }
-                            }
-                        } else {
-                            let extension = extension.to_string();
-                            handles.push(thread::spawn(move || get_extension(extension)));
-                        }
+    fn validate_array(&self, array: Vec<Value>) -> Pin<Box<impl Future<Output = Result<()>>>> {
+        // We have to pinbox because recursive async aren't allowed.
+        let validator = self.clone();
+        Box::pin(async move {
+            let mut errors = Vec::new();
+            for value in array {
+                if let Err(error) = validator.validate(&value).await {
+                    if let Error::Validation(e) = error {
+                        errors.extend(e);
                     } else {
-                        for handle in handles {
-                            let _ = handle.join().unwrap();
-                        }
-                        return Err(Error::IncorrectStacExtensionsType(extension.clone()));
+                        return Err(error);
                     }
                 }
-                for handle in handles {
-                    let (href, schema) = handle.join().unwrap()?;
-                    match self.validate_extension(value, &schema) {
-                        Ok(()) => {}
-                        Err(Error::Validation(extension_errors)) => errors.extend(extension_errors),
-                        Err(error) => {
-                            return Err(error);
-                        }
-                    }
-                    let _ = self.extension_schemas.insert(href, schema);
-                }
-                if errors.is_empty() {
-                    Ok(())
-                } else {
-                    Err(Error::Validation(errors))
-                }
-            } else {
-                Err(Error::IncorrectStacExtensionsType(extensions.clone()))
             }
-        } else {
+            if errors.is_empty() {
+                Ok(())
+            } else {
+                Err(Error::Validation(errors))
+            }
+        })
+    }
+
+    fn validate_object(
+        &self,
+        object: Map<String, Value>,
+    ) -> Pin<Box<impl Future<Output = Result<()>>>> {
+        // We have to pinbox because recursive async aren't allowed.
+        let validator = self.clone();
+        Box::pin(async move {
+            let r#type: Type = object
+                .get("type")
+                .and_then(|v| v.as_str())
+                .map(|t| t.parse::<Type>())
+                .transpose()?
+                .ok_or(Error::NoType)?;
+            if r#type == Type::ItemCollection {
+                if let Some(features) = object.get("features") {
+                    return validator.validate(features).await;
+                } else {
+                    return Ok(());
+                }
+            }
+            let version: Version = object
+                .get("stac_version")
+                .and_then(|v| v.as_str())
+                .map(|v| v.parse::<Version>())
+                .transpose()
+                .unwrap()
+                .ok_or(Error::NoVersion)?;
+
+            let url = build_schema_url(r#type, &version);
+            let schema = validator.schema(url).await?;
+            let value = Arc::new(Value::Object(object));
+            let mut result = schema
+                .validate(&value)
+                .map_err(Error::from_validation_errors);
+            if result.is_ok() {
+                result = validator.validate_extensions(value.clone()).await
+            }
+            if let Err(err) = result {
+                let mut join_set = JoinSet::new();
+                {
+                    let mut urls = validator.urls.lock().unwrap();
+                    if urls.is_empty() {
+                        return Err(err);
+                    } else {
+                        for url in urls.drain() {
+                            let validator = validator.clone();
+                            let _ = join_set.spawn(async move { validator.resolve(url).await });
+                        }
+                    }
+                }
+                while let Some(result) = join_set.join_next().await {
+                    let _ = result??;
+                }
+                let object = if let Value::Object(o) = Arc::into_inner(value).unwrap() {
+                    o
+                } else {
+                    unreachable!()
+                };
+                validator.validate_object(object).await
+            } else {
+                Ok(())
+            }
+        })
+    }
+
+    async fn validate_extensions(&self, value: Arc<Value>) -> Result<()> {
+        let mut join_set = JoinSet::new();
+        if let Some(extensions) = value
+            .as_object()
+            .and_then(|o| o.get("stac_extensions"))
+            .and_then(|v| v.as_array())
+        {
+            for extension in extensions.iter().filter_map(|v| v.as_str()) {
+                let extension = Url::parse(extension)?;
+                let validator = self.clone();
+                let value = value.clone();
+                let _ = join_set.spawn(async move {
+                    let extension_schema = validator.schema(extension).await?;
+                    extension_schema
+                        .validate(&value)
+                        .map_err(Error::from_validation_errors)
+                });
+            }
+        }
+        let mut errors = Vec::new();
+        while let Some(result) = join_set.join_next().await {
+            let result = result?;
+            if let Err(Error::Validation(e)) = result {
+                errors.extend(e);
+            } else if result.is_err() {
+                return result;
+            }
+        }
+        if errors.is_empty() {
             Ok(())
+        } else {
+            Err(Error::Validation(errors))
         }
     }
 
-    fn validate_extension(&self, value: &Value, extension: &JSONSchema) -> Result<()> {
-        extension
-            .validate(value)
-            .map_err(Error::from_validation_errors)
+    async fn schema(&self, url: Url) -> Result<Arc<JSONSchema>> {
+        {
+            let schemas = self.schemas.read().await;
+            if let Some(schema) = schemas.get(&url) {
+                return Ok(schema.clone());
+            }
+        }
+        let (sender, receiver) = tokio::sync::oneshot::channel();
+        self.sender.send((url.clone(), sender)).await?;
+        let value = receiver.await??;
+        let schema = self
+            .compilation_options
+            .compile(&value)
+            .map_err(|err| Error::from_validation_errors([err].into_iter()))?;
+        let schema = Arc::new(schema);
+        {
+            let mut schemas = self.schemas.write().await;
+            let _ = schemas.insert(url, schema.clone());
+        }
+        Ok(schema)
     }
-}
 
-impl Default for Validator {
-    fn default() -> Self {
-        Self::new()
+    async fn resolve(&self, url: Url) -> Result<()> {
+        let (sender, receiver) = tokio::sync::oneshot::channel();
+        self.sender.send((url.clone(), sender)).await?;
+        let value = receiver.await??;
+        {
+            let mut cache = self.cache.write().unwrap();
+            let _ = cache.insert(url, value);
+        }
+        Ok(())
     }
 }
 
@@ -263,91 +262,190 @@ impl SchemaResolver for Resolver {
         url: &Url,
         _: &str,
     ) -> std::result::Result<Arc<Value>, SchemaResolverError> {
-        match url.as_str() {
-            "https://geojson.org/schema/Feature.json" => Ok(Arc::new(
-                serde_json::from_str(include_str!("../schemas/geojson/Feature.json")).unwrap(),
-            )),
-            "https://geojson.org/schema/Geometry.json" => Ok(Arc::new(
-                serde_json::from_str(include_str!("../schemas/geojson/Geometry.json")).unwrap(),
-            )),
-            // Include the item schema because collection references it
-            // https://github.com/stac-utils/stac-rs/issues/336
-            "https://schemas.stacspec.org/v1.0.0/item-spec/json-schema/item.json" => Ok(Arc::new(
-                serde_json::from_str(include_str!("../schemas/v1.0.0/item.json")).unwrap(),
-            )),
-            "https://schemas.stacspec.org/v1.0.0/item-spec/json-schema/basics.json" => {
-                Ok(Arc::new(
-                    serde_json::from_str(include_str!("../schemas/v1.0.0/basics.json")).unwrap(),
-                ))
+        {
+            let cache = self.cache.read().unwrap();
+            if let Some(schema) = cache.get(url) {
+                return Ok(schema.clone());
             }
-            "https://schemas.stacspec.org/v1.0.0/item-spec/json-schema/datetime.json" => {
-                Ok(Arc::new(
-                    serde_json::from_str(include_str!("../schemas/v1.0.0/datetime.json")).unwrap(),
-                ))
-            }
-            "https://schemas.stacspec.org/v1.0.0/item-spec/json-schema/instrument.json" => {
-                Ok(Arc::new(
-                    serde_json::from_str(include_str!("../schemas/v1.0.0/instrument.json"))
-                        .unwrap(),
-                ))
-            }
-            "https://schemas.stacspec.org/v1.0.0/item-spec/json-schema/licensing.json" => {
-                Ok(Arc::new(
-                    serde_json::from_str(include_str!("../schemas/v1.0.0/licensing.json")).unwrap(),
-                ))
-            }
-            "https://schemas.stacspec.org/v1.0.0/item-spec/json-schema/provider.json" => {
-                Ok(Arc::new(
-                    serde_json::from_str(include_str!("../schemas/v1.0.0/provider.json")).unwrap(),
-                ))
-            }
-            "http://json-schema.org/draft-07/schema"
-            | "https://json-schema.org/draft-07/schema" => Ok(Arc::new(
-                serde_json::from_str(include_str!("../schemas/json-schema/draft-07.json")).unwrap(),
-            )),
-            _ => match url.scheme() {
-                "http" | "https" => {
-                    log::debug!("fetching schema: {}", url);
-                    let response = reqwest::blocking::get(url.as_str())?;
-                    let document: Value = response.json()?;
-                    Ok(Arc::new(document))
+        }
+        {
+            let mut urls = self.urls.lock().unwrap();
+            let _ = urls.insert(url.clone());
+        }
+        Err(SchemaResolverError::msg("need to resolve and re-try"))
+    }
+}
+
+fn build_schema_url(r#type: Type, version: &Version) -> Url {
+    Url::parse(&format!(
+        "{}{}",
+        SCHEMA_BASE,
+        r#type
+            .spec_path(version)
+            .expect("we shouldn't get here with an item collection")
+    ))
+    .unwrap()
+}
+
+fn schemas(compilation_options: &CompilationOptions) -> HashMap<Url, Arc<JSONSchema>> {
+    use Type::*;
+    use Version::*;
+
+    let mut schemas = HashMap::new();
+
+    macro_rules! schema {
+        ($t:expr, $v:expr, $path:expr, $schemas:expr) => {
+            let url = build_schema_url($t, &$v);
+            let schema = serde_json::from_str(include_str!($path)).unwrap();
+            let schema = compilation_options.compile(&schema).unwrap();
+            let _ = schemas.insert(url, Arc::new(schema));
+        };
+    }
+
+    schema!(Item, v1_0_0, "../schemas/v1.0.0/item.json", schemas);
+    schema!(Catalog, v1_0_0, "../schemas/v1.0.0/catalog.json", schemas);
+    schema!(
+        Collection,
+        v1_0_0,
+        "../schemas/v1.0.0/collection.json",
+        schemas
+    );
+
+    schemas
+}
+
+fn cache() -> HashMap<Url, Arc<Value>> {
+    let mut cache = HashMap::new();
+
+    macro_rules! resolve {
+        ($url:expr, $path:expr) => {
+            let _ = cache.insert(
+                Url::parse($url).unwrap(),
+                Arc::new(serde_json::from_str(include_str!($path)).unwrap()),
+            );
+        };
+    }
+
+    resolve!(
+        "https://geojson.org/schema/Feature.json",
+        "../schemas/geojson/Feature.json"
+    );
+    resolve!(
+        "https://geojson.org/schema/Geometry.json",
+        "../schemas/geojson/Geometry.json"
+    );
+    resolve!(
+        "http://json-schema.org/draft-07/schema",
+        "../schemas/json-schema/draft-07.json"
+    );
+    resolve!(
+        "https://schemas.stacspec.org/v1.0.0/item-spec/json-schema/basics.json",
+        "../schemas/v1.0.0/basics.json"
+    );
+    resolve!(
+        "https://schemas.stacspec.org/v1.0.0/item-spec/json-schema/datetime.json",
+        "../schemas/v1.0.0/datetime.json"
+    );
+    resolve!(
+        "https://schemas.stacspec.org/v1.0.0/item-spec/json-schema/instrument.json",
+        "../schemas/v1.0.0/instrument.json"
+    );
+    resolve!(
+        "https://schemas.stacspec.org/v1.0.0/item-spec/json-schema/item.json",
+        "../schemas/v1.0.0/item.json"
+    );
+    resolve!(
+        "https://schemas.stacspec.org/v1.0.0/item-spec/json-schema/licensing.json",
+        "../schemas/v1.0.0/licensing.json"
+    );
+    resolve!(
+        "https://schemas.stacspec.org/v1.0.0/item-spec/json-schema/provider.json",
+        "../schemas/v1.0.0/provider.json"
+    );
+
+    cache
+}
+
+async fn get_urls(mut receiver: Receiver<(Url, OneshotSender<Result<Arc<Value>>>)>) -> Result<()> {
+    let mut cache: HashMap<Url, Arc<Value>> = HashMap::new();
+    let mut gets: HashMap<Url, Vec<OneshotSender<Result<Arc<Value>>>>> = HashMap::new();
+    let client = Client::new();
+    let (local_sender, mut local_receiver) = tokio::sync::mpsc::channel(BUFFER);
+    loop {
+        match receiver.try_recv() {
+            Err(TryRecvError::Disconnected) => return Ok(()),
+            Err(TryRecvError::Empty) => match local_receiver.try_recv() {
+                Err(TryRecvError::Disconnected) => return Ok(()),
+                Err(TryRecvError::Empty) => tokio::task::yield_now().await,
+                Ok((url, result)) => {
+                    let mut senders = gets
+                        .remove(&url)
+                        .expect("all sent values should be in gets");
+                    match result {
+                        Ok(value) => {
+                            let value = Arc::<Value>::new(value);
+                            let _ = cache.insert(url, value.clone());
+                            for sender in senders {
+                                sender.send(Ok(value.clone())).unwrap();
+                            }
+                        }
+                        Err(err) => {
+                            senders
+                                .pop()
+                                .expect("there should be at least one sender")
+                                .send(Err(err))
+                                .unwrap();
+                        }
+                    };
                 }
-                "file" => {
-                    if let Ok(path) = url.to_file_path() {
-                        let f = std::fs::File::open(path)?;
-                        let document: Value = serde_json::from_reader(BufReader::new(f))?;
-                        Ok(Arc::new(document))
-                    } else {
-                        Err(Error::InvalidFilePath(url.clone()).into())
-                    }
-                }
-                "json-schema" => Err(Error::CannotResolveJsonSchemaScheme(url.clone()).into()),
-                _ => Err(Error::InvalidUrlScheme(url.clone()).into()),
             },
+            Ok((url, sender)) => {
+                if let Some(value) = cache.get(&url) {
+                    sender.send(Ok(value.clone())).unwrap();
+                } else {
+                    gets.entry(url.clone())
+                        .or_insert_with(|| {
+                            tracing::debug!("getting url: {}", url);
+                            let local_sender = local_sender.clone();
+                            let client = client.clone();
+                            let _ = tokio::spawn(async move {
+                                match get(client, url.clone()).await {
+                                    Ok(value) => local_sender.send((url, Ok(value))).await,
+                                    Err(err) => local_sender.send((url, Err(err))).await,
+                                }
+                            });
+                            Vec::new()
+                        })
+                        .push(sender);
+                }
+            }
         }
     }
 }
 
-fn get_extension(href: String) -> Result<(String, JSONSchema)> {
-    log::debug!("fetching extension href: {}", href);
-    let response = reqwest::blocking::get(&href)?;
-    let response = response.error_for_status()?;
-    let json: Value = response.json()?;
-    let mut options = JSONSchema::options();
-    let options = options.with_resolver(Resolver);
-    let schema = options
-        .compile(&json)
-        .map_err(Error::from_validation_error)?;
-    Ok((href, schema))
+async fn get(client: Client, url: Url) -> Result<Value> {
+    client
+        .get(url)
+        .send()
+        .await?
+        .error_for_status()?
+        .json()
+        .await
+        .map_err(Error::from)
 }
 
-fn version(value: &Value) -> Result<Version> {
-    value
-        .as_object()
-        .and_then(|object| object.get("stac_version"))
-        .and_then(|value| value.as_str())
-        .map(|version| version.parse())
-        .transpose()
-        .unwrap()
-        .ok_or(Error::MissingStacVersion)
+#[cfg(test)]
+mod tests {
+    use super::Validator;
+    use stac::Item;
+
+    #[tokio::test]
+    async fn validate_array() {
+        let items: Vec<_> = (0..100)
+            .map(|i| Item::new(format!("item-{}", i)))
+            .map(|i| serde_json::to_value(i).unwrap())
+            .collect();
+        let validator = Validator::new().await;
+        validator.validate(&items).await.unwrap();
+    }
 }

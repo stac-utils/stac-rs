@@ -16,15 +16,8 @@ pub(crate) struct Args {
 impl Run for Args {
     async fn run(self, input: Input, _: Option<Sender<Value>>) -> Result<Option<Value>> {
         let value = input.get().await?;
-        let result = tokio::task::spawn_blocking(move || {
-            if let Err(err) = value.validate() {
-                Err((err, value))
-            } else {
-                Ok(())
-            }
-        })
-        .await?;
-        if let Err((stac_validate::Error::Validation(ref errors), ref value)) = result {
+        let result = value.validate().await;
+        if let Err(stac_validate::Error::Validation(ref errors)) = result {
             let message_base = match value {
                 stac::Value::Item(item) => format!("[item={}] ", item.id),
                 stac::Value::Catalog(catalog) => format!("[catalog={}] ", catalog.id),
@@ -38,7 +31,7 @@ impl Run for Args {
                 );
             }
         }
-        result.and(Ok(None)).map_err(|(err, _)| Error::from(err))
+        result.and(Ok(None)).map_err(Error::from)
     }
 
     fn take_infile(&mut self) -> Option<String> {
