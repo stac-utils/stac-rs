@@ -56,7 +56,7 @@
 //! use stac::{Value, Migrate, Version};
 //!
 //! let value: Value = stac::read("examples/simple-item.json").unwrap();
-//! let value = value.migrate(&Version::v1_1_0_beta_1).unwrap();
+//! let value = value.migrate(&Version::v1_1_0).unwrap();
 //! ```
 //!
 //! # Input and output
@@ -204,7 +204,7 @@ pub use {
 };
 
 /// The default STAC version of this library.
-pub const STAC_VERSION: Version = Version::v1_0_0;
+pub const STAC_VERSION: Version = Version::v1_1_0;
 
 /// Custom [Result](std::result::Result) type for this crate.
 pub type Result<T> = std::result::Result<T, Error>;
@@ -385,7 +385,7 @@ mod tests {
         ($function:ident, $filename:expr, $object:ident) => {
             #[test]
             fn $function() {
-                use assert_json_diff::assert_json_eq;
+                use assert_json_diff::{assert_json_matches, CompareMode, Config, NumericMode};
                 use chrono::{DateTime, Utc};
                 use serde_json::Value;
                 use std::{fs::File, io::BufReader};
@@ -439,7 +439,11 @@ mod tests {
                 }
                 let object: $object = serde_json::from_value(before.clone()).unwrap();
                 let after = serde_json::to_value(object).unwrap();
-                assert_json_eq!(before, after);
+                assert_json_matches!(
+                    before,
+                    after,
+                    Config::new(CompareMode::Strict).numeric_mode(NumericMode::AssumeFloat)
+                );
             }
         };
     }

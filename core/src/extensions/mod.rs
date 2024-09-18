@@ -32,7 +32,7 @@
 //!
 //! // Get extension information
 //! let mut projection: Projection = item.extension().unwrap().unwrap();
-//! println!("epsg: {}", projection.epsg.unwrap());
+//! println!("code: {}", projection.code.as_ref().unwrap());
 //!
 //! // Set extension information
 //! projection.centroid = Some(Centroid { lat: 34.595302, lon: -101.344483 });
@@ -112,7 +112,7 @@ pub trait Extensions: Fields {
     /// use stac::{Item, extensions::{Projection, Extensions}};
     /// let mut item = Item::new("an-id");
     /// assert!(!item.has_extension::<Projection>());
-    /// let projection = Projection { epsg: Some(4326), ..Default::default() };
+    /// let projection = Projection { code: Some("EPSG:4326".to_string()), ..Default::default() };
     /// item.set_extension(projection).unwrap();
     /// assert!(item.has_extension::<Projection>());
     /// ```
@@ -132,7 +132,7 @@ pub trait Extensions: Fields {
     /// use stac::{Item, extensions::{Projection, Extensions}};
     /// let item: Item = stac::read("examples/extensions-collection/proj-example/proj-example.json").unwrap();
     /// let projection: Projection = item.extension().unwrap().unwrap();
-    /// assert_eq!(projection.epsg.unwrap(), 32614);
+    /// assert_eq!(projection.code.unwrap(), "EPSG:32614");
     /// ```
     fn extension<E: Extension>(&self) -> Result<Option<E>> {
         if self.has_extension::<E>() {
@@ -165,7 +165,7 @@ pub trait Extensions: Fields {
     /// ```
     /// use stac::{Item, extensions::{Projection, Extensions}};
     /// let mut item = Item::new("an-id");
-    /// let projection = Projection { epsg: Some(4326), ..Default::default() };
+    /// let projection = Projection { code: Some("EPSG:4326".to_string()), ..Default::default() };
     /// item.set_extension(projection).unwrap();
     /// ```
     fn set_extension<E: Extension>(&mut self, extension: E) -> Result<()> {
@@ -229,31 +229,17 @@ mod tests {
         assert!(asset.has_extension::<Raster>());
         let mut item = Item::new("an-id");
         let _ = item.assets.insert("data".to_string(), asset);
-
-        // TODO how do we let items know about what their assets are doing?
-        // Maybe we don't?
-        // assert!(item.has_extension::<Raster>());
-        // let item = serde_json::to_value(item).unwrap();
-        // assert_eq!(
-        //     item.as_object()
-        //         .unwrap()
-        //         .get("stac_extensions")
-        //         .unwrap()
-        //         .as_array()
-        //         .unwrap(),
-        //     &vec!["https://stac-extensions.github.io/raster/v1.1.0/schema.json"]
-        // );
     }
 
     #[test]
     fn remove_extension() {
         let mut item = Item::new("an-id");
         item.extensions
-            .push("https://stac-extensions.github.io/projection/v1.1.0/schema.json".to_string());
+            .push("https://stac-extensions.github.io/projection/v2.0.0/schema.json".to_string());
         let _ = item
             .properties
             .additional_fields
-            .insert("proj:epsg".to_string(), json!(4326));
+            .insert("proj:code".to_string(), json!("EPSG:4326"));
         assert!(item.has_extension::<Projection>());
         item.remove_extension::<Projection>();
         assert!(!item.has_extension::<Projection>());

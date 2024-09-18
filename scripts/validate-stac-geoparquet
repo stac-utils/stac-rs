@@ -13,7 +13,7 @@ import stac_geoparquet.arrow
 import pyarrow
 
 root = Path(__file__).parents[1]
-path = root / "spec-examples" / "v1.0.0" / "extended-item.json"
+path = root / "spec-examples" / "v1.1.0" / "extended-item.json"
 directory = tempfile.mkdtemp()
 parquet_path = Path(directory) / "extended-item.parquet"
 

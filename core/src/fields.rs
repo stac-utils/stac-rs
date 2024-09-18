@@ -100,7 +100,7 @@ pub trait Fields {
     ///
     /// ```
     /// use stac::{Fields, Item, extensions::Projection};
-    /// let projection = Projection { epsg: Some(4326), ..Default::default() };
+    /// let projection = Projection { code: Some("EPSG:4326".to_string()), ..Default::default() };
     /// let mut item = Item::new("an-id");
     /// item.set_fields_with_prefix("proj", projection);  // Prefer `Extensions::set_extension`
     /// ```
@@ -122,7 +122,7 @@ pub trait Fields {
     ///
     /// ```
     /// use stac::{Fields, Item, extensions::Projection};
-    /// let projection = Projection { epsg: Some(4326), ..Default::default() };
+    /// let projection = Projection { code: Some("EPSG:4326".to_string()), ..Default::default() };
     /// let mut item = Item::new("an-id");
     /// item.remove_fields_with_prefix("proj");  // Prefer `Extensions::remove_extension`
     /// ```

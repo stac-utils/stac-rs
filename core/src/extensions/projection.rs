@@ -10,7 +10,7 @@ use serde_json::{Map, Value};
 pub struct Projection {
     /// EPSG code of the datasource
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub epsg: Option<i32>,
+    pub code: Option<String>,
 
     /// WKT2 string representing the Coordinate Reference System (CRS) that the
     /// proj:geometry and proj:bbox fields represent
@@ -56,14 +56,14 @@ pub struct Centroid {
 impl Projection {
     /// Returns this projection's bounds in WGS84.
     ///
-    /// Requires one of the crs fields to be set (epsg, wkt2, or projjson) as well as a bbox.
+    /// Requires one of the crs fields to be set (code, wkt2, or projjson) as well as a bbox.
     ///
     /// # Examples
     ///
     /// ```
     /// use stac::extensions::Projection;
     /// let projection = Projection {
-    ///     epsg: Some(32621),
+    ///     code: Some("EPSG:32621".to_string()),
     ///     bbox: Some(vec![
     ///         373185.0,
     ///         8019284.949381611,
@@ -109,8 +109,8 @@ impl Projection {
         use crate::Error;
         use gdal::spatial_ref::SpatialRef;
 
-        if let Some(epsg) = self.epsg {
-            SpatialRef::from_epsg(epsg.try_into()?)
+        if let Some(code) = self.code.as_deref() {
+            SpatialRef::from_definition(code)
                 .map(Some)
                 .map_err(Error::from)
         } else if let Some(wkt) = self.wkt2.as_ref() {
@@ -127,19 +127,20 @@ impl Projection {
 
 impl Extension for Projection {
     const IDENTIFIER: &'static str =
-        "https://stac-extensions.github.io/projection/v1.1.0/schema.json";
+        "https://stac-extensions.github.io/projection/v2.0.0/schema.json";
     const PREFIX: &'static str = "proj";
 }
 
 #[cfg(test)]
 mod tests {
+    use super::Projection;
+    use crate::{Extensions, Item};
+
     #[cfg(feature = "gdal")]
     #[test]
     fn axis_order() {
-        use super::Projection;
-
         let projection = Projection {
-            epsg: Some(32621),
+            code: Some("EPSG:32621".to_string()),
             bbox: Some(vec![
                 373185.0,
                 8019284.949381611,
@@ -155,5 +156,13 @@ mod tests {
             bounds.xmin()
         );
         assert!((bounds.ymin() - 72.229798).abs() < 0.1);
+    }
+
+    #[test]
+    fn example() {
+        let item: Item =
+            crate::read("examples/extensions-collection/proj-example/proj-example.json").unwrap();
+        let projection = item.extension::<Projection>().unwrap().unwrap();
+        assert_eq!(projection.code.unwrap(), "EPSG:32614");
     }
 }

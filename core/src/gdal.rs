@@ -123,10 +123,13 @@ fn update_asset(
             .map(|auth_name| auth_name == "EPSG")
             .unwrap_or_default()
         {
-            projection.epsg = spatial_ref.auth_code().ok();
+            projection.code = spatial_ref
+                .auth_code()
+                .map(|code| format!("EPSG:{}", code))
+                .ok();
         }
         // FIXME Don't know how to get WKT2 out of the gdal crate yet.
-        if projection.epsg.is_none() {
+        if projection.code.is_none() {
             projection.projjson = spatial_ref
                 .to_projjson()
                 .ok()
@@ -223,7 +226,7 @@ mod tests {
             .unwrap();
         super::update_item(&mut item, false, true).unwrap();
         let projection: Projection = item.extension().unwrap().unwrap();
-        assert_eq!(projection.epsg.unwrap(), 32621);
+        assert_eq!(projection.code.unwrap(), "EPSG:32621");
         assert_eq!(
             projection.bbox.unwrap(),
             vec![373185.0, 8019284.949381611, 639014.9492102272, 8286015.0]
