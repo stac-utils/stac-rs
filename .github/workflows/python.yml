@@ -180,6 +180,7 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     needs:
+      - test-stacrs
       - linux
       # - musllinux
       - windows

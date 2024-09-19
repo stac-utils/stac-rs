@@ -178,6 +178,7 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     needs:
+      - test-stacrs-cli
       - linux
       # - musllinux
       - windows
