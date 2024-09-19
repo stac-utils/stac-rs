@@ -12,12 +12,11 @@ categories = ["science", "data-structures"]
 rust-version = "1.75"
 
 [features]
-default = ["gdal", "geoparquet", "pgstac"]
+default = ["gdal", "pgstac"]
 duckdb = ["dep:stac-duckdb", "dep:duckdb"]
 gdal = ["stac/gdal"]
-geoparquet = ["stac/geoparquet-compression"]
 pgstac = ["stac-server/pgstac", "dep:pgstac"]
-python = ["dep:pyo3", "pgstac", "geoparquet"]
+python = ["dep:pyo3", "pgstac"]
 
 [dependencies]
 axum = "0.7"
@@ -30,8 +29,9 @@ reqwest = "0.12"
 serde = "1"
 serde_json = "1"
 stac = { version = "0.9.0", path = "../core", features = [
-    "reqwest",
+    "geoparquet-compression",
     "object-store-all",
+    "reqwest",
 ] }
 stac-api = { version = "0.5.0", path = "../api", features = ["client"] }
 stac-duckdb = { version = "0.0.1", path = "../duckdb", optional = true }
