@@ -1,5 +1,7 @@
 use crate::{Error, Result};
-use jsonschema::{CompilationOptions, JSONSchema, SchemaResolver, SchemaResolverError};
+use jsonschema::{
+    SchemaResolver, SchemaResolverError, ValidationOptions, Validator as JsonschemaValidator,
+};
 use reqwest::Client;
 use serde::Serialize;
 use serde_json::{Map, Value};
@@ -26,9 +28,9 @@ const BUFFER: usize = 10;
 /// A cloneable structure for validating STAC.
 #[derive(Clone, Debug)]
 pub struct Validator {
-    compilation_options: CompilationOptions,
+    validation_options: ValidationOptions,
     cache: Arc<std::sync::RwLock<HashMap<Url, Arc<Value>>>>,
-    schemas: Arc<RwLock<HashMap<Url, Arc<JSONSchema>>>>,
+    schemas: Arc<RwLock<HashMap<Url, Arc<JsonschemaValidator>>>>,
     urls: Arc<Mutex<HashSet<Url>>>,
     sender: Sender<(Url, OneshotSender<Result<Arc<Value>>>)>,
 }
@@ -57,13 +59,13 @@ impl Validator {
             cache: cache.clone(),
             urls: urls.clone(),
         };
-        let mut compilation_options = JSONSchema::options();
-        let _ = compilation_options.with_resolver(resolver);
+        let mut validation_options = JsonschemaValidator::options();
+        let _ = validation_options.with_resolver(resolver);
         let (sender, receiver) = tokio::sync::mpsc::channel(BUFFER);
         let _ = tokio::spawn(async move { get_urls(receiver).await });
         let validator = Validator {
-            schemas: Arc::new(RwLock::new(schemas(&compilation_options))),
-            compilation_options,
+            schemas: Arc::new(RwLock::new(schemas(&validation_options))),
+            validation_options,
             cache,
             urls,
             sender,
@@ -221,7 +223,7 @@ impl Validator {
         }
     }
 
-    async fn schema(&self, url: Url) -> Result<Arc<JSONSchema>> {
+    async fn schema(&self, url: Url) -> Result<Arc<JsonschemaValidator>> {
         {
             let schemas = self.schemas.read().await;
             if let Some(schema) = schemas.get(&url) {
@@ -232,8 +234,8 @@ impl Validator {
         self.sender.send((url.clone(), sender)).await?;
         let value = receiver.await??;
         let schema = self
-            .compilation_options
-            .compile(&value)
+            .validation_options
+            .build(&value)
             .map_err(|err| Error::from_validation_errors([err].into_iter()))?;
         let schema = Arc::new(schema);
         {
@@ -287,7 +289,7 @@ fn build_schema_url(r#type: Type, version: &Version) -> Url {
     .unwrap()
 }
 
-fn schemas(compilation_options: &CompilationOptions) -> HashMap<Url, Arc<JSONSchema>> {
+fn schemas(validation_options: &ValidationOptions) -> HashMap<Url, Arc<JsonschemaValidator>> {
     use Type::*;
     use Version::*;
 
@@ -297,7 +299,7 @@ fn schemas(compilation_options: &CompilationOptions) -> HashMap<Url, Arc<JSONSch
         ($t:expr, $v:expr, $path:expr, $schemas:expr) => {
             let url = build_schema_url($t, &$v);
             let schema = serde_json::from_str(include_str!($path)).unwrap();
-            let schema = compilation_options.compile(&schema).unwrap();
+            let schema = validation_options.build(&schema).unwrap();
             let _ = schemas.insert(url, Arc::new(schema));
         };
     }
