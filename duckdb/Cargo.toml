@@ -15,8 +15,8 @@ arrow = "52"
 duckdb = "1.0"
 geoarrow = { version = "0.3" }
 parquet = "52"
-stac = { version = "0.9.0", path = "../core", features = ["geoarrow"] }
-stac-api = { version = "0.5.0", path = "../api" }
+stac = { version = "0.10.0", path = "../core", features = ["geoarrow"] }
+stac-api = { version = "0.6.0", path = "../api" }
 thiserror = "1"
 
 [dev-dependencies]

@@ -28,8 +28,8 @@ pgstac = { version = "0.2.0", path = "../pgstac", features = [
 serde = "1"
 serde_json = "1"
 serde_urlencoded = "0.7"
-stac = { version = "0.9.0", path = "../core" }
-stac-api = { version = "0.5.0", path = "../api", features = ["geo"] }
+stac = { version = "0.10.0", path = "../core" }
+stac-api = { version = "0.6.0", path = "../api", features = ["geo"] }
 thiserror = "1"
 tokio-postgres = { version = "0.7", optional = true }
 tower-http = { version = "0.5", features = ["cors"], optional = true }
@@ -37,7 +37,7 @@ url = "2"
 
 [dev-dependencies]
 serde_json = "1"
-stac-validate = { version = "0.2", path = "../validate" }
+stac-validate = { version = "0.3", path = "../validate" }
 tokio = { version = "1.37", features = ["macros"] }
 tokio-test = "0.4"
 tower = { version = "0.5", features = ["util"] }

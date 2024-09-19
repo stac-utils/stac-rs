@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.3.0] - 2024-09-19
+
 ### Added
 
 - STAC v1.1.0 schemas ([#399](https://github.com/stac-utils/stac-rs/pull/399))
@@ -57,7 +59,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 Initial release.
 
-[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-validate-v0.2.2...main
+[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-validate-v0.3.0...main
+[0.3.0]: https://github.com/stac-utils/stac-rs/compare/stac-validate-v0.2.2..stac-validate-v0.3.0
 [0.2.2]: https://github.com/stac-utils/stac-rs/compare/stac-validate-v0.2.1..stac-validate-v0.2.2
 [0.2.1]: https://github.com/stac-utils/stac-rs/compare/stac-validate-v0.2.0..stac-validate-v0.2.1
 [0.2.0]: https://github.com/stac-utils/stac-rs/compare/stac-validate-v0.1.2..stac-validate-v0.2.0
