@@ -38,14 +38,12 @@ jobs:
         uses: Swatinem/rust-cache@v2
       - name: Check w/ no default features
         run: cargo check --no-default-features
-      - name: Check w/ geoparquet
-        run: cargo check --no-default-features -F geoparquet
       - name: Check w/ pgstac
         run: cargo check --no-default-features -F pgstac
       - name: Check w/ python
         run: cargo check --no-default-features -F python
       - name: Test
-        run: cargo test --no-default-features -F geoparquet -F pgstac -F python
+        run: cargo test --no-default-features -F pgstac -F python
   test-cli-with-gdal:
     runs-on: ubuntu-latest
     strategy:

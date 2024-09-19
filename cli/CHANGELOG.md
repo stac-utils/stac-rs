@@ -10,15 +10,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 
 - Outfile and stream arguments to `items` ([#363](https://github.com/stac-utils/stac-rs/pull/363))
-- `object_store` ([#371](https://github.com/stac-utils/stac-rs/pull/371))
-
-### Fixed
-
-- ndjson reads ([363](https://github.com/stac-utils/stac-rs/pull/363))
-
-### Changed
-
-- Update **geoarrow** to v0.3.0 ([#367](https://github.com/stac-utils/stac-rs/pull/367))
 
 ## [0.3.1] - 2024-09-06
 
