@@ -3,7 +3,7 @@
 ## Checklist
 
 1. Determine which package(s) you're releasing.
-2. Determine the package's next version.
+2. Determine the package's next version. [cargo-semver-checks](https://github.com/obi1kenobi/cargo-semver-checks) is a handy tool for this.
 3. Create a release branch named `release/{package name}-{version}`, e.g. `release/stac-v1.2.3`.
 4. Update the package's `Cargo.toml` file accordingly, and update the other packages' `Cargo.toml` if they depend on this package.
 5. Scan the package's README for references to version numbers, and update any that are needed.

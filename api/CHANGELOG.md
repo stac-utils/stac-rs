@@ -6,10 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.6.0] - 2024-09-19
+
 ### Added
 
 - `Client` (from now-defunkt **stac-async**) ([#372](https://github.com/stac-utils/stac-rs/pull/372))
 - `BlockingClient` ([#387](https://github.com/stac-utils/stac-rs/pull/387))
+
+### Changed
+
+- `Collections` and `Items` now have private attributes ([#407](https://github.com/stac-utils/stac-rs/pull/407))
 
 ## [0.5.0] - 2024-09-05
 
@@ -117,7 +123,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 Initial release
 
-[unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-api-v0.5.0...main
+[unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-api-v0.6.0...main
+[0.6.0]: https://github.com/stac-utils/stac-rs/compare/stac-api-v0.5.0...stac-api-v0.6.0
 [0.5.0]: https://github.com/stac-utils/stac-rs/compare/stac-api-v0.4.1...stac-api-v0.5.0
 [0.4.1]: https://github.com/stac-utils/stac-rs/compare/stac-api-v0.4.0...stac-api-v0.4.1
 [0.4.0]: https://github.com/stac-utils/stac-rs/compare/stac-api-v0.3.3...stac-api-v0.4.0
