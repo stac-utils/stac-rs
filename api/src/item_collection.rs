@@ -1,7 +1,7 @@
 use crate::{Item, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use stac::{Link, Links};
+use stac::{Href, Link, Links};
 
 const ITEM_COLLECTION_TYPE: &str = "FeatureCollection";
 
@@ -71,6 +71,9 @@ pub struct ItemCollection {
     /// pagination information (tokens) to later be turned into links.
     #[serde(skip)]
     pub last: Option<Map<String, Value>>,
+
+    #[serde(skip)]
+    href: Option<String>,
 }
 
 /// The search-related metadata for the [ItemCollection].
@@ -118,7 +121,20 @@ impl ItemCollection {
             prev: None,
             first: None,
             last: None,
+            href: None,
         })
+    }
+}
+
+impl Href for ItemCollection {
+    fn set_href(&mut self, href: impl ToString) {
+        self.href = Some(href.to_string());
+    }
+    fn clear_href(&mut self) {
+        self.href = None;
+    }
+    fn href(&self) -> Option<&str> {
+        self.href.as_deref()
     }
 }
 
@@ -145,6 +161,7 @@ impl Default for ItemCollection {
             prev: None,
             first: None,
             last: None,
+            href: None,
         }
     }
 }
