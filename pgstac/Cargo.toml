@@ -1,6 +1,6 @@
 [package]
 name = "pgstac"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["Pete Gadomski <pete.gadomski@gmail.com>"]
 edition = "2021"
 description = "Rust interface for pgstac"

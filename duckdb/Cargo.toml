@@ -1,6 +1,6 @@
 [package]
 name = "stac-duckdb"
-version = "0.0.1"
+version = "0.0.2"
 authors = ["Pete Gadomski <pete.gadomski@gmail.com>"]
 edition = "2021"
 description = "Experimental client for querying stac-geoparquet using DuckDB"

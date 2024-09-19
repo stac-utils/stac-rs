@@ -23,7 +23,7 @@ axum = "0.7"
 clap = { version = "4", features = ["derive"] }
 duckdb = { version = "1", optional = true } # We have this dependency only to allow us to bundle it
 object_store = "0.11"
-pgstac = { version = "0.2.0", path = "../pgstac", optional = true }
+pgstac = { version = "0.2.1", path = "../pgstac", optional = true }
 pyo3 = { version = "0.22", optional = true }
 reqwest = "0.12"
 serde = "1"
@@ -34,8 +34,8 @@ stac = { version = "0.10.0", path = "../core", features = [
     "reqwest",
 ] }
 stac-api = { version = "0.6.0", path = "../api", features = ["client"] }
-stac-duckdb = { version = "0.0.1", path = "../duckdb", optional = true }
-stac-server = { version = "0.3.0", path = "../server", features = ["axum"] }
+stac-duckdb = { version = "0.0.2", path = "../duckdb", optional = true }
+stac-server = { version = "0.3.1", path = "../server", features = ["axum"] }
 stac-validate = { version = "0.3.0", path = "../validate" }
 thiserror = "1"
 tokio = { version = "1.23", features = [

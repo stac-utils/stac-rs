@@ -1,6 +1,6 @@
 [package]
 name = "stac-server"
-version = "0.3.0"
+version = "0.3.1"
 edition = "2021"
 authors = ["Pete Gadomski <pete.gadomski@gmail.com>"]
 description = "SpatioTemporal Asset Catalog (STAC) API server"

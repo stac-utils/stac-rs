@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.2.1] - 2024-09-19
+
+### Changed
+
+- Bump **stac** to v0.10.0, **stac-api** to v0.6.0
+
 ## [0.2.0] - 2024-09-16
 
 ### Added
