@@ -167,25 +167,21 @@ impl Extension for Authentication {
 #[cfg(test)]
 mod tests {
     use super::{Authentication, In, Scheme};
-    use crate::{Collection, Extensions, Item};
+    use crate::{Collection, Fields, Item};
     use serde_json::json;
 
     #[test]
     fn collection() {
         let collection: Collection = crate::read("data/auth/collection.json").unwrap();
-        let authentication: Authentication = collection.extension().unwrap().unwrap();
+        let authentication: Authentication = collection.extension().unwrap();
         let oauth = authentication.schemes.get("oauth").unwrap();
         let _ = oauth.flows.get("authorizationCode").unwrap();
-        // FIXME: assets should be able to have extensions from their parent item
-        // let asset = collection.assets.get("example").unwrap();
-        // let authentication: Authentication = asset.extension().unwrap().unwrap();
-        // assert_eq!(authentication.refs, vec!["signed_url_auth".to_string()]);
     }
 
     #[test]
     fn item() {
         let collection: Item = crate::read("data/auth/item.json").unwrap();
-        let authentication: Authentication = collection.extension().unwrap().unwrap();
+        let authentication: Authentication = collection.extension().unwrap();
         let _ = authentication.schemes.get("none").unwrap();
     }
 
