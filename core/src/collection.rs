@@ -1,6 +1,6 @@
 use crate::{
-    Asset, Assets, Bbox, Error, Extensions, Fields, Href, Item, Link, Links, Migrate, Result,
-    Version, STAC_VERSION,
+    Asset, Assets, Bbox, Error, Extensions, Fields, Href, Item, ItemAsset, Link, Links, Migrate,
+    Result, Version, STAC_VERSION,
 };
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -86,6 +86,10 @@ pub struct Collection {
     /// Dictionary of asset objects that can be downloaded, each with a unique key.
     #[serde(skip_serializing_if = "HashMap::is_empty", default)]
     pub assets: HashMap<String, Asset>,
+
+    /// A dictionary of assets that can be found in member Items.
+    #[serde(skip_serializing_if = "HashMap::is_empty", default)]
+    pub item_assets: HashMap<String, ItemAsset>,
 
     /// Additional fields not part of the `Collection` specification.
     #[serde(flatten)]
@@ -182,6 +186,7 @@ impl Collection {
             summaries: None,
             links: Vec::new(),
             assets: HashMap::new(),
+            item_assets: HashMap::new(),
             additional_fields: Map::new(),
             href: None,
         }
