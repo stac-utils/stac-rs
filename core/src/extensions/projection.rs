@@ -123,6 +123,22 @@ impl Projection {
             Ok(None)
         }
     }
+
+    /// Returns true if this projection structure is empty.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::extensions::Projection;
+    ///
+    /// let projection = Projection::default();
+    /// assert!(projection.is_empty());
+    /// ```
+    pub fn is_empty(&self) -> bool {
+        serde_json::to_value(self)
+            .map(|v| v == Value::Object(Default::default()))
+            .unwrap_or(true)
+    }
 }
 
 impl Extension for Projection {
@@ -134,7 +150,7 @@ impl Extension for Projection {
 #[cfg(test)]
 mod tests {
     use super::Projection;
-    use crate::{Extensions, Item};
+    use crate::{Fields, Item};
 
     #[cfg(feature = "gdal")]
     #[test]
@@ -162,7 +178,7 @@ mod tests {
     fn example() {
         let item: Item =
             crate::read("examples/extensions-collection/proj-example/proj-example.json").unwrap();
-        let projection = item.extension::<Projection>().unwrap().unwrap();
+        let projection = item.extension::<Projection>().unwrap();
         assert_eq!(projection.code.unwrap(), "EPSG:32614");
     }
 }

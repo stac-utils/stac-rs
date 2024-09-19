@@ -6,7 +6,7 @@ use crate::{
         raster::{Band, Raster, Statistics},
         Projection,
     },
-    Asset, Bbox, Extensions, Item, Result,
+    Asset, Bbox, Extensions, Fields, Item, Result,
 };
 use gdal::{
     spatial_ref::{CoordTransform, SpatialRef},
@@ -44,14 +44,15 @@ pub fn update_item(
     let mut bbox = Bbox::new(180., 90., -180., 90.); // Intentionally invalid bbox so the first update always takes
     for asset in item.assets.values_mut() {
         update_asset(asset, force_statistics, is_approx_statistics_ok)?;
-        if let Some(projection) = asset.extension::<Projection>()? {
+        let projection = asset.extension::<Projection>()?;
+        if !projection.is_empty() {
             has_projection = true;
             if let Some(asset_bounds) = projection.wgs84_bounds()? {
                 bbox.update(asset_bounds);
             }
             projections.push(projection);
         }
-        if !has_raster && asset.has_extension::<Raster>() {
+        if !has_raster && !asset.extension::<Raster>()?.is_empty() {
             has_raster = true;
         }
     }
@@ -65,7 +66,7 @@ pub fn update_item(
                 .iter()
                 .all(|projection| *projection == projections[0])
         {
-            item.set_extension(projections[0].clone())?;
+            Extensions::set_extension(item, projections[0].clone())?;
             for asset in item.assets.values_mut() {
                 asset.remove_extension::<Projection>();
             }
@@ -174,7 +175,7 @@ mod tests {
     use crate::{
         extensions::{projection::Centroid, raster::DataType, Projection, Raster},
         item::Builder,
-        Extensions,
+        Extensions, Fields,
     };
 
     #[test]
@@ -185,13 +186,7 @@ mod tests {
             .unwrap();
         super::update_item(&mut item, false, true).unwrap();
         assert!(item.has_extension::<Raster>());
-        let raster: Raster = item
-            .assets
-            .get("data")
-            .unwrap()
-            .extension()
-            .unwrap()
-            .unwrap();
+        let raster: Raster = item.assets.get("data").unwrap().extension().unwrap();
         assert_eq!(
             *raster.bands[0].data_type.as_ref().unwrap(),
             DataType::UInt16
@@ -205,13 +200,7 @@ mod tests {
             .build()
             .unwrap();
         super::update_item(&mut item, false, true).unwrap();
-        let raster: Raster = item
-            .assets
-            .get("data")
-            .unwrap()
-            .extension()
-            .unwrap()
-            .unwrap();
+        let raster: Raster = item.assets.get("data").unwrap().extension().unwrap();
         assert_eq!(
             raster.bands[0].spatial_resolution.unwrap(),
             100.01126757344893
@@ -225,7 +214,7 @@ mod tests {
             .build()
             .unwrap();
         super::update_item(&mut item, false, true).unwrap();
-        let projection: Projection = item.extension().unwrap().unwrap();
+        let projection: Projection = item.extension().unwrap();
         assert_eq!(projection.code.unwrap(), "EPSG:32621");
         assert_eq!(
             projection.bbox.unwrap(),

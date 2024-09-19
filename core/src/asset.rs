@@ -1,4 +1,4 @@
-use crate::{Band, DataType, Extensions, Fields, Statistics};
+use crate::{Band, DataType, Fields, Statistics};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::collections::HashMap;
@@ -80,9 +80,6 @@ pub struct Asset {
     /// Additional fields on the asset.
     #[serde(flatten)]
     pub additional_fields: Map<String, Value>,
-
-    #[serde(skip)]
-    extensions: Vec<String>,
 }
 
 /// Trait implemented by anything that has assets.
@@ -141,7 +138,6 @@ impl Asset {
             statistics: None,
             unit: None,
             additional_fields: Map::new(),
-            extensions: Vec::new(),
         }
     }
 
@@ -169,15 +165,6 @@ impl Fields for Asset {
     }
     fn fields_mut(&mut self) -> &mut Map<String, Value> {
         &mut self.additional_fields
-    }
-}
-
-impl Extensions for Asset {
-    fn extensions(&self) -> &Vec<String> {
-        &self.extensions
-    }
-    fn extensions_mut(&mut self) -> &mut Vec<String> {
-        &mut self.extensions
     }
 }
 

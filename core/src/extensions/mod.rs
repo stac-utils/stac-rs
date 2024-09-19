@@ -22,24 +22,24 @@
 //! ## Usage
 //!
 //! [Item](crate::Item), [Collection](crate::Collection),
-//! [Catalog](crate::Catalog), and [Asset](crate::Asset) all implement the
-//! [Extensions] trait, which provides methods to get, set, and remove extension information:
+//! [Catalog](crate::Catalog) all implement the [Extensions] trait, which
+//! provides methods to get, set, and remove extension information:
 //!
 //! ```
-//! use stac::{Item, Extensions, extensions::{Projection, projection::Centroid}};
+//! use stac::{Item, Extensions, Fields, extensions::{Projection, projection::Centroid}};
 //! let mut item: Item = stac::read("examples/extensions-collection/proj-example/proj-example.json").unwrap();
 //! assert!(item.has_extension::<Projection>());
 //!
 //! // Get extension information
-//! let mut projection: Projection = item.extension().unwrap().unwrap();
+//! let mut projection: Projection = item.extension().unwrap();
 //! println!("code: {}", projection.code.as_ref().unwrap());
 //!
 //! // Set extension information
 //! projection.centroid = Some(Centroid { lat: 34.595302, lon: -101.344483 });
-//! item.set_extension(projection).unwrap();
+//! Extensions::set_extension(&mut item, projection).unwrap();
 //!
 //! // Remove an extension
-//! item.remove_extension::<Projection>();
+//! Extensions::remove_extension::<Projection>(&mut item);
 //! assert!(!item.has_extension::<Projection>());
 //! ```
 
@@ -122,26 +122,6 @@ pub trait Extensions: Fields {
             .any(|extension| extension.starts_with(E::identifier_prefix()))
     }
 
-    /// Gets an extension's data.
-    ///
-    /// Returns `Ok(None)` if the object doesn't have the given extension.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use stac::{Item, extensions::{Projection, Extensions}};
-    /// let item: Item = stac::read("examples/extensions-collection/proj-example/proj-example.json").unwrap();
-    /// let projection: Projection = item.extension().unwrap().unwrap();
-    /// assert_eq!(projection.code.unwrap(), "EPSG:32614");
-    /// ```
-    fn extension<E: Extension>(&self) -> Result<Option<E>> {
-        if self.has_extension::<E>() {
-            self.fields_with_prefix(E::PREFIX).map(|v| Some(v))
-        } else {
-            Ok(None)
-        }
-    }
-
     /// Adds an extension's identifier to this object.
     ///
     /// # Examples
@@ -169,10 +149,9 @@ pub trait Extensions: Fields {
     /// item.set_extension(projection).unwrap();
     /// ```
     fn set_extension<E: Extension>(&mut self, extension: E) -> Result<()> {
-        self.remove_extension::<E>();
         self.extensions_mut().push(E::IDENTIFIER.to_string());
         self.extensions_mut().dedup();
-        self.set_fields_with_prefix(E::PREFIX, extension)
+        Fields::set_extension(self, extension)
     }
 
     /// Removes this extension and all of its fields from this object.
@@ -187,8 +166,7 @@ pub trait Extensions: Fields {
     /// assert!(!item.has_extension::<Projection>());
     /// ```
     fn remove_extension<E: Extension>(&mut self) {
-        // TODO how do we handle removing from assets when this is done on an item?
-        self.remove_fields_with_prefix(E::PREFIX);
+        Fields::remove_extension::<E>(self);
         self.extensions_mut()
             .retain(|extension| !extension.starts_with(E::identifier_prefix()))
     }
@@ -220,13 +198,13 @@ mod tests {
 
     #[test]
     fn set_extension_on_asset() {
+        use crate::Fields;
+
         let mut asset = Asset::new("a/href.tif");
-        assert!(!asset.has_extension::<Raster>());
         let mut band = Band::default();
         band.unit = Some("parsecs".to_string());
         let raster = Raster { bands: vec![band] };
         asset.set_extension(raster).unwrap();
-        assert!(asset.has_extension::<Raster>());
         let mut item = Item::new("an-id");
         let _ = item.assets.insert("data".to_string(), asset);
     }

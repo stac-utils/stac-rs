@@ -119,6 +119,22 @@ impl Extension for Raster {
     const PREFIX: &'static str = "raster";
 }
 
+impl Raster {
+    /// Returns true if this raster structure is empty.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::extensions::Raster;
+    ///
+    /// let projection = Raster::default();
+    /// assert!(projection.is_empty());
+    /// ```
+    pub fn is_empty(&self) -> bool {
+        self.bands.is_empty()
+    }
+}
+
 #[cfg(feature = "gdal")]
 impl From<gdal::raster::GdalDataType> for DataType {
     fn from(value: gdal::raster::GdalDataType) -> Self {

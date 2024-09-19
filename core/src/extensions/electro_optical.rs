@@ -72,11 +72,11 @@ impl Extension for ElectroOptical {
 #[cfg(test)]
 mod tests {
     use super::ElectroOptical;
-    use crate::{Extensions, Item};
+    use crate::{Fields, Item};
 
     #[test]
     fn item() {
         let item: Item = crate::read("data/eo/item.json").unwrap();
-        let _: ElectroOptical = item.extension().unwrap().unwrap();
+        let _: ElectroOptical = item.extension().unwrap();
     }
 }
