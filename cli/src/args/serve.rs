@@ -1,6 +1,6 @@
 use super::{Input, Run};
 use crate::{Error, Result, Value};
-use stac::{Collection, Href, Item, Links};
+use stac::{Collection, Item, Links};
 use stac_server::{Api, Backend as _, MemoryBackend};
 use std::collections::{HashMap, HashSet};
 use tokio::{net::TcpListener, sync::mpsc::Sender, task::JoinSet};
@@ -94,8 +94,7 @@ impl Run for Args {
                 }
                 Value::Collection(mut collection) => {
                     if self.load_collection_items {
-                        let href = collection.href().expect("we just read it").to_string();
-                        collection.make_relative_links_absolute(href)?;
+                        collection.make_relative_links_absolute()?;
                         for link in collection.iter_item_links() {
                             let href = link.href.to_string();
                             let input = input.with_href(href);

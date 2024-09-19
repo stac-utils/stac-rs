@@ -83,6 +83,10 @@ pub enum Error {
     #[error("no items")]
     NoItems,
 
+    /// There is not an href, when an href is required.
+    #[error("no href")]
+    NoHref,
+
     /// This value is not an item.
     #[error("value is not an item")]
     NotAnItem(Value),

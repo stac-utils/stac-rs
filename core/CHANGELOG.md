@@ -28,6 +28,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - `Error::ReqwestNotEnabled` and `Error::GdalNotEnabled` ([#396](https://github.com/stac-utils/stac-rs/pull/382))
 - `Asset::extensions` ([#405](https://github.com/stac-utils/stac-rs/pull/405))
+- `href` argument to `Links::make_relative_links_absolute` ([#407](https://github.com/stac-utils/stac-rs/pull/407))
 
 ## [0.9.0] - 2024-09-05
 
