@@ -168,6 +168,7 @@ pub mod geoparquet;
 mod href;
 pub mod io;
 pub mod item;
+mod item_asset;
 mod item_collection;
 mod json;
 pub mod link;
@@ -193,6 +194,7 @@ pub use {
     href::Href,
     io::{read, write},
     item::{FlatItem, Item, Properties, ITEM_TYPE},
+    item_asset::ItemAsset,
     item_collection::{ItemCollection, ITEM_COLLECTION_TYPE},
     json::{FromJson, ToJson},
     link::{Link, Links},

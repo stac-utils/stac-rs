@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - `object_store` ([#382](https://github.com/stac-utils/stac-rs/pull/382))
 - `stac::geoparquet::Compression`, even if geoparquet is not enabled ([#396](https://github.com/stac-utils/stac-rs/pull/396))
 - `Type` ([#397](https://github.com/stac-utils/stac-rs/pull/397))
+- `Collection::item_assets` and `ItemAsset` ([#404](https://github.com/stac-utils/stac-rs/pull/404))
 
 ### Changed
 
