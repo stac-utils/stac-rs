@@ -186,7 +186,7 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/stac-cli-')
     environment:
       name: pypi
-      url: https://pypi.org/p/stacrs
+      url: https://pypi.org/p/stacrs-cli
     permissions:
       id-token: write
     steps:
