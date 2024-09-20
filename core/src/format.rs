@@ -7,7 +7,7 @@ use std::{fmt::Display, path::Path, str::FromStr};
 use url::Url;
 
 /// The format of STAC data.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Format {
     /// JSON data (the default).
     ///
@@ -277,6 +277,7 @@ impl Display for Format {
 impl FromStr for Format {
     type Err = Error;
 
+    #[cfg_attr(not(feature = "geoparquet"), allow(unused_variables))]
     fn from_str(s: &str) -> Result<Format> {
         match s.to_ascii_lowercase().as_str() {
             "json" | "geojson" => Ok(Self::Json(false)),
@@ -284,20 +285,21 @@ impl FromStr for Format {
             "ndjson" => Ok(Self::NdJson),
             _ => {
                 if s.starts_with("parquet") || s.starts_with("geoparquet") {
-                    #[cfg(feature = "geoparquet")]
                     if let Some((_, compression)) = s.split_once('[') {
                         if let Some(stop) = compression.find(']') {
-                            Ok(Self::Geoparquet(Some(compression[..stop].parse()?)))
+                            #[cfg(feature = "geoparquet")]
+                            {
+                                Ok(Self::Geoparquet(Some(compression[..stop].parse()?)))
+                            }
+                            #[cfg(not(feature = "geoparquet"))]
+                            {
+                                Ok(Self::Geoparquet(Some(Compression)))
+                            }
                         } else {
                             Err(Error::UnsupportedFormat(s.to_string()))
                         }
                     } else {
                         Ok(Self::Geoparquet(None))
-                    }
-                    #[cfg(not(feature = "geoparquet"))]
-                    {
-                        log::warn!("{} has a geoparquet extension, but the geoparquet feature is not enabled", s);
-                        Err(Error::UnsupportedFormat(s.to_string()))
                     }
                 } else {
                     Err(Error::UnsupportedFormat(s.to_string()))
@@ -309,22 +311,36 @@ impl FromStr for Format {
 
 #[cfg(test)]
 mod tests {
+    use super::Format;
+    use crate::geoparquet::Compression;
+
     #[test]
-    #[cfg(feature = "geoparquet")]
     fn parse_geoparquet() {
         assert_eq!(
-            "parquet".parse::<super::Format>().unwrap(),
-            super::Format::Geoparquet(None)
+            "parquet".parse::<Format>().unwrap(),
+            Format::Geoparquet(None)
         );
     }
 
     #[test]
     #[cfg(feature = "geoparquet")]
     fn parse_geoparquet_compression() {
-        let format: super::Format = "geoparquet[snappy]".parse().unwrap();
+        let format: Format = "geoparquet[snappy]".parse().unwrap();
+        assert_eq!(format, Format::Geoparquet(Some(Compression::SNAPPY)));
+    }
+
+    #[test]
+    #[cfg(not(feature = "geoparquet"))]
+    fn parse_geoparquet_compression() {
+        let format: Format = "geoparquet[snappy]".parse().unwrap();
+        assert_eq!(format, Format::Geoparquet(Some(Compression)));
+    }
+
+    #[test]
+    fn infer_from_href() {
         assert_eq!(
-            format,
-            super::Format::Geoparquet(Some(parquet::basic::Compression::SNAPPY))
+            Format::Geoparquet(None),
+            Format::infer_from_href("out.parquet").unwrap()
         );
     }
 }
