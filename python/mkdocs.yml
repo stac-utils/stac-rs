@@ -5,9 +5,18 @@ theme:
   name: material
   icon:
     repo: fontawesome/brands/github
+  features:
+    - navigation.indexes
 nav:
   - Home: index.md
-  - API: api.md
+  - API:
+      - api/index.md
+      - migrate: api/migrate.md
+      - read: api/read.md
+      - search: api/search.md
+      - validate: api/validate.md
+      - write: api/write.md
+      - pystac: api/pystac.md
 plugins:
   - search
   - mkdocstrings:

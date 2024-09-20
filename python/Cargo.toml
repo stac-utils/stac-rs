@@ -13,7 +13,9 @@ name = "stacrs"
 crate-type = ["cdylib"]
 
 [features]
-geoparquet = ["stac/geoparquet-compression"]
+geoparquet = [
+    "stac/geoparquet-compression",
+] # need to be able to disable geoparquet so this builds on readthedocs
 
 [dependencies]
 geojson = "0.24"

@@ -5,8 +5,8 @@ import pytest
 import stacrs
 
 
-def test_validate_href_ok(spec_examples: Path) -> None:
-    stacrs.validate_href(str(spec_examples / "simple-item.json"))
+def test_validate_href_ok(examples: Path) -> None:
+    stacrs.validate_href(str(examples / "simple-item.json"))
 
 
 def test_validate_href_invalid(data: Path) -> None:

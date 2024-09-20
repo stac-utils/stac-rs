@@ -9,14 +9,14 @@ use stac_validate::ValidateBlocking;
 ///     href (str): The href of the STAC value to validate
 ///
 /// Raises:
-///     StacrsError: On any input/output error, or on a validation error
+///     Exception: On any input/output error, or on a validation error
 ///
 /// Examples:
 ///     >>> stacrs.validate_href("examples/simple-item.json")
 ///     >>> stacrs.validate_href("data/invalid-item.json")
 ///     Traceback (most recent call last):
 ///     File "<stdin>", line 1, in <module>
-///     stacrs.StacrsError: Validation errors: "collection" is a required property
+///     Exception: Validation errors: "collection" is a required property
 #[pyfunction]
 pub fn validate_href(href: &str) -> Result<()> {
     let value: Value = stac::read(href)?;
@@ -29,7 +29,7 @@ pub fn validate_href(href: &str) -> Result<()> {
 ///     value (dict[str, Any]): The STAC value to validate
 ///
 /// Raises:
-///     StacrsError: On a validation error
+///     Exception: On a validation error
 ///
 /// Examples:
 ///     >>> with open("examples/simple-item.json") as f:
