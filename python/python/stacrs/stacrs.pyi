@@ -2,6 +2,12 @@ from typing import Any, Optional, Tuple
 
 def migrate_href(href: str, version: Optional[str] = None) -> dict[str, Any]: ...
 def migrate(value: dict[str, Any], version: Optional[str] = None) -> dict[str, Any]: ...
+def read(
+    href: str,
+    *,
+    format: str | None = None,
+    options: list[tuple[str, str]] | None = None,
+) -> dict[str, Any]: ...
 def search(
     href: str,
     *,
@@ -36,6 +42,13 @@ def search_to(
     query: Optional[dict[str, Any]] = None,
     format: Optional[str] = None,
     options: Optional[list[Tuple[str, str]]] = None,
-) -> list[dict[str, Any]]: ...
+) -> None: ...
 def validate_href(href: str) -> None: ...
 def validate(value: dict[str, Any]) -> None: ...
+def write(
+    href: str,
+    value: dict[str, Any] | list[dict[str, Any]],
+    *,
+    format: str | None = None,
+    options: list[tuple[str, str]] | None = None,
+) -> dict[str, str] | None: ...

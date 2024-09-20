@@ -22,6 +22,9 @@ classifiers = [
 keywords = ["stac", "geospatial"]
 dynamic = ["version"]
 
+[project.optional-dependencies]
+pystac = ["pystac>=1"]
+
 [project.urls]
 Repository = "https://github.com/stac-utils/stac-rs"
 Documentation = "https://stacrs.readthedocs.io/"
@@ -29,6 +32,7 @@ Issues = "https://github.com/stac-utils/stac-rs/issues"
 
 [tool.maturin]
 features = ["pyo3/extension-module"]
+python-source = "python"
 
 [[tool.mypy.overrides]]
 module = "pyarrow.*"
