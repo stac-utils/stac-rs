@@ -1,29 +1,8 @@
 //! Asynchronous I/O for [STAC](https://stacspec.org/), built on [stac-rs](https://github.com/stac-utils/stac-rs)
 //!
-//! # Examples
-//!
-//! Read a single STAC item:
-//!
-//! ```
-//! # tokio_test::block_on(async {
-//! let item: stac::Item = stac_async::read("examples/simple-item.json").await.unwrap();
-//! # })
-//! ```
-//!
-//! Build an API client to read from a [STAC API](https://github.com/radiantearth/stac-api-spec):
-//!
-//! ```no_run
-//! use futures_util::StreamExt;
-//! let url = "https://planetary-computer.microsoft.com/api/stac/v1";
-//! let api_client = stac_async::ApiClient::new(url).unwrap();
-//! # tokio_test::block_on(async {
-//! // Get the first sentinel2 item using an asynchronous stream
-//! let items = api_client.items("sentinel2-l2a", None).await.unwrap();
-//! tokio::pin!(items);
-//! let item = items.next().await.unwrap().unwrap();
-//! # })
-//! ```
+//! ⚠️ This crate is deprecated, use [stac](https://crates.io/crates/stac) instead.
 
+#![deprecated = "use `stac` instead of `stac-async`, which is deprecated and will receive no further updates"]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 #![deny(
     elided_lifetimes_in_paths,
