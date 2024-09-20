@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.1.0] - 2024-09-20
+
+### Added
+
 - `migrate_href` ([#334](https://github.com/stac-utils/stac-rs/pull/334))
 - `search` and `search_to` ([#387](https://github.com/stac-utils/stac-rs/pull/387))
 - `read`, `write`, and `pystac` ([#418](https://github.com/stac-utils/stac-rs/pull/418))
@@ -25,7 +29,10 @@ Non-functional release to fix releasing from Github actions.
 
 Initial release.
 
-[Unreleased]: https://github.com/stac-utils/stac-rs/compare/python-v0.0.3...main
+[Unreleased]: https://github.com/stac-utils/stac-rs/compare/python-v0.1.0...main
+[0.1.0]: https://github.com/stac-utils/stac-rs/compare/python-v0.0.3...python-v0.1.0
 [0.0.3]: https://github.com/stac-utils/stac-rs/compare/python-v0.0.2...python-v0.0.3
 [0.0.2]: https://github.com/stac-utils/stac-rs/compare/python-v0.0.1...python-v0.0.2
 [0.0.1]: https://github.com/stac-utils/stac-rs/releases/tag/python-v0.0.1
+
+<!-- markdownlint-disable-file MD024 -->

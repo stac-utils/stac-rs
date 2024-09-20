@@ -4,12 +4,12 @@ build-backend = "maturin"
 
 [project]
 name = "stacrs"
-description = "A small, no-dependency STAC library with Rust under the hood"
+description = "A no-dependency Python package for STAC, using Rust under the hood."
 readme = "README.md"
 authors = [{ name = "Pete Gadomski", email = "pete.gadomski@gmail.com" }]
 requires-python = ">=3.8"
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
     "Natural Language :: English",
     "Programming Language :: Rust",
