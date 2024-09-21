@@ -1,6 +1,6 @@
-# API
+# Python API
 
-API documentation for **stacrs**.
+API documentation for the **stacrs** Python package.
 
 - [migrate](./migrate.md)
 - [search](./search.md)

@@ -1,0 +1,65 @@
+name: Docs
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - docs/**
+      - mkdocs.yml
+      - python/**
+  pull_request:
+    paths:
+      - docs/**
+      - mkdocs.yml
+      - python/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
+      - name: Install doc requirements
+        run: pip install -r requirements-docs.txt
+      - uses: PyO3/maturin-action@v1
+        with:
+            command: build
+            args: --manifest-path python/Cargo.toml --out dist
+      - name: Install stacrs
+        run: pip install stacrs --find-links dist --no-index
+      - name: Build docs
+        run: mkdocs build --strict
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'site'
+  deploy:
+    environment:
+      name: "github-pages"
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    if: success() && startsWith(github.ref, 'refs/heads/main')
+    needs:
+      - build
+    steps:
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      - uses: actions/download-artifact@v4
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
