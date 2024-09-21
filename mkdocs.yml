@@ -1,0 +1,64 @@
+site_name: stac-rs
+site_url: https://stac-utils.github.io/stac-rs
+repo_url: https://github.com/stac-utils/stac-rs
+theme:
+  name: material
+  logo: img/stac-ferris.png
+  icon:
+    repo: fontawesome/brands/github
+  favicon: img/stac-ferris-favicon.png
+  features:
+    - navigation.indexes
+  palette:
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+nav:
+  - Home: index.md
+  - Python:
+      - python/index.md
+      - API:
+          - python/api/index.md
+          - migrate: python/api/migrate.md
+          - read: python/api/read.md
+          - search: python/api/search.md
+          - validate: python/api/validate.md
+          - write: python/api/write.md
+          - pystac: python/api/pystac.md
+  - Command-line interface:
+      - cli/index.md
+plugins:
+  - search
+  - social
+  - mkdocstrings:
+      enable_inventory: true
+      handlers:
+        python:
+          load_external_modules: false
+          options:
+            show_root_heading: true
+            show_signature: true
+            show_signature_annotations: true
+            separate_signature: true
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.details

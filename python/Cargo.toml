@@ -12,18 +12,17 @@ publish = false
 name = "stacrs"
 crate-type = ["cdylib"]
 
-[features]
-geoparquet = [
-    "stac/geoparquet-compression",
-] # need to be able to disable geoparquet so this builds on readthedocs
-
 [dependencies]
 geojson = "0.24"
 pyo3 = { version = "0.22", features = ["extension-module"] }
 pythonize = "0.22"
 serde = "1"
 serde_json = "1"
-stac = { path = "../core", features = ["reqwest", "object-store-all"] }
+stac = { path = "../core", features = [
+    "geoparquet-compression",
+    "object-store-all",
+    "reqwest",
+] }
 stac-api = { path = "../api", features = ["client"] }
 stac-validate = { path = "../validate", features = ["blocking"] }
 tokio = { version = "1", features = ["rt"] }

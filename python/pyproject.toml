@@ -27,7 +27,7 @@ pystac = ["pystac>=1"]
 
 [project.urls]
 Repository = "https://github.com/stac-utils/stac-rs"
-Documentation = "https://stacrs.readthedocs.io/"
+Documentation = "https://stac-utils.github.io/stac-rs/python/"
 Issues = "https://github.com/stac-utils/stac-rs/issues"
 
 [tool.maturin]

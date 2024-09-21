@@ -1,11 +1,6 @@
 # stacrs
 
-[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/stac-utils/stac-rs/ci.yml?branch=main&style=for-the-badge)](https://github.com/stac-utils/stac-rs/actions/workflows/ci.yml)
-[![PyPI - Version](https://img.shields.io/pypi/v/stacrs?style=for-the-badge)](https://pypi.org/project/stacrs)
-![PyPI - License](https://img.shields.io/pypi/l/stacrs?style=for-the-badge)
-[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?style=for-the-badge)](./CODE_OF_CONDUCT)
-
-A no-dependency Python package for [STAC](https://stacspec.org/), using Rust under the hood.
+A Python package for working with [STAC](https://stacspec.org) designed to compliment existing packages such as [pystac](https://pystac.readthedocs.io) and [pystac-client](https://pystac-client.readthedocs.io).
 
 ## Usage
 
@@ -47,8 +42,6 @@ stacrs.search_to(
 )
 ```
 
-See [the API documentation](https://stac-utils.github.io/stac-rs/python/api/) for details.
-
 ### pystac
 
 If [pystac](https://pystac.readthedocs.io) is present, `stacrs.pystac` provides functions that take **pystac** objects as their inputs and outputs:
@@ -76,7 +69,3 @@ This package (intentionally) has limited functionality, as it is _not_ intended 
 For querying STAC APIs, [pystac-client](https://pystac-client.readthedocs.io) is more feature-rich than our simplistic `stacrs.search`.
 
 That being said, it is hoped that **stacrs** will be a nice complement to the existing Python STAC ecosystem by providing a no-dependency package with unique capabilities, such as searching directly into a stac-geoparquet file.
-
-## Other info
-
-This package is part of the [stac-rs](https://github.com/stac-utils/stac-rs) monorepo, see its README for contributing and license information.
