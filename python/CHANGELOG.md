@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.1.1] - 2024-09-21
+
+### Added
+
+- Extension module feature
+
+### Changed
+
+- Use Github Pages for docs ([#420](https://github.com/stac-utils/stac-rs/pull/420))
+
 ## [0.1.0] - 2024-09-20
 
 ### Added
@@ -29,7 +39,8 @@ Non-functional release to fix releasing from Github actions.
 
 Initial release.
 
-[Unreleased]: https://github.com/stac-utils/stac-rs/compare/python-v0.1.0...main
+[Unreleased]: https://github.com/stac-utils/stac-rs/compare/python-v0.1.1...main
+[0.1.1]: https://github.com/stac-utils/stac-rs/compare/python-v0.1.0...python-v0.1.1
 [0.1.0]: https://github.com/stac-utils/stac-rs/compare/python-v0.0.3...python-v0.1.0
 [0.0.3]: https://github.com/stac-utils/stac-rs/compare/python-v0.0.2...python-v0.0.3
 [0.0.2]: https://github.com/stac-utils/stac-rs/compare/python-v0.0.1...python-v0.0.2
