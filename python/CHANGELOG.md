@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.1.2] - 2024-09-22
+
+### Changed
+
+- Return the item count from `search_to` ([#426](https://github.com/stac-utils/stac-rs/pull/426))
+
 ## [0.1.1] - 2024-09-21
 
 ### Added
@@ -39,7 +45,8 @@ Non-functional release to fix releasing from Github actions.
 
 Initial release.
 
-[Unreleased]: https://github.com/stac-utils/stac-rs/compare/python-v0.1.1...main
+[Unreleased]: https://github.com/stac-utils/stac-rs/compare/python-v0.1.2...main
+[0.1.2]: https://github.com/stac-utils/stac-rs/compare/python-v0.1.1...python-v0.1.2
 [0.1.1]: https://github.com/stac-utils/stac-rs/compare/python-v0.1.0...python-v0.1.1
 [0.1.0]: https://github.com/stac-utils/stac-rs/compare/python-v0.0.3...python-v0.1.0
 [0.0.3]: https://github.com/stac-utils/stac-rs/compare/python-v0.0.2...python-v0.0.3

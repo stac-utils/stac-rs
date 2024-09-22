@@ -32,7 +32,7 @@ def test_search_to(tmp_path: Path) -> None:
 
 
 def test_search_to_geoparquet(tmp_path: Path) -> None:
-    stacrs.search_to(
+    count = stacrs.search_to(
         str(tmp_path / "out.parquet"),
         "https://landsatlook.usgs.gov/stac-server",
         collections="landsat-c2l2-sr",
@@ -40,6 +40,7 @@ def test_search_to_geoparquet(tmp_path: Path) -> None:
         sortby="-properties.datetime",
         max_items=1,
     )
+    assert count == 1
     table = pyarrow.parquet.read_table(tmp_path / "out.parquet")
     items = list(stac_geoparquet.arrow.stac_table_to_items(table))
     assert len(items) == 1
