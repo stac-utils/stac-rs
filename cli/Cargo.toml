@@ -61,3 +61,7 @@ name = "stacrs"
 path = "src/main.rs"
 doc = false
 test = false
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

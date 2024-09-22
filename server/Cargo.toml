@@ -41,3 +41,7 @@ stac-validate = { version = "0.3", path = "../validate" }
 tokio = { version = "1.37", features = ["macros"] }
 tokio-test = "0.4"
 tower = { version = "0.5", features = ["util"] }
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

@@ -32,3 +32,7 @@ webpki-roots = { version = "0.26", optional = true }
 pgstac-test = { path = "pgstac-test" }
 tokio = { version = "1.23", features = ["rt-multi-thread", "macros"] }
 tokio-test = "0.4"
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
