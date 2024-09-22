@@ -4,7 +4,7 @@ description = "Python bindings for stac-rs"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/stac-utils/stac-rs"
 homepage = "https://github.com/stac-utils/stac-rs"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 publish = false
 

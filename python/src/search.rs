@@ -157,7 +157,7 @@ pub fn search_to(
     query: Option<Py<PyDict>>,
     format: Option<String>,
     options: Option<Vec<(String, String)>>,
-) -> PyResult<()> {
+) -> PyResult<usize> {
     let items = search_items(
         href,
         intersects,
@@ -180,6 +180,7 @@ pub fn search_to(
         .or_else(|| Format::infer_from_href(&outfile))
         .unwrap_or_default();
     let item_collection = ItemCollection::from(items);
+    let count = item_collection.items.len();
     Builder::new_current_thread()
         .build()?
         .block_on(format.put_opts(
@@ -188,7 +189,7 @@ pub fn search_to(
             options.unwrap_or_default(),
         ))
         .map_err(Error::from)?;
-    Ok(())
+    Ok(count)
 }
 
 fn search_items(
