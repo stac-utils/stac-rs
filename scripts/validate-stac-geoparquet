@@ -1,26 +1,32 @@
 #!/usr/bin/env python
 
 import json
-import sys
 import shutil
 import subprocess
+import sys
 import tempfile
-from typing import Any
-from deepdiff import DeepDiff
 from pathlib import Path
+from typing import Any
+
+import pyarrow
 import pyarrow.parquet
 import stac_geoparquet.arrow
-import pyarrow
+from deepdiff import DeepDiff
 
 root = Path(__file__).parents[1]
 path = root / "spec-examples" / "v1.1.0" / "extended-item.json"
 directory = tempfile.mkdtemp()
 parquet_path = Path(directory) / "extended-item.parquet"
 
+
 def clean_item(item: dict[str, Any]) -> None:
-    if item["geometry"]["type"] == "MultiPolygon" and len(item["geometry"]["coordinates"]) == 1:
+    if (
+        item["geometry"]["type"] == "MultiPolygon"
+        and len(item["geometry"]["coordinates"]) == 1
+    ):
         item["geometry"]["type"] = "Polygon"
         item["geometry"]["coordinates"] = item["geometry"]["coordinates"][0]
+
 
 def clean_report(report: dict[str, Any]) -> dict[str, Any]:
     """We expect datetime values to be changed in the report."""
@@ -32,12 +38,29 @@ def clean_report(report: dict[str, Any]) -> dict[str, Any]:
             del report["values_changed"]["root['properties']['datetime']"]
         if not report["values_changed"]:
             del report["values_changed"]
+    if report.get("dictionary_item_removed"):
+        report["dictionary_item_removed"] = [
+            item for item in report["dictionary_item_removed"] if item != "root['type']"
+        ]
+        if not report["dictionary_item_removed"]:
+            del report["dictionary_item_removed"]
     return report
+
 
 try:
     # Writing
     subprocess.check_call(
-        ["cargo", "run", "--no-default-features", "-F", "geoparquet", "--", "translate", path, parquet_path]
+        [
+            "cargo",
+            "run",
+            "--no-default-features",
+            "-F",
+            "geoparquet",
+            "--",
+            "translate",
+            path,
+            parquet_path,
+        ]
     )
     table = pyarrow.parquet.read_table(parquet_path)
     after = next(stac_geoparquet.arrow.stac_table_to_items(table))
@@ -54,11 +77,24 @@ try:
     # Reading
     table = stac_geoparquet.arrow.parse_stac_items_to_arrow([before])
     stac_geoparquet.arrow.to_parquet(table, parquet_path)
-    item_collection = json.loads(subprocess.check_output(
-        ["cargo", "run", "--no-default-features", "-F", "geoparquet", "--", "translate", parquet_path]
-    ))
+    item_collection = json.loads(
+        subprocess.check_output(
+            [
+                "cargo",
+                "run",
+                "--no-default-features",
+                "-F",
+                "geoparquet",
+                "--",
+                "translate",
+                parquet_path,
+            ]
+        )
+    )
     assert len(item_collection["features"]) == 1
-    clean_item(item_collection["features"][0])  # stac-geoparquet writes as a multi-polygon
+    clean_item(
+        item_collection["features"][0]
+    )  # stac-geoparquet writes as a multi-polygon
     report = DeepDiff(before, item_collection["features"][0]).to_dict()
     report = clean_report(report)
     if report:

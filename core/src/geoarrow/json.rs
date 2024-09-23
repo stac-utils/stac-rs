@@ -586,6 +586,7 @@ pub fn from_table(table: Table) -> Result<Vec<serde_json::Map<String, Value>>, c
                     "geometry".into(),
                     serde_json::to_value(geojson::Geometry::new(value))?,
                 );
+                let _ = row.insert("type".into(), crate::ITEM_TYPE.into());
                 items.push(unflatten(row));
             }
         }

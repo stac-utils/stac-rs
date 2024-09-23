@@ -54,6 +54,7 @@ pub fn to_table(item_collection: impl Into<ItemCollection>) -> Result<Table> {
             let value = value
                 .as_object_mut()
                 .expect("a flat item should serialize to an object");
+            let _ = value.remove("type");
             let _ = value.remove("geometry");
             if let Some(bbox) = value.remove("bbox") {
                 let bbox = bbox
@@ -153,6 +154,7 @@ mod tests {
         let table = super::to_table(vec![item]).unwrap();
         let (_, bbox_field) = table.schema().column_with_name("bbox").unwrap();
         assert!(matches!(bbox_field.data_type(), DataType::Struct(_)));
+        assert!(table.schema().column_with_name("type").is_none());
     }
 
     #[test]
