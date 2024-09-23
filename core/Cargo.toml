@@ -43,7 +43,7 @@ object-store-all = [
     "object-store-http",
 ]
 reqwest = ["dep:reqwest"]
-validate = ["dep:jsonschema", "dep:reqwest", "dep:tokio", "dep:tracing"]
+validate = ["dep:jsonschema", "dep:reqwest", "dep:tokio"]
 validate-blocking = ["validate", "tokio/rt"]
 
 [dependencies]
@@ -68,7 +68,6 @@ reqwest = { version = "0.12", optional = true, features = ["json", "blocking"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
 thiserror = "1"
-tracing = { version = "0.1", optional = true }
 tokio = { version = "1", optional = true }
 url = "2"
 
