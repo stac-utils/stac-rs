@@ -18,7 +18,7 @@ pub trait ValidateBlocking: Validate {
     /// ```
     fn validate_blocking(&self) -> Result<()> {
         Builder::new_current_thread()
-            .enable_io()
+            .enable_all()
             .build()?
             .block_on(self.validate())
     }
