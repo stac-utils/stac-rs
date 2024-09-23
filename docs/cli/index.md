@@ -1,3 +1,7 @@
+---
+description: The stac-rs command-line interface (CLI), stacrs
+---
+
 # Command-line interface (CLI)
 
 The **stac-rs** command-line interface can be installed two ways.

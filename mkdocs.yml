@@ -1,4 +1,5 @@
 site_name: stac-rs
+site_description: Command Line Interface (CLI), Rust crates, and other libraries for the SpatioTemporal Asset Catalog (STAC) specification.
 site_url: https://stac-utils.github.io/stac-rs
 repo_url: https://github.com/stac-utils/stac-rs
 theme:
@@ -30,7 +31,10 @@ nav:
       - cli/index.md
 plugins:
   - search
-  - social
+  - social:
+      cards_layout_options:
+        color: rgb(26, 78, 99)
+        background_color: rgb(228, 246, 251)
   - mkdocstrings:
       enable_inventory: true
       handlers:
