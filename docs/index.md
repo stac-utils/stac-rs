@@ -12,6 +12,5 @@ Our Python package is named **stacrs** and its documentation is available [here]
 
 - [stac](https://docs.rs/stac): The core Rust crate
 - [stac-api](https://docs.rs/stac-api): Data structures for a STAC API, and a client for searching one
-- [stac-validate](https://docs.rs/stac-validate): Efficiently validate STAC objects with [json-schema](https://json-schema.org/)
 - [stac-server](https://docs.rs/stac-server): A STAC API server with multiple backends
 - [pgstac](https://docs.rs/pgstac): Rust bindings for [pgstac](https://github.com/stac-utils/pgstac)

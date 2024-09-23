@@ -1,6 +1,5 @@
 use rstest::rstest;
-use stac::Value;
-use stac_validate::ValidateBlocking;
+use stac::{ValidateBlocking, Value};
 use std::path::PathBuf;
 
 #[rstest]

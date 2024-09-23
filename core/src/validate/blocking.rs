@@ -11,8 +11,7 @@ pub trait ValidateBlocking: Validate {
     /// # Examples
     ///
     /// ```
-    /// use stac_validate::ValidateBlocking;
-    /// use stac::Item;
+    /// use stac::{ValidateBlocking, Item};
     ///
     /// let mut item = Item::new("an-id");
     /// item.validate_blocking().unwrap();
@@ -30,9 +29,8 @@ impl<T: Serialize> ValidateBlocking for T {}
 #[cfg(test)]
 mod tests {
     use super::ValidateBlocking;
-    use geojson::{Geometry, Value};
+    use crate::{Catalog, Collection, Item};
     use rstest as _;
-    use stac::{Catalog, Collection, Item};
 
     #[test]
     fn item() {
@@ -41,7 +39,10 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "geo")]
     fn item_with_geometry() {
+        use geojson::{Geometry, Value};
+
         let mut item = Item::new("an-id");
         item.set_geometry(Geometry::new(Value::Point(vec![-105.1, 40.1])))
             .unwrap();
@@ -51,7 +52,7 @@ mod tests {
     #[test]
     fn item_with_extensions() {
         let item: Item =
-            stac::read("examples/extensions-collection/proj-example/proj-example.json").unwrap();
+            crate::read("examples/extensions-collection/proj-example/proj-example.json").unwrap();
         item.validate_blocking().unwrap();
     }
 
@@ -69,14 +70,14 @@ mod tests {
 
     #[test]
     fn value() {
-        let value: stac::Value = stac::read("examples/simple-item.json").unwrap();
+        let value: crate::Value = crate::read("examples/simple-item.json").unwrap();
         value.validate_blocking().unwrap();
     }
 
     #[test]
     fn item_collection() {
-        let item = stac::read("examples/simple-item.json").unwrap();
-        let item_collection = stac::ItemCollection::from(vec![item]);
+        let item = crate::read("examples/simple-item.json").unwrap();
+        let item_collection = crate::ItemCollection::from(vec![item]);
         item_collection.validate_blocking().unwrap();
     }
 }

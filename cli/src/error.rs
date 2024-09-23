@@ -42,10 +42,6 @@ pub enum Error {
     #[error(transparent)]
     StacServer(#[from] stac_server::Error),
 
-    /// [stac_validate::Error]
-    #[error(transparent)]
-    StacValidate(#[from] stac_validate::Error),
-
     /// [tokio::sync::mpsc::error::SendError]
     #[error(transparent)]
     TokioSend(#[from] tokio::sync::mpsc::error::SendError<Value>),

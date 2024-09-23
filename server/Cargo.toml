@@ -37,7 +37,7 @@ url = "2"
 
 [dev-dependencies]
 serde_json = "1"
-stac-validate = { version = "0.3", path = "../validate" }
+stac = { version = "0.10", path = "../core", features = ["validate"] }
 tokio = { version = "1.37", features = ["macros"] }
 tokio-test = "0.4"
 tower = { version = "0.5", features = ["util"] }

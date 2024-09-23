@@ -176,9 +176,15 @@ mod migrate;
 pub mod mime;
 mod ndjson;
 mod statistics;
+#[cfg(feature = "validate")]
+mod validate;
 mod value;
 mod version;
 
+#[cfg(feature = "validate-blocking")]
+pub use validate::ValidateBlocking;
+#[cfg(feature = "validate")]
+pub use validate::{Validate, Validator};
 pub use {
     asset::{Asset, Assets},
     band::Band,

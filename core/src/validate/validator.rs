@@ -1,11 +1,10 @@
-use crate::{Error, Result};
+use crate::{Error, Result, Type, Version};
 use jsonschema::{
     SchemaResolver, SchemaResolverError, ValidationOptions, Validator as JsonschemaValidator,
 };
 use reqwest::Client;
 use serde::Serialize;
 use serde_json::{Map, Value};
-use stac::{Type, Version};
 use std::{
     collections::{HashMap, HashSet},
     future::Future,
@@ -46,7 +45,7 @@ impl Validator {
     /// # Examples
     ///
     /// ```
-    /// use stac_validate::Validator;
+    /// use stac::Validator;
     ///
     /// # tokio_test::block_on(async {
     /// let validator = Validator::new().await;
@@ -62,15 +61,14 @@ impl Validator {
         let mut validation_options = JsonschemaValidator::options();
         let _ = validation_options.with_resolver(resolver);
         let (sender, receiver) = tokio::sync::mpsc::channel(BUFFER);
-        let _ = tokio::spawn(async move { get_urls(receiver).await });
-        let validator = Validator {
+        drop(tokio::spawn(async move { get_urls(receiver).await }));
+        Validator {
             schemas: Arc::new(RwLock::new(schemas(&validation_options))),
             validation_options,
             cache,
             urls,
             sender,
-        };
-        validator
+        }
     }
 
     /// Validates a single value.
@@ -78,8 +76,7 @@ impl Validator {
     /// # Examples
     ///
     /// ```
-    /// use stac_validate::Validator;
-    /// use stac::Item;
+    /// use stac::{Item, Validator};
     ///
     /// let item = Item::new("an-id");
     /// # tokio_test::block_on(async {
@@ -174,7 +171,7 @@ impl Validator {
                     }
                 }
                 while let Some(result) = join_set.join_next().await {
-                    let _ = result??;
+                    result??;
                 }
                 let object = if let Value::Object(o) = Arc::into_inner(value).unwrap() {
                     o
@@ -304,20 +301,20 @@ fn schemas(validation_options: &ValidationOptions) -> HashMap<Url, Arc<Jsonschem
         };
     }
 
-    schema!(Item, v1_0_0, "../schemas/v1.0.0/item.json", schemas);
-    schema!(Catalog, v1_0_0, "../schemas/v1.0.0/catalog.json", schemas);
+    schema!(Item, v1_0_0, "schemas/v1.0.0/item.json", schemas);
+    schema!(Catalog, v1_0_0, "schemas/v1.0.0/catalog.json", schemas);
     schema!(
         Collection,
         v1_0_0,
-        "../schemas/v1.0.0/collection.json",
+        "schemas/v1.0.0/collection.json",
         schemas
     );
-    schema!(Item, v1_1_0, "../schemas/v1.1.0/item.json", schemas);
-    schema!(Catalog, v1_1_0, "../schemas/v1.1.0/catalog.json", schemas);
+    schema!(Item, v1_1_0, "schemas/v1.1.0/item.json", schemas);
+    schema!(Catalog, v1_1_0, "schemas/v1.1.0/catalog.json", schemas);
     schema!(
         Collection,
         v1_1_0,
-        "../schemas/v1.1.0/collection.json",
+        "schemas/v1.1.0/collection.json",
         schemas
     );
 
@@ -339,79 +336,79 @@ fn cache() -> HashMap<Url, Arc<Value>> {
     // General
     resolve!(
         "https://geojson.org/schema/Feature.json",
-        "../schemas/geojson/Feature.json"
+        "schemas/geojson/Feature.json"
     );
     resolve!(
         "https://geojson.org/schema/Geometry.json",
-        "../schemas/geojson/Geometry.json"
+        "schemas/geojson/Geometry.json"
     );
     resolve!(
         "http://json-schema.org/draft-07/schema",
-        "../schemas/json-schema/draft-07.json"
+        "schemas/json-schema/draft-07.json"
     );
 
     // STAC v1.0.0
     resolve!(
         "https://schemas.stacspec.org/v1.0.0/item-spec/json-schema/basics.json",
-        "../schemas/v1.0.0/basics.json"
+        "schemas/v1.0.0/basics.json"
     );
     resolve!(
         "https://schemas.stacspec.org/v1.0.0/item-spec/json-schema/datetime.json",
-        "../schemas/v1.0.0/datetime.json"
+        "schemas/v1.0.0/datetime.json"
     );
     resolve!(
         "https://schemas.stacspec.org/v1.0.0/item-spec/json-schema/instrument.json",
-        "../schemas/v1.0.0/instrument.json"
+        "schemas/v1.0.0/instrument.json"
     );
     resolve!(
         "https://schemas.stacspec.org/v1.0.0/item-spec/json-schema/item.json",
-        "../schemas/v1.0.0/item.json"
+        "schemas/v1.0.0/item.json"
     );
     resolve!(
         "https://schemas.stacspec.org/v1.0.0/item-spec/json-schema/licensing.json",
-        "../schemas/v1.0.0/licensing.json"
+        "schemas/v1.0.0/licensing.json"
     );
     resolve!(
         "https://schemas.stacspec.org/v1.0.0/item-spec/json-schema/provider.json",
-        "../schemas/v1.0.0/provider.json"
+        "schemas/v1.0.0/provider.json"
     );
 
     // STAC v1.1.0
     resolve!(
         "https://schemas.stacspec.org/v1.1.0/item-spec/json-schema/bands.json",
-        "../schemas/v1.1.0/bands.json"
+        "schemas/v1.1.0/bands.json"
     );
     resolve!(
         "https://schemas.stacspec.org/v1.1.0/item-spec/json-schema/basics.json",
-        "../schemas/v1.1.0/basics.json"
+        "schemas/v1.1.0/basics.json"
     );
     resolve!(
         "https://schemas.stacspec.org/v1.1.0/item-spec/json-schema/common.json",
-        "../schemas/v1.1.0/common.json"
+        "schemas/v1.1.0/common.json"
     );
     resolve!(
         "https://schemas.stacspec.org/v1.1.0/item-spec/json-schema/data-values.json",
-        "../schemas/v1.1.0/data-values.json"
+        "schemas/v1.1.0/data-values.json"
     );
     resolve!(
         "https://schemas.stacspec.org/v1.1.0/item-spec/json-schema/datetime.json",
-        "../schemas/v1.1.0/datetime.json"
+        "schemas/v1.1.0/datetime.json"
     );
     resolve!(
         "https://schemas.stacspec.org/v1.1.0/item-spec/json-schema/instrument.json",
-        "../schemas/v1.1.0/instrument.json"
+        "schemas/v1.1.0/instrument.json"
     );
     resolve!(
         "https://schemas.stacspec.org/v1.1.0/item-spec/json-schema/item.json",
-        "../schemas/v1.1.0/item.json"
+        "schemas/v1.1.0/item.json"
     );
     resolve!(
         "https://schemas.stacspec.org/v1.1.0/item-spec/json-schema/licensing.json",
-        "../schemas/v1.1.0/licensing.json"
+        "schemas/v1.1.0/licensing.json"
     );
     resolve!(
         "https://schemas.stacspec.org/v1.1.0/item-spec/json-schema/provider.json",
-        "../schemas/v1.1.0/provider.json"
+        "schemas/v1.1.0/provider.json"
     );
 
     cache
@@ -459,12 +456,12 @@ async fn get_urls(mut receiver: Receiver<(Url, OneshotSender<Result<Arc<Value>>>
                             tracing::debug!("getting url: {}", url);
                             let local_sender = local_sender.clone();
                             let client = client.clone();
-                            let _ = tokio::spawn(async move {
+                            drop(tokio::spawn(async move {
                                 match get(client, url.clone()).await {
                                     Ok(value) => local_sender.send((url, Ok(value))).await,
                                     Err(err) => local_sender.send((url, Err(err))).await,
                                 }
-                            });
+                            }));
                             Vec::new()
                         })
                         .push(sender);
@@ -488,7 +485,7 @@ async fn get(client: Client, url: Url) -> Result<Value> {
 #[cfg(test)]
 mod tests {
     use super::Validator;
-    use stac::Item;
+    use crate::Item;
 
     #[tokio::test]
     async fn validate_array() {

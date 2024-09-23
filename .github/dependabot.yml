@@ -28,10 +28,6 @@ updates:
     directory: "/stac-server"
     schedule:
       interval: "weekly"
-  - package-ecosystem: "cargo"
-    directory: "/stac-validate"
-    schedule:
-      interval: "weekly"
   - package-ecosystem: "pip"
     directory: "/scripts"
     schedule:

@@ -387,9 +387,8 @@ mod tests {
     use super::Api;
     use crate::{Backend, MemoryBackend};
     use http::Method;
-    use stac::{Catalog, Collection, Item, Links};
+    use stac::{Catalog, Collection, Item, Links, Validate};
     use stac_api::{Items, Search, ITEM_SEARCH_URI};
-    use stac_validate::Validate;
     use std::collections::HashSet;
 
     macro_rules! assert_link {

@@ -1,4 +1,6 @@
 use crate::{Value, Version};
+#[cfg(feature = "validate")]
+use jsonschema::ValidationError;
 use serde_json::Value as JsonValue;
 use thiserror::Error;
 
@@ -10,6 +12,11 @@ pub enum Error {
     #[error(transparent)]
     #[cfg(feature = "geoarrow")]
     Arrow(#[from] arrow_schema::ArrowError),
+
+    /// Cannot validate a non-object, non-array
+    #[error("value is not an object or an array, cannot validate")]
+    #[cfg(feature = "validate")]
+    CannotValidate(serde_json::Value),
 
     /// [chrono::ParseError]
     #[error(transparent)]
@@ -69,15 +76,22 @@ pub enum Error {
 
     /// Returned when a geometry is missing but is required.
     #[error("no geometry field")]
+    #[deprecated(since = "0.10.2", note = "renamed to NoGeometry")]
     MissingGeometry,
 
     /// Returned when there is not a `type` field on a STAC object
     #[error("no \"type\" field in the JSON object")]
+    #[deprecated(since = "0.10.2", note = "renamed to NoType")]
     MissingType,
 
     /// Returned when an object is expected to have an href, but it doesn't.
     #[error("object has no href")]
+    #[deprecated(since = "0.10.2", note = "use to NoHref")]
     MissingHref,
+
+    /// There is no geometry.
+    #[error("no geometry")]
+    NoGeometry,
 
     /// There are no items, when items are required.
     #[error("no items")]
@@ -86,6 +100,14 @@ pub enum Error {
     /// There is not an href, when an href is required.
     #[error("no href")]
     NoHref,
+
+    /// There is no type.
+    #[error("no type")]
+    NoType,
+
+    /// No version field on an object.
+    #[error("no version field")]
+    NoVersion,
 
     /// This value is not an item.
     #[error("value is not an item")]
@@ -119,13 +141,34 @@ pub enum Error {
     Parquet(#[from] parquet::errors::ParquetError),
 
     /// [reqwest::Error]
-    #[cfg(feature = "reqwest")]
+    #[cfg(any(feature = "reqwest", feature = "validate"))]
     #[error(transparent)]
     Reqwest(#[from] reqwest::Error),
 
     /// [serde_json::Error]
     #[error(transparent)]
     SerdeJson(#[from] serde_json::Error),
+
+    /// [tokio::task::JoinError]
+    #[error(transparent)]
+    #[cfg(feature = "validate")]
+    TokioJoin(#[from] tokio::task::JoinError),
+
+    /// [tokio::sync::mpsc::error::SendError]
+    #[error(transparent)]
+    #[cfg(feature = "validate")]
+    TokioSend(
+        #[from]
+        tokio::sync::mpsc::error::SendError<(
+            url::Url,
+            tokio::sync::oneshot::Sender<crate::Result<std::sync::Arc<serde_json::Value>>>,
+        )>,
+    ),
+
+    /// [tokio::sync::oneshot::error::RecvError]
+    #[error(transparent)]
+    #[cfg(feature = "validate")]
+    TokioRecv(#[from] tokio::sync::oneshot::error::RecvError),
 
     /// [std::num::TryFromIntError]
     #[error(transparent)]
@@ -154,4 +197,35 @@ pub enum Error {
     /// [url::ParseError]
     #[error(transparent)]
     Url(#[from] url::ParseError),
+
+    /// A list of validation errors.
+    ///
+    /// Since we usually don't have the original [serde_json::Value] (because we
+    /// create them from the STAC objects), we need these errors to be `'static`
+    /// lifetime.
+    #[error("validation errors")]
+    #[cfg(feature = "validate")]
+    Validation(Vec<ValidationError<'static>>),
+}
+
+#[cfg(feature = "validate")]
+impl Error {
+    pub(crate) fn from_validation_errors<'a, I>(errors: I) -> Error
+    where
+        I: Iterator<Item = ValidationError<'a>>,
+    {
+        use std::borrow::Cow;
+
+        let mut error_vec = Vec::new();
+        for error in errors {
+            // Cribbed from https://docs.rs/jsonschema/latest/src/jsonschema/error.rs.html#21-30
+            error_vec.push(ValidationError {
+                instance_path: error.instance_path.clone(),
+                instance: Cow::Owned(error.instance.into_owned()),
+                kind: error.kind,
+                schema_path: error.schema_path,
+            })
+        }
+        Error::Validation(error_vec)
+    }
 }

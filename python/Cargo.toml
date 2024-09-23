@@ -22,7 +22,7 @@ stac = { path = "../core", features = [
     "geoparquet-compression",
     "object-store-all",
     "reqwest",
+    "validate-blocking",
 ] }
 stac-api = { path = "../api", features = ["client"] }
-stac-validate = { path = "../validate", features = ["blocking"] }
 tokio = { version = "1", features = ["rt"] }
