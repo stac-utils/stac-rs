@@ -11,18 +11,10 @@ use std::{
     pin::Pin,
     sync::{Arc, Mutex},
 };
-use tokio::{
-    sync::{
-        mpsc::{error::TryRecvError, Receiver, Sender},
-        oneshot::Sender as OneshotSender,
-        RwLock,
-    },
-    task::JoinSet,
-};
+use tokio::{sync::RwLock, task::JoinSet};
 use url::Url;
 
 const SCHEMA_BASE: &str = "https://schemas.stacspec.org";
-const BUFFER: usize = 10;
 
 /// A cloneable structure for validating STAC.
 #[derive(Clone, Debug)]
@@ -31,7 +23,7 @@ pub struct Validator {
     cache: Arc<std::sync::RwLock<HashMap<Url, Arc<Value>>>>,
     schemas: Arc<RwLock<HashMap<Url, Arc<JsonschemaValidator>>>>,
     urls: Arc<Mutex<HashSet<Url>>>,
-    sender: Sender<(Url, OneshotSender<Result<Arc<Value>>>)>,
+    client: Client,
 }
 
 struct Resolver {
@@ -60,14 +52,12 @@ impl Validator {
         };
         let mut validation_options = JsonschemaValidator::options();
         let _ = validation_options.with_resolver(resolver);
-        let (sender, receiver) = tokio::sync::mpsc::channel(BUFFER);
-        drop(tokio::spawn(async move { get_urls(receiver).await }));
         Validator {
             schemas: Arc::new(RwLock::new(schemas(&validation_options))),
             validation_options,
             cache,
             urls,
-            sender,
+            client: Client::new(),
         }
     }
 
@@ -171,7 +161,7 @@ impl Validator {
                     }
                 }
                 while let Some(result) = join_set.join_next().await {
-                    result??;
+                    let _ = result??;
                 }
                 let object = if let Value::Object(o) = Arc::into_inner(value).unwrap() {
                     o
@@ -227,9 +217,7 @@ impl Validator {
                 return Ok(schema.clone());
             }
         }
-        let (sender, receiver) = tokio::sync::oneshot::channel();
-        self.sender.send((url.clone(), sender)).await?;
-        let value = receiver.await??;
+        let value = self.resolve(url.clone()).await?;
         let schema = self
             .validation_options
             .build(&value)
@@ -242,15 +230,27 @@ impl Validator {
         Ok(schema)
     }
 
-    async fn resolve(&self, url: Url) -> Result<()> {
-        let (sender, receiver) = tokio::sync::oneshot::channel();
-        self.sender.send((url.clone(), sender)).await?;
-        let value = receiver.await??;
+    async fn resolve(&self, url: Url) -> Result<Arc<Value>> {
+        {
+            let cache = self.cache.read().unwrap();
+            if let Some(value) = cache.get(&url) {
+                return Ok(value.clone());
+            }
+        }
+        let value: Value = self
+            .client
+            .get(url.clone())
+            .send()
+            .await?
+            .error_for_status()?
+            .json()
+            .await?;
+        let value = Arc::new(value);
         {
             let mut cache = self.cache.write().unwrap();
-            let _ = cache.insert(url, value);
+            let _ = cache.insert(url, value.clone());
         }
-        Ok(())
+        Ok(value)
     }
 }
 
@@ -412,74 +412,6 @@ fn cache() -> HashMap<Url, Arc<Value>> {
     );
 
     cache
-}
-
-async fn get_urls(mut receiver: Receiver<(Url, OneshotSender<Result<Arc<Value>>>)>) -> Result<()> {
-    let mut cache: HashMap<Url, Arc<Value>> = HashMap::new();
-    let mut gets: HashMap<Url, Vec<OneshotSender<Result<Arc<Value>>>>> = HashMap::new();
-    let client = Client::new();
-    let (local_sender, mut local_receiver) = tokio::sync::mpsc::channel(BUFFER);
-    loop {
-        match receiver.try_recv() {
-            Err(TryRecvError::Disconnected) => return Ok(()),
-            Err(TryRecvError::Empty) => match local_receiver.try_recv() {
-                Err(TryRecvError::Disconnected) => return Ok(()),
-                Err(TryRecvError::Empty) => tokio::task::yield_now().await,
-                Ok((url, result)) => {
-                    let mut senders = gets
-                        .remove(&url)
-                        .expect("all sent values should be in gets");
-                    match result {
-                        Ok(value) => {
-                            let value = Arc::<Value>::new(value);
-                            let _ = cache.insert(url, value.clone());
-                            for sender in senders {
-                                sender.send(Ok(value.clone())).unwrap();
-                            }
-                        }
-                        Err(err) => {
-                            senders
-                                .pop()
-                                .expect("there should be at least one sender")
-                                .send(Err(err))
-                                .unwrap();
-                        }
-                    };
-                }
-            },
-            Ok((url, sender)) => {
-                if let Some(value) = cache.get(&url) {
-                    sender.send(Ok(value.clone())).unwrap();
-                } else {
-                    gets.entry(url.clone())
-                        .or_insert_with(|| {
-                            tracing::debug!("getting url: {}", url);
-                            let local_sender = local_sender.clone();
-                            let client = client.clone();
-                            drop(tokio::spawn(async move {
-                                match get(client, url.clone()).await {
-                                    Ok(value) => local_sender.send((url, Ok(value))).await,
-                                    Err(err) => local_sender.send((url, Err(err))).await,
-                                }
-                            }));
-                            Vec::new()
-                        })
-                        .push(sender);
-                }
-            }
-        }
-    }
-}
-
-async fn get(client: Client, url: Url) -> Result<Value> {
-    client
-        .get(url)
-        .send()
-        .await?
-        .error_for_status()?
-        .json()
-        .await
-        .map_err(Error::from)
 }
 
 #[cfg(test)]

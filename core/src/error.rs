@@ -154,22 +154,6 @@ pub enum Error {
     #[cfg(feature = "validate")]
     TokioJoin(#[from] tokio::task::JoinError),
 
-    /// [tokio::sync::mpsc::error::SendError]
-    #[error(transparent)]
-    #[cfg(feature = "validate")]
-    TokioSend(
-        #[from]
-        tokio::sync::mpsc::error::SendError<(
-            url::Url,
-            tokio::sync::oneshot::Sender<crate::Result<std::sync::Arc<serde_json::Value>>>,
-        )>,
-    ),
-
-    /// [tokio::sync::oneshot::error::RecvError]
-    #[error(transparent)]
-    #[cfg(feature = "validate")]
-    TokioRecv(#[from] tokio::sync::oneshot::error::RecvError),
-
     /// [std::num::TryFromIntError]
     #[error(transparent)]
     TryFromInt(#[from] std::num::TryFromIntError),
