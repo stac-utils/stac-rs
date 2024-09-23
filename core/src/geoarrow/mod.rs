@@ -143,13 +143,16 @@ pub fn from_table(table: Table) -> Result<ItemCollection> {
 #[cfg(all(test, feature = "geoparquet"))]
 mod tests {
     use crate::{Item, ItemCollection};
+    use arrow_schema::DataType;
     use geoarrow::io::parquet::GeoParquetRecordBatchReaderBuilder;
     use std::fs::File;
 
     #[test]
     fn to_table() {
         let item: Item = crate::read("examples/simple-item.json").unwrap();
-        let _ = super::to_table(vec![item]).unwrap();
+        let table = super::to_table(vec![item]).unwrap();
+        let (_, bbox_field) = table.schema().column_with_name("bbox").unwrap();
+        assert!(matches!(bbox_field.data_type(), DataType::Struct(_)));
     }
 
     #[test]
