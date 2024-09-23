@@ -1,3 +1,7 @@
+---
+description: The stac-rs Python package, stacrs
+---
+
 # stacrs
 
 A Python package for working with [STAC](https://stacspec.org) designed to compliment existing packages such as [pystac](https://pystac.readthedocs.io) and [pystac-client](https://pystac-client.readthedocs.io).

@@ -1,3 +1,7 @@
+---
+description: Interface with pystac
+---
+
 # pystac
 
 These functions are only available if [pystac](https://pystac.readthedocs.io/) is available on your system.
