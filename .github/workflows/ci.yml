@@ -26,7 +26,7 @@ jobs:
           sudo apt-get install libgdal-dev
       - name: Test
         run: cargo test --lib
-  check:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -37,10 +37,27 @@ jobs:
           sudo apt-get install libgdal-dev
       - name: Fmt
         run: cargo fmt
-      - name: Check
-        run: cargo check --all --all-features
       - name: Clippy
         run: cargo clippy --all --all-features
+  check:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        chunk:
+          - 1
+          - 2
+          - 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
+      - name: Install GDAL
+        run: |
+          sudo apt-get update
+          sudo apt-get install libgdal-dev
+      - name: Install check-all-features
+        run: cargo install cargo-all-features
+      - name: Check
+        run: cargo check-all-features --n-chunks 3 --chunk ${{ matrix.chunk }}
   check-nightly:
     runs-on: ubuntu-latest
     steps:
