@@ -9,6 +9,7 @@ theme:
   favicon: img/stac-ferris-2.png
   features:
     - navigation.indexes
+    - navigation.footer
   palette:
     scheme: stac
     primary: custom
