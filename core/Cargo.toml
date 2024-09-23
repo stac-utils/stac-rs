@@ -78,3 +78,14 @@ tokio-test = "0.4"
 [package.metadata.docs.rs]
 all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
+
+[package.metadata.cargo-all-features]
+max_combination_size = 2
+denylist = [
+    "geoparquet-compression",
+    "object-store-all",
+    "object-store-aws",
+    "object-store-azure",
+    "object-store-gcp",
+    "object-store-http",
+]
