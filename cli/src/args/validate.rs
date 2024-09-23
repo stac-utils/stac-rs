@@ -1,6 +1,6 @@
 use super::{Input, Run};
 use crate::{Error, Result, Value};
-use stac_validate::Validate;
+use stac::Validate;
 use tokio::sync::mpsc::Sender;
 
 /// Arguments for the `validate` subcommand.
@@ -17,7 +17,7 @@ impl Run for Args {
     async fn run(self, input: Input, _: Option<Sender<Value>>) -> Result<Option<Value>> {
         let value = input.get().await?;
         let result = value.validate().await;
-        if let Err(stac_validate::Error::Validation(ref errors)) = result {
+        if let Err(stac::Error::Validation(ref errors)) = result {
             let message_base = match value {
                 stac::Value::Item(item) => format!("[item={}] ", item.id),
                 stac::Value::Catalog(catalog) => format!("[catalog={}] ", catalog.id),

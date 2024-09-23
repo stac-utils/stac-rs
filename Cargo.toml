@@ -1,13 +1,4 @@
 [workspace]
 resolver = "2"
-members = [
-    "api",
-    "cli",
-    "core",
-    "duckdb",
-    "pgstac",
-    "python",
-    "server",
-    "validate",
-]
-default-members = ["api", "cli", "core", "server", "validate"]
+members = ["api", "cli", "core", "duckdb", "pgstac", "python", "server"]
+default-members = ["api", "cli", "core", "server"]

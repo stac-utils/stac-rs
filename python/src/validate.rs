@@ -1,7 +1,6 @@
 use crate::{Error, Result};
 use pyo3::{prelude::*, types::PyDict};
-use stac::Value;
-use stac_validate::ValidateBlocking;
+use stac::{ValidateBlocking, Value};
 
 /// Validates a single href with json-schema.
 ///
@@ -44,7 +43,7 @@ pub fn validate(value: &Bound<'_, PyDict>) -> PyResult<()> {
 fn validate_value(value: Value) -> Result<()> {
     if let Err(error) = value.validate_blocking() {
         match error {
-            stac_validate::Error::Validation(errors) => {
+            stac::Error::Validation(errors) => {
                 let mut message = "Validation errors: ".to_string();
                 for error in errors {
                     message.push_str(&format!("{}, ", error));

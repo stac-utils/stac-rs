@@ -32,11 +32,11 @@ stac = { version = "0.10.0", path = "../core", features = [
     "geoparquet-compression",
     "object-store-all",
     "reqwest",
+    "validate",
 ] }
 stac-api = { version = "0.6.0", path = "../api", features = ["client"] }
 stac-duckdb = { version = "0.0.2", path = "../duckdb", optional = true }
 stac-server = { version = "0.3.1", path = "../server", features = ["axum"] }
-stac-validate = { version = "0.3.0", path = "../validate" }
 thiserror = "1"
 tokio = { version = "1.23", features = [
     "macros",
