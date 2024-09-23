@@ -65,7 +65,7 @@ rpds-py==0.20.0
     # via
     #   jsonschema
     #   referencing
-setuptools==75.0.0
+setuptools==75.1.0
     # via -r scripts/requirements-stac-server.in
 shapely==2.0.6
     # via stac-api-validator
