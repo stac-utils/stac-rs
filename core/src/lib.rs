@@ -115,6 +115,7 @@
 //!     - `object-store-http`
 //!     - `object-store-all` (enable them all)
 //! - `reqwest`: get from `http` and `https` urls when using [read]
+//!     - `reqwest-rustls`: enable the `rustls-tls` feature in reqwest
 
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 #![deny(
@@ -472,6 +473,10 @@ mod readme {
     external_doc_test!(include_str!("../README.md"));
 }
 
-/// We only use gdal-sys for the build script.
+// We only use gdal-sys for the build script.
 #[cfg(feature = "gdal")]
 use gdal_sys as _;
+
+// For now, we only use tracing in the validate module.
+#[cfg(not(feature = "validate"))]
+use tracing as _;
