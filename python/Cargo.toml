@@ -13,16 +13,16 @@ name = "stacrs"
 crate-type = ["cdylib"]
 
 [dependencies]
-geojson = "0.24"
-pyo3 = { version = "0.22", features = ["extension-module"] }
-pythonize = "0.22"
-serde = "1"
-serde_json = "1"
-stac = { path = "../core", features = [
+geojson = { workspace = true }
+pyo3 = { workspace = true, features = ["extension-module"] }
+pythonize = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+stac = { workspace = true, features = [
     "geoparquet-compression",
     "object-store-all",
     "reqwest",
     "validate-blocking",
 ] }
-stac-api = { path = "../api", features = ["client"] }
-tokio = { version = "1", features = ["rt"] }
+stac-api = { workspace = true, features = ["client"] }
+tokio = { workspace = true, features = ["rt"] }
