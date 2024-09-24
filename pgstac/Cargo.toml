@@ -14,24 +14,21 @@ categories = ["database", "data-structures", "science"]
 tls = ["dep:rustls", "dep:tokio-postgres-rustls", "dep:webpki-roots"]
 
 [dependencies]
-geojson = "0.24"
-rustls = { version = "0.23", optional = true, features = [
-    "ring",
-    "std",
-], default-features = false }
-serde = "1"
-serde_json = "1"
-stac = { version = "0.10.0", path = "../core" }
-stac-api = { version = "0.6.0", path = "../api" }
-thiserror = "1"
-tokio-postgres = { version = "0.7", features = ["with-serde_json-1"] }
-tokio-postgres-rustls = { version = "0.12", optional = true }
-webpki-roots = { version = "0.26", optional = true }
+geojson = { workspace = true }
+rustls = { workspace = true, features = ["ring", "std"], optional = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+stac = { workspace = true }
+stac-api = { workspace = true }
+thiserror = { workspace = true }
+tokio-postgres = { workspace = true, features = ["with-serde_json-1"] }
+tokio-postgres-rustls = { workspace = true, optional = true }
+webpki-roots = { workspace = true, optional = true }
 
 [dev-dependencies]
 pgstac-test = { path = "pgstac-test" }
-tokio = { version = "1.23", features = ["rt-multi-thread", "macros"] }
-tokio-test = "0.4"
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
+tokio-test = { workspace = true }
 
 [package.metadata.docs.rs]
 all-features = true

@@ -29,7 +29,7 @@
 //! # use stac::{Item, Validator};
 //! let mut items: Vec<_> = (0..10).map(|n| Item::new(format!("item-{}", n))).collect();
 //! # tokio_test::block_on(async {
-//! let mut validator = Validator::new().await;
+//! let mut validator = Validator::new().await.unwrap();
 //! for item in items {
 //!     validator.validate(&item).await.unwrap();
 //! }
@@ -74,7 +74,7 @@ pub trait Validate: Serialize + Sized {
     /// ```
     fn validate(&self) -> impl Future<Output = Result<()>> {
         async {
-            let validator = Validator::new().await;
+            let validator = Validator::new().await?;
             validator.validate(self).await
         }
     }

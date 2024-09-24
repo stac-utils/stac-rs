@@ -40,10 +40,10 @@ impl Validator {
     /// use stac::Validator;
     ///
     /// # tokio_test::block_on(async {
-    /// let validator = Validator::new().await;
+    /// let validator = Validator::new().await.unwrap();
     /// });
     /// ```
-    pub async fn new() -> Validator {
+    pub async fn new() -> Result<Validator> {
         let cache = Arc::new(std::sync::RwLock::new(cache()));
         let urls = Arc::new(Mutex::new(HashSet::new()));
         let resolver = Resolver {
@@ -52,13 +52,25 @@ impl Validator {
         };
         let mut validation_options = JsonschemaValidator::options();
         let _ = validation_options.with_resolver(resolver);
-        Validator {
+        let client_builder = {
+            #[cfg(feature = "reqwest-rustls")]
+            {
+                // Cloudflare can dislike when Github Actions requests stuff w/ the
+                // default tls provider :shrug: so this is a workaround.
+                Client::builder().use_rustls_tls()
+            }
+            #[cfg(not(feature = "reqwest-rustls"))]
+            {
+                Client::builder()
+            }
+        };
+        Ok(Validator {
             schemas: Arc::new(RwLock::new(schemas(&validation_options))),
             validation_options,
             cache,
             urls,
-            client: Client::new(),
-        }
+            client: client_builder.build()?,
+        })
     }
 
     /// Validates a single value.
@@ -70,7 +82,7 @@ impl Validator {
     ///
     /// let item = Item::new("an-id");
     /// # tokio_test::block_on(async {
-    /// let validator = Validator::new().await;
+    /// let validator = Validator::new().await.unwrap();
     /// validator.validate(&item).await.unwrap();
     /// });
     /// ```
@@ -237,6 +249,7 @@ impl Validator {
                 return Ok(value.clone());
             }
         }
+        tracing::debug!("resolving {}", url);
         let value: Value = self
             .client
             .get(url.clone())
@@ -425,7 +438,7 @@ mod tests {
             .map(|i| Item::new(format!("item-{}", i)))
             .map(|i| serde_json::to_value(i).unwrap())
             .collect();
-        let validator = Validator::new().await;
+        let validator = Validator::new().await.unwrap();
         validator.validate(&items).await.unwrap();
     }
 }

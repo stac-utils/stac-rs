@@ -11,14 +11,14 @@ keywords = ["geospatial", "stac", "metadata", "geo", "raster"]
 categories = ["science", "data-structures"]
 
 [dependencies]
-arrow = "52"
-duckdb = "1.0"
-geoarrow = { version = "0.3" }
-parquet = "52"
-stac = { version = "0.10.0", path = "../core", features = ["geoarrow"] }
-stac-api = { version = "0.6.0", path = "../api" }
-thiserror = "1"
+arrow = { workspace = true }
+duckdb = { workspace = true }
+geoarrow = { workspace = true }
+parquet = { workspace = true }
+stac = { workspace = true, features = ["geoarrow"] }
+stac-api = { workspace = true }
+thiserror = { workspace = true }
 
 [dev-dependencies]
 duckdb-test = { path = "duckdb-test" }
-geo = "0.28"
+geo = { workspace = true }
