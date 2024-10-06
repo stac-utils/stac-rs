@@ -11,6 +11,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Validation, from the (now defunct) **stac-validate** ([#434](https://github.com/stac-utils/stac-rs/pull/434), [#438](https://github.com/stac-utils/stac-rs/pull/438))
 - A `reqwest-rustls` feature ([#440](https://github.com/stac-utils/stac-rs/pull/440))
 
+### Changed
+
+- Update to **jsonschema** v0.22 ([#446](https://github.com/stac-utils/stac-rs/pull/446))
+
 ## [0.10.1] - 2024-09-20
 
 ### Fixed
