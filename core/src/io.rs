@@ -235,7 +235,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use tempdir::TempDir;
+    use tempfile::TempDir;
 
     use crate::{Catalog, Collection, Item, ItemCollection};
 
@@ -321,7 +321,7 @@ mod tests {
 
     #[test]
     fn write() {
-        let tempdir = TempDir::new("write").unwrap();
+        let tempdir = TempDir::new().unwrap();
         let item = Item::new("an-id");
         super::write(tempdir.path().join("item.json"), item).unwrap();
         let item: Item = super::read(tempdir.path().join("item.json").to_string_lossy()).unwrap();
@@ -331,7 +331,7 @@ mod tests {
     #[tokio::test]
     #[cfg(feature = "object-store")]
     async fn put() {
-        let tempdir = TempDir::new("put").unwrap();
+        let tempdir = TempDir::new().unwrap();
         let path = format!(
             "file://{}",
             tempdir.path().join("item.json").to_string_lossy()
