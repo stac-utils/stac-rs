@@ -81,6 +81,14 @@ tempdir = { workspace = true }
 tokio = { workspace = true, features = ["macros"] }
 tokio-test = { workspace = true }
 
+[[test]]
+name = "examples"
+required-features = ["validate-blocking"]
+
+[[test]]
+name = "migrate"
+required-features = ["validate-blocking"]
+
 [package.metadata.docs.rs]
 all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
