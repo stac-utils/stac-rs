@@ -1,7 +1,5 @@
 use crate::{Error, Result, Type, Version};
-use jsonschema::{
-    SchemaResolver, SchemaResolverError, ValidationOptions, Validator as JsonschemaValidator,
-};
+use jsonschema::{Retrieve, Uri, ValidationOptions, Validator as JsonschemaValidator};
 use reqwest::Client;
 use serde::Serialize;
 use serde_json::{Map, Value};
@@ -12,7 +10,6 @@ use std::{
     sync::{Arc, Mutex},
 };
 use tokio::{sync::RwLock, task::JoinSet};
-use url::Url;
 
 const SCHEMA_BASE: &str = "https://schemas.stacspec.org";
 
@@ -20,15 +17,15 @@ const SCHEMA_BASE: &str = "https://schemas.stacspec.org";
 #[derive(Clone, Debug)]
 pub struct Validator {
     validation_options: ValidationOptions,
-    cache: Arc<std::sync::RwLock<HashMap<Url, Arc<Value>>>>,
-    schemas: Arc<RwLock<HashMap<Url, Arc<JsonschemaValidator>>>>,
-    urls: Arc<Mutex<HashSet<Url>>>,
+    cache: Arc<std::sync::RwLock<HashMap<Uri<String>, Value>>>,
+    schemas: Arc<RwLock<HashMap<Uri<String>, Arc<JsonschemaValidator>>>>,
+    uris: Arc<Mutex<HashSet<Uri<String>>>>,
     client: Client,
 }
 
-struct Resolver {
-    cache: Arc<std::sync::RwLock<HashMap<Url, Arc<Value>>>>,
-    urls: Arc<Mutex<HashSet<Url>>>,
+struct Retriever {
+    cache: Arc<std::sync::RwLock<HashMap<Uri<String>, Value>>>,
+    uris: Arc<Mutex<HashSet<Uri<String>>>>,
 }
 
 impl Validator {
@@ -45,13 +42,13 @@ impl Validator {
     /// ```
     pub async fn new() -> Result<Validator> {
         let cache = Arc::new(std::sync::RwLock::new(cache()));
-        let urls = Arc::new(Mutex::new(HashSet::new()));
-        let resolver = Resolver {
+        let uris = Arc::new(Mutex::new(HashSet::new()));
+        let retriever = Retriever {
             cache: cache.clone(),
-            urls: urls.clone(),
+            uris: uris.clone(),
         };
         let mut validation_options = JsonschemaValidator::options();
-        let _ = validation_options.with_resolver(resolver);
+        let _ = validation_options.with_retriever(retriever);
         let client_builder = {
             #[cfg(feature = "reqwest-rustls")]
             {
@@ -68,7 +65,7 @@ impl Validator {
             schemas: Arc::new(RwLock::new(schemas(&validation_options))),
             validation_options,
             cache,
-            urls,
+            uris,
             client: client_builder.build()?,
         })
     }
@@ -162,18 +159,18 @@ impl Validator {
             if let Err(err) = result {
                 let mut join_set = JoinSet::new();
                 {
-                    let mut urls = validator.urls.lock().unwrap();
-                    if urls.is_empty() {
+                    let mut uris = validator.uris.lock().unwrap();
+                    if uris.is_empty() {
                         return Err(err);
                     } else {
-                        for url in urls.drain() {
+                        for url in uris.drain() {
                             let validator = validator.clone();
                             let _ = join_set.spawn(async move { validator.resolve(url).await });
                         }
                     }
                 }
                 while let Some(result) = join_set.join_next().await {
-                    let _ = result??;
+                    result??;
                 }
                 let object = if let Value::Object(o) = Arc::into_inner(value).unwrap() {
                     o
@@ -195,7 +192,7 @@ impl Validator {
             .and_then(|v| v.as_array())
         {
             for extension in extensions.iter().filter_map(|v| v.as_str()) {
-                let extension = Url::parse(extension)?;
+                let extension = Uri::parse(extension)?.to_owned();
                 let validator = self.clone();
                 let value = value.clone();
                 let _ = join_set.spawn(async move {
@@ -222,74 +219,76 @@ impl Validator {
         }
     }
 
-    async fn schema(&self, url: Url) -> Result<Arc<JsonschemaValidator>> {
+    async fn schema(&self, uri: Uri<String>) -> Result<Arc<JsonschemaValidator>> {
         {
             let schemas = self.schemas.read().await;
-            if let Some(schema) = schemas.get(&url) {
+            if let Some(schema) = schemas.get(&uri) {
                 return Ok(schema.clone());
             }
         }
-        let value = self.resolve(url.clone()).await?;
-        let schema = self
-            .validation_options
-            .build(&value)
-            .map_err(|err| Error::from_validation_errors([err].into_iter()))?;
-        let schema = Arc::new(schema);
+        self.resolve(uri.clone()).await?;
+        let schema = {
+            let cache = self.cache.read().unwrap();
+            let value = cache.get(&uri).expect("we just resolved it");
+            let schema = self
+                .validation_options
+                .build(value)
+                .map_err(|err| Error::from_validation_errors([err].into_iter()))?;
+            Arc::new(schema)
+        };
         {
             let mut schemas = self.schemas.write().await;
-            let _ = schemas.insert(url, schema.clone());
+            let _ = schemas.insert(uri, schema.clone());
         }
         Ok(schema)
     }
 
-    async fn resolve(&self, url: Url) -> Result<Arc<Value>> {
+    async fn resolve(&self, uri: Uri<String>) -> Result<()> {
         {
             let cache = self.cache.read().unwrap();
-            if let Some(value) = cache.get(&url) {
-                return Ok(value.clone());
+            if cache.contains_key(&uri) {
+                return Ok(());
             }
         }
-        tracing::debug!("resolving {}", url);
+        tracing::debug!("resolving {}", uri);
         let value: Value = self
             .client
-            .get(url.clone())
+            .get(uri.as_str())
             .send()
             .await?
             .error_for_status()?
             .json()
             .await?;
-        let value = Arc::new(value);
         {
             let mut cache = self.cache.write().unwrap();
-            let _ = cache.insert(url, value.clone());
+            let _ = cache.insert(uri, value);
         }
-        Ok(value)
+        Ok(())
     }
 }
 
-impl SchemaResolver for Resolver {
-    fn resolve(
+impl Retrieve for Retriever {
+    fn retrieve(
         &self,
-        _: &Value,
-        url: &Url,
-        _: &str,
-    ) -> std::result::Result<Arc<Value>, SchemaResolverError> {
+        uri: &Uri<&str>,
+    ) -> std::result::Result<Value, Box<dyn std::error::Error + Send + Sync>> {
+        let uri = uri.to_owned();
         {
             let cache = self.cache.read().unwrap();
-            if let Some(schema) = cache.get(url) {
+            if let Some(schema) = cache.get(&uri) {
                 return Ok(schema.clone());
             }
         }
         {
-            let mut urls = self.urls.lock().unwrap();
-            let _ = urls.insert(url.clone());
+            let mut uris = self.uris.lock().unwrap();
+            let _ = uris.insert(uri.clone());
         }
-        Err(SchemaResolverError::msg("need to resolve and re-try"))
+        Err(format!("{uri}").into())
     }
 }
 
-fn build_schema_url(r#type: Type, version: &Version) -> Url {
-    Url::parse(&format!(
+fn build_schema_url(r#type: Type, version: &Version) -> Uri<String> {
+    Uri::parse(format!(
         "{}{}",
         SCHEMA_BASE,
         r#type
@@ -299,7 +298,9 @@ fn build_schema_url(r#type: Type, version: &Version) -> Url {
     .unwrap()
 }
 
-fn schemas(validation_options: &ValidationOptions) -> HashMap<Url, Arc<JsonschemaValidator>> {
+fn schemas(
+    validation_options: &ValidationOptions,
+) -> HashMap<Uri<String>, Arc<JsonschemaValidator>> {
     use Type::*;
     use Version::*;
 
@@ -334,14 +335,14 @@ fn schemas(validation_options: &ValidationOptions) -> HashMap<Url, Arc<Jsonschem
     schemas
 }
 
-fn cache() -> HashMap<Url, Arc<Value>> {
+fn cache() -> HashMap<Uri<String>, Value> {
     let mut cache = HashMap::new();
 
     macro_rules! resolve {
         ($url:expr, $path:expr) => {
             let _ = cache.insert(
-                Url::parse($url).unwrap(),
-                Arc::new(serde_json::from_str(include_str!($path)).unwrap()),
+                Uri::parse($url.to_string()).unwrap(),
+                serde_json::from_str(include_str!($path)).unwrap(),
             );
         };
     }

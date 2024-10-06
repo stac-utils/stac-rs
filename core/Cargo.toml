@@ -44,7 +44,7 @@ object-store-all = [
 ]
 reqwest = ["dep:reqwest"]
 reqwest-rustls = ["reqwest/rustls-tls"]
-validate = ["dep:jsonschema", "dep:reqwest", "dep:tokio"]
+validate = ["dep:jsonschema", "dep:reqwest", "dep:tokio", "dep:fluent-uri"]
 validate-blocking = ["validate", "tokio/rt"]
 
 [dependencies]
@@ -54,6 +54,7 @@ arrow-json = { workspace = true, optional = true }
 arrow-schema = { workspace = true, optional = true }
 bytes = { workspace = true }
 chrono = { workspace = true, features = ["serde"] }
+fluent-uri = { workspace = true, optional = true }
 gdal = { workspace = true, optional = true }
 gdal-sys = { workspace = true, optional = true }
 geo = { workspace = true, optional = true }

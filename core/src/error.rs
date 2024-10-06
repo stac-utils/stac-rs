@@ -31,6 +31,11 @@ pub enum Error {
     #[error("{0} is not enabled")]
     FeatureNotEnabled(&'static str),
 
+    /// [fluent_uri::error::ParseError]
+    #[error(transparent)]
+    #[cfg(feature = "validate")]
+    FluentUriParse(#[from] fluent_uri::error::ParseError),
+
     /// [geoarrow::error::GeoArrowError]
     #[error(transparent)]
     #[cfg(feature = "geoarrow")]
