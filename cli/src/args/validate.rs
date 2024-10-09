@@ -15,14 +15,24 @@ pub(crate) struct Args {
 
 impl Run for Args {
     async fn run(self, input: Input, _: Option<Sender<Value>>) -> Result<Option<Value>> {
-        let value = input.get().await?;
+        let value = input.get_json().await?;
         let result = value.validate().await;
         if let Err(stac::Error::Validation(ref errors)) = result {
-            let message_base = match value {
-                stac::Value::Item(item) => format!("[item={}] ", item.id),
-                stac::Value::Catalog(catalog) => format!("[catalog={}] ", catalog.id),
-                stac::Value::Collection(collection) => format!("[collection={}] ", collection.id),
-                stac::Value::ItemCollection(_) => "[item-collection] ".to_string(),
+            let id = value
+                .get("id")
+                .and_then(|v| v.as_str())
+                .map(|v| format!("={}", v))
+                .unwrap_or_default();
+            let message_base = match value
+                .get("type")
+                .and_then(|v| v.as_str())
+                .unwrap_or_default()
+            {
+                "Feature" => format!("[item={}] ", id),
+                "Catalog" => format!("[catalog={}] ", id),
+                "Collection" => format!("[collection={}] ", id),
+                "FeatureCollection" => "[item-collection] ".to_string(),
+                _ => String::new(),
             };
             for error in errors {
                 eprintln!(
