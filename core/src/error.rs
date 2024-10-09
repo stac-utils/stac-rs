@@ -107,7 +107,7 @@ pub enum Error {
     NoHref,
 
     /// There is no type.
-    #[error("no type")]
+    #[error("no type field")]
     NoType,
 
     /// No version field on an object.

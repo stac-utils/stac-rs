@@ -57,6 +57,10 @@ pub enum Error {
     /// Unsupported format.
     #[error("unsupported (or unknown) format: {0}")]
     UnsupportedFormat(String),
+
+    /// [url::ParseError]
+    #[error(transparent)]
+    UrlParse(#[from] url::ParseError),
 }
 
 impl Error {
