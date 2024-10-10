@@ -34,16 +34,15 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
-      - name: Install doc requirements
-        run: pip install -r requirements-docs.txt
-      - uses: PyO3/maturin-action@v1
+      - uses: astral-sh/setup-uv@v3
         with:
-            command: build
-            args: --manifest-path python/Cargo.toml --out dist
+          enable-cache: true
+      - name: Install dev requirements
+        run: uv sync --extra docs
       - name: Install stacrs
-        run: pip install stacrs --find-links dist --no-index
+        run: uv sync --no-dev --inexact --directory python
       - name: Build docs
-        run: mkdocs build --strict
+        run: uv run mkdocs build --strict
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

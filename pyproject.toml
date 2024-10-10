@@ -1,0 +1,19 @@
+[project]
+name = "stac-rs"
+version = "0.0.0"
+description = "This package should never be released, its just for uv."
+requires-python = ">=3.12"
+dependencies = []
+
+[project.optional-dependencies]
+docs = ["mkdocs-material[imaging]>=9.5.40", "mkdocstrings[python]>=0.26.1"]
+stac-geoparquet = [
+    "deepdiff>=8.0.1",
+    "pyarrow>=17.0.0",
+    "stac-geoparquet>=0.6.0",
+]
+stac-api-validator = ["setuptools>=75.1.0", "stac-api-validator>=0.6.3"]
+
+
+[tool.uv.workspace]
+members = ["python"]
