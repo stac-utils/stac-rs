@@ -232,9 +232,9 @@ def write(
             locally.
 
     Examples:
-        >>> with open("simple-item.json") as f:
-        ...     item = json.load(f)
-        >>> stacrs.write("out.parquet", [item])
+        >>> with open("items.json") as f:
+        ...     items = json.load(f)
+        >>> stacrs.write("out.parquet", items)
     """
     if isinstance(value, list):
         d = ItemCollection(value).to_dict(transform_hrefs=transform_hrefs)

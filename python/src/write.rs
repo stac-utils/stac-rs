@@ -25,9 +25,9 @@ use tokio::runtime::Builder;
 ///         locally.
 ///
 /// Examples:
-///     >>> with open("simple-item.json") as f:
-///     ...     item = json.load(f)
-///     >>> stacrs.write("out.parquet", [item])
+///     >>> with open("items.json") as f:
+///     ...     items = json.load(f)
+///     >>> stacrs.write("items.parquet", items)
 #[pyfunction]
 #[pyo3(signature = (href, value, *, format=None, options=None))]
 pub fn write<'py>(
