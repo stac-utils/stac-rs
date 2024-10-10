@@ -19,22 +19,24 @@ concurrency:
 jobs:
   test-stacrs:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: python
     steps:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
-      - name: Install dev requirements
-        run: pip install -r python/requirements-dev.txt
-      - name: Build
-        run: maturin build --manifest-path python/Cargo.toml --out dist
-      - name: Install stacrs
-        run: pip install stacrs --find-links dist --no-index
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+      - name: Install
+        run: uv sync
       - name: Check
-        run: ruff check python && ruff format --check python && mypy python --config-file=python/pyproject.toml
+        run: uv run ruff check && uv run ruff format --check && uv run mypy .
       - name: Test
-        run: pytest python/tests
+        run: uv run pytest
   linux:
     runs-on: ${{ matrix.platform.runner }}
     strategy:

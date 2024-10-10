@@ -1,7 +1,3 @@
-[build-system]
-requires = ["maturin>=1.7,<2.0"]
-build-backend = "maturin"
-
 [project]
 name = "stacrs"
 description = "A no-dependency Python package for STAC, using Rust under the hood."
@@ -37,3 +33,16 @@ python-source = "python"
 [[tool.mypy.overrides]]
 module = "pyarrow.*"
 ignore_missing_imports = true
+
+[tool.uv]
+dev-dependencies = [
+    "maturin>=1.7.4",
+    "mypy>=1.11.2",
+    "pytest>=8.3.3",
+    "ruff>=0.6.9",
+    "stac-geoparquet>=0.6.0",
+]
+
+[build-system]
+requires = ["maturin>=1.7,<2.0"]
+build-backend = "maturin"
