@@ -16,6 +16,12 @@ impl From<stac_api::Error> for Error {
     }
 }
 
+impl From<stac_duckdb::Error> for Error {
+    fn from(value: stac_duckdb::Error) -> Self {
+        Error(value.to_string())
+    }
+}
+
 impl From<geojson::Error> for Error {
     fn from(value: geojson::Error) -> Self {
         Error(value.to_string())
