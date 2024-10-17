@@ -13,7 +13,7 @@ In your `Cargo.toml`:
 
 ```toml
 [dependencies]
-stac-duckdb = "0.0.1"
+stac-duckdb = "0.0.2"
 ```
 
 See the [documentation](https://docs.rs/stac-duckdb) for more.
