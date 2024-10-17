@@ -6,13 +6,25 @@ requires-python = ">=3.12"
 dependencies = []
 
 [project.optional-dependencies]
-docs = ["mkdocs-material[imaging]>=9.5.40", "mkdocstrings[python]>=0.26.1"]
+docs = [
+    "mkdocs-material[imaging]>=9.5.40",
+    "mkdocstrings[python]>=0.26.1",
+    "mkdocs-jupyter>=0.25.1",
+    "stacrs",
+    "geopandas>=1.0.1",
+    "matplotlib>=3.9.2",
+    "contextily>=1.6.2",
+]
 stac-geoparquet = [
     "deepdiff>=8.0.1",
     "pyarrow>=17.0.0",
     "stac-geoparquet>=0.6.0",
 ]
 stac-api-validator = ["setuptools>=75.1.0", "stac-api-validator>=0.6.3"]
+
+
+[tool.uv.sources]
+stacrs = { workspace = true }
 
 
 [tool.uv.workspace]
