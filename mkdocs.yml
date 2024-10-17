@@ -19,6 +19,7 @@ nav:
   - Home: index.md
   - Python:
       - python/index.md
+      - python/example.ipynb
       - API:
           - python/api/index.md
           - migrate: python/api/migrate.md
@@ -35,6 +36,7 @@ plugins:
       cards_layout_options:
         color: rgb(26, 78, 99)
         background_color: rgb(228, 246, 251)
+  - mkdocs-jupyter
   - mkdocstrings:
       enable_inventory: true
       handlers:
