@@ -7,6 +7,7 @@ mod search;
 mod validate;
 mod write;
 
+use duckdb as _;
 use error::Error;
 use pyo3::prelude::*;
 

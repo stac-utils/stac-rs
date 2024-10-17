@@ -13,6 +13,9 @@ name = "stacrs"
 crate-type = ["cdylib"]
 
 [dependencies]
+duckdb = { workspace = true, features = [
+    "bundled",
+] } # we don't use it directly, but we need to ensure it's bundled
 geojson = { workspace = true }
 pyo3 = { workspace = true, features = ["extension-module"] }
 pythonize = { workspace = true }
@@ -25,4 +28,5 @@ stac = { workspace = true, features = [
     "validate-blocking",
 ] }
 stac-api = { workspace = true, features = ["client"] }
+stac-duckdb = { workspace = true }
 tokio = { workspace = true, features = ["rt"] }

@@ -44,3 +44,8 @@ def test_search_to_geoparquet(tmp_path: Path) -> None:
     table = pyarrow.parquet.read_table(tmp_path / "out.parquet")
     items = list(stac_geoparquet.arrow.stac_table_to_items(table))
     assert len(items) == 1
+
+
+def test_search_geoparquet(data: Path) -> None:
+    items = stacrs.search(str(data / "extended-item.parquet"))
+    assert len(items) == 1
