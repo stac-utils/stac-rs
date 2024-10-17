@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.1.3] - 2024-10-17
+
+### Added
+
+- Experimental DuckDB 🦆 search on **stac-geoparquet** files ([#458](https://github.com/stac-utils/stac-rs/pull/458))
+
 ## [0.1.2] - 2024-09-22
 
 ### Changed
@@ -45,7 +51,8 @@ Non-functional release to fix releasing from Github actions.
 
 Initial release.
 
-[Unreleased]: https://github.com/stac-utils/stac-rs/compare/python-v0.1.2...main
+[Unreleased]: https://github.com/stac-utils/stac-rs/compare/python-v0.1.3...main
+[0.1.3]: https://github.com/stac-utils/stac-rs/compare/python-v0.1.2...python-v0.1.3
 [0.1.2]: https://github.com/stac-utils/stac-rs/compare/python-v0.1.1...python-v0.1.2
 [0.1.1]: https://github.com/stac-utils/stac-rs/compare/python-v0.1.0...python-v0.1.1
 [0.1.0]: https://github.com/stac-utils/stac-rs/compare/python-v0.0.3...python-v0.1.0
