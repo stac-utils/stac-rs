@@ -13,6 +13,7 @@ categories = ["science", "data-structures"]
 [dependencies]
 arrow = { workspace = true }
 duckdb = { workspace = true }
+libduckdb-sys = { workspace = true }
 geoarrow = { workspace = true }
 parquet = { workspace = true }
 stac = { workspace = true, features = ["geoarrow"] }
