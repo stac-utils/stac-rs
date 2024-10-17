@@ -5,6 +5,7 @@
 use arrow::array::RecordBatch;
 use duckdb::{types::Value, Connection};
 use geoarrow::table::Table;
+use libduckdb_sys as _;
 use stac_api::{Direction, Search};
 use std::{
     collections::{HashMap, HashSet},
