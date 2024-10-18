@@ -3,7 +3,7 @@ name: Python
 on:
   push:
     tags:
-      - 'python-*'
+      - "python-*"
   pull_request:
     paths:
       - python/**
@@ -39,6 +39,7 @@ jobs:
         run: uv run pytest
   linux:
     runs-on: ${{ matrix.platform.runner }}
+    if: startsWith(github.ref, 'refs/tags/python-')
     strategy:
       matrix:
         platform:
@@ -66,7 +67,7 @@ jobs:
         with:
           target: ${{ matrix.platform.target }}
           args: --release --out dist --find-interpreter --manifest-path python/Cargo.toml
-          sccache: 'true'
+          sccache: "true"
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
@@ -106,6 +107,7 @@ jobs:
 
   windows:
     runs-on: ${{ matrix.platform.runner }}
+    if: startsWith(github.ref, 'refs/tags/python-')
     strategy:
       matrix:
         platform:
@@ -126,7 +128,7 @@ jobs:
         with:
           target: ${{ matrix.platform.target }}
           args: --release --out dist --find-interpreter --manifest-path python/Cargo.toml
-          sccache: 'true'
+          sccache: "true"
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
@@ -135,6 +137,7 @@ jobs:
 
   macos:
     runs-on: ${{ matrix.platform.runner }}
+    if: startsWith(github.ref, 'refs/tags/python-')
     strategy:
       matrix:
         platform:
@@ -154,7 +157,7 @@ jobs:
         with:
           target: ${{ matrix.platform.target }}
           args: --release --out dist --find-interpreter --manifest-path python/Cargo.toml
-          sccache: 'true'
+          sccache: "true"
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
