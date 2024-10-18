@@ -2,11 +2,17 @@ use crate::Args;
 use clap::Parser;
 use pyo3::{
     prelude::{PyModule, PyModuleMethods},
-    pyfunction, pymodule, wrap_pyfunction, Bound, PyResult,
+    pyfunction, pymodule,
+    types::PyAnyMethods,
+    wrap_pyfunction, Bound, PyResult, Python,
 };
 
 #[pyfunction]
-fn main() -> PyResult<i64> {
+fn main(py: Python<'_>) -> PyResult<i64> {
+    let signal = py.import_bound("signal")?;
+    let _ = signal
+        .getattr("signal")?
+        .call1((signal.getattr("SIGINT")?, signal.getattr("SIG_DFL")?))?;
     let args = Args::parse_from(std::env::args_os().skip(1));
     tracing_subscriber::fmt()
         .with_max_level(args.log_level())
