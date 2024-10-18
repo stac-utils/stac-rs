@@ -1,16 +1,19 @@
-from . import stacrs
-from .stacrs import (
+import pystac
+from .pystac import (
     migrate,
-    migrate_href,
     read,
     search,
-    search_to,
     validate,
-    validate_href,
     write,
 )
 
-__doc__ = stacrs.__doc__
+from .stacrs import (
+    migrate_href,
+    search_to,
+    validate_href,
+)
+
+__doc__ = pystac.__doc__
 __all__ = [
     "migrate",
     "migrate_href",

@@ -149,7 +149,7 @@ def search(
         ...     max_items=1,
         ... ))
     """
-    items = stacrs.search(
+    items_dict = stacrs.search(
         href,
         intersects=intersects,
         ids=ids,
@@ -164,7 +164,7 @@ def search(
         filter=filter,
         query=query,
     )
-    return (Item.from_dict(d) for d in items)
+    return ItemCollection(Item.from_dict(d) for d in items_dict)
 
 
 def validate(
