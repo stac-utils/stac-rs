@@ -10,4 +10,3 @@ API documentation for the **stacrs** Python package.
 - [search](./search.md)
 - [validate](./validate.md)
 - [write](./write.md)
-- [pystac](./pystac.md)

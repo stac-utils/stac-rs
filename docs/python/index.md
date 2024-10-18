@@ -46,26 +46,6 @@ stacrs.search_to(
 )
 ```
 
-### pystac
-
-If [pystac](https://pystac.readthedocs.io) is present, `stacrs.pystac` provides functions that take **pystac** objects as their inputs and outputs:
-
-```python
-import pystac
-import stacrs.pystac
-
-item = pystac.read_file("item.json")
-stacrs.pystac.validate(item)
-
-items = list(stacrs.pystac.search(...))
-```
-
-You can install **pystac** with **stacrs** via an optional dependency:
-
-```shell
-pip install 'stacrs[pystac]'
-```
-
 ## Comparisons
 
 This package (intentionally) has limited functionality, as it is _not_ intended to be a replacement for existing Python STAC packages.
