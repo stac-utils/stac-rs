@@ -7,20 +7,6 @@ use pyo3::{
 use stac::{Format, Value};
 use tokio::runtime::Builder;
 
-/// Reads STAC from a href.
-///
-/// Args:
-///     href (str): The href to write to
-///     format (str | None): The output format to write. If not provided, will be
-///         inferred from the href's extension.
-///     options (list[tuple[str, str]] | None): Options for configuring an
-///         object store, e.g. your AWS credentials.
-///
-/// Returns:
-///     dict[str, Any]: The STAC value
-///
-/// Examples:
-///     >>> item = stacrs.read("item.json")
 #[pyfunction]
 #[pyo3(signature = (href, *, format=None, options=None))]
 pub fn read<'py>(
