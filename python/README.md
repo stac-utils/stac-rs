@@ -12,7 +12,7 @@ A no-dependency Python package for [STAC](https://stacspec.org/), using Rust und
 Install via **pip**:
 
 ```shell
-pip install stacrs
+python -m pip install stacrs
 ```
 
 Then:

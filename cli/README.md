@@ -20,7 +20,7 @@ Or:
 # NOTE: The version from PyPI does not include GDAL or DuckDB support. If you
 # need to use these features, install via `cargo install` (GDAL is enabled by
 # default) or `cargo install -F duckdb` (DuckDB is not).
-pip install stacrs-cli
+python -m pip install stacrs-cli
 ```
 
 Then:
@@ -50,7 +50,7 @@ This crate has five features, three of them on by default:
 - `gdal`: read geospatial data from rasters (enabled by default)
 - `geoparquet`: read and write [stac-geoparquet](https://github.com/stac-utils/stac-geoparquet) (enabled by default)
 - `pgstac`: enable a [pgstac](https://github.com/stac-utils/pgstac) backend for `stacrs serve` (enabled by default)
-- `python`: create an entrypoint that can be called from Python (used to enable `pip install stacrs-cli`)
+- `python`: create an entrypoint that can be called from Python (used to enable `python -m pip install stacrs-cli`)
 
 If you don't want to use GDAL or any of the other default features:
 

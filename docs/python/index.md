@@ -11,7 +11,7 @@ A Python package for working with [STAC](https://stacspec.org) designed to compl
 Install via **pip**:
 
 ```shell
-pip install stacrs
+python -m pip install stacrs
 ```
 
 Then:
