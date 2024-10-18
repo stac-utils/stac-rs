@@ -8,26 +8,6 @@ use serde_json::Value;
 use stac::{Format, Item, ItemCollection};
 use tokio::runtime::Builder;
 
-/// Writes STAC to a href.
-///
-/// Args:
-///     href (str): The href to write to
-///     value (dict[str, Any] | list[dict[str, Any]]): The value to write. This
-///         can be a STAC dictionary or a list of items.
-///     format (str | None): The output format to write. If not provided, will be
-///         inferred from the href's extension.
-///     options (list[tuple[str, str]] | None): Options for configuring an
-///         object store, e.g. your AWS credentials.
-///
-/// Returns:
-///     dict[str, str] | None: The result of putting data into an object store,
-///         e.g. the e_tag and the version. None is returned if the file was written
-///         locally.
-///
-/// Examples:
-///     >>> with open("items.json") as f:
-///     ...     items = json.load(f)
-///     >>> stacrs.write("items.parquet", items)
 #[pyfunction]
 #[pyo3(signature = (href, value, *, format=None, options=None))]
 pub fn write<'py>(
