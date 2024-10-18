@@ -27,7 +27,6 @@ nav:
           - search: python/api/search.md
           - validate: python/api/validate.md
           - write: python/api/write.md
-          - pystac: python/api/pystac.md
   - Command-line interface:
       - cli/index.md
 plugins:
