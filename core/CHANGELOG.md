@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.10.2] - 2024-10-18
+
 ### Added
 
 - Validation, from the (now defunct) **stac-validate** ([#434](https://github.com/stac-utils/stac-rs/pull/434), [#438](https://github.com/stac-utils/stac-rs/pull/438))
@@ -389,7 +391,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 Initial release.
 
-[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-v0.10.1...main
+[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-v0.10.2...main
+[0.10.2]: https://github.com/stac-utils/stac-rs/compare/stac-v0.10.1...stac-v0.10.2
 [0.10.1]: https://github.com/stac-utils/stac-rs/compare/stac-v0.10.0...stac-v0.10.1
 [0.10.0]: https://github.com/stac-utils/stac-rs/compare/stac-v0.9.0...stac-v0.10.0
 [0.9.0]: https://github.com/stac-utils/stac-rs/compare/stac-v0.8.0...stac-v0.9.0
