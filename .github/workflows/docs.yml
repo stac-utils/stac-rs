@@ -2,63 +2,33 @@ name: Docs
 
 on:
   push:
-    branches:
-      - main
-    paths:
-      - docs/**
-      - mkdocs.yml
-      - python/**
-  pull_request:
-    paths:
-      - docs/**
-      - mkdocs.yml
-      - python/**
+    tags:
+      - "python-v*"
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
-  id-token: write
-
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
 
 jobs:
-  build:
+  docs:
     runs-on: ubuntu-latest
+    env:
+      GIT_COMMITTER_NAME: ci-bot
+      GIT_COMMITTER_EMAIL: ci-bot@example.com
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - uses: Swatinem/rust-cache@v2
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
         with:
-          python-version: 3.x
+          fetch-depth: 0 # for git describe
+      - uses: Swatinem/rust-cache@v2
       - uses: astral-sh/setup-uv@v3
         with:
           enable-cache: true
-      - name: Install dev requirements
-        run: uv sync --extra docs
-      - name: Install stacrs
-        run: uv sync --no-dev --inexact --directory python
-      - name: Build docs
-        run: uv run mkdocs build --strict
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: 'site'
-  deploy:
-    environment:
-      name: "github-pages"
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    if: success() && startsWith(github.ref, 'refs/heads/main')
-    needs:
-      - build
-    steps:
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-      - uses: actions/download-artifact@v4
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Install Python
+        run: uv python install # we use uv instead of setup-python so we get python-version resolution between our two packages
+      - name: Sync
+        run: uv sync --extra docs && uv sync --no-dev --inexact --project stacrs
+      - name: Deploy
+        run: |
+          VERSION=$(git describe --tags --match="v*" --abbrev=0)
+          uv run mike deploy $VERSION latest --update-aliases --push

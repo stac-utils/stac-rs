@@ -29,12 +29,9 @@ nav:
           - write: python/api/write.md
   - Command-line interface:
       - cli/index.md
+
 plugins:
-  - search
-  - social:
-      cards_layout_options:
-        color: rgb(26, 78, 99)
-        background_color: rgb(228, 246, 251)
+  - mike
   - mkdocs-jupyter
   - mkdocstrings:
       enable_inventory: true
@@ -46,6 +43,12 @@ plugins:
             show_signature: true
             show_signature_annotations: true
             separate_signature: true
+  - search
+  - social:
+      cards_layout_options:
+        color: rgb(26, 78, 99)
+        background_color: rgb(228, 246, 251)
+
 markdown_extensions:
   - admonition
   - pymdownx.highlight:
@@ -56,5 +59,6 @@ markdown_extensions:
   - pymdownx.snippets
   - pymdownx.superfences
   - pymdownx.details
+
 extra_css:
   - stylesheets/extra.css
