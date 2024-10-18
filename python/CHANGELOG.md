@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- Moved docstrings to stub file ([#468](https://github.com/stac-utils/stac-rs/pull/468))
+
+### Removed
+
+- `stacrs.pystac` ([#468](https://github.com/stac-utils/stac-rs/pull/468))
+
 ## [0.1.3] - 2024-10-17
 
 ### Added
