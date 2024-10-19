@@ -2,6 +2,11 @@
   {
     "version": "stacrs-v0.2.0-beta.0",
     "title": "stacrs-v0.2.0-beta.0",
+    "aliases": []
+  },
+  {
+    "version": "python-v0.2.0",
+    "title": "python-v0.2.0",
     "aliases": [
       "latest"
     ]
