@@ -39,7 +39,7 @@ Install with **pip**:
 python -m pip install stacrs
 ```
 
-See [the documentation](https://stac-utils.github.io/stac-rs/python/) for more information.
+See [the Python documentation](https://stac-utils.github.io/stac-rs/latest/python/) for more information.
 
 ## Development
 
