@@ -47,7 +47,7 @@ stacrs.search_to(
 )
 ```
 
-See [the API documentation](https://stac-utils.github.io/stac-rs/python/api/) for details.
+See [the documentation](https://stac-utils.github.io/stac-rs/latest/python/) for details.
 
 ## Comparisons
 
