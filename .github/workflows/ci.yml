@@ -16,7 +16,7 @@ env:
 
 jobs:
   test-core:
-    name: Test
+    name: Test stac
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -105,7 +105,7 @@ jobs:
       - name: Validate
         run: uv run scripts/validate-stac-server --pgstac
   test-python:
-    name: Test Python
+    name: Test stacrs (python)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -144,7 +144,7 @@ jobs:
       - name: Validate
         run: uv run scripts/validate-stac-server
   lint:
-    name: Format and clippy
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -171,7 +171,7 @@ jobs:
       - name: Check
         run: cargo check-all-features --n-chunks 4 --chunk ${{ matrix.chunk }}
   check-nightly:
-    name: Check on nightly
+    name: Check (nightly)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -180,7 +180,7 @@ jobs:
       - name: Check
         run: cargo check --workspace --all-features
   doc:
-    name: Check docs
+    name: Docs
     runs-on: ubuntu-latest
     env:
       RUSTDOCFLAGS: -Dwarnings
