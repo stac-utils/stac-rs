@@ -40,14 +40,6 @@ jobs:
   test-cli:
     name: Test stac-cli
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: Swatinem/rust-cache@v2
-      - name: Test
-        run: cargo test -p stac-cli -F duckdb/bundled --all-features
-  test-python-cli:
-    name: Test Python CLI
-    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: cli
@@ -60,6 +52,8 @@ jobs:
       - uses: astral-sh/setup-uv@v3
         with:
           enable-cache: true
+      - name: Test
+        run: cargo test -F duckdb/bundled --all-features
       - name: Install
         run: uv sync
       - name: Smoke test
@@ -98,8 +92,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
       - name: Test
         run: cargo test -p pgstac
+      - name: Install Python dependencies
+        run: uv sync --extra stac-api-validator
+      - name: Validate
+        run: uv run scripts/validate-stac-server --pgstac
   test-python:
     name: Test Python
     runs-on: ubuntu-latest
@@ -127,8 +131,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
       - name: Test
         run: cargo test -p stac-server --all-features
+      - name: Install Python dependencies
+        run: uv sync --extra stac-api-validator
+      - name: Validate
+        run: uv run scripts/validate-stac-server
   lint:
     name: Format and clippy
     runs-on: ubuntu-latest
@@ -175,50 +189,6 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Doc
         run: cargo doc --workspace --all-features
-  validate-stac-server:
-    name: Validate stac-server
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: Swatinem/rust-cache@v2
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-      - uses: astral-sh/setup-uv@v3
-        with:
-          enable-cache: true
-      - name: Install Python dependencies
-        run: uv sync --extra stac-api-validator
-      - name: Validate
-        run: uv run scripts/validate-stac-server
-  validate-stac-server-pgstac:
-    name: Validate stac-server w/ pgstac
-    runs-on: ubuntu-latest
-    services:
-      pgstac:
-        image: ghcr.io/stac-utils/pgstac:v0.8.6
-        env:
-          POSTGRES_USER: username
-          POSTGRES_PASSWORD: password
-          POSTGRES_DB: postgis
-          PGUSER: username
-          PGPASSWORD: password
-          PGDATABASE: postgis
-        ports:
-          - 5432:5432
-    steps:
-      - uses: actions/checkout@v4
-      - uses: Swatinem/rust-cache@v2
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-      - uses: astral-sh/setup-uv@v3
-        with:
-          enable-cache: true
-      - name: Install Python dependencies
-        run: uv sync --extra stac-api-validator
-      - name: Validate
-        run: uv run scripts/validate-stac-server --pgstac
   validate-stac-geoparquet:
     name: Validate stac-geoparquet
     runs-on: ubuntu-latest
