@@ -89,6 +89,7 @@ def search(
     sortby: Optional[str | list[str]] = None,
     filter: Optional[str | dict[str, Any]] = None,
     query: Optional[dict[str, Any]] = None,
+    use_duckdb: Optional[bool] = None,
 ) -> list[dict[str, Any]]:
     """
     Searches a STAC API server.
@@ -157,6 +158,7 @@ def search_to(
     query: Optional[dict[str, Any]] = None,
     format: Optional[str] = None,
     options: Optional[list[Tuple[str, str]]] = None,
+    use_duckdb: Optional[bool] = None,
 ) -> int:
     """
     Searches a STAC API server and saves the result to an output file.
@@ -214,22 +216,6 @@ def search_to(
 
 def validate_href(href: str) -> None:
     """
-    Validates a STAC dictionary with json-schema.
-
-    Args:
-        value (dict[str, Any]): The STAC value to validate
-
-    Raises:
-        Exception: On a validation error
-
-    Examples:
-        >>> with open("examples/simple-item.json") as f:
-        >>>     data = json.load(f)
-        >>> stacrs.validate(data)
-    """
-
-def validate(value: dict[str, Any]) -> None:
-    """
     Validates a single href with json-schema.
 
     Args:
@@ -244,6 +230,22 @@ def validate(value: dict[str, Any]) -> None:
         Traceback (most recent call last):
         File "<stdin>", line 1, in <module>
         Exception: Validation errors: "collection" is a required property
+    """
+
+def validate(value: dict[str, Any]) -> None:
+    """
+    Validates a STAC dictionary with json-schema.
+
+    Args:
+        value (dict[str, Any]): The STAC value to validate
+
+    Raises:
+        Exception: On a validation error
+
+    Examples:
+        >>> with open("examples/simple-item.json") as f:
+        >>>     data = json.load(f)
+        >>> stacrs.validate(data)
     """
 
 def write(
