@@ -5,6 +5,7 @@ mod migrate;
 mod read;
 mod search;
 mod validate;
+mod version;
 mod write;
 
 use duckdb as _;
@@ -23,6 +24,7 @@ fn stacrs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(search::search_to, m)?)?;
     m.add_function(wrap_pyfunction!(validate::validate, m)?)?;
     m.add_function(wrap_pyfunction!(validate::validate_href, m)?)?;
+    m.add_function(wrap_pyfunction!(version::version, m)?)?;
     m.add_function(wrap_pyfunction!(write::write, m)?)?;
     Ok(())
 }

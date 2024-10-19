@@ -109,6 +109,17 @@ pub type Result<T> = std::result::Result<T, Error>;
 /// servers to explicitly include or exclude certain fields.
 pub type Item = serde_json::Map<String, serde_json::Value>;
 
+/// Return this crate's version.
+///
+/// # Examples
+///
+/// ```
+/// println!("{}", stac_api::version());
+/// ```
+pub fn version() -> &'static str {
+    env!("CARGO_PKG_VERSION")
+}
+
 #[cfg(test)]
 use {geojson as _, tokio_test as _};
 #[cfg(all(not(feature = "client"), test))]
