@@ -16,13 +16,60 @@ env:
 
 jobs:
   test:
+    name: Test
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        crate:
+          - stac
+          - stac-api
+          - stac-cli
+          - stac-duckdb
+          - stac-extensions
+          - stac-server
     steps:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
       - name: Test
-        run: cargo test --lib
+        run: cargo test -p ${{ matrix.crate }} --all-features
+  test-windows:
+    name: Test on windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
+      - name: Test
+        run: cargo test --all-features
+  test-macos:
+    name: Test on macos
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
+      - name: Test
+        run: cargo test --all-features
+  test-pgstac:
+    name: Test pgstac
+    runs-on: ubuntu-latest
+    services:
+      pgstac:
+        image: ghcr.io/stac-utils/pgstac:v0.8.6
+        env:
+          POSTGRES_USER: username
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: postgis
+          PGUSER: username
+          PGPASSWORD: password
+          PGDATABASE: postgis
+        ports:
+          - 5432:5432
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
+      - name: Test
+        run: cargo test -p pgstac
   lint:
+    name: Format and clippy
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -31,7 +78,8 @@ jobs:
         run: cargo fmt
       - name: Clippy
         run: cargo clippy --all --all-features
-  check:
+  check-feature-combinations:
+    name: Check feature combinations
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -39,14 +87,16 @@ jobs:
           - 1
           - 2
           - 3
+          - 4
     steps:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
       - name: Install check-all-features
         run: cargo install cargo-all-features
       - name: Check
-        run: cargo check-all-features --n-chunks 3 --chunk ${{ matrix.chunk }}
+        run: cargo check-all-features --n-chunks 4 --chunk ${{ matrix.chunk }}
   check-nightly:
+    name: Check on nightly
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -55,6 +105,7 @@ jobs:
       - name: Check
         run: cargo check --all --all-features
   doc:
+    name: Check docs
     runs-on: ubuntu-latest
     env:
       RUSTDOCFLAGS: -Dwarnings
@@ -64,6 +115,7 @@ jobs:
       - name: Doc
         run: cargo doc --all-features
   validate-stac-server:
+    name: Validate stac-server
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -79,6 +131,7 @@ jobs:
       - name: Validate
         run: uv run scripts/validate-stac-server
   validate-stac-server-pgstac:
+    name: Validate stac-server w/ pgstac
     runs-on: ubuntu-latest
     services:
       pgstac:
@@ -106,6 +159,7 @@ jobs:
       - name: Validate
         run: uv run scripts/validate-stac-server --pgstac
   validate-stac-geoparquet:
+    name: Validate stac-geoparquet
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
