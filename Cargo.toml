@@ -10,7 +10,7 @@ members = [
     "python",
     "server",
 ]
-default-members = ["api", "core", "extensions"]
+default-members = ["api", "cli", "core", "extensions"]
 
 [workspace.package]
 authors = ["Pete Gadomski <pete.gadomski@gmail.com>"]
