@@ -379,6 +379,17 @@ where
     }
 }
 
+/// Return this crate's version.
+///
+/// # Examples
+///
+/// ```
+/// println!("{}", stac::version());
+/// ```
+pub fn version() -> &'static str {
+    env!("CARGO_PKG_VERSION")
+}
+
 #[cfg(test)]
 mod tests {
     use rstest as _;

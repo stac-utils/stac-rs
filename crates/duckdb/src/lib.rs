@@ -346,6 +346,17 @@ fn repeat_vars(count: usize) -> String {
     s
 }
 
+/// Return this crate's version.
+///
+/// # Examples
+///
+/// ```
+/// println!("{}", stac_duckdb::version());
+/// ```
+pub fn version() -> &'static str {
+    env!("CARGO_PKG_VERSION")
+}
+
 #[cfg(test)]
 mod tests {
     use super::Client;
