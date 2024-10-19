@@ -1,7 +1,7 @@
 [package]
 name = "python"
 description = "Python bindings for stac-rs"
-version = "0.1.3"
+version = "0.2.0"
 authors.workspace = true
 license.workspace = true
 homepage.workspace = true
