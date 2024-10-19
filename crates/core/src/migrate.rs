@@ -12,7 +12,7 @@ pub trait Migrate: Sized + Serialize + DeserializeOwned + std::fmt::Debug {
     /// ```
     /// use stac::{Item, Migrate, Version};
     ///
-    /// let mut item: Item = stac::read("../spec-examples/v1.0.0/simple-item.json").unwrap();
+    /// let mut item: Item = stac::read("../../spec-examples/v1.0.0/simple-item.json").unwrap();
     /// let item = item.migrate(&Version::v1_1_0).unwrap();
     /// assert_eq!(item.version, Version::v1_1_0);
     /// ```
@@ -266,7 +266,7 @@ mod tests {
 
     #[test]
     fn migrate_v1_1_0_to_v1_1_0() {
-        let item: Item = crate::read("../spec-examples/v1.1.0/simple-item.json").unwrap();
+        let item: Item = crate::read("../../spec-examples/v1.1.0/simple-item.json").unwrap();
         let _ = item.migrate(&Version::v1_1_0).unwrap();
     }
 }

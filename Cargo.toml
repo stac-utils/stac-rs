@@ -1,16 +1,21 @@
 [workspace]
 resolver = "2"
 members = [
-    "api",
-    "cli",
-    "core",
-    "duckdb",
-    "extensions",
-    "pgstac",
+    "crates/api",
+    "crates/cli",
+    "crates/core",
+    "crates/duckdb",
+    "crates/extensions",
+    "crates/pgstac",
     "python",
-    "server",
+    "crates/server",
 ]
-default-members = ["api", "cli", "core", "extensions"]
+default-members = [
+    "crates/api",
+    "crates/cli",
+    "crates/core",
+    "crates/extensions",
+]
 
 [workspace.package]
 authors = ["Pete Gadomski <pete.gadomski@gmail.com>"]
@@ -51,7 +56,7 @@ mime = "0.3.17"
 mockito = "1.5"
 object_store = "0.11.0"
 parquet = { version = "52.2", default-features = false }
-pgstac = { version = "0.2.1", path = "pgstac" }
+pgstac = { version = "0.2.1", path = "crates/pgstac" }
 pyo3 = "0.22.3"
 pythonize = "0.22.0"
 quote = "1.0"
@@ -61,10 +66,10 @@ rustls = { version = "0.23.14", default-features = false }
 serde = "1.0"
 serde_json = "1.0"
 serde_urlencoded = "0.7.1"
-stac = { version = "0.10.2", path = "core" }
-stac-api = { version = "0.6.0", path = "api" }
-stac-duckdb = { version = "0.0.2", path = "duckdb" }
-stac-server = { version = "0.3.1", path = "server" }
+stac = { version = "0.10.2", path = "crates/core" }
+stac-api = { version = "0.6.0", path = "crates/api" }
+stac-duckdb = { version = "0.0.2", path = "crates/duckdb" }
+stac-server = { version = "0.3.1", path = "crates/server" }
 syn = "2.0"
 tempfile = "3.13"
 thiserror = "1.0"

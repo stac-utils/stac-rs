@@ -42,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: cli
+        working-directory: crates/cli
     steps:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
