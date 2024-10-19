@@ -1,6 +1,6 @@
 site_name: stac-rs
 site_description: Command Line Interface (CLI), Rust crates, and other libraries for the SpatioTemporal Asset Catalog (STAC) specification.
-site_url: https://stac-utils.github.io/stac-rs
+site_url: https://stac-utils.github.io/stac-rs/
 repo_url: https://github.com/stac-utils/stac-rs
 theme:
   name: material
@@ -60,6 +60,10 @@ markdown_extensions:
   - pymdownx.snippets
   - pymdownx.superfences
   - pymdownx.details
+
+extra:
+  version:
+    provider: mike
 
 extra_css:
   - stylesheets/extra.css
