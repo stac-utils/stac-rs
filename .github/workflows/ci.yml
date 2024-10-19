@@ -15,7 +15,7 @@ env:
   CARGO_TERM_VERBOSE: true
 
 jobs:
-  test:
+  test-core:
     name: Test
     runs-on: ${{ matrix.os }}
     strategy:
@@ -24,23 +24,19 @@ jobs:
           - ubuntu-latest
           - macos-latest
           - windows-latest
-        crate:
-          - stac
-          - stac-api
-          - stac-extensions
     steps:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
       - name: Test
-        run: cargo test -p ${{ matrix.crate }} --all-features
-  test-server:
-    name: Test stac-server
+        run: cargo test -p stac --all-features
+  test-api:
+    name: Test stac-api
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
       - name: Test
-        run: cargo test -p stac-server --all-features
+        run: cargo test -p stac-api --all-features
   test-cli:
     name: Test stac-cli
     runs-on: ubuntu-latest
@@ -49,6 +45,25 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Test
         run: cargo test -p stac-cli -F duckdb/bundled --all-features
+  test-python-cli:
+    name: Test Python CLI
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: cli
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+      - name: Install
+        run: uv sync
+      - name: Smoke test
+        run: uv run stacrs --version
   test-duckdb:
     name: Test stac-duckdb
     runs-on: ubuntu-latest
@@ -57,6 +72,14 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Test
         run: cargo test -p stac-duckdb -F duckdb/bundled
+  test-extensions:
+    name: Test stac-extensions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
+      - name: Test
+        run: cargo test -p stac-extensions
   test-pgstac:
     name: Test pgstac
     runs-on: ubuntu-latest
@@ -98,25 +121,14 @@ jobs:
         run: uv run ruff check && uv run ruff format --check && uv run mypy .
       - name: Test
         run: uv run pytest
-  test-python-cli:
-    name: Test Python CLI
+  test-server:
+    name: Test stac-server
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: cli
     steps:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
-      - uses: actions/setup-python@v5
-        with:
-          python-version: 3.x
-      - uses: astral-sh/setup-uv@v3
-        with:
-          enable-cache: true
-      - name: Install
-        run: uv sync
-      - name: Smoke test
-        run: uv run stacrs --version
+      - name: Test
+        run: cargo test -p stac-server --all-features
   lint:
     name: Format and clippy
     runs-on: ubuntu-latest
