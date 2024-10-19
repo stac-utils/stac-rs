@@ -508,6 +508,15 @@ wheels = [
 ]
 
 [[package]]
+name = "humanize"
+version = "4.11.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/6a/40/64a912b9330786df25e58127194d4a5a7441f818b400b155e748a270f924/humanize-4.11.0.tar.gz", hash = "sha256:e66f36020a2d5a974c504bd2555cf770621dbdbb6d82f94a6857c0b1ea2608be", size = 80374 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/92/75/4bc3e242ad13f2e6c12e0b0401ab2c5e5c6f0d7da37ec69bc808e24e0ccb/humanize-4.11.0-py3-none-any.whl", hash = "sha256:b53caaec8532bcb2fff70c8826f904c35943f8cecaca29d272d9df38092736c0", size = 128055 },
+]
+
+[[package]]
 name = "idna"
 version = "3.10"
 source = { registry = "https://pypi.org/simple" }
@@ -1992,6 +2001,7 @@ source = { virtual = "." }
 docs = [
     { name = "contextily" },
     { name = "geopandas" },
+    { name = "humanize" },
     { name = "matplotlib" },
     { name = "mike" },
     { name = "mkdocs-jupyter" },
@@ -2014,6 +2024,7 @@ requires-dist = [
     { name = "contextily", marker = "extra == 'docs'", specifier = ">=1.6.2" },
     { name = "deepdiff", marker = "extra == 'stac-geoparquet'", specifier = ">=8.0.1" },
     { name = "geopandas", marker = "extra == 'docs'", specifier = ">=1.0.1" },
+    { name = "humanize", marker = "extra == 'docs'", specifier = ">=4.11.0" },
     { name = "matplotlib", marker = "extra == 'docs'", specifier = ">=3.9.2" },
     { name = "mike", marker = "extra == 'docs'", specifier = ">=2.1.3" },
     { name = "mkdocs-jupyter", marker = "extra == 'docs'", specifier = ">=0.25.1" },
