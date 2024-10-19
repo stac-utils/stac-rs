@@ -25,7 +25,7 @@ stac-api-validator = ["setuptools>=75.1.0", "stac-api-validator>=0.6.3"]
 
 
 [tool.uv.sources]
-stacrs = { workspace = true }
+stacrs.workspace = true
 
 
 [tool.uv.workspace]

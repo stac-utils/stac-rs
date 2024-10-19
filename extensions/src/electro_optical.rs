@@ -29,7 +29,7 @@ pub struct ElectroOptical {
 
 /// [Spectral
 /// bands](https://www.sciencedirect.com/topics/earth-and-planetary-sciences/spectral-band)
-/// in an [Asset](crate::Asset).
+/// in an [Asset](stac::Asset).
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Band {
     /// The name of the band (e.g., "B01", "B8", "band2", "red").
@@ -72,11 +72,11 @@ impl Extension for ElectroOptical {
 #[cfg(test)]
 mod tests {
     use super::ElectroOptical;
-    use crate::{Fields, Item};
+    use crate::{Extensions, Item};
 
     #[test]
     fn item() {
-        let item: Item = crate::read("data/eo/item.json").unwrap();
+        let item: Item = stac::read("data/eo/item.json").unwrap();
         let _: ElectroOptical = item.extension().unwrap();
     }
 }

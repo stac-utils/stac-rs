@@ -21,12 +21,12 @@
 //!
 //! ## Usage
 //!
-//! [Item](crate::Item), [Collection](crate::Collection),
-//! [Catalog](crate::Catalog) all implement the [Extensions] trait, which
-//! provides methods to get, set, and remove extension information:
+//! [Item], [Collection], and [Catalog] all implement the [Extensions] trait,
+//! which provides methods to get, set, and remove extension information:
 //!
 //! ```
-//! use stac::{Item, Extensions, Fields, extensions::{Projection, projection::Centroid}};
+//! use stac::Item;
+//! use stac_extensions::{Extensions, Projection, projection::Centroid};
 //! let mut item: Item = stac::read("examples/extensions-collection/proj-example/proj-example.json").unwrap();
 //! assert!(item.has_extension::<Projection>());
 //!
@@ -48,8 +48,8 @@ pub mod electro_optical;
 pub mod projection;
 pub mod raster;
 
-use crate::{Fields, Result};
 use serde::{de::DeserializeOwned, Serialize};
+use stac::{Catalog, Collection, Fields, Item, Result};
 pub use {projection::Projection, raster::Raster};
 
 /// A trait implemented by extensions.
@@ -68,7 +68,7 @@ pub trait Extension: Serialize + DeserializeOwned {
     /// # Examples
     ///
     /// ```
-    /// use stac::extensions::{Raster, Extension};
+    /// use stac_extensions::{Raster, Extension};
     /// assert_eq!(Raster::identifier_prefix(), "https://stac-extensions.github.io/raster/");
     /// ```
     fn identifier_prefix() -> &'static str {
@@ -87,7 +87,9 @@ pub trait Extensions: Fields {
     /// # Examples
     ///
     /// ```
-    /// use stac::{Extensions, Item};
+    /// use stac::Item;
+    /// use stac_extensions::Extensions;
+    ///
     /// let item = Item::new("an-id");
     /// assert!(item.extensions().is_empty());
     /// ```
@@ -98,7 +100,9 @@ pub trait Extensions: Fields {
     /// # Examples
     ///
     /// ```
-    /// use stac::{Extensions, Item};
+    /// use stac::Item;
+    /// use stac_extensions::Extensions;
+    ///
     /// let mut item = Item::new("an-id");
     /// item.extensions_mut().push("https://stac-extensions.github.io/raster/v1.1.0/schema.json".to_string());
     /// ```
@@ -109,7 +113,9 @@ pub trait Extensions: Fields {
     /// # Examples
     ///
     /// ```
-    /// use stac::{Item, extensions::{Projection, Extensions}};
+    /// use stac::Item;
+    /// use stac_extensions::{Projection, Extensions};
+    ///
     /// let mut item = Item::new("an-id");
     /// assert!(!item.has_extension::<Projection>());
     /// let projection = Projection { code: Some("EPSG:4326".to_string()), ..Default::default() };
@@ -122,12 +128,30 @@ pub trait Extensions: Fields {
             .any(|extension| extension.starts_with(E::identifier_prefix()))
     }
 
+    /// Returns an extension's data.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::Item;
+    /// use stac_extensions::{Projection, Extensions};
+    ///
+    /// let item: Item = stac::read("examples/extensions-collection/proj-example/proj-example.json").unwrap();
+    /// let projection: Projection = item.extension().unwrap();
+    /// assert_eq!(projection.code.unwrap(), "EPSG:32614");
+    /// ```
+    fn extension<E: Extension>(&self) -> Result<E> {
+        self.fields_with_prefix(E::PREFIX)
+    }
+
     /// Adds an extension's identifier to this object.
     ///
     /// # Examples
     ///
     /// ```
-    /// use stac::{Item, extensions::{Projection, Extensions}};
+    /// use stac::Item;
+    /// use stac_extensions::{Projection, Extensions};
+    ///
     /// let mut item = Item::new("an-id");
     /// item.add_extension::<Projection>();
     /// ```
@@ -143,7 +167,9 @@ pub trait Extensions: Fields {
     /// # Examples
     ///
     /// ```
-    /// use stac::{Item, extensions::{Projection, Extensions}};
+    /// use stac::Item;
+    /// use stac_extensions::{Projection, Extensions};
+    ///
     /// let mut item = Item::new("an-id");
     /// let projection = Projection { code: Some("EPSG:4326".to_string()), ..Default::default() };
     /// item.set_extension(projection).unwrap();
@@ -151,7 +177,8 @@ pub trait Extensions: Fields {
     fn set_extension<E: Extension>(&mut self, extension: E) -> Result<()> {
         self.extensions_mut().push(E::IDENTIFIER.to_string());
         self.extensions_mut().dedup();
-        Fields::set_extension(self, extension)
+        self.remove_fields_with_prefix(E::PREFIX);
+        self.set_fields_with_prefix(E::PREFIX, extension)
     }
 
     /// Removes this extension and all of its fields from this object.
@@ -159,30 +186,43 @@ pub trait Extensions: Fields {
     /// # Examples
     ///
     /// ```
-    /// use stac::{Item, extensions::{Projection, Extensions}};
+    /// use stac::Item;
+    /// use stac_extensions::{Projection, Extensions};
+    ///
     /// let mut item: Item = stac::read("examples/extensions-collection/proj-example/proj-example.json").unwrap();
     /// assert!(item.has_extension::<Projection>());
     /// item.remove_extension::<Projection>();
     /// assert!(!item.has_extension::<Projection>());
     /// ```
     fn remove_extension<E: Extension>(&mut self) {
-        Fields::remove_extension::<E>(self);
+        self.remove_fields_with_prefix(E::PREFIX);
         self.extensions_mut()
             .retain(|extension| !extension.starts_with(E::identifier_prefix()))
     }
 }
 
+macro_rules! impl_extensions {
+    ($name:ident) => {
+        impl Extensions for $name {
+            fn extensions(&self) -> &Vec<String> {
+                &self.extensions
+            }
+            fn extensions_mut(&mut self) -> &mut Vec<String> {
+                &mut self.extensions
+            }
+        }
+    };
+}
+
+impl_extensions!(Item);
+impl_extensions!(Catalog);
+impl_extensions!(Collection);
+
 #[cfg(test)]
 mod tests {
-    use super::Extensions;
-    use crate::{
-        extensions::{
-            raster::{Band, Raster},
-            Projection,
-        },
-        Asset, Extension, Item,
-    };
+    use crate::{raster::Raster, Extension, Extensions, Projection};
     use serde_json::json;
+    use stac::Item;
 
     #[test]
     fn identifer_prefix() {
@@ -194,19 +234,6 @@ mod tests {
             Projection::identifier_prefix(),
             "https://stac-extensions.github.io/projection/"
         );
-    }
-
-    #[test]
-    fn set_extension_on_asset() {
-        use crate::Fields;
-
-        let mut asset = Asset::new("a/href.tif");
-        let mut band = Band::default();
-        band.unit = Some("parsecs".to_string());
-        let raster = Raster { bands: vec![band] };
-        asset.set_extension(raster).unwrap();
-        let mut item = Item::new("an-id");
-        let _ = item.assets.insert("data".to_string(), asset);
     }
 
     #[test]

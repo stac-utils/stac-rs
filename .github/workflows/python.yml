@@ -4,9 +4,6 @@ on:
   push:
     tags:
       - "python-*"
-  pull_request:
-    paths:
-      - python/**
   workflow_dispatch:
 
 permissions:
@@ -17,29 +14,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test-stacrs:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: python
-    steps:
-      - uses: actions/checkout@v4
-      - uses: Swatinem/rust-cache@v2
-      - uses: actions/setup-python@v5
-        with:
-          python-version: 3.x
-      - uses: astral-sh/setup-uv@v3
-        with:
-          enable-cache: true
-      - name: Install
-        run: uv sync
-      - name: Check
-        run: uv run ruff check && uv run ruff format --check && uv run mypy .
-      - name: Test
-        run: uv run pytest
   linux:
     runs-on: ${{ matrix.platform.runner }}
-    if: startsWith(github.ref, 'refs/tags/python-')
     strategy:
       matrix:
         platform:
@@ -107,7 +83,6 @@ jobs:
 
   windows:
     runs-on: ${{ matrix.platform.runner }}
-    if: startsWith(github.ref, 'refs/tags/python-')
     strategy:
       matrix:
         platform:
@@ -137,7 +112,6 @@ jobs:
 
   macos:
     runs-on: ${{ matrix.platform.runner }}
-    if: startsWith(github.ref, 'refs/tags/python-')
     strategy:
       matrix:
         platform:
@@ -185,13 +159,11 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     needs:
-      - test-stacrs
       - linux
       # - musllinux
       - windows
       - macos
       - sdist
-    if: startsWith(github.ref, 'refs/tags/python-')
     environment:
       name: pypi
       url: https://pypi.org/p/stacrs

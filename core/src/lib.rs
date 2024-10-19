@@ -103,7 +103,6 @@
 //!
 //! # Features
 //!
-//! - `gdal`: read raster assets, see [gdal]
 //! - `geo`: add some geo-enabled methods, see [geo]
 //! - `geoarrow`: read and write [geoarrow](https://geoarrow.org/), see [geoarrow]
 //! - `geoparquet`: read and write [geoparquet](https://geoparquet.org/), see [geoparquet]
@@ -156,11 +155,8 @@ mod collection;
 mod data_type;
 pub mod datetime;
 mod error;
-pub mod extensions;
 mod fields;
 mod format;
-#[cfg(feature = "gdal")]
-pub mod gdal;
 #[cfg(feature = "geo")]
 pub mod geo;
 #[cfg(feature = "geoarrow")]
@@ -194,7 +190,6 @@ pub use {
     collection::{Collection, Extent, Provider, SpatialExtent, TemporalExtent, COLLECTION_TYPE},
     data_type::DataType,
     error::Error,
-    extensions::{Extension, Extensions},
     fields::Fields,
     format::Format,
     geoparquet::{FromGeoparquet, IntoGeoparquet},
@@ -472,10 +467,6 @@ mod readme {
 
     external_doc_test!(include_str!("../README.md"));
 }
-
-// We only use gdal-sys for the build script.
-#[cfg(feature = "gdal")]
-use gdal_sys as _;
 
 // For now, we only use tracing in the validate module.
 #[cfg(not(feature = "validate"))]

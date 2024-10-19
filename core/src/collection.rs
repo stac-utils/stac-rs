@@ -1,6 +1,6 @@
 use crate::{
-    Asset, Assets, Bbox, Error, Extensions, Fields, Href, Item, ItemAsset, Link, Links, Migrate,
-    Result, Version, STAC_VERSION,
+    Asset, Assets, Bbox, Error, Fields, Href, Item, ItemAsset, Link, Links, Migrate, Result,
+    Version, STAC_VERSION,
 };
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -397,15 +397,6 @@ impl Fields for Collection {
     }
     fn fields_mut(&mut self) -> &mut Map<String, Value> {
         &mut self.additional_fields
-    }
-}
-
-impl Extensions for Collection {
-    fn extensions(&self) -> &Vec<String> {
-        &self.extensions
-    }
-    fn extensions_mut(&mut self) -> &mut Vec<String> {
-        &mut self.extensions
     }
 }
 

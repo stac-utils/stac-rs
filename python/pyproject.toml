@@ -20,7 +20,7 @@ dynamic = ["version"]
 
 [project.urls]
 Repository = "https://github.com/stac-utils/stac-rs"
-Documentation = "https://stac-utils.github.io/stac-rs/python/"
+Documentation = "https://stac-utils.github.io/stac-rs"
 Issues = "https://github.com/stac-utils/stac-rs/issues"
 
 [tool.maturin]

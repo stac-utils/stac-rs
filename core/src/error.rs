@@ -22,11 +22,6 @@ pub enum Error {
     #[error(transparent)]
     ChronoParse(#[from] chrono::ParseError),
 
-    /// [gdal::errors::GdalError]
-    #[cfg(feature = "gdal")]
-    #[error(transparent)]
-    GdalError(#[from] gdal::errors::GdalError),
-
     /// A required feature is not enabled.
     #[error("{0} is not enabled")]
     FeatureNotEnabled(&'static str),

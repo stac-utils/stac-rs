@@ -1,6 +1,6 @@
 //! Provides a standard set of fields to describe authentication and
 //! authorization schemes, flows, and scopes required to access
-//! [Assets](crate::Asset) and [Links](crate::Link) that align with the [OpenAPI
+//! [Assets](stac::Asset) and [Links](stac::Link) that align with the [OpenAPI
 //! security spec](https://swagger.io/docs/specification/authentication/).
 
 use crate::Extension;
@@ -12,12 +12,12 @@ use std::collections::HashMap;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Authentication {
     /// A property that contains all of the [scheme definitions](Scheme) used by
-    /// [Assets](crate::Asset) and [Links](crate::Link) in the STAC [Item](crate::Item) or [Collection](crate::Collection).
+    /// [Assets](stac::Asset) and [Links](stac::Link) in the STAC [Item](crate::Item) or [Collection](crate::Collection).
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub schemes: HashMap<String, Scheme>,
 
-    /// A property that specifies which schemes may be used to access an [Asset](crate::Asset)
-    /// or [Link](crate::Link).
+    /// A property that specifies which schemes may be used to access an [Asset](stac::Asset)
+    /// or [Link](stac::Link).
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub refs: Vec<String>,
 }
@@ -167,12 +167,12 @@ impl Extension for Authentication {
 #[cfg(test)]
 mod tests {
     use super::{Authentication, In, Scheme};
-    use crate::{Collection, Fields, Item};
+    use crate::{Collection, Extensions, Item};
     use serde_json::json;
 
     #[test]
     fn collection() {
-        let collection: Collection = crate::read("data/auth/collection.json").unwrap();
+        let collection: Collection = stac::read("data/auth/collection.json").unwrap();
         let authentication: Authentication = collection.extension().unwrap();
         let oauth = authentication.schemes.get("oauth").unwrap();
         let _ = oauth.flows.get("authorizationCode").unwrap();
@@ -180,7 +180,7 @@ mod tests {
 
     #[test]
     fn item() {
-        let collection: Item = crate::read("data/auth/item.json").unwrap();
+        let collection: Item = stac::read("data/auth/item.json").unwrap();
         let authentication: Authentication = collection.extension().unwrap();
         let _ = authentication.schemes.get("none").unwrap();
     }

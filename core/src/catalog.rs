@@ -1,4 +1,4 @@
-use crate::{Error, Extensions, Fields, Href, Link, Links, Migrate, Result, Version, STAC_VERSION};
+use crate::{Error, Fields, Href, Link, Links, Migrate, Result, Version, STAC_VERSION};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
@@ -132,15 +132,6 @@ impl Fields for Catalog {
     }
     fn fields_mut(&mut self) -> &mut Map<String, Value> {
         &mut self.additional_fields
-    }
-}
-
-impl Extensions for Catalog {
-    fn extensions(&self) -> &Vec<String> {
-        &self.extensions
-    }
-    fn extensions_mut(&mut self) -> &mut Vec<String> {
-        &mut self.extensions
     }
 }
 

@@ -1,4 +1,4 @@
-use crate::{Error, Extension, Result};
+use crate::{Error, Result};
 use serde::{de::DeserializeOwned, Serialize};
 use serde_json::{json, Map, Value};
 
@@ -79,9 +79,11 @@ pub trait Fields {
     /// # Examples
     ///
     /// ```
-    /// use stac::{Fields, Item, extensions::Projection};
+    /// use stac::{Fields, Item};
+    /// use serde_json::Value;
+    ///
     /// let item: Item = stac::read("examples/extensions-collection/proj-example/proj-example.json").unwrap();
-    /// let projection: Projection = item.fields_with_prefix("proj").unwrap();  // Prefer `Extensions::extension`
+    /// let projection: Value = item.fields_with_prefix("proj").unwrap();
     /// ```
     fn fields_with_prefix<D: DeserializeOwned>(&self, prefix: &str) -> Result<D> {
         let mut map = Map::new();
@@ -99,10 +101,12 @@ pub trait Fields {
     /// # Examples
     ///
     /// ```
-    /// use stac::{Fields, Item, extensions::Projection};
-    /// let projection = Projection { code: Some("EPSG:4326".to_string()), ..Default::default() };
+    /// use stac::{Fields, Item};
+    /// use serde_json::json;
+    ///
+    /// let projection = json!({ "code": "EPSG:4326" });
     /// let mut item = Item::new("an-id");
-    /// item.set_fields_with_prefix("proj", projection);  // Prefer `Extensions::set_extension`
+    /// item.set_fields_with_prefix("proj", projection);
     /// ```
     fn set_fields_with_prefix<S: Serialize>(&mut self, prefix: &str, value: S) -> Result<()> {
         let value = serde_json::to_value(value)?;
@@ -121,62 +125,14 @@ pub trait Fields {
     /// # Examples
     ///
     /// ```
-    /// use stac::{Fields, Item, extensions::Projection};
-    /// let projection = Projection { code: Some("EPSG:4326".to_string()), ..Default::default() };
-    /// let mut item = Item::new("an-id");
-    /// item.remove_fields_with_prefix("proj");  // Prefer `Fields::remove_extension`
+    /// use stac::{Fields, Item};
+    ///
+    /// let mut item: Item = stac::read("examples/extensions-collection/proj-example/proj-example.json").unwrap();
+    /// item.remove_fields_with_prefix("proj");
     /// ```
     fn remove_fields_with_prefix(&mut self, prefix: &str) {
         let prefix = format!("{}:", prefix);
         self.fields_mut()
             .retain(|key, _| !(key.starts_with(&prefix) && key.len() > prefix.len()));
-    }
-
-    /// Gets an extension's data.
-    ///
-    /// Returns `Ok(None)` if the object doesn't have the given extension.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use stac::{Item, Fields, extensions::Projection};
-    /// let item: Item = stac::read("examples/extensions-collection/proj-example/proj-example.json").unwrap();
-    /// let projection: Projection = item.extension().unwrap();
-    /// assert_eq!(projection.code.unwrap(), "EPSG:32614");
-    /// ```
-    fn extension<E: Extension>(&self) -> Result<E> {
-        self.fields_with_prefix(E::PREFIX)
-    }
-
-    /// Sets an extension's data into this object.
-    ///
-    /// This will remove any previous fields from this extension
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use stac::{Item, Fields, extensions::Projection};
-    /// let mut item = Item::new("an-id");
-    /// let projection = Projection { code: Some("EPSG:4326".to_string()), ..Default::default() };
-    /// item.set_extension(projection).unwrap();
-    /// ```
-    fn set_extension<E: Extension>(&mut self, extension: E) -> Result<()> {
-        self.remove_extension::<E>();
-        self.set_fields_with_prefix(E::PREFIX, extension)
-    }
-
-    /// Removes all of the extension's fields from this object.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use stac::{Item, extensions::{Projection, Extensions}};
-    /// let mut item: Item = stac::read("examples/extensions-collection/proj-example/proj-example.json").unwrap();
-    /// assert!(item.has_extension::<Projection>());
-    /// item.remove_extension::<Projection>();
-    /// assert!(!item.has_extension::<Projection>());
-    /// ```
-    fn remove_extension<E: Extension>(&mut self) {
-        self.remove_fields_with_prefix(E::PREFIX);
     }
 }

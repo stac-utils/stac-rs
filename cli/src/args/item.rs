@@ -22,11 +22,6 @@ pub(crate) struct Args {
     #[arg(short, long = "role", default_values_t = ["data".to_string()])]
     pub(crate) roles: Vec<String>,
 
-    /// Don't use GDAL to add geospatial metadata to the item
-    #[cfg(feature = "gdal")]
-    #[arg(long)]
-    pub(crate) disable_gdal: bool,
-
     /// Allow assets to have relative hrefs
     #[arg(long)]
     pub(crate) allow_relative_hrefs: bool,
@@ -48,10 +43,6 @@ impl Run for Args {
             })
             .unwrap_or_else(|| "default".to_string());
         let mut builder = Builder::new(id).canonicalize_paths(!self.allow_relative_hrefs);
-        #[cfg(feature = "gdal")]
-        {
-            builder = builder.enable_gdal(!self.disable_gdal);
-        }
         if let Some(href) = href {
             let mut asset = Asset::new(href);
             asset.roles = self.roles;
