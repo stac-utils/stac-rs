@@ -10,8 +10,8 @@
 //! in the asset (values statistics, value interpretation, transforms).
 
 use super::Extension;
-pub use crate::{DataType, Statistics};
 use serde::{Deserialize, Serialize};
+pub use stac::{DataType, Statistics};
 
 /// The raster extension.
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -125,49 +125,12 @@ impl Raster {
     /// # Examples
     ///
     /// ```
-    /// use stac::extensions::Raster;
+    /// use stac_extensions::Raster;
     ///
-    /// let projection = Raster::default();
-    /// assert!(projection.is_empty());
+    /// let raster = Raster::default();
+    /// assert!(raster.is_empty());
     /// ```
     pub fn is_empty(&self) -> bool {
         self.bands.is_empty()
-    }
-}
-
-#[cfg(feature = "gdal")]
-impl From<gdal::raster::GdalDataType> for DataType {
-    fn from(value: gdal::raster::GdalDataType) -> Self {
-        use gdal::raster::GdalDataType;
-
-        match value {
-            GdalDataType::Unknown => DataType::Other,
-            #[cfg(gdal_has_int8)]
-            GdalDataType::Int8 => DataType::Int8,
-            GdalDataType::Int16 => DataType::Int16,
-            GdalDataType::Int32 => DataType::Int32,
-            #[cfg(gdal_has_int64)]
-            GdalDataType::Int64 => DataType::Int64,
-            GdalDataType::UInt8 => DataType::UInt8,
-            GdalDataType::UInt16 => DataType::UInt16,
-            GdalDataType::UInt32 => DataType::UInt32,
-            #[cfg(gdal_has_uint64)]
-            GdalDataType::UInt64 => DataType::UInt64,
-            GdalDataType::Float32 => DataType::Float32,
-            GdalDataType::Float64 => DataType::Float64,
-        }
-    }
-}
-
-#[cfg(feature = "gdal")]
-impl From<gdal::raster::StatisticsAll> for Statistics {
-    fn from(value: gdal::raster::StatisticsAll) -> Self {
-        Statistics {
-            minimum: Some(value.min),
-            maximum: Some(value.max),
-            mean: Some(value.mean),
-            stddev: Some(value.std_dev),
-            valid_percent: None,
-        }
     }
 }

@@ -1,17 +1,17 @@
 [package]
 name = "stac"
-version = "0.10.2"
-authors = ["Pete Gadomski <pete.gadomski@gmail.com>"]
-edition = "2021"
 description = "Rust library for the SpatioTemporal Asset Catalog (STAC) specification"
-homepage = "https://github.com/stac-utils/stac-rs"
-repository = "https://github.com/stac-utils/stac-rs"
-license = "MIT OR Apache-2.0"
-keywords = ["geospatial", "stac", "metadata", "geo", "raster"]
-categories = ["science", "data-structures"]
+version = "0.10.2"
+keywords = ["geospatial", "stac", "metadata", "geo"]
+authors.workspace = true
+categories.workspace = true
+edition.workspace = true
+homepage.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
 
 [features]
-gdal = ["dep:gdal", "dep:gdal-sys"]
 geo = ["dep:geo"]
 geoarrow = [
     "dep:geoarrow",
@@ -52,35 +52,33 @@ arrow-array = { workspace = true, optional = true }
 arrow-cast = { workspace = true, optional = true }
 arrow-json = { workspace = true, optional = true }
 arrow-schema = { workspace = true, optional = true }
-bytes = { workspace = true }
+bytes.workspace = true
 chrono = { workspace = true, features = ["serde"] }
 fluent-uri = { workspace = true, optional = true }
-gdal = { workspace = true, optional = true }
-gdal-sys = { workspace = true, optional = true }
 geo = { workspace = true, optional = true }
 geo-types = { workspace = true, optional = true }
 geoarrow = { workspace = true, optional = true }
-geojson = { workspace = true }
+geojson.workspace = true
 jsonschema = { workspace = true, optional = true }
-log = { workspace = true }
-mime = { workspace = true }
+log.workspace = true
+mime.workspace = true
 object_store = { workspace = true, optional = true }
 parquet = { workspace = true, optional = true }
 reqwest = { workspace = true, features = ["json", "blocking"], optional = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true, features = ["preserve_order"] }
-thiserror = { workspace = true }
+thiserror.workspace = true
 tokio = { workspace = true, optional = true }
-tracing = { workspace = true }
-url = { workspace = true }
+tracing.workspace = true
+url.workspace = true
 
 [dev-dependencies]
-assert-json-diff = { workspace = true }
-bytes = { workspace = true }
-rstest = { workspace = true }
-tempfile = { workspace = true }
+assert-json-diff.workspace = true
+bytes.workspace = true
+rstest.workspace = true
+tempfile.workspace = true
 tokio = { workspace = true, features = ["macros"] }
-tokio-test = { workspace = true }
+tokio-test.workspace = true
 
 [[test]]
 name = "examples"

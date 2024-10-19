@@ -1,14 +1,15 @@
 [package]
 name = "stac-api"
-version = "0.6.0"
-authors = ["Pete Gadomski <pete.gadomski@gmail.com>"]
-edition = "2021"
 description = "Rust library for the SpatioTemporal Asset Catalog (STAC) API specification"
-homepage = "https://github.com/stac-utils/stac-rs"
-repository = "https://github.com/stac-utils/stac-rs"
-license = "MIT OR Apache-2.0"
-keywords = ["geospatial", "stac", "metadata", "geo", "raster"]
+version = "0.6.0"
+keywords = ["geospatial", "stac", "metadata", "geo", "api"]
 categories = ["science", "data-structures", "web-programming"]
+authors.workspace = true
+edition.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license.workspace = true
+rust-version.workspace = true
 
 [features]
 client = [
@@ -22,25 +23,25 @@ geo = ["dep:geo", "stac/geo"]
 
 [dependencies]
 async-stream = { workspace = true, optional = true }
-chrono = { workspace = true }
+chrono.workspace = true
 futures = { workspace = true, optional = true }
 http = { workspace = true, optional = true }
 reqwest = { workspace = true, features = ["json"], optional = true }
 geo = { workspace = true, optional = true }
-geojson = { workspace = true }
-serde = { workspace = true }
-serde_json = { workspace = true }
-serde_urlencoded = { workspace = true }
-stac = { workspace = true }
-thiserror = { workspace = true }
+geojson.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+serde_urlencoded.workspace = true
+stac.workspace = true
+thiserror.workspace = true
 tokio = { workspace = true, optional = true }
-url = { workspace = true }
+url.workspace = true
 
 [dev-dependencies]
-geojson = { workspace = true }
-mockito = { workspace = true }
+geojson.workspace = true
+mockito.workspace = true
 tokio = { workspace = true, features = ["rt", "macros"] }
-tokio-test = { workspace = true }
+tokio-test.workspace = true
 
 [package.metadata.docs.rs]
 all-features = true

@@ -20,11 +20,6 @@ pub(crate) struct Args {
     #[arg(short, long = "role", default_values_t = ["data".to_string()])]
     roles: Vec<String>,
 
-    /// Don't use GDAL to add geospatial metadata to the item
-    #[cfg(feature = "gdal")]
-    #[arg(long)]
-    disable_gdal: bool,
-
     /// Allow assets to have relative hrefs
     #[arg(long)]
     allow_relative_hrefs: bool,
@@ -42,8 +37,6 @@ impl Run for Args {
                 outfile: None,
                 key: self.key.clone(),
                 roles: self.roles.clone(),
-                #[cfg(feature = "gdal")]
-                disable_gdal: self.disable_gdal,
                 allow_relative_hrefs: self.allow_relative_hrefs,
             };
             let _ = join_set.spawn(async move { args.run(input, sender).await });

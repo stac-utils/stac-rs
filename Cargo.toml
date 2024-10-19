@@ -1,7 +1,25 @@
 [workspace]
 resolver = "2"
-members = ["api", "cli", "core", "duckdb", "pgstac", "python", "server"]
-default-members = ["api", "cli", "core", "server"]
+members = [
+    "api",
+    "cli",
+    "core",
+    "duckdb",
+    "extensions",
+    "pgstac",
+    "python",
+    "server",
+]
+default-members = ["api", "cli", "core", "extensions", "server"]
+
+[workspace.package]
+authors = ["Pete Gadomski <pete.gadomski@gmail.com>"]
+edition = "2021"
+homepage = "https://stac-utils.github.io/stac-rs"
+repository = "https://github.com/stac-utils/stac-rs"
+license = "MIT OR Apache-2.0"
+categories = ["science", "data-structures"]
+rust-version = "1.75"
 
 [workspace.dependencies]
 arrow = "52.2"
@@ -21,8 +39,6 @@ clap = "4.5"
 duckdb = "=1.0.0"
 fluent-uri = "0.3.1"
 futures = "0.3.31"
-gdal = "0.17.1"
-gdal-sys = "0.10.0"
 geo = "0.28.0"
 geo-types = "0.7.13"
 geoarrow = "0.3.0"

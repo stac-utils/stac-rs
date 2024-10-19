@@ -17,13 +17,6 @@ If you have Python, use `pip`:
 python -m pip install stacrs-cli
 ```
 
-!!! Note
-<!-- markdownlint-disable-next-line MD046 -->
-The PyPI version of the CLI does not contain bindings to GDAL. This
-shouldn't be a problem for most users, but if you're using `stacrs item
-    image.tiff` to generate new STAC items from a raster, you'll need to install
-from `cargo`.
-
 The CLI is called **stacrs**:
 
 ```shell

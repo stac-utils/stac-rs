@@ -25,7 +25,7 @@ env:
 jobs:
   test-core:
     strategy:
-      matrix: 
+      matrix:
         os:
           - macos-latest
           - windows-latest
@@ -34,16 +34,5 @@ jobs:
       - uses: actions/checkout@v4
       - name: Set up Rust cache
         uses: Swatinem/rust-cache@v2
-      - name: Test
-        run: cargo test -F geo -F geoparquet-compression -F reqwest -F object-store-all -F validate-blocking
-  test-core-with-gdal:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: Swatinem/rust-cache@v2
-      - name: Install GDAL
-        run: |
-          sudo apt-get update
-          sudo apt-get install libgdal-dev
       - name: Test
         run: cargo test --all-features

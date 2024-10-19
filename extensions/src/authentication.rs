@@ -167,12 +167,12 @@ impl Extension for Authentication {
 #[cfg(test)]
 mod tests {
     use super::{Authentication, In, Scheme};
-    use crate::{Collection, Fields, Item};
+    use crate::{Collection, Extensions, Item};
     use serde_json::json;
 
     #[test]
     fn collection() {
-        let collection: Collection = crate::read("data/auth/collection.json").unwrap();
+        let collection: Collection = stac::read("data/auth/collection.json").unwrap();
         let authentication: Authentication = collection.extension().unwrap();
         let oauth = authentication.schemes.get("oauth").unwrap();
         let _ = oauth.flows.get("authorizationCode").unwrap();
@@ -180,7 +180,7 @@ mod tests {
 
     #[test]
     fn item() {
-        let collection: Item = crate::read("data/auth/item.json").unwrap();
+        let collection: Item = stac::read("data/auth/item.json").unwrap();
         let authentication: Authentication = collection.extension().unwrap();
         let _ = authentication.schemes.get("none").unwrap();
     }

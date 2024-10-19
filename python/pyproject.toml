@@ -19,7 +19,7 @@ keywords = ["stac", "geospatial"]
 dynamic = ["version"]
 
 [project.urls]
-Repository = "https://github.com/stac-utils/stac-rs"
+homepage.workspace = true
 Documentation = "https://stac-utils.github.io/stac-rs/python/"
 Issues = "https://github.com/stac-utils/stac-rs/issues"
 

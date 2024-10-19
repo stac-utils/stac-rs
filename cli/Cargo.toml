@@ -1,33 +1,32 @@
 [package]
 name = "stac-cli"
-version = "0.4.0"
-edition = "2021"
 description = "Command line interface for stac-rs"
-documentation = "https://docs.rs/stac-cli"
-readme = "README.md"
-repository = "https://github.com/stac-utils/stac-rs"
-license = "MIT OR Apache-2.0"
+version = "0.4.0"
 keywords = ["geospatial", "stac", "metadata", "geo", "raster"]
-categories = ["science", "data-structures"]
-rust-version = "1.75"
+authors.workspace = true
+edition.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license.workspace = true
+categories.workspace = true
+rust-version.workspace = true
 
 [features]
-default = ["gdal", "pgstac"]
+default = ["pgstac"]
 duckdb = ["dep:stac-duckdb", "dep:duckdb"]
-gdal = ["stac/gdal"]
 pgstac = ["stac-server/pgstac", "dep:pgstac"]
 python = ["dep:pyo3", "pgstac"]
 
 [dependencies]
-axum = { workspace = true }
+axum.workspace = true
 clap = { workspace = true, features = ["derive"] }
 duckdb = { workspace = true, optional = true } # We have this dependency only to allow us to bundle it
-object_store = { workspace = true }
+object_store.workspace = true
 pgstac = { workspace = true, optional = true }
 pyo3 = { workspace = true, optional = true }
-reqwest = { workspace = true }
-serde = { workspace = true }
-serde_json = { workspace = true }
+reqwest.workspace = true
+serde.workspace = true
+serde_json.workspace = true
 stac = { workspace = true, features = [
     "geoparquet-compression",
     "object-store-all",
@@ -37,21 +36,21 @@ stac = { workspace = true, features = [
 stac-api = { workspace = true, features = ["client"] }
 stac-duckdb = { workspace = true, optional = true }
 stac-server = { workspace = true, features = ["axum"] }
-thiserror = { workspace = true }
+thiserror.workspace = true
 tokio = { workspace = true, features = [
     "macros",
     "io-std",
     "rt-multi-thread",
     "fs",
 ] }
-tokio-stream = { workspace = true }
-tracing = { workspace = true }
-tracing-subscriber = { workspace = true }
-url = { workspace = true }
+tokio-stream.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+url.workspace = true
 
 [dev-dependencies]
-assert_cmd = { workspace = true }
-tokio-test = { workspace = true }
+assert_cmd.workspace = true
+tokio-test.workspace = true
 
 [lib]
 crate-type = ["lib", "cdylib"]

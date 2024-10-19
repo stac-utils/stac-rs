@@ -1,8 +1,7 @@
 //! STAC Items.
 
 use crate::{
-    Asset, Assets, Bbox, Error, Extensions, Fields, Href, Link, Links, Migrate, Result, Version,
-    STAC_VERSION,
+    Asset, Assets, Bbox, Error, Fields, Href, Link, Links, Migrate, Result, Version, STAC_VERSION,
 };
 use chrono::{DateTime, FixedOffset, Utc};
 use geojson::{feature::Id, Feature, Geometry};
@@ -233,11 +232,6 @@ pub struct Builder {
     id: String,
     canonicalize_paths: bool,
     assets: HashMap<String, Asset>,
-    enable_gdal: bool,
-    #[cfg(feature = "gdal")]
-    force_statistics: bool, // TODO add builder method
-    #[cfg(feature = "gdal")]
-    is_approx_statistics_ok: bool, // TODO add builder method
 }
 
 impl Builder {
@@ -254,11 +248,6 @@ impl Builder {
             id: id.to_string(),
             canonicalize_paths: true,
             assets: HashMap::new(),
-            enable_gdal: cfg!(feature = "gdal"),
-            #[cfg(feature = "gdal")]
-            force_statistics: false,
-            #[cfg(feature = "gdal")]
-            is_approx_statistics_ok: true,
         }
     }
 
@@ -290,22 +279,6 @@ impl Builder {
         self
     }
 
-    /// Enable or disable GDAL processing of asset files.
-    ///
-    /// If this crate is _not_ compiled with the `gdal` flag and this value is
-    /// `true`, an error will be thrown.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use stac::item::Builder;
-    /// let builder = Builder::new("an-id").enable_gdal(false);
-    /// ```
-    pub fn enable_gdal(mut self, enable_gdal: bool) -> Builder {
-        self.enable_gdal = enable_gdal;
-        self
-    }
-
     /// Builds an [Item] from this builder.
     ///
     /// # Examples
@@ -326,16 +299,6 @@ impl Builder {
                     .into_owned();
             }
             let _ = item.assets.insert(key, asset);
-        }
-        if self.enable_gdal {
-            #[cfg(feature = "gdal")]
-            crate::gdal::update_item(
-                &mut item,
-                self.force_statistics,
-                self.is_approx_statistics_ok,
-            )?;
-            #[cfg(not(feature = "gdal"))]
-            return Err(Error::FeatureNotEnabled("gdal"));
         }
         Ok(item)
     }
@@ -652,15 +615,6 @@ impl Fields for Item {
     }
 }
 
-impl Extensions for Item {
-    fn extensions(&self) -> &Vec<String> {
-        &self.extensions
-    }
-    fn extensions_mut(&mut self) -> &mut Vec<String> {
-        &mut self.extensions
-    }
-}
-
 impl TryFrom<Item> for Map<String, Value> {
     type Error = Error;
     fn try_from(item: Item) -> Result<Self> {
@@ -750,10 +704,7 @@ impl Migrate for Item {}
 #[cfg(test)]
 mod tests {
     use super::{Builder, FlatItem, Item};
-    use crate::{
-        extensions::{Projection, Raster},
-        Asset, Extensions, STAC_VERSION,
-    };
+    use crate::{Asset, STAC_VERSION};
     use geojson::{feature::Id, Feature};
     use serde_json::Value;
 
@@ -918,19 +869,6 @@ mod tests {
     }
 
     #[test]
-    fn builder_uses_gdal() {
-        let item = Builder::new("an-id")
-            .asset("data", "assets/dataset.tif")
-            .build()
-            .unwrap();
-        if cfg!(feature = "gdal") {
-            assert!(item.has_extension::<Raster>());
-        } else {
-            assert!(!item.has_extension::<Raster>());
-        }
-    }
-
-    #[test]
     fn try_from_geojson_feature() {
         let mut feature = Feature {
             bbox: None,
@@ -974,7 +912,6 @@ mod tests {
     #[test]
     fn flat_item_without_geometry() {
         let mut item = Item::new("an-item");
-        item.add_extension::<Projection>();
         item.bbox = Some(vec![-105., 42., -105., -42.].try_into().unwrap());
         let mut value = serde_json::to_value(item).unwrap();
         let _ = value.as_object_mut().unwrap().remove("geometry").unwrap();
