@@ -101,4 +101,6 @@ denylist = [
     "object-store-azure",
     "object-store-gcp",
     "object-store-http",
+    "reqwest-rustls",
+    "validate-blocking",
 ]
