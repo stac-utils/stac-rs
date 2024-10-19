@@ -21,9 +21,8 @@
 //!
 //! ## Usage
 //!
-//! [Item](stac::Item), [Collection](stac::Collection),
-//! [Catalog](stac::Catalog) all implement the [Extensions] trait, which
-//! provides methods to get, set, and remove extension information:
+//! [Item], [Collection], and [Catalog] all implement the [Extensions] trait,
+//! which provides methods to get, set, and remove extension information:
 //!
 //! ```
 //! use stac::Item;

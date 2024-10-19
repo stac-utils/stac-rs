@@ -1,6 +1,6 @@
 //! Provides a standard set of fields to describe authentication and
 //! authorization schemes, flows, and scopes required to access
-//! [Assets](crate::Asset) and [Links](crate::Link) that align with the [OpenAPI
+//! [Assets](stac::Asset) and [Links](stac::Link) that align with the [OpenAPI
 //! security spec](https://swagger.io/docs/specification/authentication/).
 
 use crate::Extension;
@@ -12,12 +12,12 @@ use std::collections::HashMap;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Authentication {
     /// A property that contains all of the [scheme definitions](Scheme) used by
-    /// [Assets](crate::Asset) and [Links](crate::Link) in the STAC [Item](crate::Item) or [Collection](crate::Collection).
+    /// [Assets](stac::Asset) and [Links](stac::Link) in the STAC [Item](crate::Item) or [Collection](crate::Collection).
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub schemes: HashMap<String, Scheme>,
 
-    /// A property that specifies which schemes may be used to access an [Asset](crate::Asset)
-    /// or [Link](crate::Link).
+    /// A property that specifies which schemes may be used to access an [Asset](stac::Asset)
+    /// or [Link](stac::Link).
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub refs: Vec<String>,
 }

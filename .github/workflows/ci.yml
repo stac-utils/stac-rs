@@ -110,7 +110,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@nightly
       - uses: Swatinem/rust-cache@v2
       - name: Check
-        run: cargo check --all --all-features
+        run: cargo check --workspace --all-features
   doc:
     name: Check docs
     runs-on: ubuntu-latest
@@ -120,7 +120,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
       - name: Doc
-        run: cargo doc --all-features
+        run: cargo doc --workspace --all-features
   validate-stac-server:
     name: Validate stac-server
     runs-on: ubuntu-latest
