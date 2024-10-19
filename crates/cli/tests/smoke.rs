@@ -31,7 +31,7 @@ fn migrate() {
     let mut command = Command::cargo_bin("stacrs").unwrap();
     command
         .arg("migrate")
-        .arg("../spec-examples/v1.0.0/simple-item.json")
+        .arg("../../spec-examples/v1.0.0/simple-item.json")
         .arg("--version")
         .arg("1.1.0")
         .assert()
