@@ -24,7 +24,6 @@ jobs:
           - stac
           - stac-api
           - stac-cli
-          - stac-duckdb
           - stac-extensions
           - stac-server
     steps:
@@ -48,6 +47,14 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Test
         run: cargo test --all-features
+  test-duckdb:
+    name: Test stac-duckdb
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
+      - name: Test
+        run: cargo test -p stac-duckdb -F duckdb/bundled
   test-pgstac:
     name: Test pgstac
     runs-on: ubuntu-latest
