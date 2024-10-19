@@ -278,7 +278,7 @@ def write(
         >>> stacrs.write("items.parquet", items)
     """
 
-def version(name: str | None) -> str | None:
+def version(name: str | None = None) -> str | None:
     """
     Returns this package's version, or the version of a upstream.
 
@@ -286,7 +286,7 @@ def version(name: str | None) -> str | None:
         name (str | None): The name of the upstream version to return. Valid
             values are "stac", "stac-api", "stac-duckdb", or "duckdb".
 
-    Return:
+    Returns:
         str: The version, or None if the name is not recognized as an upstream.
 
     Examples:

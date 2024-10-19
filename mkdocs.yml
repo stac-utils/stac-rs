@@ -26,6 +26,7 @@ nav:
           - read: python/api/read.md
           - search: python/api/search.md
           - validate: python/api/validate.md
+          - version: python/api/version.md
           - write: python/api/write.md
   - Command-line interface:
       - cli/index.md
