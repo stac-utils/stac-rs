@@ -24,7 +24,7 @@ homepage = "https://stac-utils.github.io/stac-rs"
 repository = "https://github.com/stac-utils/stac-rs"
 license = "MIT OR Apache-2.0"
 categories = ["science", "data-structures"]
-rust-version = "1.75"
+rust-version = "1.80"
 
 [workspace.dependencies]
 arrow = "52.2"
