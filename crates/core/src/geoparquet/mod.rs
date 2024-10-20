@@ -106,9 +106,9 @@ pub trait IntoGeoparquet: Sized {
 
 macro_rules! impl_from_geoparquet {
     ($object:ty) => {
-        impl crate::FromGeoparquet for $object {
+        impl FromGeoparquet for $object {
             fn from_geoparquet_bytes(
-                _: impl Into<bytes::Bytes>,
+                _: impl Into<Bytes>,
             ) -> std::result::Result<Self, crate::Error> {
                 #[cfg(feature = "geoparquet")]
                 {
@@ -124,11 +124,11 @@ macro_rules! impl_from_geoparquet {
 }
 macro_rules! impl_into_geoparquet {
     ($object:ty) => {
-        impl crate::IntoGeoparquet for $object {
+        impl IntoGeoparquet for $object {
             fn into_geoparquet_writer(
                 self,
-                _: impl std::io::Write + Send,
-                _: Option<crate::geoparquet::Compression>,
+                _: impl Write + Send,
+                _: Option<Compression>,
             ) -> std::result::Result<(), crate::Error> {
                 #[cfg(feature = "geoparquet")]
                 {

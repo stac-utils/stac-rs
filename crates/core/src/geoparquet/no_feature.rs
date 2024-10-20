@@ -1,5 +1,11 @@
-use crate::geoparquet::{impl_from_geoparquet, impl_into_geoparquet};
-use std::fmt::{Display, Formatter, Result};
+use crate::geoparquet::{
+    impl_from_geoparquet, impl_into_geoparquet, FromGeoparquet, IntoGeoparquet,
+};
+use bytes::Bytes;
+use std::{
+    fmt::{Display, Formatter, Result},
+    io::Write,
+};
 
 /// A dummy unit structure to represent parquet compression when the `geoparquet` feature is not enabled.
 #[derive(Clone, Copy, Debug, PartialEq)]
