@@ -23,22 +23,22 @@ jobs:
         os: [linux, macos, windows]
         target: [x86_64, aarch64]
         manylinux: [auto]
-        include:
+        include: # if stuff is commented out, it was broken when i made this and i got sick of trying to fix it
           - os: linux
             manylinux: auto
             target: i686
-          - os: linux
-            manylinux: auto
-            target: aarch64
+          # - os: linux
+          #   manylinux: auto
+          #   target: aarch64
           - os: linux
             manylinux: auto
             target: armv7
           - os: linux
             manylinux: auto
             target: ppc64le
-          - os: linux
-            manylinux: auto
-            target: s390x
+          # - os: linux
+          #   manylinux: auto
+          #   target: s390x
 
           - os: linux
             manylinux: musllinux_1_1
@@ -57,13 +57,14 @@ jobs:
 
           - os: windows
             target: x86_64
+            interpreter: 3.10 3.11 3.12 3.13
           - os: windows
             target: i686
             python-architecture: x86
             interpreter: 3.8 3.9 3.10 3.11 3.12 3.13
-          - os: windows
-            target: aarch64
-            interpreter: 3.11 3.12 3.13
+          # - os: windows
+          #   target: aarch64
+          #   interpreter: 3.11 3.12 3.13
 
     runs-on: ${{ (matrix.os == 'linux' && 'ubuntu') || matrix.os }}-latest
     steps:
