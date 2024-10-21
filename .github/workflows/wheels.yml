@@ -25,6 +25,10 @@ jobs:
           - os: linux
             manylinux: auto
             target: ppc64le
+          - os: linux
+            manylinux: auto
+            target: x86_64
+            interpreter: pypy3.9 pypy3.10
 
           - os: linux
             manylinux: musllinux_1_1
@@ -87,7 +91,7 @@ jobs:
                 fi
             else
                 # If we're running on debian-based system.
-                apt update -y && apt-get install -y libssl-dev openssl pkg-config build-essential
+                apt update -y && apt-get install -y libssl-dev openssl pkg-config
             fi
       - name: Upload wheels
         uses: actions/upload-artifact@v4
