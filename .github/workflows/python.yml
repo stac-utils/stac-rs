@@ -60,8 +60,10 @@ jobs:
           - os: windows
             target: i686
             python-architecture: x86
+            interpreter: 3.8 3.9 3.10 3.11 3.12 3.13
           - os: windows
             target: aarch64
+            interpreter: 3.11 3.12 3.13
 
     runs-on: ${{ (matrix.os == 'linux' && 'ubuntu') || matrix.os }}-latest
     steps:
@@ -77,8 +79,8 @@ jobs:
         with:
           target: ${{ matrix.target }}
           manylinux: ${{ matrix.manylinux }}
-          args: --release --out dist --interpreter "3.8 3.9 3.10 3.11 3.12 3.13 pypy3.9 pypy3.10" --manifest-path python/Cargo.toml
-          sccache: "true"
+          args: --release --out dist --interpreter ${{ matrix.interpreter || '3.8 3.9 3.10 3.11 3.12 3.13 pypy3.9 pypy3.10' }} --manifest-path python/Cargo.toml
+          before-script-linux: sudo apt-get install libssl-dev
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
