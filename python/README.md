@@ -48,6 +48,7 @@ stacrs.search_to(
 ```
 
 See [the documentation](https://stac-utils.github.io/stac-rs/latest/python/) for details.
+In particular, our [example notebook](https://stac-utils.github.io/stac-rs/latest/python/example/) demonstrates some of the more interesting features.
 
 ## Comparisons
 
