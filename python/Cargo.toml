@@ -31,4 +31,12 @@ stac = { workspace = true, features = [
 ] }
 stac-api = { workspace = true, features = ["client"] }
 stac-duckdb.workspace = true
+openssl.workspace = true # only so we can vendor it when cross-compiling
+openssl-src.workspace = true # work around https://github.com/openssl/openssl/issues/25366
 tokio = { workspace = true, features = ["rt"] }
+
+[package.metadata.cross.target.x86_64-unknown-linux-gnu]
+pre-build = [
+    "dpkg --add-architecture $CROSS_DEB_ARCH",
+    "apt-get update && apt-get install --assume-yes libssl-dev:$CROSS_DEB_ARCH",
+]

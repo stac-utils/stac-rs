@@ -22,6 +22,8 @@ axum.workspace = true
 clap = { workspace = true, features = ["derive"] }
 duckdb = { workspace = true, optional = true } # We have this dependency only to allow us to bundle it
 object_store.workspace = true
+openssl.workspace = true # same as duckdb, these openssls are just for bundling
+openssl-src.workspace = true
 pgstac = { workspace = true, optional = true }
 pyo3 = { workspace = true, optional = true }
 reqwest.workspace = true
