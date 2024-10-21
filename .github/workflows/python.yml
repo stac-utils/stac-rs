@@ -14,128 +14,75 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  linux:
-    runs-on: ${{ matrix.platform.runner }}
+  build-wheels:
+    # Heavily cribbed from https://github.com/pydantic/pydantic-core/blob/1ced3e6b4e87b03c460952f1970a97b1c8cbc605/.github/workflows/ci.yml#L399-L508
+    name: Build wheels on ${{ matrix.os }} (${{ matrix.target }} - all${{ matrix.os == 'linux' && format(' - {0}', matrix.manylinux == 'auto' && 'manylinux' || matrix.manylinux) || '' }})
     strategy:
+      fail-fast: false
       matrix:
-        platform:
-          - runner: ubuntu-latest
-            target: x86_64
-          # - runner: ubuntu-latest
-          #   target: x86
-          # - runner: ubuntu-latest
-          #   target: aarch64
-          # - runner: ubuntu-latest
-          #   target: armv7
-          # - runner: ubuntu-latest
-          #   target: s390x
-          # - runner: ubuntu-latest
-          #   target: ppc64le
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: 3.x
-      - name: Set up Rust cache
-        uses: Swatinem/rust-cache@v2
-      - name: Build wheels
-        uses: PyO3/maturin-action@v1
-        with:
-          target: ${{ matrix.platform.target }}
-          args: --release --out dist --find-interpreter --manifest-path python/Cargo.toml
-          sccache: "true"
-      - name: Upload wheels
-        uses: actions/upload-artifact@v4
-        with:
-          name: wheels-linux-${{ matrix.platform.target }}
-          path: dist
-
-  # musllinux:
-  #   runs-on: ${{ matrix.platform.runner }}
-  #   strategy:
-  #     matrix:
-  #       platform:
-  #         - runner: ubuntu-latest
-  #           target: x86_64
-  #         - runner: ubuntu-latest
-  #           target: x86
-  #         - runner: ubuntu-latest
-  #           target: aarch64
-  #         - runner: ubuntu-latest
-  #           target: armv7
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: actions/setup-python@v5
-  #       with:
-  #         python-version: 3.x
-  #     - name: Build wheels
-  #       uses: PyO3/maturin-action@v1
-  #       with:
-  #         target: ${{ matrix.platform.target }}
-  #         args: --release --out dist --find-interpreter --manifest-path python/Cargo.toml -F openssl-vendored
-  #         sccache: 'true'
-  #         manylinux: musllinux_1_2
-  #     - name: Upload wheels
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: wheels-musllinux-${{ matrix.platform.target }}
-  #         path: dist
-
-  windows:
-    runs-on: ${{ matrix.platform.runner }}
-    strategy:
-      matrix:
-        platform:
-          - runner: windows-latest
-            target: x64
-          - runner: windows-latest
-            target: x86
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Rust cache
-        uses: Swatinem/rust-cache@v2
-      - uses: actions/setup-python@v5
-        with:
-          python-version: 3.x
-          architecture: ${{ matrix.platform.target }}
-      - name: Build wheels
-        uses: PyO3/maturin-action@v1
-        with:
-          target: ${{ matrix.platform.target }}
-          args: --release --out dist --find-interpreter --manifest-path python/Cargo.toml
-          sccache: "true"
-      - name: Upload wheels
-        uses: actions/upload-artifact@v4
-        with:
-          name: wheels-windows-${{ matrix.platform.target }}
-          path: dist
-
-  macos:
-    runs-on: ${{ matrix.platform.runner }}
-    strategy:
-      matrix:
-        platform:
-          - runner: macos-12
-            target: x86_64
-          - runner: macos-14
+        os: [linux, macos, windows]
+        target: [x86_64, aarch64]
+        manylinux: [auto]
+        include:
+          - os: linux
+            manylinux: auto
+            target: i686
+          - os: linux
+            manylinux: auto
             target: aarch64
+          - os: linux
+            manylinux: auto
+            target: armv7
+          - os: linux
+            manylinux: auto
+            target: ppc64le
+          - os: linux
+            manylinux: auto
+            target: s390x
+
+          - os: linux
+            manylinux: musllinux_1_1
+            target: x86_64
+          - os: linux
+            manylinux: musllinux_1_1
+            target: aarch64
+          - os: linux
+            manylinux: musllinux_1_1
+            target: armv7
+
+          - os: macos
+            target: x86_64
+          - os: macos
+            target: aarch64
+
+          - os: windows
+            target: x86_64
+          - os: windows
+            target: i686
+            python-architecture: x86
+          - os: windows
+            target: aarch64
+
+    runs-on: ${{ (matrix.os == 'linux' && 'ubuntu') || matrix.os }}-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Rust cache
-        uses: Swatinem/rust-cache@v2
       - uses: actions/setup-python@v5
         with:
-          python-version: 3.x
+          python-version: "3.13"
+          architecture: ${{ matrix.python-architecture || 'x64' }}
+      - name: Set up Rust cache
+        uses: Swatinem/rust-cache@v2
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
-          target: ${{ matrix.platform.target }}
-          args: --release --out dist --find-interpreter --manifest-path python/Cargo.toml
+          target: ${{ matrix.target }}
+          manylinux: ${{ matrix.manylinux }}
+          args: --release --out dist --interpreter "3.8 3.9 3.10 3.11 3.12 3.13 pypy3.9 pypy3.10" --manifest-path python/Cargo.toml
           sccache: "true"
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
-          name: wheels-macos-${{ matrix.platform.target }}
+          name: pypi_files_${{ matrix.os }}_${{ matrix.target }}_all_${{ matrix.manylinux }}
           path: dist
 
   sdist:
@@ -155,14 +102,14 @@ jobs:
           name: wheels-sdist
           path: dist
 
+  # 🤔 should we test out built wheels here? seems nice
+
   release:
     name: Release
     runs-on: ubuntu-latest
+    if: success() && startsWith(github.ref, 'refs/tags/')
     needs:
-      - linux
-      # - musllinux
-      - windows
-      - macos
+      - build-wheels
       - sdist
     environment:
       name: pypi
@@ -171,6 +118,9 @@ jobs:
       id-token: write
     steps:
       - uses: actions/download-artifact@v4
+        with:
+          pattern: pypi_files_*
+          merge-multiple: true
       - name: Publish to PyPI
         uses: PyO3/maturin-action@v1
         with:
