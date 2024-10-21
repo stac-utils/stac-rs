@@ -25,10 +25,6 @@ jobs:
           - os: linux
             manylinux: auto
             target: ppc64le
-          - os: linux
-            manylinux: auto
-            target: x86_64
-            interpreter: pypy3.9 pypy3.10
 
           - os: linux
             manylinux: musllinux_1_1
@@ -60,6 +56,9 @@ jobs:
           - os: linux
             manylinux: auto
             target: s390x
+          - os: linux
+            manylinux: auto
+            target: x86_64
           - os: windows
             target: aarch64
 
