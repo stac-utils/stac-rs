@@ -27,12 +27,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
+      - name: Test
+        run: cargo test -p stac --all-features
+  check-features-core:
+    name: Check stac features
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: crates/core
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
       - name: Install check-all-features
         run: cargo install cargo-all-features
       - name: Check
         run: cargo check-all-features
-      - name: Test
-        run: cargo test -p stac --all-features
   test-api:
     name: Test stac-api
     runs-on: ubuntu-latest
