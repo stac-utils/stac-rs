@@ -80,7 +80,7 @@ jobs:
           target: ${{ matrix.target }}
           manylinux: ${{ matrix.manylinux }}
           args: --release --out dist --interpreter ${{ matrix.interpreter || '3.8 3.9 3.10 3.11 3.12 3.13 pypy3.9 pypy3.10' }} --manifest-path python/Cargo.toml
-          before-script-linux: sudo apt-get install libssl-dev
+          before-script-linux: sudo apt-get update && sudo apt-get install libssl-dev
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
