@@ -80,6 +80,7 @@ jobs:
           target: ${{ matrix.target }}
           manylinux: ${{ matrix.manylinux }}
           args: --release --out dist --interpreter ${{ matrix.interpreter || '3.8 3.9 3.10 3.11 3.12 3.13 pypy3.9 pypy3.10' }} --manifest-path python/Cargo.toml
+          rust-toolchain: 1.81 # https://github.com/geoarrow/geoarrow-rs/issues/716
           before-script-linux: |
             # If we're running on rhel centos, install needed packages.
             if command -v yum &> /dev/null; then
