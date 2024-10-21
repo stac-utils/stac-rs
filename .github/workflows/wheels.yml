@@ -87,7 +87,7 @@ jobs:
                 fi
             else
                 # If we're running on debian-based system.
-                apt update -y && apt-get install -y libssl-dev openssl pkg-config
+                apt update -y && apt-get install -y libssl-dev openssl pkg-config build-essential
             fi
       - name: Upload wheels
         uses: actions/upload-artifact@v4
