@@ -31,6 +31,7 @@ stac = { workspace = true, features = [
 ] }
 stac-api = { workspace = true, features = ["client"] }
 stac-duckdb.workspace = true
+openssl.workspace = true # only so we can vendor it when cross-compiling
 tokio = { workspace = true, features = ["rt"] }
 
 [package.metadata.cross.target.x86_64-unknown-linux-gnu]

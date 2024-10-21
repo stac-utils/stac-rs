@@ -55,6 +55,7 @@ log = "0.4.22"
 mime = "0.3.17"
 mockito = "1.5"
 object_store = "0.11.0"
+openssl = { version = "0.10.68", features = ["vendored"] }
 parquet = { version = "52.2", default-features = false }
 pgstac = { version = "0.2.1", path = "crates/pgstac" }
 pyo3 = "0.22.3"
