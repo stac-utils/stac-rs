@@ -70,7 +70,7 @@ jobs:
       - name: Check
         run: cargo check-all-features
       - name: Test
-        run: cargo test -F duckdb/bundled --all-features
+        run: cargo test -p stac-cli -F duckdb/bundled --all-features
       - name: Install
         run: uv sync
       - name: Smoke test
