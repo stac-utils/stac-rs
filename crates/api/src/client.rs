@@ -3,8 +3,8 @@
 use crate::{Error, GetItems, Item, ItemCollection, Items, Result, Search, UrlBuilder};
 use async_stream::try_stream;
 use futures::{pin_mut, Stream, StreamExt};
-use http::header::HeaderName;
-use reqwest::{header::HeaderMap, IntoUrl, Method, StatusCode};
+use http::header::{HeaderName, USER_AGENT};
+use reqwest::{header::HeaderMap, ClientBuilder, IntoUrl, Method, StatusCode};
 use serde::{de::DeserializeOwned, Serialize};
 use serde_json::{Map, Value};
 use stac::{Collection, Href, Link, Links};
@@ -47,7 +47,13 @@ impl Client {
     /// ```
     pub fn new(url: &str) -> Result<Client> {
         // TODO support HATEOS (aka look up the urls from the root catalog)
-        Client::with_client(reqwest::Client::new(), url)
+        let mut headers = HeaderMap::new();
+        let _ = headers.insert(
+            USER_AGENT,
+            format!("stac-rs/{}", env!("CARGO_PKG_VERSION")).parse()?,
+        );
+        let client = ClientBuilder::new().default_headers(headers).build()?;
+        Client::with_client(client, url)
     }
 
     /// Creates a new API client with the given [Client].
@@ -156,6 +162,7 @@ impl Client {
     /// ```
     pub async fn search(&self, search: Search) -> Result<impl Stream<Item = Result<Item>>> {
         let url = self.url_builder.search().clone();
+        tracing::debug!("searching {url}");
         // TODO support GET
         let page = self.post(url.clone(), &search).await?;
         Ok(stream_items(self.clone(), page, self.channel_buffer))
@@ -523,5 +530,21 @@ mod tests {
             .await;
         page.assert_async().await;
         assert!(items.is_empty());
+    }
+
+    #[tokio::test]
+    async fn user_agent() {
+        let mut server = Server::new_async().await;
+        let _ = server
+            .mock("POST", "/search")
+            .with_body_from_file("mocks/items-page-1.json")
+            .match_header(
+                "user-agent",
+                format!("stac-rs/{}", env!("CARGO_PKG_VERSION")).as_str(),
+            )
+            .create_async()
+            .await;
+        let client = Client::new(&server.url()).unwrap();
+        let _ = client.search(Default::default()).await.unwrap();
     }
 }
