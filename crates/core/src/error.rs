@@ -38,7 +38,7 @@ pub enum Error {
 
     /// [geojson::Error]
     #[error(transparent)]
-    Geojson(#[from] geojson::Error),
+    Geojson(#[from] Box<geojson::Error>),
 
     /// [std::io::Error]
     #[error(transparent)]
@@ -111,15 +111,15 @@ pub enum Error {
 
     /// This value is not an item.
     #[error("value is not an item")]
-    NotAnItem(Value),
+    NotAnItem(Box<Value>),
 
     /// This value is not a catalog.
     #[error("value is not a catalog")]
-    NotACatalog(Value),
+    NotACatalog(Box<Value>),
 
     /// This value is not a collection.
     #[error("value is not a collection")]
-    NotACollection(Value),
+    NotACollection(Box<Value>),
 
     /// This value is not an object.
     #[error("not an object")]

@@ -12,8 +12,9 @@ use tokio::runtime::Builder;
 
 #[pyfunction]
 #[pyo3(signature = (href, *, intersects=None, ids=None, collections=None, max_items=None, limit=None, bbox=None, datetime=None, include=None, exclude=None, sortby=None, filter=None, query=None, use_duckdb=None))]
-pub fn search<'py>(
-    py: Python<'py>,
+#[allow(clippy::too_many_arguments)]
+pub fn search(
+    py: Python<'_>,
     href: String,
     intersects: Option<StringOrDict>,
     ids: Option<StringOrList>,
@@ -28,7 +29,7 @@ pub fn search<'py>(
     filter: Option<StringOrDict>,
     query: Option<Py<PyDict>>,
     use_duckdb: Option<bool>,
-) -> PyResult<Bound<'py, PyList>> {
+) -> PyResult<Bound<'_, PyList>> {
     let items = search_items(
         href,
         intersects,
@@ -52,6 +53,7 @@ pub fn search<'py>(
 
 #[pyfunction]
 #[pyo3(signature = (outfile, href, *, intersects=None, ids=None, collections=None, max_items=None, limit=None, bbox=None, datetime=None, include=None, exclude=None, sortby=None, filter=None, query=None, format=None, options=None, use_duckdb=None))]
+#[allow(clippy::too_many_arguments)]
 pub fn search_to(
     outfile: String,
     href: String,
@@ -106,6 +108,7 @@ pub fn search_to(
     Ok(count)
 }
 
+#[allow(clippy::too_many_arguments)]
 fn search_items(
     href: String,
     intersects: Option<StringOrDict>,
@@ -207,7 +210,7 @@ impl StringOrDict {
         match self {
             Self::String(s) => s.parse().map_err(Error::from).map_err(PyErr::from),
             Self::Dict(dict) => {
-                Python::with_gil(|py| pythonize::depythonize(&dict.bind(py))).map_err(PyErr::from)
+                Python::with_gil(|py| pythonize::depythonize(dict.bind(py))).map_err(PyErr::from)
             }
         }
     }

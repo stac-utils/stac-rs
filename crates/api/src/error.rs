@@ -23,7 +23,7 @@ pub enum Error {
 
     /// [geojson::Error]
     #[error(transparent)]
-    GeoJson(#[from] geojson::Error),
+    GeoJson(#[from] Box<geojson::Error>),
 
     /// An empty datetime interval.
     #[error("empty datetime interval")]
@@ -77,7 +77,7 @@ pub enum Error {
 
     /// A search has both bbox and intersects.
     #[error("search has bbox and intersects")]
-    SearchHasBboxAndIntersects(Search),
+    SearchHasBboxAndIntersects(Box<Search>),
 
     /// [serde_json::Error]
     #[error(transparent)]

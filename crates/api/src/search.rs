@@ -96,7 +96,7 @@ impl Search {
     pub fn valid(mut self) -> Result<Search> {
         self.items = self.items.valid()?;
         if self.items.bbox.is_some() & self.intersects.is_some() {
-            Err(Error::SearchHasBboxAndIntersects(self.clone()))
+            Err(Error::SearchHasBboxAndIntersects(Box::new(self.clone())))
         } else {
             Ok(self)
         }
@@ -200,7 +200,7 @@ impl Search {
         if let Some(intersects) = self.intersects.clone() {
             #[cfg(feature = "geo")]
             {
-                let intersects: geo::Geometry = intersects.try_into()?;
+                let intersects: geo::Geometry = intersects.try_into().map_err(Box::new)?;
                 item.intersects(&intersects).map_err(Error::from)
             }
             #[cfg(not(feature = "geo"))]

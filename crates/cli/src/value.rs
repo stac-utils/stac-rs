@@ -7,7 +7,7 @@ use stac::{IntoGeoparquet, ToNdjson};
 #[serde(untagged)]
 pub enum Value {
     /// A STAC value.
-    Stac(stac::Value),
+    Stac(Box<stac::Value>),
 
     /// A JSON value.
     Json(serde_json::Value),
@@ -15,7 +15,7 @@ pub enum Value {
 
 impl From<stac::Value> for Value {
     fn from(value: stac::Value) -> Self {
-        Value::Stac(value)
+        Value::Stac(Box::new(value))
     }
 }
 
@@ -35,7 +35,7 @@ impl TryFrom<Value> for stac::Value {
     type Error = Error;
     fn try_from(value: Value) -> Result<Self> {
         match value {
-            Value::Stac(value) => Ok(value),
+            Value::Stac(value) => Ok(*value),
             Value::Json(value) => serde_json::from_value(value).map_err(Error::from),
         }
     }

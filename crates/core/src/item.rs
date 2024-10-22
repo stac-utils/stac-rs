@@ -428,7 +428,7 @@ impl Item {
         T: geo::Intersects<geo::Geometry>,
     {
         if let Some(geometry) = self.geometry.clone() {
-            let geometry: geo::Geometry = geometry.try_into()?;
+            let geometry: geo::Geometry = geometry.try_into().map_err(Box::new)?;
             Ok(intersects.intersects(&geometry))
         } else {
             Ok(false)
@@ -456,7 +456,7 @@ impl Item {
         use geo::Intersects;
 
         if let Some(geometry) = self.geometry.clone() {
-            let geometry: geo::Geometry = geometry.try_into()?;
+            let geometry: geo::Geometry = geometry.try_into().map_err(Box::new)?;
             Ok(geometry.intersects(&bbox))
         } else {
             Ok(false)
