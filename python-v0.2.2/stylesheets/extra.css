@@ -1,0 +1,15 @@
+:root {
+    --md-primary-fg-color: rgb(55, 108, 129);
+    --md-primary-fg-color--light: rgb(228, 246, 251);
+    --md-primary-fg-color--dark: rgb(26, 78, 99);
+    --md-accent-fg-color: rgb(78, 180, 174);
+    --md-accent-fg-color--transparent: rgba(78, 180, 174, 0.5);
+}
+
+[data-md-color-scheme="stac"] {
+    --md-primary-fg-color: rgb(55, 108, 129);
+    --md-primary-fg-color--light: rgb(228, 246, 251);
+    --md-primary-fg-color--dark: rgb(26, 78, 99);
+    --md-accent-fg-color: rgb(78, 180, 174);
+    --md-accent-fg-color--transparent: rgba(78, 180, 174, 0.5);
+}
