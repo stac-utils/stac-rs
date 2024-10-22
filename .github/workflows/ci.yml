@@ -60,14 +60,24 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@1.81
       - uses: Swatinem/rust-cache@v2
+      - name: Test
+        run: cargo test -p stac-cli --all-features
+  test-cli-python:
+    name: Test stacrs-cli (python)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: crates/cli
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.81
+      - uses: Swatinem/rust-cache@v2
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
       - uses: astral-sh/setup-uv@v3
         with:
           enable-cache: true
-      - name: Test
-        run: cargo test -p stac-cli --all-features
       - name: Install
         run: uv sync
       - name: Smoke test
