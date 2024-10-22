@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 
 - `version` ([#476](https://github.com/stac-utils/stac-rs/pull/476))
+- Set user agent when searching ([#487](https://github.com/stac-utils/stac-rs/pull/487))
 
 ## [0.6.0] - 2024-09-19
 

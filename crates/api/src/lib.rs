@@ -120,6 +120,8 @@ pub fn version() -> &'static str {
     env!("CARGO_PKG_VERSION")
 }
 
+#[cfg(not(feature = "client"))]
+use tracing as _;
 #[cfg(test)]
 use {geojson as _, tokio_test as _};
 #[cfg(all(not(feature = "client"), test))]
