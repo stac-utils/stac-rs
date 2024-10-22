@@ -58,6 +58,7 @@ jobs:
         working-directory: crates/cli
     steps:
       - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.81
       - uses: Swatinem/rust-cache@v2
       - uses: actions/setup-python@v5
         with:
@@ -65,12 +66,8 @@ jobs:
       - uses: astral-sh/setup-uv@v3
         with:
           enable-cache: true
-      - name: Install check-all-features
-        run: cargo install cargo-all-features
-      - name: Check
-        run: cargo check-all-features
       - name: Test
-        run: cargo test -p stac-cli -F duckdb/bundled --all-features
+        run: cargo test -p stac-cli --all-features
       - name: Install
         run: uv sync
       - name: Smoke test
