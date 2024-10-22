@@ -42,11 +42,13 @@ impl Run for Args {
             let _ = join_set.spawn(async move { args.run(input, sender).await });
         }
         while let Some(result) = join_set.join_next().await {
-            if let Some(Value::Stac(stac::Value::Item(item))) = result?? {
-                if let Some(ref stream) = stream {
-                    stream.send(stac::Value::Item(item).into()).await?;
-                } else {
-                    items.push(item);
+            if let Some(Value::Stac(value)) = result?? {
+                if let stac::Value::Item(item) = *value {
+                    if let Some(ref stream) = stream {
+                        stream.send(stac::Value::Item(item).into()).await?;
+                    } else {
+                        items.push(item);
+                    }
                 }
             }
         }

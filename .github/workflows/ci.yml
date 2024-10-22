@@ -169,7 +169,7 @@ jobs:
       - name: Fmt
         run: cargo fmt
       - name: Clippy
-        run: cargo clippy --all --all-features
+        run: cargo clippy --workspace --all-features
   check-nightly:
     name: Check (nightly)
     runs-on: ubuntu-latest

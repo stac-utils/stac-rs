@@ -9,12 +9,12 @@ use tokio::runtime::Builder;
 
 #[pyfunction]
 #[pyo3(signature = (href, *, format=None, options=None))]
-pub fn read<'py>(
-    py: Python<'py>,
+pub fn read(
+    py: Python<'_>,
     href: String,
     format: Option<String>,
     options: Option<Vec<(String, String)>>,
-) -> PyResult<Bound<'py, PyDict>> {
+) -> PyResult<Bound<'_, PyDict>> {
     let format = format
         .and_then(|f| f.parse::<Format>().ok())
         .or_else(|| Format::infer_from_href(&href))
