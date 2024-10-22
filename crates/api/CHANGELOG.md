@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.6.1] - 2024-10-22
+
 ### Added
 
 - `version` ([#476](https://github.com/stac-utils/stac-rs/pull/476))
@@ -128,7 +130,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 Initial release
 
-[unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-api-v0.6.0...main
+[unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-api-v0.6.1...main
+[0.6.1]: https://github.com/stac-utils/stac-rs/compare/stac-api-v0.6.0...stac-api-v0.6.1
 [0.6.0]: https://github.com/stac-utils/stac-rs/compare/stac-api-v0.5.0...stac-api-v0.6.0
 [0.5.0]: https://github.com/stac-utils/stac-rs/compare/stac-api-v0.4.1...stac-api-v0.5.0
 [0.4.1]: https://github.com/stac-utils/stac-rs/compare/stac-api-v0.4.0...stac-api-v0.4.1
