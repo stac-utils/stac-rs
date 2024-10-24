@@ -1,5 +1,4 @@
-use super::{Input, Run};
-use crate::{Error, Result, Value};
+use crate::{input::Input, run::Run, Error, Result, Value};
 use stac::{Migrate, Version, STAC_VERSION};
 use tokio::sync::mpsc::Sender;
 
