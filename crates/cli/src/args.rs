@@ -2,15 +2,14 @@
 
 // The verbosity stuff is cribbed from https://github.com/clap-rs/clap-verbosity-flag/blob/c621a6a8a7c0b6df8f1464a985a5d076b4915693/src/lib.rs and updated for tracing
 
-mod item;
-mod items;
-mod migrate;
-mod search;
-mod serve;
-mod translate;
-mod validate;
-
-use crate::{input::Input, options::KeyValue, output::Output, Result, Value};
+use crate::{
+    input::Input,
+    options::KeyValue,
+    output::Output,
+    run::Run,
+    subcommand::{item, items, migrate, search, serve, translate, validate},
+    Result, Value,
+};
 use clap::Parser;
 use stac::Format;
 use tokio::{sync::mpsc::Sender, task::JoinHandle};
@@ -104,18 +103,6 @@ enum Subcommand {
 
 #[derive(Copy, Clone, Debug, Default)]
 struct ErrorLevel;
-
-trait Run {
-    async fn run(self, input: Input, stream: Option<Sender<Value>>) -> Result<Option<Value>>;
-
-    fn take_infile(&mut self) -> Option<String> {
-        None
-    }
-
-    fn take_outfile(&mut self) -> Option<String> {
-        None
-    }
-}
 
 impl Args {
     /// Returns the tracing log level for these args.

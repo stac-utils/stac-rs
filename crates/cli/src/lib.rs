@@ -50,6 +50,8 @@ mod options;
 mod output;
 #[cfg(feature = "python")]
 mod python;
+mod run;
+mod subcommand;
 mod value;
 
 pub use {args::Args, error::Error, value::Value};

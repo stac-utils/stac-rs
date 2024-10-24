@@ -1,5 +1,4 @@
-use super::{Input, Run};
-use crate::{Result, Value};
+use crate::{input::Input, run::Run, Result, Value};
 use tokio::sync::mpsc::Sender;
 
 /// Arguments for the `translate` subcommand.
