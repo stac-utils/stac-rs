@@ -652,7 +652,7 @@ impl TryFrom<Feature> for Item {
             item.additional_fields = feature.foreign_members.unwrap_or_default();
             Ok(item)
         } else {
-            Err(Error::MissingId)
+            Err(Error::MissingField("id"))
         }
     }
 }
