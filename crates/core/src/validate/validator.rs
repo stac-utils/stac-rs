@@ -126,19 +126,21 @@ impl Validator {
         // We have to pinbox because recursive async aren't allowed.
         let validator = self.clone();
         Box::pin(async move {
-            let r#type: Type = object
-                .get("type")
-                .and_then(|v| v.as_str())
-                .map(|t| t.parse::<Type>())
-                .transpose()?
-                .ok_or(Error::MissingField("type"))?;
-            if r#type == Type::ItemCollection {
-                if let Some(features) = object.get("features") {
-                    return validator.validate(features).await;
-                } else {
-                    return Ok(());
+            let r#type = if let Some(r#type) = object.get("type").and_then(|v| v.as_str()) {
+                let r#type: Type = r#type.parse()?;
+                if r#type == Type::ItemCollection {
+                    if let Some(features) = object.get("features") {
+                        return validator.validate(features).await;
+                    } else {
+                        return Ok(());
+                    }
                 }
-            }
+                r#type
+            } else if let Some(collections) = object.get("collections").and_then(|v| v.as_array()) {
+                return validator.validate(collections).await;
+            } else {
+                return Err(Error::MissingField("type"));
+            };
             let version: Version = object
                 .get("stac_version")
                 .and_then(|v| v.as_str())
@@ -430,8 +432,10 @@ fn cache() -> HashMap<Uri<String>, Value> {
 
 #[cfg(test)]
 mod tests {
+    use serde_json::json;
+
     use super::Validator;
-    use crate::Item;
+    use crate::{Collection, Item, Validate};
 
     #[tokio::test]
     async fn validate_array() {
@@ -441,5 +445,14 @@ mod tests {
             .collect();
         let validator = Validator::new().await.unwrap();
         validator.validate(&items).await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn validate_collections() {
+        let collection: Collection = crate::read("examples/collection.json").unwrap();
+        let collections = json!({
+            "collections": [collection]
+        });
+        collections.validate().await.unwrap();
     }
 }
