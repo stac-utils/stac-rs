@@ -10,9 +10,6 @@ use serde_json::{Map, Value};
 use std::{collections::HashMap, path::Path};
 use url::Url;
 
-/// The type field for [Items](Item).
-pub const ITEM_TYPE: &str = "Feature";
-
 const TOP_LEVEL_ATTRIBUTES: [&str; 8] = [
     "type",
     "stac_extensions",
@@ -32,14 +29,8 @@ const TOP_LEVEL_ATTRIBUTES: [&str; 8] = [
 /// enables any client to search or crawl online catalogs of spatial 'assets'
 /// (e.g., satellite imagery, derived data, DEMs).
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+#[serde(tag = "type", rename = "Feature")]
 pub struct Item {
-    /// Type of the GeoJSON Object. MUST be set to `"Feature"`.
-    #[serde(
-        deserialize_with = "deserialize_type",
-        serialize_with = "serialize_type"
-    )]
-    r#type: String,
-
     /// The STAC version the `Item` implements.
     #[serde(rename = "stac_version")]
     pub version: Version,
@@ -107,10 +98,8 @@ pub struct Item {
 /// [stac-geoparquet](https://github.com/stac-utils/stac-geoparquet/blob/main/spec/stac-geoparquet-spec.md),
 /// use this "flat" representation.
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(tag = "type", rename = "Feature")]
 pub struct FlatItem {
-    #[serde(default = "default_type")]
-    r#type: String,
-
     #[serde(rename = "stac_version", default = "default_stac_version")]
     version: Version,
 
@@ -334,7 +323,6 @@ impl Item {
     /// ```
     pub fn new(id: impl ToString) -> Item {
         Item {
-            r#type: ITEM_TYPE.to_string(),
             version: STAC_VERSION,
             extensions: Vec::new(),
             id: id.to_string(),
@@ -560,7 +548,6 @@ impl Item {
             }
         }
         Ok(FlatItem {
-            r#type: ITEM_TYPE.to_string(),
             version: STAC_VERSION,
             extensions: self.extensions,
             id: self.id,
@@ -677,26 +664,8 @@ impl TryFrom<Item> for Feature {
     }
 }
 
-fn deserialize_type<'de, D>(deserializer: D) -> std::result::Result<String, D::Error>
-where
-    D: serde::de::Deserializer<'de>,
-{
-    crate::deserialize_type(deserializer, ITEM_TYPE)
-}
-
-fn serialize_type<S>(r#type: &String, serializer: S) -> std::result::Result<S::Ok, S::Error>
-where
-    S: serde::ser::Serializer,
-{
-    crate::serialize_type(r#type, serializer, ITEM_TYPE)
-}
-
 fn default_stac_version() -> Version {
     STAC_VERSION
-}
-
-fn default_type() -> String {
-    ITEM_TYPE.to_string()
 }
 
 impl Migrate for Item {}
@@ -706,7 +675,6 @@ mod tests {
     use super::{Builder, FlatItem, Item};
     use crate::{Asset, STAC_VERSION};
     use geojson::{feature::Id, Feature};
-    use serde_json::Value;
 
     #[test]
     fn new() {
@@ -715,7 +683,6 @@ mod tests {
         assert!(item.properties.datetime.is_some());
         assert!(item.assets.is_empty());
         assert!(item.collection.is_none());
-        assert_eq!(item.r#type, "Feature");
         assert_eq!(item.version, STAC_VERSION);
         assert!(item.extensions.is_empty());
         assert_eq!(item.id, "an-id");
@@ -729,22 +696,6 @@ mod tests {
         assert!(value.get("stac_extensions").is_none());
         assert!(value.get("bbox").is_none());
         assert!(value.get("collection").is_none());
-    }
-
-    #[test]
-    fn deserialize_invalid_type_field() {
-        let mut item: Value =
-            serde_json::to_value(crate::read::<Item>("examples/simple-item.json").unwrap())
-                .unwrap();
-        item["type"] = "Item".into(); // must be "Feature"
-        assert!(serde_json::from_value::<Item>(item).is_err());
-    }
-
-    #[test]
-    fn serialize_invalid_type_field() {
-        let mut item = Item::new("an-id");
-        item.r#type = "Item".to_string(); // must be "Feature"
-        assert!(serde_json::to_value(item).is_err());
     }
 
     #[test]

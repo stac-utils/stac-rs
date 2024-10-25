@@ -3,13 +3,11 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::{ops::Deref, vec::IntoIter};
 
-/// The type field for [ItemCollections](ItemCollection).
-pub const ITEM_COLLECTION_TYPE: &str = "FeatureCollection";
-
 /// A [GeoJSON FeatureCollection](https://www.rfc-editor.org/rfc/rfc7946#page-12) of items.
 ///
 /// While not part of the STAC specification, ItemCollections are often used to store many items in a single file.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+#[serde(tag = "type", rename = "FeatureCollection")]
 pub struct ItemCollection {
     /// The list of [Items](Item).
     ///
@@ -25,15 +23,6 @@ pub struct ItemCollection {
     #[serde(flatten)]
     pub additional_fields: Map<String, Value>,
 
-    /// The type field.
-    ///
-    /// Must be set to "FeatureCollection".
-    #[serde(
-        deserialize_with = "deserialize_type",
-        serialize_with = "serialize_type"
-    )]
-    r#type: String,
-
     #[serde(skip)]
     href: Option<String>,
 }
@@ -41,7 +30,6 @@ pub struct ItemCollection {
 impl From<Vec<Item>> for ItemCollection {
     fn from(items: Vec<Item>) -> Self {
         ItemCollection {
-            r#type: ITEM_COLLECTION_TYPE.to_string(),
             items,
             links: Vec::new(),
             additional_fields: Map::new(),
@@ -92,20 +80,6 @@ impl Links for ItemCollection {
     fn links_mut(&mut self) -> &mut Vec<Link> {
         &mut self.links
     }
-}
-
-fn deserialize_type<'de, D>(deserializer: D) -> Result<String, D::Error>
-where
-    D: serde::de::Deserializer<'de>,
-{
-    crate::deserialize_type(deserializer, ITEM_COLLECTION_TYPE)
-}
-
-fn serialize_type<S>(r#type: &String, serializer: S) -> Result<S::Ok, S::Error>
-where
-    S: serde::ser::Serializer,
-{
-    crate::serialize_type(r#type, serializer, ITEM_COLLECTION_TYPE)
 }
 
 impl Migrate for ItemCollection {
