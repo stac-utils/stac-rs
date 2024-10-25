@@ -154,7 +154,7 @@ impl Validator {
             let value = Arc::new(Value::Object(object));
             let mut result = schema
                 .validate(&value)
-                .map_err(Error::from_validation_errors);
+                .map_err(|e| Error::from_validation_errors(e, Some(&value)));
             if result.is_ok() {
                 result = validator.validate_extensions(value.clone()).await
             }
@@ -201,7 +201,7 @@ impl Validator {
                     let extension_schema = validator.schema(extension).await?;
                     extension_schema
                         .validate(&value)
-                        .map_err(Error::from_validation_errors)
+                        .map_err(|errors| Error::from_validation_errors(errors, Some(&value)))
                 });
             }
         }
@@ -232,10 +232,7 @@ impl Validator {
         let schema = {
             let cache = self.cache.read().unwrap();
             let value = cache.get(&uri).expect("we just resolved it");
-            let schema = self
-                .validation_options
-                .build(value)
-                .map_err(|err| Error::from_validation_errors([err].into_iter()))?;
+            let schema = self.validation_options.build(value)?;
             Arc::new(schema)
         };
         {

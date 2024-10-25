@@ -1,6 +1,4 @@
 use crate::Version;
-#[cfg(feature = "validate")]
-use jsonschema::ValidationError;
 use thiserror::Error;
 
 /// Error enum for crate-specific errors.
@@ -135,33 +133,84 @@ pub enum Error {
     Url(#[from] url::ParseError),
 
     /// A list of validation errors.
-    ///
-    /// Since we usually don't have the original [serde_json::Value] (because we
-    /// create them from the STAC objects), we need these errors to be `'static`
-    /// lifetime.
-    #[error("validation errors")]
+    #[error("{} validation error(s)", .0.len())]
     #[cfg(feature = "validate")]
-    Validation(Vec<ValidationError<'static>>),
+    Validation(Vec<Validation>),
+
+    /// [jsonschema::ValidationError]
+    #[cfg(feature = "validate")]
+    #[error(transparent)]
+    JsonschemaValidation(#[from] jsonschema::ValidationError<'static>),
+}
+
+/// A validation error
+#[cfg(feature = "validate")]
+#[derive(Debug)]
+pub struct Validation {
+    /// The ID of the STAC object that failed to validate.
+    id: Option<String>,
+
+    /// The type of the STAC object that failed to validate.
+    r#type: Option<crate::Type>,
+
+    /// The validation error.
+    error: jsonschema::ValidationError<'static>,
+}
+
+#[cfg(feature = "validate")]
+impl Validation {
+    pub(crate) fn new(
+        error: jsonschema::ValidationError<'_>,
+        value: Option<&serde_json::Value>,
+    ) -> Validation {
+        use std::borrow::Cow;
+
+        // Cribbed from https://docs.rs/jsonschema/latest/src/jsonschema/error.rs.html#21-30
+        let error = jsonschema::ValidationError {
+            instance_path: error.instance_path.clone(),
+            instance: Cow::Owned(error.instance.into_owned()),
+            kind: error.kind,
+            schema_path: error.schema_path,
+        };
+        let mut id = None;
+        let mut r#type = None;
+        if let Some(value) = value.and_then(|v| v.as_object()) {
+            id = value.get("id").and_then(|v| v.as_str()).map(String::from);
+            r#type = value
+                .get("type")
+                .and_then(|v| v.as_str())
+                .and_then(|s| s.parse::<crate::Type>().ok());
+        }
+        Validation { id, r#type, error }
+    }
 }
 
 #[cfg(feature = "validate")]
 impl Error {
-    pub(crate) fn from_validation_errors<'a, I>(errors: I) -> Error
+    pub(crate) fn from_validation_errors<'a, I>(
+        errors: I,
+        value: Option<&serde_json::Value>,
+    ) -> Error
     where
-        I: Iterator<Item = ValidationError<'a>>,
+        I: Iterator<Item = jsonschema::ValidationError<'a>>,
     {
-        use std::borrow::Cow;
+        Error::Validation(errors.map(|error| Validation::new(error, value)).collect())
+    }
+}
 
-        let mut error_vec = Vec::new();
-        for error in errors {
-            // Cribbed from https://docs.rs/jsonschema/latest/src/jsonschema/error.rs.html#21-30
-            error_vec.push(ValidationError {
-                instance_path: error.instance_path.clone(),
-                instance: Cow::Owned(error.instance.into_owned()),
-                kind: error.kind,
-                schema_path: error.schema_path,
-            })
+#[cfg(feature = "validate")]
+impl std::fmt::Display for Validation {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if let Some(r#type) = self.r#type {
+            if let Some(id) = self.id.as_ref() {
+                write!(f, "{}[id={id}]: {}", r#type, self.error)
+            } else {
+                write!(f, "{}: {}", r#type, self.error)
+            }
+        } else if let Some(id) = self.id.as_ref() {
+            write!(f, "[id={id}]: {}", self.error)
+        } else {
+            write!(f, "{}", self.error)
         }
-        Error::Validation(error_vec)
     }
 }

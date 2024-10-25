@@ -178,6 +178,8 @@ mod validate;
 mod value;
 mod version;
 
+use std::fmt::Display;
+
 #[cfg(feature = "validate-blocking")]
 pub use validate::ValidateBlocking;
 #[cfg(feature = "validate")]
@@ -294,6 +296,12 @@ where
 {
     fn eq(&self, other: &T) -> bool {
         self.as_str() == other.as_ref()
+    }
+}
+
+impl Display for Type {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.as_str())
     }
 }
 
