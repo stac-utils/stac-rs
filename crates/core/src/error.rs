@@ -1,7 +1,6 @@
-use crate::{Value, Version};
+use crate::Version;
 #[cfg(feature = "validate")]
 use jsonschema::ValidationError;
-use serde_json::Value as JsonValue;
 use thiserror::Error;
 
 /// Error enum for crate-specific errors.
@@ -12,11 +11,6 @@ pub enum Error {
     #[error(transparent)]
     #[cfg(feature = "geoarrow")]
     Arrow(#[from] arrow_schema::ArrowError),
-
-    /// Cannot validate a non-object, non-array
-    #[error("value is not an object or an array, cannot validate")]
-    #[cfg(feature = "validate")]
-    CannotValidate(serde_json::Value),
 
     /// [chrono::ParseError]
     #[error(transparent)]
@@ -44,10 +38,6 @@ pub enum Error {
     #[error(transparent)]
     Io(#[from] std::io::Error),
 
-    /// Returned when the `type` field of a STAC object is not a [String].
-    #[error("invalid \"type\" field: {0}")]
-    InvalidTypeField(JsonValue),
-
     /// Returned when a property name conflicts with a top-level STAC field, or
     /// it's an invalid top-level field name.
     #[error("invalid attribute name: {0}")]
@@ -58,6 +48,7 @@ pub enum Error {
     IncorrectType {
         /// The actual type field on the object.
         actual: String,
+
         /// The expected value.
         expected: String,
     },
@@ -70,59 +61,20 @@ pub enum Error {
     #[error("invalid datetime: {0}")]
     InvalidDatetime(String),
 
-    /// Returned when there is not a `id` field on a STAC object
-    #[error("no \"id\" field in the JSON object")]
-    MissingId,
-
-    /// Returned when a geometry is missing but is required.
-    #[error("no geometry field")]
-    #[deprecated(since = "0.10.2", note = "renamed to NoGeometry")]
-    MissingGeometry,
-
-    /// Returned when there is not a `type` field on a STAC object
-    #[error("no \"type\" field in the JSON object")]
-    #[deprecated(since = "0.10.2", note = "renamed to NoType")]
-    MissingType,
-
-    /// Returned when an object is expected to have an href, but it doesn't.
-    #[error("object has no href")]
-    #[deprecated(since = "0.10.2", note = "use to NoHref")]
-    MissingHref,
-
-    /// There is no geometry.
-    #[error("no geometry")]
-    NoGeometry,
-
-    /// There are no items, when items are required.
-    #[error("no items")]
-    NoItems,
+    /// Returned when there is not a required field on a STAC object
+    #[error("no \"{0}\" field in the JSON object")]
+    MissingField(&'static str),
 
     /// There is not an href, when an href is required.
     #[error("no href")]
     NoHref,
 
-    /// There is no type.
-    #[error("no type field")]
-    NoType,
+    /// There are no items, when items are required.
+    #[error("no items")]
+    NoItems,
 
-    /// No version field on an object.
-    #[error("no version field")]
-    NoVersion,
-
-    /// This value is not an item.
-    #[error("value is not an item")]
-    NotAnItem(Box<Value>),
-
-    /// This value is not a catalog.
-    #[error("value is not a catalog")]
-    NotACatalog(Box<Value>),
-
-    /// This value is not a collection.
-    #[error("value is not a collection")]
-    NotACollection(Box<Value>),
-
-    /// This value is not an object.
-    #[error("not an object")]
+    /// This is not a JSON object.
+    #[error("json value is not an object")]
     NotAnObject(serde_json::Value),
 
     /// [object_store::Error]
@@ -145,6 +97,10 @@ pub enum Error {
     #[error(transparent)]
     Reqwest(#[from] reqwest::Error),
 
+    /// JSON is a scalar when an array or object was expected
+    #[error("json value is not an object or an array")]
+    ScalarJson(serde_json::Value),
+
     /// [serde_json::Error]
     #[error(transparent)]
     SerdeJson(#[from] serde_json::Error),
@@ -161,10 +117,6 @@ pub enum Error {
     /// Returned when the `type` field of a STAC object does not equal `"Feature"`, `"Catalog"`, or `"Collection"`.
     #[error("unknown \"type\": {0}")]
     UnknownType(String),
-
-    /// Unsupported version.
-    #[error("unsupported version: {0}")]
-    UnsupportedVersion(String),
 
     /// Unsupported migration.
     #[error("unsupported migration: {0} to {1}")]

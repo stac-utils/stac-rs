@@ -93,7 +93,7 @@ impl Validator {
         } else if let Value::Array(array) = value {
             self.validate_array(array).await
         } else {
-            Err(Error::CannotValidate(value))
+            Err(Error::ScalarJson(value))
         }
     }
 
@@ -131,7 +131,7 @@ impl Validator {
                 .and_then(|v| v.as_str())
                 .map(|t| t.parse::<Type>())
                 .transpose()?
-                .ok_or(Error::NoType)?;
+                .ok_or(Error::MissingField("type"))?;
             if r#type == Type::ItemCollection {
                 if let Some(features) = object.get("features") {
                     return validator.validate(features).await;
@@ -145,7 +145,7 @@ impl Validator {
                 .map(|v| v.parse::<Version>())
                 .transpose()
                 .unwrap()
-                .ok_or(Error::NoVersion)?;
+                .ok_or(Error::MissingField("stac_version"))?;
 
             let url = build_schema_url(r#type, &version);
             let schema = validator.schema(url).await?;
