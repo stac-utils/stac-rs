@@ -17,27 +17,8 @@ impl Run for Args {
         let value = input.get_json().await?;
         let result = value.validate().await;
         if let Err(stac::Error::Validation(ref errors)) = result {
-            let id = value
-                .get("id")
-                .and_then(|v| v.as_str())
-                .map(|v| format!("={}", v))
-                .unwrap_or_default();
-            let message_base = match value
-                .get("type")
-                .and_then(|v| v.as_str())
-                .unwrap_or_default()
-            {
-                "Feature" => format!("[item={}] ", id),
-                "Catalog" => format!("[catalog={}] ", id),
-                "Collection" => format!("[collection={}] ", id),
-                "FeatureCollection" => "[item-collection] ".to_string(),
-                _ => String::new(),
-            };
             for error in errors {
-                eprintln!(
-                    "{}{} (instance path: '{}', schema path: '{}')",
-                    message_base, error, error.instance_path, error.schema_path
-                );
+                eprintln!("{error}");
             }
         }
         result.and(Ok(None)).map_err(Error::from)

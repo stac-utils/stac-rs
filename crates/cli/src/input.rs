@@ -1,6 +1,9 @@
 use crate::{options::Options, Error, Result};
 use stac::{Format, Value};
-use std::io::Read;
+use std::{
+    fs::File,
+    io::{BufReader, Read},
+};
 use url::Url;
 
 /// The input to a CLI run.
@@ -76,8 +79,16 @@ impl Input {
                     }
                 }
             } else {
-                let value: Value = format.from_path(href)?;
-                serde_json::to_value(value).map_err(Error::from)
+                match format {
+                    Format::Json(..) => {
+                        let file = BufReader::new(File::open(href)?);
+                        serde_json::from_reader(file).map_err(Error::from)
+                    }
+                    _ => {
+                        let value: Value = format.from_path(href)?;
+                        serde_json::to_value(value).map_err(Error::from)
+                    }
+                }
             }
         } else {
             let mut buf = Vec::new();
