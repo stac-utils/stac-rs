@@ -24,3 +24,5 @@ Delete any checklist items that do not apply (e.g. if your change is minor, it m
 - [ ] Code is formatted (`cargo fmt`)
 - [ ] `cargo test`
 - [ ] Changes are added to the CHANGELOG
+
+<!-- markdownlint-disable-file MD041 -->
