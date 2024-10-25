@@ -7,9 +7,10 @@ use std::convert::TryFrom;
 
 /// An enum that can hold any STAC object type.
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
-#[serde(untagged)]
+#[serde(tag = "type")]
 pub enum Value {
     /// A STAC Item.
+    #[serde(rename = "Feature")]
     Item(Item),
 
     /// A STAC Catalog.
@@ -19,6 +20,7 @@ pub enum Value {
     Collection(Collection),
 
     /// An ItemCollection.
+    #[serde(rename = "FeatureCollection")]
     ItemCollection(ItemCollection),
 }
 

@@ -188,8 +188,8 @@ pub use {
     asset::{Asset, Assets},
     band::Band,
     bbox::Bbox,
-    catalog::{Catalog, CATALOG_TYPE},
-    collection::{Collection, Extent, Provider, SpatialExtent, TemporalExtent, COLLECTION_TYPE},
+    catalog::Catalog,
+    collection::{Collection, Extent, Provider, SpatialExtent, TemporalExtent},
     data_type::DataType,
     error::Error,
     fields::Fields,
@@ -197,9 +197,9 @@ pub use {
     geoparquet::{FromGeoparquet, IntoGeoparquet},
     href::Href,
     io::{read, write},
-    item::{FlatItem, Item, Properties, ITEM_TYPE},
+    item::{FlatItem, Item, Properties},
     item_asset::ItemAsset,
-    item_collection::{ItemCollection, ITEM_COLLECTION_TYPE},
+    item_collection::ItemCollection,
     json::{FromJson, ToJson},
     link::{Link, Links},
     migrate::Migrate,
@@ -302,88 +302,6 @@ where
 impl Display for Type {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.as_str())
-    }
-}
-
-/// Utility function to deserialize the type field on an object.
-///
-/// Use this, via a wrapper function, for `#[serde(deserialize_with)]`.
-///
-/// # Examples
-///
-/// ```
-/// use serde::Deserialize;
-///
-/// #[derive(Deserialize)]
-/// struct Foo {
-///     #[serde(deserialize_with = "deserialize_type")]
-///     r#type: String,     
-/// }
-///
-/// fn deserialize_type<'de, D>(deserializer: D) -> Result<String, D::Error>
-/// where
-///     D: serde::de::Deserializer<'de>
-/// {
-///     stac::deserialize_type(deserializer, "Foo")
-/// }
-/// ```
-pub fn deserialize_type<'de, D>(
-    deserializer: D,
-    expected: &str,
-) -> std::result::Result<String, D::Error>
-where
-    D: serde::de::Deserializer<'de>,
-{
-    use serde::Deserialize;
-    let r#type = String::deserialize(deserializer)?;
-    if r#type != expected {
-        Err(serde::de::Error::invalid_value(
-            serde::de::Unexpected::Str(&r#type),
-            &expected,
-        ))
-    } else {
-        Ok(r#type)
-    }
-}
-
-/// Utility function to serialize the type field on an object.
-///
-/// Use this, via a wrapper function, in `#[serde(serialize_with)]`.
-///
-/// # Examples
-///
-/// ```
-/// use serde::Serialize;
-///
-/// #[derive(Serialize)]
-/// struct Foo {
-///     #[serde(serialize_with = "serialize_type")]
-///     r#type: String,     
-/// }
-///
-/// fn serialize_type<S>(r#type: &String, serializer: S) -> Result<S::Ok, S::Error>
-/// where
-///     S: serde::ser::Serializer
-/// {
-///     stac::serialize_type(r#type, serializer, "Foo")
-/// }
-/// ```
-pub fn serialize_type<S>(
-    r#type: &String,
-    serializer: S,
-    expected: &str,
-) -> std::result::Result<S::Ok, S::Error>
-where
-    S: serde::ser::Serializer,
-{
-    use serde::Serialize;
-    if r#type != expected {
-        Err(serde::ser::Error::custom(format!(
-            "type field must be '{}', got: '{}'",
-            expected, r#type
-        )))
-    } else {
-        r#type.serialize(serializer)
     }
 }
 

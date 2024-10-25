@@ -2,9 +2,6 @@ use crate::{Error, Fields, Href, Link, Links, Migrate, Result, Version, STAC_VER
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
-/// The type field for [Catalogs](Catalog).
-pub const CATALOG_TYPE: &str = "Catalog";
-
 /// A STAC Catalog object represents a logical group of other `Catalog`,
 /// [Collection](crate::Collection), and [Item](crate::Item) objects.
 ///
@@ -18,14 +15,8 @@ pub const CATALOG_TYPE: &str = "Catalog";
 /// Their purpose is discovery: to be browsed by people or be crawled by clients
 /// to build a searchable index.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+#[serde(tag = "type")]
 pub struct Catalog {
-    /// Set to `"Catalog"` if this Catalog only implements the `Catalog` spec.
-    #[serde(
-        deserialize_with = "deserialize_type",
-        serialize_with = "serialize_type"
-    )]
-    r#type: String,
-
     /// The STAC version the `Catalog` implements.
     #[serde(rename = "stac_version")]
     pub version: Version,
@@ -72,7 +63,6 @@ impl Catalog {
     /// ```
     pub fn new(id: impl ToString, description: impl ToString) -> Catalog {
         Catalog {
-            r#type: CATALOG_TYPE.to_string(),
             version: STAC_VERSION,
             extensions: Vec::new(),
             id: id.to_string(),
@@ -135,20 +125,6 @@ impl Fields for Catalog {
     }
 }
 
-fn deserialize_type<'de, D>(deserializer: D) -> std::result::Result<String, D::Error>
-where
-    D: serde::de::Deserializer<'de>,
-{
-    crate::deserialize_type(deserializer, CATALOG_TYPE)
-}
-
-fn serialize_type<S>(r#type: &String, serializer: S) -> std::result::Result<S::Ok, S::Error>
-where
-    S: serde::ser::Serializer,
-{
-    crate::serialize_type(r#type, serializer, CATALOG_TYPE)
-}
-
 impl Migrate for Catalog {}
 
 #[cfg(test)]
@@ -161,7 +137,6 @@ mod tests {
         let catalog = Catalog::new("an-id", "a description");
         assert!(catalog.title.is_none());
         assert_eq!(catalog.description, "a description");
-        assert_eq!(catalog.r#type, "Catalog");
         assert_eq!(catalog.version, STAC_VERSION);
         assert!(catalog.extensions.is_empty());
         assert_eq!(catalog.id, "an-id");

@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Removed
 
 - Extensions moved to their own crate ([#473](https://github.com/stac-utils/stac-rs/pull/473))
+- `*_TYPE` constants, `deserialize_type` and `serialize_type` top-level functions ([#498](https://github.com/stac-utils/stac-rs/pull/498))
 
 ## [0.10.2] - 2024-10-18
 

@@ -386,6 +386,8 @@ pub(crate) mod tests {
         let mut item = Item::new("an-id");
         item.collection = Some("collection-id".to_string());
         item.geometry = Some(longmont());
+        item.additional_fields
+            .insert("type".into(), "Feature".into());
         client.add_item(item.clone()).await.unwrap();
         assert_eq!(
             client

@@ -3,22 +3,15 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use stac::{Href, Link, Links};
 
-const ITEM_COLLECTION_TYPE: &str = "FeatureCollection";
-
 /// The return value of the `/items` and `/search` endpoints.
 ///
 /// This might be a [stac::ItemCollection], but if the [fields
 /// extension](https://github.com/stac-api-extensions/fields) is used, it might
 /// not be. Defined by the [itemcollection
 /// fragment](https://github.com/radiantearth/stac-api-spec/blob/main/fragments/itemcollection/README.md).
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
+#[serde(tag = "type", rename = "FeatureCollection")]
 pub struct ItemCollection {
-    #[serde(
-        deserialize_with = "deserialize_type",
-        serialize_with = "serialize_type"
-    )]
-    r#type: String,
-
     /// A possibly-empty array of Item objects.
     #[serde(rename = "features")]
     pub items: Vec<Item>,
@@ -110,7 +103,6 @@ impl ItemCollection {
     pub fn new(items: Vec<Item>) -> Result<ItemCollection> {
         let number_returned = items.len();
         Ok(ItemCollection {
-            r#type: ITEM_COLLECTION_TYPE.to_string(),
             items,
             links: Vec::new(),
             number_matched: None,
@@ -147,25 +139,6 @@ impl Links for ItemCollection {
     }
 }
 
-impl Default for ItemCollection {
-    fn default() -> Self {
-        ItemCollection {
-            r#type: "FeatureCollection".to_string(),
-            items: Vec::new(),
-            links: Vec::new(),
-            number_matched: None,
-            number_returned: None,
-            context: None,
-            additional_fields: Map::default(),
-            next: None,
-            prev: None,
-            first: None,
-            last: None,
-            href: None,
-        }
-    }
-}
-
 impl From<Vec<Item>> for ItemCollection {
     fn from(items: Vec<Item>) -> Self {
         ItemCollection {
@@ -173,18 +146,4 @@ impl From<Vec<Item>> for ItemCollection {
             ..Default::default()
         }
     }
-}
-
-fn deserialize_type<'de, D>(deserializer: D) -> std::result::Result<String, D::Error>
-where
-    D: serde::de::Deserializer<'de>,
-{
-    stac::deserialize_type(deserializer, ITEM_COLLECTION_TYPE)
-}
-
-fn serialize_type<S>(r#type: &String, serializer: S) -> std::result::Result<S::Ok, S::Error>
-where
-    S: serde::ser::Serializer,
-{
-    stac::serialize_type(r#type, serializer, ITEM_COLLECTION_TYPE)
 }
