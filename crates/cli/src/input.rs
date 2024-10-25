@@ -59,6 +59,7 @@ impl Input {
     /// Gets a serde_json value from the input.
     pub(crate) async fn get_json(&self) -> Result<serde_json::Value> {
         if let Some(href) = self.href.as_deref() {
+            tracing::debug!("getting JSON from {href}");
             let format = self
                 .format
                 .or_else(|| Format::infer_from_href(href))
