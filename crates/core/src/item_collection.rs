@@ -12,7 +12,7 @@ pub struct ItemCollection {
     /// The list of [Items](Item).
     ///
     /// The attribute is actually "features", but we rename to "items".
-    #[serde(rename = "features")]
+    #[serde(rename = "features", default)]
     pub items: Vec<Item>,
 
     /// List of link objects to resources and related URLs.
@@ -118,6 +118,7 @@ impl TryFrom<Value> for ItemCollection {
 mod tests {
     use super::ItemCollection;
     use crate::Item;
+    use serde_json::json;
 
     #[test]
     fn item_collection_from_vec() {
@@ -129,5 +130,10 @@ mod tests {
     fn item_collection_from_iter() {
         let items = vec![Item::new("a"), Item::new("b")];
         let _ = ItemCollection::from_iter(items.into_iter());
+    }
+
+    #[test]
+    fn permissive_deserialization() {
+        let _: ItemCollection = serde_json::from_value(json!({})).unwrap();
     }
 }

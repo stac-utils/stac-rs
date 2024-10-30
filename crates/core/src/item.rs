@@ -32,7 +32,7 @@ const TOP_LEVEL_ATTRIBUTES: [&str; 8] = [
 #[serde(tag = "type", rename = "Feature")]
 pub struct Item {
     /// The STAC version the `Item` implements.
-    #[serde(rename = "stac_version")]
+    #[serde(rename = "stac_version", default)]
     pub version: Version,
 
     /// A list of extensions the `Item` implements.
@@ -46,6 +46,7 @@ pub struct Item {
     /// Provider identifier.
     ///
     /// The ID should be unique within the [Collection](crate::Collection) that contains the `Item`.
+    #[serde(default)]
     pub id: String,
 
     /// Defines the full footprint of the asset represented by this item,
@@ -66,12 +67,15 @@ pub struct Item {
     pub bbox: Option<Bbox>,
 
     /// A dictionary of additional metadata for the `Item`.
+    #[serde(default)]
     pub properties: Properties,
 
     /// List of link objects to resources and related URLs.
+    #[serde(default)]
     pub links: Vec<Link>,
 
     /// Dictionary of asset objects that can be downloaded, each with a unique key.
+    #[serde(default)]
     pub assets: HashMap<String, Asset>,
 
     /// The `id` of the STAC [Collection](crate::Collection) this `Item`
@@ -675,6 +679,7 @@ mod tests {
     use super::{Builder, FlatItem, Item};
     use crate::{Asset, STAC_VERSION};
     use geojson::{feature::Id, Feature};
+    use serde_json::json;
 
     #[test]
     fn new() {
@@ -868,5 +873,10 @@ mod tests {
         let _ = value.as_object_mut().unwrap().remove("geometry").unwrap();
         let flat_item: FlatItem = serde_json::from_value(value).unwrap();
         assert_eq!(flat_item.geometry, None);
+    }
+
+    #[test]
+    fn permissive_deserialization() {
+        let _: Item = serde_json::from_value(json!({})).unwrap();
     }
 }
