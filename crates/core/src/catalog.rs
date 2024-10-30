@@ -18,7 +18,7 @@ use serde_json::{Map, Value};
 #[serde(tag = "type")]
 pub struct Catalog {
     /// The STAC version the `Catalog` implements.
-    #[serde(rename = "stac_version")]
+    #[serde(rename = "stac_version", default)]
     pub version: Version,
 
     /// A list of extension identifiers the `Catalog` implements.
@@ -28,6 +28,7 @@ pub struct Catalog {
     pub extensions: Vec<String>,
 
     /// Identifier for the `Catalog`.
+    #[serde(default)]
     pub id: String,
 
     /// A short descriptive one-line title for the `Catalog`.
@@ -37,9 +38,11 @@ pub struct Catalog {
     /// Detailed multi-line description to fully explain the `Catalog`.
     ///
     /// [CommonMark 0.29](http://commonmark.org/) syntax MAY be used for rich text representation.
+    #[serde(default)]
     pub description: String,
 
     /// A list of references to other documents.
+    #[serde(default)]
     pub links: Vec<Link>,
 
     /// Additional fields not part of the Catalog specification.
@@ -131,6 +134,7 @@ impl Migrate for Catalog {}
 mod tests {
     use super::Catalog;
     use crate::STAC_VERSION;
+    use serde_json::json;
 
     #[test]
     fn new() {
@@ -156,5 +160,10 @@ mod tests {
         use crate::tests::roundtrip;
 
         roundtrip!(catalog, "examples/catalog.json", Catalog);
+    }
+
+    #[test]
+    fn permissive_deserialization() {
+        let _: Catalog = serde_json::from_value(json!({})).unwrap();
     }
 }
