@@ -25,7 +25,7 @@ const DEFAULT_LICENSE: &str = "proprietary";
 #[serde(tag = "type")]
 pub struct Collection {
     /// The STAC version the `Collection` implements.
-    #[serde(rename = "stac_version")]
+    #[serde(rename = "stac_version", default)]
     pub version: Version,
 
     /// A list of extension identifiers the `Collection` implements.
@@ -35,6 +35,7 @@ pub struct Collection {
     pub extensions: Vec<String>,
 
     /// Identifier for the `Collection` that is unique across the provider.
+    #[serde(default)]
     pub id: String,
 
     /// A short descriptive one-line title for the `Collection`.
@@ -44,6 +45,7 @@ pub struct Collection {
     /// Detailed multi-line description to fully explain the `Collection`.
     ///
     /// [CommonMark 0.29](http://commonmark.org/) syntax MAY be used for rich text representation.
+    #[serde(default)]
     pub description: String,
 
     /// List of keywords describing the `Collection`.
@@ -53,6 +55,7 @@ pub struct Collection {
     /// `Collection`'s license(s), either a SPDX [License
     /// identifier](https://spdx.org/licenses/), `"various"` if multiple licenses
     /// apply or `"proprietary"` for all other cases.
+    #[serde(default)]
     pub license: String,
 
     /// A list of [providers](Provider), which may include all organizations capturing or
@@ -64,6 +67,7 @@ pub struct Collection {
     pub providers: Option<Vec<Provider>>,
 
     /// Spatial and temporal extents.
+    #[serde(default)]
     pub extent: Extent,
 
     /// A map of property summaries, either a set of values, a range of values
@@ -72,6 +76,7 @@ pub struct Collection {
     pub summaries: Option<Map<String, Value>>,
 
     /// A list of references to other documents.
+    #[serde(default)]
     pub links: Vec<Link>,
 
     /// Dictionary of asset objects that can be downloaded, each with a unique key.
@@ -413,6 +418,7 @@ impl Migrate for Collection {}
 #[cfg(test)]
 mod tests {
     use super::{Collection, Extent, Provider};
+    use serde_json::json;
 
     mod collection {
         use super::Collection;
@@ -536,5 +542,10 @@ mod tests {
             "examples/extensions-collection/collection.json",
             Collection
         );
+    }
+
+    #[test]
+    fn permissive_deserialization() {
+        let _: Collection = serde_json::from_value(json!({})).unwrap();
     }
 }
