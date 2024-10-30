@@ -101,10 +101,8 @@ impl Iterator for IntoValues {
         } else if let Some(child) = self.children.pop_front() {
             self.node = Some(child);
             self.next()
-        } else if let Some(item) = self.items.pop_front() {
-            Some(Ok(item.into()))
         } else {
-            None
+            self.items.pop_front().map(|item| Ok(item.into()))
         }
     }
 }
