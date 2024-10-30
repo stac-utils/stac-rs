@@ -2,6 +2,7 @@
 
 use crate::{mime::APPLICATION_GEOJSON, Error, Href, Result};
 use mime::APPLICATION_JSON;
+use path_slash::PathBufExt;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use url::Url;
@@ -734,7 +735,7 @@ fn make_absolute(href: impl ToString, base: Option<&str>) -> Result<String> {
         }
     } else {
         std::fs::canonicalize(href)
-            .map(|p| p.to_string_lossy().into_owned())
+            .map(|p| p.to_slash_lossy().into_owned())
             .map_err(Error::from)
     }
 }
