@@ -1,4 +1,5 @@
 use crate::{Catalog, Collection, Error, Href, Item, Link, Links, Result, Value};
+use std::collections::VecDeque;
 
 /// A node in a STAC tree.
 #[derive(Debug)]
@@ -7,10 +8,10 @@ pub struct Node {
     pub value: Container,
 
     /// The child nodes.
-    pub children: Vec<Node>,
+    pub children: VecDeque<Node>,
 
     /// The node's items.
-    pub items: Vec<Item>,
+    pub items: VecDeque<Item>,
 }
 
 /// A STAC container, i.e. a [Catalog] or a [Collection].
@@ -21,6 +22,14 @@ pub enum Container {
 
     /// A [Catalog].
     Catalog(Catalog),
+}
+
+/// An iterator over a node and all of its descendants.
+#[derive(Debug)]
+pub struct IntoValues {
+    node: Option<Node>,
+    children: VecDeque<Node>,
+    items: VecDeque<Item>,
 }
 
 impl Node {
@@ -43,17 +52,60 @@ impl Node {
                 // TODO enable object store
                 tracing::debug!("resolving child: {}", link.href);
                 let child: Container = crate::read::<Value>(link.href)?.try_into()?;
-                self.children.push(child.into());
+                self.children.push_back(child.into());
             } else if link.is_item() {
                 link.make_absolute(href.as_deref())?;
                 tracing::debug!("resolving item: {}", link.href);
                 let item = crate::read::<Item>(link.href)?;
-                self.items.push(item);
+                self.items.push_back(item);
             } else {
                 self.value.links_mut().push(link);
             }
         }
         Ok(())
+    }
+
+    /// Creates a consuming iterator over this node and its children and items.
+    ///
+    /// This iterator will visit all children (catalogs and collections) first,
+    /// then visit all the items.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac::{Node, Catalog};
+    ///
+    /// let mut node: Node = Catalog::new("an-id", "a description").into();
+    /// node.children
+    ///     .push(Catalog::new("child", "child catalog").into());
+    /// let values: Vec<_> = node.into_values().collect::<Result<_, _>>().unwrap();
+    /// assert_eq!(values.len(), 2);
+    /// ```
+    pub fn into_values(self) -> IntoValues {
+        IntoValues {
+            node: Some(self),
+            children: VecDeque::new(),
+            items: VecDeque::new(),
+        }
+    }
+}
+
+impl Iterator for IntoValues {
+    type Item = Result<Value>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if let Some(mut node) = self.node.take() {
+            self.children.append(&mut node.children);
+            self.items.append(&mut node.items);
+            Some(Ok(node.value.into()))
+        } else if let Some(child) = self.children.pop_front() {
+            self.node = Some(child);
+            self.next()
+        } else if let Some(item) = self.items.pop_front() {
+            Some(Ok(item.into()))
+        } else {
+            None
+        }
     }
 }
 
@@ -85,8 +137,8 @@ impl From<Container> for Node {
     fn from(value: Container) -> Self {
         Node {
             value,
-            children: Vec::new(),
-            items: Vec::new(),
+            children: VecDeque::new(),
+            items: VecDeque::new(),
         }
     }
 }
@@ -102,6 +154,15 @@ impl TryFrom<Value> for Container {
                 actual: value.type_name().to_string(),
                 expected: "Catalog or Collection".to_string(),
             }),
+        }
+    }
+}
+
+impl From<Container> for Value {
+    fn from(value: Container) -> Self {
+        match value {
+            Container::Catalog(c) => Value::Catalog(c),
+            Container::Collection(c) => Value::Collection(c),
         }
     }
 }
@@ -165,5 +226,16 @@ mod tests {
         assert_eq!(node.children.len(), 3);
         assert_eq!(node.items.len(), 1);
         assert_eq!(node.value.links().len(), 2);
+    }
+
+    #[test]
+    fn into_values() {
+        let mut node: Node = Catalog::new("an-id", "a description").into();
+        node.children
+            .push_back(Catalog::new("child", "child catalog").into());
+        let mut iter = node.into_values();
+        let _root = iter.next().unwrap().unwrap();
+        let _child = iter.next().unwrap().unwrap();
+        assert!(iter.next().is_none());
     }
 }
