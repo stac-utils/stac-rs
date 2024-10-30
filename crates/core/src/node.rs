@@ -40,7 +40,7 @@ impl Node {
     /// ```
     /// use stac::{Catalog, Node};
     ///
-    /// let node: Node = stac::read::<Catalog>("examples/catalog.json").unwrap().into();
+    /// let mut node: Node = stac::read::<Catalog>("examples/catalog.json").unwrap().into();
     /// node.resolve().unwrap();
     /// ```
     pub fn resolve(&mut self) -> Result<()> {
@@ -77,7 +77,7 @@ impl Node {
     ///
     /// let mut node: Node = Catalog::new("an-id", "a description").into();
     /// node.children
-    ///     .push(Catalog::new("child", "child catalog").into());
+    ///     .push_back(Catalog::new("child", "child catalog").into());
     /// let values: Vec<_> = node.into_values().collect::<Result<_, _>>().unwrap();
     /// assert_eq!(values.len(), 2);
     /// ```

@@ -694,7 +694,7 @@ impl Link {
     /// ```
     /// use stac::Link;
     ///
-    /// let link = Link::new("./b/item.json", "rel");
+    /// let mut link = Link::new("./b/item.json", "rel");
     /// link.make_absolute("/a/base/catalog.json").unwrap();
     /// assert_eq!(link.href, "/a/base/b/item.json")
     /// ```
