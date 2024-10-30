@@ -172,6 +172,7 @@ pub mod link;
 mod migrate;
 pub mod mime;
 mod ndjson;
+mod node;
 mod statistics;
 #[cfg(feature = "validate")]
 mod validate;
@@ -204,6 +205,7 @@ pub use {
     link::{Link, Links},
     migrate::Migrate,
     ndjson::{FromNdjson, ToNdjson},
+    node::Node,
     statistics::Statistics,
     value::Value,
     version::Version,
