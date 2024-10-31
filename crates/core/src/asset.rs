@@ -1,10 +1,11 @@
-use crate::{Band, DataType, Fields, Statistics};
+use crate::{Band, DataType, Statistics};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
+use stac_derive::Fields;
 use std::collections::HashMap;
 
 /// An Asset is an object that contains a URI to data associated with the [Item](crate::Item) that can be downloaded or streamed.
-#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, Fields)]
 pub struct Asset {
     /// URI to the asset object.
     ///
@@ -156,15 +157,6 @@ impl Asset {
         self.roles.push(role.to_string());
         self.roles.dedup();
         self
-    }
-}
-
-impl Fields for Asset {
-    fn fields(&self) -> &Map<String, Value> {
-        &self.additional_fields
-    }
-    fn fields_mut(&mut self) -> &mut Map<String, Value> {
-        &mut self.additional_fields
     }
 }
 

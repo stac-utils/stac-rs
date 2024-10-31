@@ -37,6 +37,10 @@ pub enum Error {
     #[error(transparent)]
     StacApi(#[from] stac_api::Error),
 
+    /// [stac_types::Error]
+    #[error(transparent)]
+    StacTypes(#[from] stac_types::Error),
+
     /// [tokio_postgres::Error]
     #[cfg(feature = "pgstac")]
     #[error(transparent)]

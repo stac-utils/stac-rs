@@ -1,9 +1,10 @@
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use stac::{Collection, Href, Link, Links};
+use stac::{Collection, Link};
+use stac_derive::{Href, Links};
 
 /// Object containing an array of collections and an array of links.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Href, Links)]
 pub struct Collections {
     /// The [Collection] objects in the [stac::Catalog].
     pub collections: Vec<Collection>,
@@ -27,27 +28,5 @@ impl From<Vec<Collection>> for Collections {
             additional_fields: Map::new(),
             href: None,
         }
-    }
-}
-
-impl Href for Collections {
-    fn href(&self) -> Option<&str> {
-        self.href.as_deref()
-    }
-    fn set_href(&mut self, href: impl ToString) {
-        self.href = Some(href.to_string());
-    }
-    fn clear_href(&mut self) {
-        self.href = None;
-    }
-}
-
-impl Links for Collections {
-    fn links(&self) -> &[Link] {
-        &self.links
-    }
-
-    fn links_mut(&mut self) -> &mut Vec<Link> {
-        &mut self.links
     }
 }

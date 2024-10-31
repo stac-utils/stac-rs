@@ -42,7 +42,8 @@
 //!
 //! # [Value]
 //!
-//! A [Value] can represent any of the three core data structures, as well as an [ItemCollection], akin to [serde_json::Value]:
+//! A [Value] can represent any of the three core data structures or an [ItemCollection].
+//! It's the [serde_json::Value] for **stac-rs**:
 //!
 //! ```
 //! use stac::{Value, Item};
@@ -85,7 +86,7 @@
 //! stac::write("an-id.json", stac::Item::new("an-id")).unwrap();
 //! ```
 //!
-//! Enable the `object-store` feature to get and put objects from e.g. AWS s3 (with the `object-store-aws` feature) or from other backends (see [features](#features) for a complete listing):
+//! Enable the `object-store` feature to get and put objects from cloud storage, e.g. s3 (with the `object-store-aws` feature) or from other backends (see [features](#features) for a complete listing):
 //!
 //! ```no_run
 //! use stac::Item;
@@ -155,32 +156,27 @@ mod collection;
 mod data_type;
 pub mod datetime;
 mod error;
-mod fields;
 mod format;
 #[cfg(feature = "geo")]
 pub mod geo;
 #[cfg(feature = "geoarrow")]
 pub mod geoarrow;
 pub mod geoparquet;
-mod href;
 pub mod io;
 pub mod item;
 mod item_asset;
 mod item_collection;
 mod json;
-pub mod link;
-mod migrate;
-pub mod mime;
 mod ndjson;
 mod node;
 mod statistics;
 #[cfg(feature = "validate")]
 mod validate;
 mod value;
-mod version;
 
 use std::fmt::Display;
 
+pub use stac_types::{mime, Fields, Href, Link, Links, Migrate, Version, STAC_VERSION};
 #[cfg(feature = "validate-blocking")]
 pub use validate::ValidateBlocking;
 #[cfg(feature = "validate")]
@@ -193,26 +189,18 @@ pub use {
     collection::{Collection, Extent, Provider, SpatialExtent, TemporalExtent},
     data_type::DataType,
     error::Error,
-    fields::Fields,
     format::Format,
     geoparquet::{FromGeoparquet, IntoGeoparquet},
-    href::Href,
     io::{read, write},
     item::{FlatItem, Item, Properties},
     item_asset::ItemAsset,
     item_collection::ItemCollection,
     json::{FromJson, ToJson},
-    link::{Link, Links},
-    migrate::Migrate,
     ndjson::{FromNdjson, ToNdjson},
     node::Node,
     statistics::Statistics,
     value::Value,
-    version::Version,
 };
-
-/// The default STAC version of this library.
-pub const STAC_VERSION: Version = Version::v1_1_0;
 
 /// Custom [Result](std::result::Result) type for this crate.
 pub type Result<T> = std::result::Result<T, Error>;

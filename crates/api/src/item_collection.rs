@@ -1,7 +1,8 @@
 use crate::{Item, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use stac::{Href, Link, Links};
+use stac::Link;
+use stac_derive::{Href, Links};
 
 /// The return value of the `/items` and `/search` endpoints.
 ///
@@ -9,7 +10,7 @@ use stac::{Href, Link, Links};
 /// extension](https://github.com/stac-api-extensions/fields) is used, it might
 /// not be. Defined by the [itemcollection
 /// fragment](https://github.com/radiantearth/stac-api-spec/blob/main/fragments/itemcollection/README.md).
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize, Default, Links, Href)]
 #[serde(tag = "type", rename = "FeatureCollection")]
 pub struct ItemCollection {
     /// A possibly-empty array of Item objects.
@@ -115,27 +116,6 @@ impl ItemCollection {
             last: None,
             href: None,
         })
-    }
-}
-
-impl Href for ItemCollection {
-    fn set_href(&mut self, href: impl ToString) {
-        self.href = Some(href.to_string());
-    }
-    fn clear_href(&mut self) {
-        self.href = None;
-    }
-    fn href(&self) -> Option<&str> {
-        self.href.as_deref()
-    }
-}
-
-impl Links for ItemCollection {
-    fn links(&self) -> &[Link] {
-        &self.links
-    }
-    fn links_mut(&mut self) -> &mut Vec<Link> {
-        &mut self.links
     }
 }
 

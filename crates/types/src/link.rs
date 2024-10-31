@@ -23,7 +23,7 @@ pub const COLLECTION_REL: &str = "collection";
 /// This object describes a relationship with another entity.
 ///
 /// Data providers are advised to be liberal with the links section, to describe
-/// things like the [Catalog](crate::Catalog) an [Item](crate::Item) is in,
+/// things like the `Catalog`` an `Item` is in,
 /// related `Item`s, parent or child `Item`s (modeled in different ways, like an
 /// 'acquisition' or derived data). It is allowed to add additional fields such
 /// as a title and type.
@@ -94,7 +94,7 @@ pub trait Links: Href {
     ///
     /// # Examples
     ///
-    /// [Value](crate::Value) implements Links:
+    /// `Value` implements Links:
     ///
     /// ```
     /// use stac::Links;
@@ -107,7 +107,7 @@ pub trait Links: Href {
     ///
     /// # Examples
     ///
-    /// [Value](crate::Value) implements Links:
+    /// `Value`` implements Links:
     ///
     /// ```
     /// use stac::Links;
@@ -843,7 +843,7 @@ mod tests {
     }
 
     mod links {
-        use crate::{Catalog, Href, Item, Link, Links};
+        use stac::{Catalog, Href, Item, Link, Links};
 
         #[test]
         fn link() {
@@ -871,7 +871,7 @@ mod tests {
 
         #[test]
         fn make_relative_links_absolute_path() {
-            let mut catalog: Catalog = crate::read("examples/catalog.json").unwrap();
+            let mut catalog: Catalog = stac::read("examples/catalog.json").unwrap();
             catalog.make_links_absolute().unwrap();
             for link in catalog.links() {
                 assert!(link.is_absolute());
@@ -880,7 +880,7 @@ mod tests {
 
         #[test]
         fn make_relative_links_absolute_url() {
-            let mut catalog: Catalog = crate::read("examples/catalog.json").unwrap();
+            let mut catalog: Catalog = stac::read("examples/catalog.json").unwrap();
             catalog.set_href("http://stac-rs.test/catalog.json");
             catalog.make_links_absolute().unwrap();
             for link in catalog.links() {
@@ -894,7 +894,7 @@ mod tests {
 
         #[test]
         fn make_absolute_links_relative_path() {
-            let mut catalog: Catalog = crate::read("examples/catalog.json").unwrap();
+            let mut catalog: Catalog = stac::read("examples/catalog.json").unwrap();
             catalog.make_links_absolute().unwrap();
             catalog.make_links_relative("examples/").unwrap();
             for link in catalog.links() {
@@ -906,7 +906,7 @@ mod tests {
 
         #[test]
         fn make_absolute_links_relative_url() {
-            let mut catalog: Catalog = crate::read("examples/catalog.json").unwrap();
+            let mut catalog: Catalog = stac::read("examples/catalog.json").unwrap();
             catalog.set_href("http://stac-rs.test/catalog.json");
             catalog.make_links_absolute().unwrap();
             catalog.make_links_relative("http://stac-rs.test/").unwrap();

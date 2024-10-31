@@ -4,10 +4,6 @@ use serde_json::{json, Map, Value};
 
 /// Trait for structures that have gettable and settable fields.
 ///
-/// For most structures in this crate, this will be the `additional_properties`
-/// attribute. The primary exception is [Item](crate::Item), which gets and sets
-/// additional fields in its `properties` attribute.
-///
 /// # Examples
 ///
 /// ```
