@@ -1,7 +1,7 @@
-use crate::{Error, Fields, Link, Result, Version, STAC_VERSION};
+use crate::{Error, Link, Result, Version, STAC_VERSION};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use stac_derive::{Href, Links, Migrate};
+use stac_derive::{Fields, Href, Links, Migrate};
 
 /// A STAC Catalog object represents a logical group of other `Catalog`,
 /// [Collection](crate::Collection), and [Item](crate::Item) objects.
@@ -15,7 +15,7 @@ use stac_derive::{Href, Links, Migrate};
 /// A `Catalog` object will typically be the entry point into a STAC catalog.
 /// Their purpose is discovery: to be browsed by people or be crawled by clients
 /// to build a searchable index.
-#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, Href, Migrate, Links)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, Href, Migrate, Links, Fields)]
 #[serde(tag = "type")]
 pub struct Catalog {
     /// The STAC version the `Catalog` implements.
@@ -94,15 +94,6 @@ impl TryFrom<Map<String, Value>> for Catalog {
     type Error = serde_json::Error;
     fn try_from(map: Map<String, Value>) -> std::result::Result<Self, Self::Error> {
         serde_json::from_value(Value::Object(map))
-    }
-}
-
-impl Fields for Catalog {
-    fn fields(&self) -> &Map<String, Value> {
-        &self.additional_fields
-    }
-    fn fields_mut(&mut self) -> &mut Map<String, Value> {
-        &mut self.additional_fields
     }
 }
 

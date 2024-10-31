@@ -1,4 +1,5 @@
 mod error;
+mod fields;
 mod href;
 pub mod link;
 mod migrate;
@@ -9,6 +10,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 pub use {
     error::Error,
+    fields::Fields,
     href::Href,
     link::{Link, Links},
     migrate::Migrate,

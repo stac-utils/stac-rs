@@ -21,6 +21,10 @@ pub enum Error {
     #[error("no href")]
     NoHref,
 
+    /// This is not a JSON object.
+    #[error("json value is not an object")]
+    NotAnObject(serde_json::Value),
+
     /// [serde_json::Error]
     #[error(transparent)]
     SerdeJson(#[from] serde_json::Error),

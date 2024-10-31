@@ -49,7 +49,7 @@ pub mod projection;
 pub mod raster;
 
 use serde::{de::DeserializeOwned, Serialize};
-use stac::{Catalog, Collection, Fields, Item, Result};
+use stac::{Catalog, Collection, Error, Fields, Item, Result};
 pub use {projection::Projection, raster::Raster};
 
 /// A trait implemented by extensions.
@@ -141,7 +141,7 @@ pub trait Extensions: Fields {
     /// assert_eq!(projection.code.unwrap(), "EPSG:32614");
     /// ```
     fn extension<E: Extension>(&self) -> Result<E> {
-        self.fields_with_prefix(E::PREFIX)
+        self.fields_with_prefix(E::PREFIX).map_err(Error::from)
     }
 
     /// Adds an extension's identifier to this object.
@@ -179,6 +179,7 @@ pub trait Extensions: Fields {
         self.extensions_mut().dedup();
         self.remove_fields_with_prefix(E::PREFIX);
         self.set_fields_with_prefix(E::PREFIX, extension)
+            .map_err(Error::from)
     }
 
     /// Removes this extension and all of its fields from this object.

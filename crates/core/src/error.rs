@@ -56,10 +56,6 @@ pub enum Error {
     #[error("no items")]
     NoItems,
 
-    /// This is not a JSON object.
-    #[error("json value is not an object")]
-    NotAnObject(serde_json::Value),
-
     /// [object_store::Error]
     #[error(transparent)]
     #[cfg(feature = "object-store")]

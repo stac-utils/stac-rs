@@ -156,7 +156,6 @@ mod collection;
 mod data_type;
 pub mod datetime;
 mod error;
-mod fields;
 mod format;
 #[cfg(feature = "geo")]
 pub mod geo;
@@ -176,7 +175,7 @@ mod value;
 
 use std::fmt::Display;
 
-pub use stac_types::{mime, Href, Link, Links, Migrate, Version, STAC_VERSION};
+pub use stac_types::{mime, Fields, Href, Link, Links, Migrate, Version, STAC_VERSION};
 #[cfg(feature = "validate-blocking")]
 pub use validate::ValidateBlocking;
 #[cfg(feature = "validate")]
@@ -189,7 +188,6 @@ pub use {
     collection::{Collection, Extent, Provider, SpatialExtent, TemporalExtent},
     data_type::DataType,
     error::Error,
-    fields::Fields,
     format::Format,
     geoparquet::{FromGeoparquet, IntoGeoparquet},
     io::{read, write},

@@ -48,3 +48,20 @@ pub fn migrate_derive(input: TokenStream) -> TokenStream {
     };
     TokenStream::from(expanded)
 }
+
+#[proc_macro_derive(Fields)]
+pub fn fields_derive(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    let name = input.ident;
+    let expanded = quote! {
+        impl stac_types::Fields for #name {
+            fn fields(&self) -> &serde_json::Map<String, serde_json::Value> {
+                &self.additional_fields
+            }
+            fn fields_mut(&mut self) -> &mut serde_json::Map<String, Value> {
+                &mut self.additional_fields
+            }
+        }
+    };
+    TokenStream::from(expanded)
+}
