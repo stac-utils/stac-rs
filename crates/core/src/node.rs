@@ -148,10 +148,11 @@ impl TryFrom<Value> for Container {
         match value {
             Value::Catalog(c) => Ok(c.into()),
             Value::Collection(c) => Ok(c.into()),
-            _ => Err(Error::IncorrectType {
+            _ => Err(stac_types::Error::IncorrectType {
                 actual: value.type_name().to_string(),
                 expected: "Catalog or Collection".to_string(),
-            }),
+            }
+            .into()),
         }
     }
 }
