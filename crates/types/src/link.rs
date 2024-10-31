@@ -843,6 +843,17 @@ mod tests {
         assert!(value.get("title").is_none());
     }
 
+    #[test]
+    fn absolute() {
+        let mut link = Link::new("examples/simple-item.json", "rel");
+        link.make_absolute(None).unwrap();
+        assert!(
+            link.href.ends_with("should fail"),
+            "the absolute href failed, here's the output: {}",
+            link.href
+        );
+    }
+
     mod links {
         use stac::{Catalog, Href, Item, Link, Links};
 
