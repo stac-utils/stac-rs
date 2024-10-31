@@ -735,7 +735,23 @@ fn make_absolute(href: impl ToString, base: Option<&str>) -> Result<String> {
             }
         }
     } else {
-        std::fs::canonicalize(PathBuf::from_slash(href))
+        println!(
+            "from slash: {}",
+            PathBuf::from_slash(&href).to_string_lossy()
+        );
+        println!(
+            "canonicalize: {}",
+            std::fs::canonicalize(PathBuf::from_slash(&href))
+                .unwrap()
+                .to_string_lossy()
+        );
+        println!(
+            "back: {}",
+            std::fs::canonicalize(PathBuf::from_slash(&href))
+                .map(|p| p.to_slash_lossy().into_owned())
+                .unwrap()
+        );
+        std::fs::canonicalize(PathBuf::from_slash(&href))
             .map(|p| p.to_slash_lossy().into_owned())
             .map_err(Error::from)
     }
