@@ -2,10 +2,8 @@
 
 use crate::{mime::APPLICATION_GEOJSON, Error, Href, Result};
 use mime::APPLICATION_JSON;
-use path_slash::PathBufExt;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use std::path::PathBuf;
 use url::Url;
 
 /// Child links.
@@ -735,25 +733,7 @@ fn make_absolute(href: impl ToString, base: Option<&str>) -> Result<String> {
             }
         }
     } else {
-        println!(
-            "from slash: {}",
-            PathBuf::from_slash(&href).to_string_lossy()
-        );
-        println!(
-            "canonicalize: {}",
-            std::fs::canonicalize(PathBuf::from_slash(&href))
-                .unwrap()
-                .to_string_lossy()
-        );
-        println!(
-            "back: {}",
-            std::fs::canonicalize(PathBuf::from_slash(&href))
-                .map(|p| p.to_slash_lossy().into_owned())
-                .unwrap()
-        );
-        std::fs::canonicalize(PathBuf::from_slash(&href))
-            .map(|p| p.to_slash_lossy().into_owned())
-            .map_err(Error::from)
+        Ok(href)
     }
 }
 
@@ -824,7 +804,7 @@ fn normalize_path(path: &str) -> String {
     let mut parts = if path.starts_with('/') {
         Vec::new()
     } else {
-        vec![""]
+        vec!["."]
     };
     for part in path.split('/') {
         match part {
@@ -859,17 +839,6 @@ mod tests {
         assert!(value.get("title").is_none());
     }
 
-    #[test]
-    fn absolute() {
-        let mut link = Link::new("examples/simple-item.json", "rel");
-        link.make_absolute(None).unwrap();
-        assert!(
-            link.href.ends_with("should fail"),
-            "the absolute href failed, here's the output: {}",
-            link.href
-        );
-    }
-
     mod links {
         use stac::{Catalog, Href, Item, Link, Links};
 
@@ -899,7 +868,12 @@ mod tests {
 
         #[test]
         fn make_relative_links_absolute_path() {
-            let mut catalog: Catalog = stac::read("examples/catalog.json").unwrap();
+            let mut catalog: Catalog = stac::read(
+                std::fs::canonicalize("examples/catalog.json")
+                    .unwrap()
+                    .to_string_lossy(),
+            )
+            .unwrap();
             catalog.make_links_absolute().unwrap();
             for link in catalog.links() {
                 assert!(link.is_absolute());

@@ -448,7 +448,7 @@ mod tests {
                     .unwrap()
             );
             let link = collection.link("item").unwrap();
-            assert_eq!(link.href, "examples/simple-item.json");
+            assert!(link.href.ends_with("simple-item.json"));
         }
     }
 

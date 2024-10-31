@@ -50,21 +50,22 @@ impl Format {
         href: impl ToString,
     ) -> Result<T> {
         let href = href.to_string();
-        let mut value: T = if let Some(url) = Url::parse(&href)
+        let (mut value, href): (T, String) = if let Some(url) = Url::parse(&href)
             .ok()
             .filter(|url| url.scheme().starts_with("http"))
         {
             #[cfg(feature = "reqwest")]
             {
                 let bytes = reqwest::blocking::get(url)?.bytes()?;
-                self.from_bytes(bytes)?
+                (self.from_bytes(bytes)?, href)
             }
             #[cfg(not(feature = "reqwest"))]
             {
                 return Err(Error::FeatureNotEnabled("reqwest"));
             }
         } else {
-            self.from_path(&href)?
+            let path = Path::new(&href).canonicalize()?;
+            (self.from_path(&path)?, path.to_string_lossy().into_owned())
         };
         value.set_href(href);
         Ok(value)

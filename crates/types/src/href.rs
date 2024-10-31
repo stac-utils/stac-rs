@@ -22,7 +22,7 @@ pub trait Href {
     /// use stac::{Href, Item};
     ///
     /// let item: Item = stac::read("examples/simple-item.json").unwrap();
-    /// assert_eq!(item.href(), Some("examples/simple-item.json"));
+    /// assert!(item.href().unwrap().ends_with("simple-item.json"));
     /// ```
     fn href(&self) -> Option<&str>;
 
