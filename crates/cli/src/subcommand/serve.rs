@@ -93,7 +93,7 @@ impl Run for Args {
                 }
                 Value::Collection(mut collection) => {
                     if self.load_collection_items {
-                        collection.make_links_absolute()?;
+                        collection.make_relative_links_absolute()?;
                         for link in collection.iter_item_links() {
                             let href = link.href.to_string();
                             let input = input.with_href(href);
