@@ -5,6 +5,7 @@ use mime::APPLICATION_JSON;
 use path_slash::PathBufExt;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
+use std::path::PathBuf;
 use url::Url;
 
 /// Child links.
@@ -734,7 +735,7 @@ fn make_absolute(href: impl ToString, base: Option<&str>) -> Result<String> {
             }
         }
     } else {
-        std::fs::canonicalize(href)
+        std::fs::canonicalize(PathBuf::from_slash(href))
             .map(|p| p.to_slash_lossy().into_owned())
             .map_err(Error::from)
     }
