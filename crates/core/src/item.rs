@@ -3,10 +3,11 @@
 use crate::{Asset, Assets, Bbox, Error, Fields, Link, Result, Version, STAC_VERSION};
 use chrono::{DateTime, FixedOffset, Utc};
 use geojson::{feature::Id, Feature, Geometry};
+use path_slash::PathBufExt;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use stac_derive::{Href, Links, Migrate};
-use std::{collections::HashMap, path::Path};
+use std::{collections::HashMap, path::PathBuf};
 use url::Url;
 
 const TOP_LEVEL_ATTRIBUTES: [&str; 8] = [
@@ -285,7 +286,7 @@ impl Builder {
         let mut item = Item::new(self.id);
         for (key, mut asset) in self.assets {
             if Url::parse(&asset.href).is_err() && self.canonicalize_paths {
-                asset.href = Path::new(&asset.href)
+                asset.href = PathBuf::from_slash(&asset.href)
                     .canonicalize()?
                     .to_string_lossy()
                     .into_owned();

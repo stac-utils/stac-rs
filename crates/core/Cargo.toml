@@ -63,6 +63,7 @@ jsonschema = { workspace = true, optional = true }
 log.workspace = true
 object_store = { workspace = true, optional = true }
 parquet = { workspace = true, optional = true }
+path-slash.workspace = true
 reqwest = { workspace = true, features = ["json", "blocking"], optional = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true, features = ["preserve_order"] }
