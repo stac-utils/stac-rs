@@ -168,7 +168,6 @@ mod item_asset;
 mod item_collection;
 mod json;
 mod ndjson;
-mod node;
 mod statistics;
 #[cfg(feature = "validate")]
 mod validate;
@@ -197,7 +196,6 @@ pub use {
     item_collection::ItemCollection,
     json::{FromJson, ToJson},
     ndjson::{FromNdjson, ToNdjson},
-    node::Node,
     statistics::Statistics,
     value::Value,
 };

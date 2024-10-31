@@ -9,11 +9,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 
 - `version` ([#476](https://github.com/stac-utils/stac-rs/pull/476))
-- `Node` and friends ([#504](https://github.com/stac-utils/stac-rs/pull/504))
-
-### Changed
-
-- `make_links_absolute` instead of `make_relative_links_absolute`, `make_links_relative` instead of `make_absolute_links_relative` ([#504](https://github.com/stac-utils/stac-rs/pull/504))
 - Permissive deserialization ([#505](https://github.com/stac-utils/stac-rs/pull/505))
 
 ### Removed
