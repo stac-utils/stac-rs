@@ -42,7 +42,8 @@
 //!
 //! # [Value]
 //!
-//! A [Value] can represent any of the three core data structures, as well as an [ItemCollection], akin to [serde_json::Value]:
+//! A [Value] can represent any of the three core data structures or an [ItemCollection].
+//! It's the [serde_json::Value] for **stac-rs**:
 //!
 //! ```
 //! use stac::{Value, Item};
@@ -85,7 +86,7 @@
 //! stac::write("an-id.json", stac::Item::new("an-id")).unwrap();
 //! ```
 //!
-//! Enable the `object-store` feature to get and put objects from e.g. AWS s3 (with the `object-store-aws` feature) or from other backends (see [features](#features) for a complete listing):
+//! Enable the `object-store` feature to get and put objects from cloud storage, e.g. s3 (with the `object-store-aws` feature) or from other backends (see [features](#features) for a complete listing):
 //!
 //! ```no_run
 //! use stac::Item;
