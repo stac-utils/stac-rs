@@ -22,7 +22,7 @@ pub const COLLECTION_REL: &str = "collection";
 /// This object describes a relationship with another entity.
 ///
 /// Data providers are advised to be liberal with the links section, to describe
-/// things like the [Catalog](crate::Catalog) an [Item](crate::Item) is in,
+/// things like the `Catalog`` an `Item` is in,
 /// related `Item`s, parent or child `Item`s (modeled in different ways, like an
 /// 'acquisition' or derived data). It is allowed to add additional fields such
 /// as a title and type.
@@ -93,7 +93,7 @@ pub trait Links: Href {
     ///
     /// # Examples
     ///
-    /// [Value](crate::Value) implements Links:
+    /// `Value` implements Links:
     ///
     /// ```
     /// use stac::Links;
@@ -106,7 +106,7 @@ pub trait Links: Href {
     ///
     /// # Examples
     ///
-    /// [Value](crate::Value) implements Links:
+    /// `Value`` implements Links:
     ///
     /// ```
     /// use stac::Links;
