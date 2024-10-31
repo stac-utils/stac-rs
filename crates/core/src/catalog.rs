@@ -1,6 +1,7 @@
-use crate::{Error, Fields, Href, Link, Links, Migrate, Result, Version, STAC_VERSION};
+use crate::{Error, Fields, Link, Result, Version, STAC_VERSION};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
+use stac_derive::{Href, Links, Migrate};
 
 /// A STAC Catalog object represents a logical group of other `Catalog`,
 /// [Collection](crate::Collection), and [Item](crate::Item) objects.
@@ -14,7 +15,7 @@ use serde_json::{Map, Value};
 /// A `Catalog` object will typically be the entry point into a STAC catalog.
 /// Their purpose is discovery: to be browsed by people or be crawled by clients
 /// to build a searchable index.
-#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, Href, Migrate, Links)]
 #[serde(tag = "type")]
 pub struct Catalog {
     /// The STAC version the `Catalog` implements.
@@ -78,29 +79,6 @@ impl Catalog {
     }
 }
 
-impl Href for Catalog {
-    fn href(&self) -> Option<&str> {
-        self.href.as_deref()
-    }
-
-    fn set_href(&mut self, href: impl ToString) {
-        self.href = Some(href.to_string())
-    }
-
-    fn clear_href(&mut self) {
-        self.href = None;
-    }
-}
-
-impl Links for Catalog {
-    fn links(&self) -> &[Link] {
-        &self.links
-    }
-    fn links_mut(&mut self) -> &mut Vec<Link> {
-        &mut self.links
-    }
-}
-
 impl TryFrom<Catalog> for Map<String, Value> {
     type Error = Error;
     fn try_from(catalog: Catalog) -> Result<Self> {
@@ -127,8 +105,6 @@ impl Fields for Catalog {
         &mut self.additional_fields
     }
 }
-
-impl Migrate for Catalog {}
 
 #[cfg(test)]
 mod tests {

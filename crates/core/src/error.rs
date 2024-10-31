@@ -1,4 +1,3 @@
-use crate::Version;
 use thiserror::Error;
 
 /// Error enum for crate-specific errors.
@@ -41,16 +40,6 @@ pub enum Error {
     #[error("invalid attribute name: {0}")]
     InvalidAttribute(String),
 
-    /// Returned when a STAC object has the wrong type field.
-    #[error("incorrect type: expected={expected}, actual={actual}")]
-    IncorrectType {
-        /// The actual type field on the object.
-        actual: String,
-
-        /// The expected value.
-        expected: String,
-    },
-
     /// This vector is not a valid bounding box.
     #[error("invalid bbox: {0:?}")]
     InvalidBbox(Vec<f64>),
@@ -62,10 +51,6 @@ pub enum Error {
     /// Returned when there is not a required field on a STAC object
     #[error("no \"{0}\" field in the JSON object")]
     MissingField(&'static str),
-
-    /// There is not an href, when an href is required.
-    #[error("no href")]
-    NoHref,
 
     /// There are no items, when items are required.
     #[error("no items")]
@@ -103,6 +88,10 @@ pub enum Error {
     #[error(transparent)]
     SerdeJson(#[from] serde_json::Error),
 
+    /// [stac_types::Error]
+    #[error(transparent)]
+    StacTypes(#[from] stac_types::Error),
+
     /// [tokio::task::JoinError]
     #[error(transparent)]
     #[cfg(feature = "validate")]
@@ -116,10 +105,6 @@ pub enum Error {
     #[error("unknown \"type\": {0}")]
     UnknownType(String),
 
-    /// Unsupported migration.
-    #[error("unsupported migration: {0} to {1}")]
-    UnsupportedMigration(Version, Version),
-
     /// Unsupported file format.
     #[error("unsupported format: {0}")]
     UnsupportedFormat(String),
@@ -130,7 +115,7 @@ pub enum Error {
 
     /// [url::ParseError]
     #[error(transparent)]
-    Url(#[from] url::ParseError),
+    UrlParse(#[from] url::ParseError),
 
     /// A list of validation errors.
     #[error("{} validation error(s)", .0.len())]

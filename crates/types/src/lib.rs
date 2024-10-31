@@ -1,0 +1,19 @@
+mod error;
+mod href;
+pub mod link;
+mod migrate;
+pub mod mime;
+mod version;
+
+pub type Result<T> = std::result::Result<T, Error>;
+
+pub use {
+    error::Error,
+    href::Href,
+    link::{Link, Links},
+    migrate::Migrate,
+    version::Version,
+};
+
+/// The default STAC version of this library.
+pub const STAC_VERSION: Version = Version::v1_1_0;

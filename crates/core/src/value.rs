@@ -269,10 +269,11 @@ macro_rules! impl_try_from {
                 if let Value::$object(o) = value {
                     Ok(o)
                 } else {
-                    Err(Error::IncorrectType {
+                    Err(stac_types::Error::IncorrectType {
                         actual: value.type_name().to_string(),
                         expected: $name.to_string(),
-                    })
+                    }
+                    .into())
                 }
             }
         }
@@ -292,16 +293,17 @@ impl TryFrom<Value> for ItemCollection {
         match value {
             Value::Item(item) => Ok(ItemCollection::from(vec![item])),
             Value::ItemCollection(item_collection) => Ok(item_collection),
-            Value::Catalog(_) | Value::Collection(_) => Err(Error::IncorrectType {
+            Value::Catalog(_) | Value::Collection(_) => Err(stac_types::Error::IncorrectType {
                 actual: value.type_name().to_string(),
                 expected: "ItemCollection".to_string(),
-            }),
+            }
+            .into()),
         }
     }
 }
 
 impl Migrate for Value {
-    fn migrate(self, version: &Version) -> Result<Value> {
+    fn migrate(self, version: &Version) -> stac_types::Result<Value> {
         match self {
             Value::Item(item) => item.migrate(version).map(Value::Item),
             Value::Catalog(catalog) => catalog.migrate(version).map(Value::Catalog),
@@ -316,7 +318,6 @@ impl Migrate for Value {
 #[cfg(test)]
 mod tests {
     use super::Value;
-    use crate::{Catalog, Error, Item};
     use serde_json::json;
 
     #[test]
@@ -398,17 +399,5 @@ mod tests {
             "links": []
         });
         assert!(serde_json::from_value::<Value>(catalog).is_err());
-    }
-
-    #[test]
-    fn try_from() {
-        let value = Value::Item(Item::new("an-id"));
-        let err = Catalog::try_from(value).unwrap_err();
-        if let Error::IncorrectType { actual, expected } = err {
-            assert_eq!(actual, "Item");
-            assert_eq!(expected, "Catalog");
-        } else {
-            panic!("wrong error type: {}", err)
-        }
     }
 }

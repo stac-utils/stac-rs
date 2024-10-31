@@ -1,12 +1,13 @@
-use crate::{Error, Href, Item, Link, Links, Migrate};
+use crate::{Error, Item, Link, Migrate, Version};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
+use stac_derive::{Href, Links};
 use std::{ops::Deref, vec::IntoIter};
 
 /// A [GeoJSON FeatureCollection](https://www.rfc-editor.org/rfc/rfc7946#page-12) of items.
 ///
 /// While not part of the STAC specification, ItemCollections are often used to store many items in a single file.
-#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, Href, Links)]
 #[serde(tag = "type", rename = "FeatureCollection")]
 pub struct ItemCollection {
     /// The list of [Items](Item).
@@ -59,31 +60,8 @@ impl Deref for ItemCollection {
     }
 }
 
-impl Href for ItemCollection {
-    fn href(&self) -> Option<&str> {
-        self.href.as_deref()
-    }
-
-    fn set_href(&mut self, href: impl ToString) {
-        self.href = Some(href.to_string())
-    }
-
-    fn clear_href(&mut self) {
-        self.href = None;
-    }
-}
-
-impl Links for ItemCollection {
-    fn links(&self) -> &[Link] {
-        &self.links
-    }
-    fn links_mut(&mut self) -> &mut Vec<Link> {
-        &mut self.links
-    }
-}
-
 impl Migrate for ItemCollection {
-    fn migrate(mut self, version: &crate::Version) -> crate::Result<Self> {
+    fn migrate(mut self, version: &Version) -> stac_types::Result<Self> {
         let mut items = Vec::with_capacity(self.items.len());
         for item in self.items {
             items.push(item.migrate(version)?);

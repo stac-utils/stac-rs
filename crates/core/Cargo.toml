@@ -61,12 +61,13 @@ geoarrow = { workspace = true, optional = true }
 geojson.workspace = true
 jsonschema = { workspace = true, optional = true }
 log.workspace = true
-mime.workspace = true
 object_store = { workspace = true, optional = true }
 parquet = { workspace = true, optional = true }
 reqwest = { workspace = true, features = ["json", "blocking"], optional = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true, features = ["preserve_order"] }
+stac-derive.workspace = true
+stac-types.workspace = true
 thiserror.workspace = true
 tokio = { workspace = true, optional = true }
 tracing.workspace = true
