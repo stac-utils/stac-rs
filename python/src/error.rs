@@ -22,6 +22,12 @@ impl From<stac_duckdb::Error> for Error {
     }
 }
 
+impl From<stac_types::Error> for Error {
+    fn from(value: stac_types::Error) -> Self {
+        Error(value.to_string())
+    }
+}
+
 impl From<geojson::Error> for Error {
     fn from(value: geojson::Error) -> Self {
         Error(value.to_string())

@@ -1,12 +1,11 @@
 //! STAC Items.
 
-use crate::{
-    Asset, Assets, Bbox, Error, Fields, Href, Link, Links, Migrate, Result, Version, STAC_VERSION,
-};
+use crate::{Asset, Assets, Bbox, Error, Fields, Link, Result, Version, STAC_VERSION};
 use chrono::{DateTime, FixedOffset, Utc};
 use geojson::{feature::Id, Feature, Geometry};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
+use stac_derive::{Href, Links, Migrate};
 use std::{collections::HashMap, path::Path};
 use url::Url;
 
@@ -28,7 +27,7 @@ const TOP_LEVEL_ATTRIBUTES: [&str; 8] = [
 /// `Item` is the core object in a STAC catalog, containing the core metadata that
 /// enables any client to search or crawl online catalogs of spatial 'assets'
 /// (e.g., satellite imagery, derived data, DEMs).
-#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, Href, Links, Migrate)]
 #[serde(tag = "type", rename = "Feature")]
 pub struct Item {
     /// The STAC version the `Item` implements.
@@ -565,29 +564,6 @@ impl Item {
     }
 }
 
-impl Href for Item {
-    fn href(&self) -> Option<&str> {
-        self.href.as_deref()
-    }
-
-    fn set_href(&mut self, href: impl ToString) {
-        self.href = Some(href.to_string())
-    }
-
-    fn clear_href(&mut self) {
-        self.href = None;
-    }
-}
-
-impl Links for Item {
-    fn links(&self) -> &[Link] {
-        &self.links
-    }
-    fn links_mut(&mut self) -> &mut Vec<Link> {
-        &mut self.links
-    }
-}
-
 impl Assets for Item {
     fn assets(&self) -> &HashMap<String, Asset> {
         &self.assets
@@ -671,8 +647,6 @@ impl TryFrom<Item> for Feature {
 fn default_stac_version() -> Version {
     STAC_VERSION
 }
-
-impl Migrate for Item {}
 
 #[cfg(test)]
 mod tests {

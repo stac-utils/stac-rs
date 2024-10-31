@@ -33,6 +33,8 @@ serde.workspace = true
 serde_json.workspace = true
 serde_urlencoded.workspace = true
 stac.workspace = true
+stac-derive.workspace = true
+stac-types.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
 tokio = { workspace = true, optional = true }

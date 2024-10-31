@@ -1,10 +1,11 @@
 use crate::{
-    Asset, Assets, Bbox, Error, Fields, Href, Item, ItemAsset, Link, Links, Migrate, Result,
-    Version, STAC_VERSION,
+    Asset, Assets, Bbox, Error, Href, Item, ItemAsset, Link, Links, Migrate, Result, Version,
+    STAC_VERSION,
 };
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
+use stac_derive::{Fields, Href, Links};
 use std::collections::HashMap;
 
 const DEFAULT_LICENSE: &str = "proprietary";
@@ -21,7 +22,7 @@ const DEFAULT_LICENSE: &str = "proprietary";
 /// A STAC `Collection` is represented in JSON format. Any JSON object that
 /// contains all the required fields is a valid STAC `Collection` and also a valid
 /// STAC `Catalog`.
-#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, Href, Links, Fields)]
 #[serde(tag = "type")]
 pub struct Collection {
     /// The STAC version the `Collection` implements.
@@ -288,29 +289,6 @@ impl Collection {
     }
 }
 
-impl Href for Collection {
-    fn href(&self) -> Option<&str> {
-        self.href.as_deref()
-    }
-
-    fn set_href(&mut self, href: impl ToString) {
-        self.href = Some(href.to_string())
-    }
-
-    fn clear_href(&mut self) {
-        self.href = None;
-    }
-}
-
-impl Links for Collection {
-    fn links(&self) -> &[Link] {
-        &self.links
-    }
-    fn links_mut(&mut self) -> &mut Vec<Link> {
-        &mut self.links
-    }
-}
-
 impl Provider {
     /// Creates a new provider with the given name.
     ///
@@ -383,15 +361,6 @@ impl Assets for Collection {
     }
     fn assets_mut(&mut self) -> &mut HashMap<String, Asset> {
         &mut self.assets
-    }
-}
-
-impl Fields for Collection {
-    fn fields(&self) -> &Map<String, Value> {
-        &self.additional_fields
-    }
-    fn fields_mut(&mut self) -> &mut Map<String, Value> {
-        &mut self.additional_fields
     }
 }
 
