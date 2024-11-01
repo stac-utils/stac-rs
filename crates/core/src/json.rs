@@ -1,4 +1,4 @@
-use crate::{Error, Href, Result};
+use crate::{Error, Result, SelfHref};
 use serde::{de::DeserializeOwned, Serialize};
 use std::{
     fs::File,
@@ -7,7 +7,7 @@ use std::{
 };
 
 /// Create a STAC object from JSON.
-pub trait FromJson: DeserializeOwned + Href {
+pub trait FromJson: DeserializeOwned + SelfHref {
     /// Reads JSON data from a file.
     ///
     /// # Examples
@@ -22,7 +22,7 @@ pub trait FromJson: DeserializeOwned + Href {
         let mut buf = Vec::new();
         let _ = File::open(path)?.read_to_end(&mut buf)?;
         let mut value = Self::from_json_slice(&buf)?;
-        value.set_href(path.to_string_lossy());
+        *value.self_href_mut() = Some(path.into());
         Ok(value)
     }
 
@@ -95,17 +95,21 @@ pub trait ToJson: Serialize {
     }
 }
 
-impl<T: DeserializeOwned + Href> FromJson for T {}
+impl<T: DeserializeOwned + SelfHref> FromJson for T {}
 impl<T: Serialize> ToJson for T {}
 
 #[cfg(test)]
 mod tests {
     use super::FromJson;
-    use crate::{Href, Item};
+    use crate::{Item, SelfHref};
 
     #[test]
     fn set_href() {
         let item = Item::from_json_path("examples/simple-item.json").unwrap();
-        assert!(item.href().unwrap().ends_with("examples/simple-item.json"));
+        assert!(item
+            .self_href()
+            .unwrap()
+            .as_str()
+            .ends_with("examples/simple-item.json"));
     }
 }

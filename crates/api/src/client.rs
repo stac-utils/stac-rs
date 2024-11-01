@@ -7,7 +7,7 @@ use http::header::{HeaderName, USER_AGENT};
 use reqwest::{header::HeaderMap, ClientBuilder, IntoUrl, Method, StatusCode};
 use serde::{de::DeserializeOwned, Serialize};
 use serde_json::{Map, Value};
-use stac::{Collection, Href, Link, Links};
+use stac::{Collection, Link, Links, SelfHref};
 use std::pin::Pin;
 use tokio::{
     runtime::{Builder, Runtime},
@@ -170,13 +170,13 @@ impl Client {
 
     async fn get<V>(&self, url: impl IntoUrl) -> Result<V>
     where
-        V: DeserializeOwned + Href,
+        V: DeserializeOwned + SelfHref,
     {
         let url = url.into_url()?;
         let mut value = self
             .request::<(), V>(Method::GET, url.clone(), None, None)
             .await?;
-        value.set_href(url);
+        *value.self_href_mut() = Some(url.into());
         Ok(value)
     }
 
@@ -243,7 +243,7 @@ impl Client {
         } else {
             None
         };
-        self.request::<Map<String, Value>, R>(method, link.href, &link.body, headers)
+        self.request::<Map<String, Value>, R>(method, link.href.as_str(), &link.body, headers)
             .await
     }
 }
@@ -404,7 +404,7 @@ mod tests {
         let mut page_1_body: ItemCollection =
             serde_json::from_str(include_str!("../mocks/search-page-1.json")).unwrap();
         let mut next_link = page_1_body.link("next").unwrap().clone();
-        next_link.href = format!("{}/search", server.url());
+        next_link.href = format!("{}/search", server.url()).into();
         page_1_body.set_link(next_link);
         let page_1 = server
             .mock("POST", "/search")
@@ -454,13 +454,14 @@ mod tests {
         let mut page_1_body: ItemCollection =
             serde_json::from_str(include_str!("../mocks/items-page-1.json")).unwrap();
         let mut next_link = page_1_body.link("next").unwrap().clone();
-        let url: Url = next_link.href.parse().unwrap();
+        let url: Url = next_link.href.as_str().parse().unwrap();
         let query = url.query().unwrap();
         next_link.href = format!(
             "{}/collections/sentinel-2-l2a/items?{}",
             server.url(),
             query
-        );
+        )
+        .into();
         page_1_body.set_link(next_link);
         let page_1 = server
             .mock("GET", "/collections/sentinel-2-l2a/items?limit=1")
@@ -500,13 +501,14 @@ mod tests {
         let mut page_body: ItemCollection =
             serde_json::from_str(include_str!("../mocks/items-page-1.json")).unwrap();
         let mut next_link = page_body.link("next").unwrap().clone();
-        let url: Url = next_link.href.parse().unwrap();
+        let url: Url = next_link.href.as_str().parse().unwrap();
         let query = url.query().unwrap();
         next_link.href = format!(
             "{}/collections/sentinel-2-l2a/items?{}",
             server.url(),
             query
-        );
+        )
+        .into();
         page_body.set_link(next_link);
         page_body.items = vec![];
         let page = server

@@ -2,20 +2,17 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, DeriveInput};
 
-#[proc_macro_derive(Href)]
-pub fn href_derive(input: TokenStream) -> TokenStream {
+#[proc_macro_derive(SelfHref)]
+pub fn self_href_derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     let name = input.ident;
     let expanded = quote! {
-        impl stac_types::Href for #name {
-            fn href(&self) -> Option<&str> {
-                self.href.as_deref()
+        impl stac_types::SelfHref for #name {
+            fn self_href(&self) -> Option<&stac_types::Href> {
+                self.self_href.as_ref()
             }
-            fn set_href(&mut self, href: impl ToString) {
-                self.href = Some(href.to_string());
-            }
-            fn clear_href(&mut self) {
-                self.href = None;
+            fn self_href_mut(&mut self) -> &mut Option<stac_types::Href> {
+                &mut self.self_href
             }
         }
     };

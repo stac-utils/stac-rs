@@ -1,10 +1,9 @@
 use crate::{
     geoparquet::{Compression, FromGeoparquet, IntoGeoparquet},
-    Error, FromJson, FromNdjson, Href, Result, ToJson, ToNdjson,
+    Error, FromJson, FromNdjson, Href, Result, SelfHref, ToJson, ToNdjson,
 };
 use bytes::Bytes;
 use std::{fmt::Display, path::Path, str::FromStr};
-use url::Url;
 
 /// The format of STAC data.
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -45,29 +44,31 @@ impl Format {
     /// let item: Item = Format::json().read("examples/simple-item.json").unwrap();
     /// ```
     #[allow(unused_variables)]
-    pub fn read<T: Href + FromJson + FromNdjson + FromGeoparquet>(
+    pub fn read<T: SelfHref + FromJson + FromNdjson + FromGeoparquet>(
         &self,
-        href: impl ToString,
+        href: impl Into<Href>,
     ) -> Result<T> {
-        let href = href.to_string();
-        let (mut value, href): (T, String) = if let Some(url) = Url::parse(&href)
-            .ok()
-            .filter(|url| url.scheme().starts_with("http"))
-        {
-            #[cfg(feature = "reqwest")]
-            {
-                let bytes = reqwest::blocking::get(url)?.bytes()?;
-                (self.from_bytes(bytes)?, href)
+        let mut href = href.into();
+        let mut value: T = match href.clone() {
+            Href::Url(url) => {
+                #[cfg(feature = "reqwest")]
+                {
+                    let bytes = reqwest::blocking::get(url)?.bytes()?;
+                    self.from_bytes(bytes)?
+                }
+                #[cfg(not(feature = "reqwest"))]
+                {
+                    return Err(Error::FeatureNotEnabled("reqwest"));
+                }
             }
-            #[cfg(not(feature = "reqwest"))]
-            {
-                return Err(Error::FeatureNotEnabled("reqwest"));
+            Href::String(path) => {
+                let path = Path::new(&path).canonicalize()?;
+                let value = self.from_path(&path)?;
+                href = path.as_path().into();
+                value
             }
-        } else {
-            let path = Path::new(&href).canonicalize()?;
-            (self.from_path(&path)?, path.to_string_lossy().into_owned())
         };
-        value.set_href(href);
+        *value.self_href_mut() = Some(href);
         Ok(value)
     }
 
@@ -80,7 +81,7 @@ impl Format {
     ///
     /// let item: Item = Format::json().from_path("examples/simple-item.json").unwrap();
     /// ```
-    pub fn from_path<T: FromJson + FromNdjson + FromGeoparquet + Href>(
+    pub fn from_path<T: FromJson + FromNdjson + FromGeoparquet + SelfHref>(
         &self,
         path: impl AsRef<Path>,
     ) -> Result<T> {
@@ -129,25 +130,25 @@ impl Format {
     /// }
     /// ```
     #[cfg(feature = "object-store")]
-    pub async fn get_opts<T, I, K, V>(&self, href: impl ToString, options: I) -> Result<T>
+    pub async fn get_opts<T, I, K, V>(&self, href: impl Into<Href>, options: I) -> Result<T>
     where
-        T: Href + FromJson + FromNdjson + FromGeoparquet,
+        T: SelfHref + FromJson + FromNdjson + FromGeoparquet,
         I: IntoIterator<Item = (K, V)>,
         K: AsRef<str>,
         V: Into<String>,
     {
-        let href = href.to_string();
-        let mut value: T = if let Ok(url) = Url::parse(&href) {
-            use object_store::ObjectStore;
+        match href.into() {
+            Href::Url(url) => {
+                use object_store::ObjectStore;
 
-            let (object_store, path) = object_store::parse_url_opts(&url, options)?;
-            let get_result = object_store.get(&path).await?;
-            self.from_bytes(get_result.bytes().await?)?
-        } else {
-            self.from_path(&href)?
-        };
-        value.set_href(href);
-        Ok(value)
+                let (object_store, path) = object_store::parse_url_opts(&url, options)?;
+                let get_result = object_store.get(&path).await?;
+                let mut value: T = self.from_bytes(get_result.bytes().await?)?;
+                *value.self_href_mut() = Some(Href::Url(url));
+                Ok(value)
+            }
+            Href::String(s) => self.from_path(s),
+        }
     }
 
     /// Writes a STAC value to the provided path.
@@ -218,7 +219,7 @@ impl Format {
         V: Into<String>,
     {
         let href = href.to_string();
-        if let Ok(url) = Url::parse(&href) {
+        if let Ok(url) = url::Url::parse(&href) {
             use object_store::ObjectStore;
 
             let (object_store, path) = object_store::parse_url_opts(&url, options)?;

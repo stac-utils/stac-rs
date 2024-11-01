@@ -1,11 +1,11 @@
 use crate::{
-    Asset, Assets, Bbox, Error, Href, Item, ItemAsset, Link, Links, Migrate, Result, Version,
-    STAC_VERSION,
+    Asset, Assets, Bbox, Error, Href, Item, ItemAsset, Link, Links, Migrate, Result, SelfHref,
+    Version, STAC_VERSION,
 };
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use stac_derive::{Fields, Href, Links};
+use stac_derive::{Fields, Links, SelfHref};
 use std::collections::HashMap;
 
 const DEFAULT_LICENSE: &str = "proprietary";
@@ -22,7 +22,7 @@ const DEFAULT_LICENSE: &str = "proprietary";
 /// A STAC `Collection` is represented in JSON format. Any JSON object that
 /// contains all the required fields is a valid STAC `Collection` and also a valid
 /// STAC `Catalog`.
-#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, Href, Links, Fields)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, SelfHref, Links, Fields)]
 #[serde(tag = "type")]
 pub struct Collection {
     /// The STAC version the `Collection` implements.
@@ -93,7 +93,7 @@ pub struct Collection {
     pub additional_fields: Map<String, Value>,
 
     #[serde(skip)]
-    href: Option<String>,
+    self_href: Option<Href>,
 }
 
 /// This object provides information about a provider.
@@ -184,7 +184,7 @@ impl Collection {
             assets: HashMap::new(),
             item_assets: HashMap::new(),
             additional_fields: Map::new(),
-            href: None,
+            self_href: None,
         }
     }
 
@@ -249,11 +249,8 @@ impl Collection {
     }
 
     fn maybe_add_item_link(&mut self, item: &Item) -> Option<&Link> {
-        if let Some(href) = item
-            .href()
-            .or(item.self_link().map(|link| link.href.as_str()))
-        {
-            self.links.push(Link::item(href));
+        if let Some(href) = item.self_href().or(item.self_link().map(|link| &link.href)) {
+            self.links.push(Link::item(href.clone()));
             self.links.last()
         } else {
             None
@@ -448,7 +445,7 @@ mod tests {
                     .unwrap()
             );
             let link = collection.link("item").unwrap();
-            assert!(link.href.ends_with("simple-item.json"));
+            assert!(link.href.to_string().ends_with("simple-item.json"));
         }
     }
 

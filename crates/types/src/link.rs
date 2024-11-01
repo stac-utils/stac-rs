@@ -1,10 +1,9 @@
 //! Links.
 
-use crate::{mime::APPLICATION_GEOJSON, Error, Href, Result};
+use crate::{mime::APPLICATION_GEOJSON, Error, Href, Result, SelfHref};
 use mime::APPLICATION_JSON;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use url::Url;
 
 /// Child links.
 pub const CHILD_REL: &str = "child";
@@ -37,7 +36,7 @@ pub struct Link {
     /// The actual link in the format of an URL.
     ///
     /// Relative and absolute links are both allowed.
-    pub href: String,
+    pub href: Href,
 
     /// Relationship between the current document and the linked document.
     ///
@@ -88,7 +87,7 @@ pub struct Link {
 }
 
 /// Implemented by any object that has links.
-pub trait Links: Href {
+pub trait Links: SelfHref {
     /// Returns a reference to this object's links.
     ///
     /// # Examples
@@ -217,49 +216,28 @@ pub trait Links: Href {
         Box::new(self.links().iter().filter(|link| link.is_item()))
     }
 
-    /// Makes all relative links absolute with respect to this object's href.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use stac::{Links, Catalog, Error, Href};
-    ///
-    /// let mut catalog: stac::Catalog = stac::read("examples/catalog.json").unwrap();
-    /// assert!(!catalog.root_link().unwrap().is_absolute());
-    /// catalog.make_links_absolute().unwrap();
-    /// assert!(catalog.root_link().unwrap().is_absolute());
-    /// ```
+    /// Makes all relative links absolute with respect to this object's self href.
     fn make_links_absolute(&mut self) -> Result<()> {
-        let href = self.href().map(String::from);
-        for link in self.links_mut() {
-            link.make_absolute(href.as_deref())?;
+        if let Some(href) = self.self_href().cloned() {
+            for link in self.links_mut() {
+                link.make_absolute(&href)?;
+            }
+            Ok(())
+        } else {
+            Err(Error::NoHref)
         }
-        Ok(())
     }
 
-    /// Makes all absolute links relative with respect to an href.
-    ///
-    /// If they do not share a root, the link will be made absolute.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use stac::{Links, Catalog, Error, Href};
-    ///
-    /// let mut catalog: stac::Catalog = stac::read("examples/catalog.json").unwrap();
-    /// assert!(!catalog.root_link().unwrap().is_absolute());
-    /// catalog.make_links_absolute().unwrap();
-    /// assert!(catalog.root_link().unwrap().is_absolute());
-    /// catalog.make_links_relative("examples/catalog.json").unwrap();
-    /// assert!(catalog.root_link().unwrap().is_relative());
-    /// ```
-    fn make_links_relative(&mut self, href: impl ToString) -> Result<()> {
-        let href = make_absolute(href.to_string(), None)?;
-        for link in self.links_mut() {
-            let absolute_link_href = make_absolute(std::mem::take(&mut link.href), Some(&href))?;
-            link.href = make_relative(&absolute_link_href, &href);
+    /// Makes all links relative with respect to this object's self href.
+    fn make_links_relative(&mut self) -> Result<()> {
+        if let Some(href) = self.self_href().cloned() {
+            for link in self.links_mut() {
+                link.make_relative(&href)?;
+            }
+            Ok(())
+        } else {
+            Err(Error::NoHref)
         }
-        Ok(())
     }
 
     /// Removes all relative links.
@@ -310,9 +288,9 @@ impl Link {
     /// assert_eq!(link.href, "an-href");
     /// assert_eq!(link.rel, "a-rel");
     /// ```
-    pub fn new(href: impl ToString, rel: impl ToString) -> Link {
+    pub fn new(href: impl Into<Href>, rel: impl ToString) -> Link {
         Link {
-            href: href.to_string(),
+            href: href.into(),
             rel: rel.to_string(),
             r#type: None,
             title: None,
@@ -422,7 +400,7 @@ impl Link {
     /// assert!(link.is_root());
     /// assert_eq!(link.r#type.as_ref().unwrap(), ::mime::APPLICATION_JSON.as_ref());
     /// ```
-    pub fn root(href: impl ToString) -> Link {
+    pub fn root(href: impl Into<Href>) -> Link {
         Link::new(href, ROOT_REL).json()
     }
 
@@ -436,7 +414,7 @@ impl Link {
     /// assert!(link.is_self());
     /// assert_eq!(link.r#type.as_ref().unwrap(), ::mime::APPLICATION_JSON.as_ref());
     /// ```
-    pub fn self_(href: impl ToString) -> Link {
+    pub fn self_(href: impl Into<Href>) -> Link {
         Link::new(href, SELF_REL).json()
     }
 
@@ -450,7 +428,7 @@ impl Link {
     /// assert!(link.is_child());
     /// assert_eq!(link.r#type.as_ref().unwrap(), ::mime::APPLICATION_JSON.as_ref());
     /// ```
-    pub fn child(href: impl ToString) -> Link {
+    pub fn child(href: impl Into<Href>) -> Link {
         Link::new(href, CHILD_REL).json()
     }
 
@@ -464,7 +442,7 @@ impl Link {
     /// assert!(link.is_item());
     /// assert_eq!(link.r#type.as_ref().unwrap(), ::mime::APPLICATION_JSON.as_ref());
     /// ```
-    pub fn item(href: impl ToString) -> Link {
+    pub fn item(href: impl Into<Href>) -> Link {
         Link::new(href, ITEM_REL).json()
     }
 
@@ -478,7 +456,7 @@ impl Link {
     /// assert!(link.is_parent());
     /// assert_eq!(link.r#type.as_ref().unwrap(), ::mime::APPLICATION_JSON.as_ref());
     /// ```
-    pub fn parent(href: impl ToString) -> Link {
+    pub fn parent(href: impl Into<Href>) -> Link {
         Link::new(href, PARENT_REL).json()
     }
 
@@ -492,7 +470,7 @@ impl Link {
     /// assert!(link.is_collection());
     /// assert_eq!(link.r#type.as_ref().unwrap(), ::mime::APPLICATION_JSON.as_ref());
     /// ```
-    pub fn collection(href: impl ToString) -> Link {
+    pub fn collection(href: impl Into<Href>) -> Link {
         Link::new(href, COLLECTION_REL).json()
     }
 
@@ -631,7 +609,7 @@ impl Link {
     /// assert!(!Link::new("./not/an/absolute/path", "rel").is_absolute());
     /// ```
     pub fn is_absolute(&self) -> bool {
-        is_absolute(&self.href)
+        self.href.is_absolute()
     }
 
     /// Returns true if this link's href is a relative path.
@@ -646,7 +624,7 @@ impl Link {
     /// assert!(Link::new("./not/an/absolute/path", "rel").is_relative());
     /// ```
     pub fn is_relative(&self) -> bool {
-        !is_absolute(&self.href)
+        !self.href.is_absolute()
     }
 
     /// Sets the method attribute on this link.
@@ -695,127 +673,19 @@ impl Link {
     /// use stac::Link;
     ///
     /// let mut link = Link::new("./b/item.json", "rel");
-    /// link.make_absolute("/a/base/catalog.json").unwrap();
+    /// link.make_absolute(&"/a/base/catalog.json".into()).unwrap();
     /// assert_eq!(link.href, "/a/base/b/item.json")
     /// ```
-    #[allow(single_use_lifetimes)]
-    pub fn make_absolute<'a>(&mut self, base: impl Into<Option<&'a str>>) -> Result<()> {
-        if let Some(base) = base.into() {
-            let base = make_absolute(base, None)?;
-            self.href = make_absolute(std::mem::take(&mut self.href), Some(&base))?;
-        } else {
-            self.href = make_absolute(std::mem::take(&mut self.href), None)?;
-        }
+    pub fn make_absolute(&mut self, base: &Href) -> Result<()> {
+        self.href = self.href.absolute(base)?;
         Ok(())
     }
-}
 
-fn is_absolute(href: &str) -> bool {
-    href.starts_with('/') || Url::parse(href).is_ok()
-}
-
-fn make_absolute(href: impl ToString, base: Option<&str>) -> Result<String> {
-    // TODO if we make this interface public, make this an impl Option
-    let href = href.to_string();
-    if is_absolute(&href) {
-        Ok(href)
-    } else if let Some(base) = base {
-        if let Ok(base) = Url::parse(base) {
-            base.join(&href)
-                .map(|url| url.to_string())
-                .map_err(Error::from)
-        } else {
-            let (base, _) = base.split_at(base.rfind('/').unwrap_or(0));
-            if base.is_empty() {
-                Ok(normalize_path(&href))
-            } else {
-                Ok(normalize_path(&format!("{}/{}", base, href)))
-            }
-        }
-    } else {
-        Ok(href)
+    /// Makes this link relative
+    pub fn make_relative(&mut self, base: &Href) -> Result<()> {
+        self.href = self.href.relative(base)?;
+        Ok(())
     }
-}
-
-fn make_relative(href: &str, base: &str) -> String {
-    // Cribbed from `Url::make_relative`
-    let mut relative = String::new();
-
-    fn extract_path_filename(s: &str) -> (&str, &str) {
-        let last_slash_idx = s.rfind('/').unwrap_or(0);
-        let (path, filename) = s.split_at(last_slash_idx);
-        if filename.is_empty() {
-            (path, "")
-        } else {
-            (path, &filename[1..])
-        }
-    }
-
-    let (base_path, base_filename) = extract_path_filename(base);
-    let (href_path, href_filename) = extract_path_filename(href);
-
-    let mut base_path = base_path.split('/').peekable();
-    let mut href_path = href_path.split('/').peekable();
-
-    while base_path.peek().is_some() && base_path.peek() == href_path.peek() {
-        let _ = base_path.next();
-        let _ = href_path.next();
-    }
-
-    for base_path_segment in base_path {
-        if base_path_segment.is_empty() {
-            break;
-        }
-
-        if !relative.is_empty() {
-            relative.push('/');
-        }
-
-        relative.push_str("..");
-    }
-
-    for href_path_segment in href_path {
-        if relative.is_empty() {
-            relative.push_str("./");
-        } else {
-            relative.push('/');
-        }
-
-        relative.push_str(href_path_segment);
-    }
-
-    if !relative.is_empty() || base_filename != href_filename {
-        if href_filename.is_empty() {
-            relative.push('/');
-        } else {
-            if relative.is_empty() {
-                relative.push_str("./");
-            } else {
-                relative.push('/');
-            }
-            relative.push_str(href_filename);
-        }
-    }
-
-    relative
-}
-
-fn normalize_path(path: &str) -> String {
-    let mut parts = if path.starts_with('/') {
-        Vec::new()
-    } else {
-        vec!["."]
-    };
-    for part in path.split('/') {
-        match part {
-            "." => {}
-            ".." => {
-                let _ = parts.pop();
-            }
-            s => parts.push(s),
-        }
-    }
-    parts.join("/")
 }
 
 #[cfg(test)]
@@ -840,7 +710,7 @@ mod tests {
     }
 
     mod links {
-        use stac::{Catalog, Href, Item, Link, Links};
+        use stac::{Catalog, Item, Link, Links};
 
         #[test]
         fn link() {
@@ -864,55 +734,6 @@ mod tests {
             assert!(item.self_link().is_none());
             item.links.push(Link::new("an-href", "self"));
             assert!(item.self_link().is_some());
-        }
-
-        #[test]
-        fn make_relative_links_absolute_path() {
-            let mut catalog: Catalog = stac::read(
-                std::fs::canonicalize("examples/catalog.json")
-                    .unwrap()
-                    .to_string_lossy(),
-            )
-            .unwrap();
-            catalog.make_links_absolute().unwrap();
-            for link in catalog.links() {
-                assert!(link.is_absolute());
-            }
-        }
-
-        #[test]
-        fn make_relative_links_absolute_url() {
-            let mut catalog: Catalog = stac::read("examples/catalog.json").unwrap();
-            catalog.set_href("http://stac-rs.test/catalog.json");
-            catalog.make_links_absolute().unwrap();
-            for link in catalog.links() {
-                assert!(link.is_absolute());
-            }
-            assert_eq!(
-                catalog.root_link().unwrap().href,
-                "http://stac-rs.test/catalog.json"
-            );
-        }
-
-        #[test]
-        fn make_absolute_links_relative_path() {
-            let mut catalog: Catalog = stac::read("examples/catalog.json").unwrap();
-            catalog.make_links_absolute().unwrap();
-            catalog.make_links_relative("examples/").unwrap();
-            for link in catalog.links() {
-                if !link.is_self() {
-                    assert!(link.is_relative(), "{}", link.href);
-                }
-            }
-        }
-
-        #[test]
-        fn make_absolute_links_relative_url() {
-            let mut catalog: Catalog = stac::read("examples/catalog.json").unwrap();
-            catalog.set_href("http://stac-rs.test/catalog.json");
-            catalog.make_links_absolute().unwrap();
-            catalog.make_links_relative("http://stac-rs.test/").unwrap();
-            assert_eq!(catalog.root_link().unwrap().href, "./catalog.json");
         }
 
         #[test]

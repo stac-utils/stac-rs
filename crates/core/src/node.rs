@@ -1,4 +1,4 @@
-use crate::{Catalog, Collection, Error, Href, Item, Link, Links, Result, Value};
+use crate::{Catalog, Collection, Error, Href, Item, Link, Links, Result, SelfHref, Value};
 use std::collections::VecDeque;
 
 /// A node in a STAC tree.
@@ -45,17 +45,21 @@ impl Node {
     /// ```
     pub fn resolve(&mut self) -> Result<()> {
         let links = std::mem::take(self.value.links_mut());
-        let href = self.value.href().map(String::from);
+        let href = self.value.self_href().cloned();
         for mut link in links {
             if link.is_child() {
-                link.make_absolute(href.as_deref())?;
+                if let Some(href) = &href {
+                    link.make_absolute(href)?;
+                }
                 // TODO enable object store
                 tracing::debug!("resolving child: {}", link.href);
                 println!("resolving: {}", link.href);
                 let child: Container = crate::read::<Value>(link.href)?.try_into()?;
                 self.children.push_back(child.into());
             } else if link.is_item() {
-                link.make_absolute(href.as_deref())?;
+                if let Some(href) = &href {
+                    link.make_absolute(href)?;
+                }
                 tracing::debug!("resolving item: {}", link.href);
                 println!("resolving: {}", link.href);
                 let item = crate::read::<Item>(link.href)?;
@@ -184,25 +188,18 @@ impl Links for Container {
     }
 }
 
-impl Href for Container {
-    fn href(&self) -> Option<&str> {
+impl SelfHref for Container {
+    fn self_href(&self) -> Option<&Href> {
         match self {
-            Container::Catalog(c) => c.href(),
-            Container::Collection(c) => c.href(),
+            Container::Catalog(c) => c.self_href(),
+            Container::Collection(c) => c.self_href(),
         }
     }
 
-    fn set_href(&mut self, href: impl ToString) {
+    fn self_href_mut(&mut self) -> &mut Option<Href> {
         match self {
-            Container::Catalog(c) => c.set_href(href),
-            Container::Collection(c) => c.set_href(href),
-        }
-    }
-
-    fn clear_href(&mut self) {
-        match self {
-            Container::Catalog(c) => c.clear_href(),
-            Container::Collection(c) => c.clear_href(),
+            Container::Catalog(c) => c.self_href_mut(),
+            Container::Collection(c) => c.self_href_mut(),
         }
     }
 }

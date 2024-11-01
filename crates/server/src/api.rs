@@ -90,8 +90,8 @@ impl<B: Backend> Api<B> {
     /// ```
     pub async fn root(&self) -> Result<Root> {
         let mut catalog = Catalog::new(&self.id, &self.description);
-        catalog.set_link(Link::root(&self.root).json());
-        catalog.set_link(Link::self_(&self.root).json());
+        catalog.set_link(Link::root(self.root.clone()).json());
+        catalog.set_link(Link::self_(self.root.clone()).json());
         catalog.set_link(
             Link::new(self.url("/api")?, "service-desc")
                 .r#type(APPLICATION_OPENAPI_3_0.to_string()),
@@ -107,9 +107,11 @@ impl<B: Backend> Api<B> {
                 .push(Link::child(self.url(&format!("/collections/{}", collection.id))?).json());
         }
         let search_url = self.url("/search")?;
-        catalog
-            .links
-            .push(Link::new(&search_url, "search").geojson().method("GET"));
+        catalog.links.push(
+            Link::new(search_url.clone(), "search")
+                .geojson()
+                .method("GET"),
+        );
         catalog
             .links
             .push(Link::new(search_url, "search").geojson().method("POST"));
@@ -151,7 +153,7 @@ impl<B: Backend> Api<B> {
     /// ```
     pub async fn collections(&self) -> Result<Collections> {
         let mut collections: Collections = self.backend.collections().await?.into();
-        collections.set_link(Link::root(&self.root).json());
+        collections.set_link(Link::root(self.root.clone()).json());
         collections.set_link(Link::self_(self.url("/collections")?).json());
         for collection in collections.collections.iter_mut() {
             self.set_collection_links(collection)?;
@@ -205,7 +207,7 @@ impl<B: Backend> Api<B> {
         if let Some(mut item_collection) = self.backend.items(collection_id, items.clone()).await? {
             let collection_url = self.url(&format!("/collections/{}", collection_id))?;
             let items_url = self.url(&format!("/collections/{}/items", collection_id))?;
-            item_collection.set_link(Link::root(&self.root).json());
+            item_collection.set_link(Link::root(self.root.clone()).json());
             item_collection.set_link(Link::self_(items_url.clone()).geojson());
             item_collection.set_link(Link::collection(collection_url).json());
             if let Some(next) = item_collection.next.take() {
@@ -254,7 +256,7 @@ impl<B: Backend> Api<B> {
     /// ```
     pub async fn item(&self, collection_id: &str, item_id: &str) -> Result<Option<Item>> {
         if let Some(mut item) = self.backend.item(collection_id, item_id).await? {
-            item.set_link(Link::root(&self.root).json());
+            item.set_link(Link::root(self.root.clone()).json());
             item.set_link(
                 Link::self_(
                     self.url(&format!("/collections/{}/items/{}", collection_id, item_id))?,
@@ -286,7 +288,7 @@ impl<B: Backend> Api<B> {
     /// ```
     pub async fn search(&self, search: Search, method: Method) -> Result<ItemCollection> {
         let mut item_collection = self.backend.search(search.clone()).await?;
-        item_collection.set_link(Link::root(&self.root).json());
+        item_collection.set_link(Link::root(self.root.clone()).json());
         let search_url = self.url("/search")?;
         if let Some(next) = item_collection.next.take() {
             item_collection.set_link(self.pagination_link(
@@ -308,10 +310,10 @@ impl<B: Backend> Api<B> {
     }
 
     fn set_collection_links(&self, collection: &mut Collection) -> Result<()> {
-        collection.set_link(Link::root(&self.root).json());
+        collection.set_link(Link::root(self.root.clone()).json());
         collection
             .set_link(Link::self_(self.url(&format!("/collections/{}", collection.id))?).json());
-        collection.set_link(Link::parent(&self.root).json());
+        collection.set_link(Link::parent(self.root.clone()).json());
         collection.set_link(
             Link::new(
                 self.url(&format!("/collections/{}/items", collection.id))?,
@@ -368,15 +370,15 @@ impl<B: Backend> Api<B> {
             let _ = item.insert("links".to_string(), Value::Array(Vec::new()));
         }
         let links = item.get_mut("links").unwrap().as_array_mut().unwrap();
-        links.push(serde_json::to_value(Link::root(&self.root).json())?);
+        links.push(serde_json::to_value(Link::root(self.root.clone()).json())?);
         if let Some(item_link) = item_link {
             links.push(item_link);
         }
         if let Some(collection_url) = collection_url {
             links.push(serde_json::to_value(
-                Link::collection(&collection_url).json(),
+                Link::collection(collection_url.clone()).json(),
             )?);
-            links.push(serde_json::to_value(Link::parent(&collection_url).json())?);
+            links.push(serde_json::to_value(Link::parent(collection_url).json())?);
         }
         Ok(())
     }
