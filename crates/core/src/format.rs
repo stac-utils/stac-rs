@@ -3,6 +3,7 @@ use crate::{
     Error, FromJson, FromNdjson, Href, Result, SelfHref, ToJson, ToNdjson,
 };
 use bytes::Bytes;
+use stac_types::PathBufOrUrl;
 use std::{fmt::Display, path::Path, str::FromStr};
 
 /// The format of STAC data.
@@ -49,8 +50,8 @@ impl Format {
         href: impl Into<Href>,
     ) -> Result<T> {
         let mut href = href.into();
-        let mut value: T = match href.clone() {
-            Href::Url(url) => {
+        let mut value: T = match href.clone().path_buf_or_url() {
+            PathBufOrUrl::Url(url) => {
                 #[cfg(feature = "reqwest")]
                 {
                     let bytes = reqwest::blocking::get(url)?.bytes()?;
@@ -61,8 +62,8 @@ impl Format {
                     return Err(Error::FeatureNotEnabled("reqwest"));
                 }
             }
-            Href::String(path) => {
-                let path = Path::new(&path).canonicalize()?;
+            PathBufOrUrl::PathBuf(path) => {
+                let path = path.canonicalize()?;
                 let value = self.from_path(&path)?;
                 href = path.as_path().into();
                 value

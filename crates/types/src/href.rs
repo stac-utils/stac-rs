@@ -1,6 +1,9 @@
 use crate::{Error, Result};
 use serde::{Deserialize, Serialize};
-use std::{fmt::Display, path::Path};
+use std::{
+    fmt::Display,
+    path::{Path, PathBuf},
+};
 use url::Url;
 
 /// An href.
@@ -17,6 +20,16 @@ pub enum Href {
     /// This is expected to have `/` delimiters. Windows-style `\` delimiters are not supported.
     String(String),
 }
+
+#[derive(Debug)]
+pub enum PathBufOrUrl {
+    /// A path buf
+    PathBuf(PathBuf),
+
+    /// A url
+    Url(Url),
+}
+
 /// Implemented by all three STAC objects, the [SelfHref] trait allows getting
 /// and setting an object's href.
 ///
@@ -124,6 +137,22 @@ impl Href {
         match self {
             Href::Url(url) => url.as_str(),
             Href::String(s) => s.as_str(),
+        }
+    }
+
+    /// If the url scheme is `file`, convert it to a path string.
+    pub fn path_buf_or_url(self) -> PathBufOrUrl {
+        match self {
+            Href::Url(url) => {
+                if url.scheme() == "file" {
+                    url.to_file_path()
+                        .map(PathBufOrUrl::PathBuf)
+                        .unwrap_or_else(|_| PathBufOrUrl::Url(url))
+                } else {
+                    PathBufOrUrl::Url(url)
+                }
+            }
+            Href::String(s) => PathBufOrUrl::PathBuf(PathBuf::from(s)),
         }
     }
 }
