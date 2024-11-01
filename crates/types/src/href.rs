@@ -200,6 +200,20 @@ impl From<&Path> for Href {
     }
 }
 
+impl From<PathBuf> for Href {
+    fn from(value: PathBuf) -> Self {
+        if cfg!(target_os = "windows") {
+            if let Ok(url) = Url::from_file_path(&value) {
+                Href::Url(url)
+            } else {
+                Href::String(value.to_string_lossy().into_owned())
+            }
+        } else {
+            Href::String(value.to_string_lossy().into_owned())
+        }
+    }
+}
+
 #[cfg(feature = "reqwest")]
 impl From<reqwest::Url> for Href {
     fn from(value: reqwest::Url) -> Self {
