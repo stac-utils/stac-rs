@@ -321,10 +321,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(
-        target_os = "windows",
-        ignore = "need to figure out why this is broken on windows"
-    )]
     fn write() {
         let tempdir = TempDir::new().unwrap();
         let item = Item::new("an-id");
@@ -342,7 +338,9 @@ mod tests {
             tempdir.path().join("item.json").to_string_lossy()
         );
         let item = Item::new("an-id");
+        println!("putting");
         assert!(super::put(path, item).await.unwrap().is_some());
+        println!("reading");
         let item: Item = crate::read(
             tempdir
                 .path()
