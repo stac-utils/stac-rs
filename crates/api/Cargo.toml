@@ -18,6 +18,7 @@ client = [
     "dep:http",
     "dep:reqwest",
     "dep:tokio",
+    "stac-types/reqwest",
 ]
 geo = ["dep:geo", "stac/geo"]
 

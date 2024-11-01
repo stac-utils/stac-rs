@@ -178,6 +178,13 @@ impl From<reqwest::Url> for Href {
     }
 }
 
+#[cfg(not(feature = "reqwest"))]
+impl From<Url> for Href {
+    fn from(value: Url) -> Self {
+        Href::Url(value)
+    }
+}
+
 impl PartialEq<&str> for Href {
     fn eq(&self, other: &&str) -> bool {
         self.as_str().eq(*other)
