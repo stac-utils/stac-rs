@@ -236,7 +236,6 @@ where
 
 #[cfg(test)]
 mod tests {
-    use stac_types::SelfHref;
     use tempfile::TempDir;
 
     use crate::{Catalog, Collection, Item, ItemCollection};
