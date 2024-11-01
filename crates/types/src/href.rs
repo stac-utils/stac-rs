@@ -22,7 +22,7 @@ pub enum Href {
 }
 
 #[derive(Debug)]
-pub enum PathBufOrUrl {
+pub enum RealizedHref {
     /// A path buf
     PathBuf(PathBuf),
 
@@ -141,18 +141,18 @@ impl Href {
     }
 
     /// If the url scheme is `file`, convert it to a path string.
-    pub fn path_buf_or_url(self) -> PathBufOrUrl {
+    pub fn realize(self) -> RealizedHref {
         match self {
             Href::Url(url) => {
                 if url.scheme() == "file" {
                     url.to_file_path()
-                        .map(PathBufOrUrl::PathBuf)
-                        .unwrap_or_else(|_| PathBufOrUrl::Url(url))
+                        .map(RealizedHref::PathBuf)
+                        .unwrap_or_else(|_| RealizedHref::Url(url))
                 } else {
-                    PathBufOrUrl::Url(url)
+                    RealizedHref::Url(url)
                 }
             }
-            Href::String(s) => PathBufOrUrl::PathBuf(PathBuf::from(s)),
+            Href::String(s) => RealizedHref::PathBuf(PathBuf::from(s)),
         }
     }
 }
