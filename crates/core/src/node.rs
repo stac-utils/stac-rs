@@ -1,5 +1,7 @@
 use crate::{Catalog, Collection, Error, Href, Item, Link, Links, Result, SelfHref, Value};
-use std::collections::VecDeque;
+use std::{collections::VecDeque, future::Future, pin::Pin};
+use tokio::task::JoinSet;
+use url::Url;
 
 /// A node in a STAC tree.
 #[derive(Debug)]
@@ -32,8 +34,19 @@ pub struct IntoValues {
     items: VecDeque<Item>,
 }
 
+/// An object that uses objet store to resolve links.
+#[derive(Debug, Default)]
+#[cfg(feature = "object-store")]
+pub struct Resolver {
+    recursive: bool,
+    use_items_endpoint: bool,
+}
+
+/// A resolver that uses object store.
 impl Node {
     /// Resolves all child and item links in this node.
+    ///
+    /// This method uses the default [Resolver].
     ///
     /// # Examples
     ///
@@ -41,32 +54,12 @@ impl Node {
     /// use stac::{Catalog, Node};
     ///
     /// let mut node: Node = stac::read::<Catalog>("examples/catalog.json").unwrap().into();
-    /// node.resolve().unwrap();
+    /// let node = node.resolve().await.unwrap();
     /// ```
-    pub fn resolve(&mut self) -> Result<()> {
-        let links = std::mem::take(self.value.links_mut());
-        let href = self.value.self_href().cloned();
-        for mut link in links {
-            if link.is_child() {
-                if let Some(href) = &href {
-                    link.make_absolute(href)?;
-                }
-                // TODO enable object store
-                tracing::debug!("resolving child: {}", link.href);
-                let child: Container = crate::read::<Value>(link.href)?.try_into()?;
-                self.children.push_back(child.into());
-            } else if link.is_item() {
-                if let Some(href) = &href {
-                    link.make_absolute(href)?;
-                }
-                tracing::debug!("resolving item: {}", link.href);
-                let item = crate::read::<Item>(link.href)?;
-                self.items.push_back(item);
-            } else {
-                self.value.links_mut().push(link);
-            }
-        }
-        Ok(())
+    #[cfg(feature = "object-store")]
+    pub async fn resolve(self) -> Result<Node> {
+        let resolver = Resolver::default();
+        resolver.resolve(self).await
     }
 
     /// Creates a consuming iterator over this node and its children and items.
@@ -108,6 +101,63 @@ impl Iterator for IntoValues {
         } else {
             self.items.pop_front().map(|item| Ok(item.into()))
         }
+    }
+}
+
+impl Resolver {
+    /// Resolves the links of a node.
+    pub fn resolve<'a>(
+        &'a self,
+        mut node: Node,
+    ) -> Pin<Box<impl Future<Output = Result<Node>> + 'a>> {
+        Box::pin(async {
+            let links = std::mem::take(node.value.links_mut());
+            let href = node.value.self_href().cloned();
+            let mut join_set = JoinSet::new();
+            for mut link in links {
+                if link.is_child() {
+                    if let Some(href) = &href {
+                        link.make_absolute(href)?;
+                    }
+                    let _ = join_set
+                        .spawn(async move { (crate::io::get::<Value>(link.href).await, true) });
+                } else if !self.use_items_endpoint && link.is_item() {
+                    if let Some(href) = &href {
+                        link.make_absolute(href)?;
+                    }
+                    let _ = join_set.spawn(async move { (crate::io::get(link.href).await, false) });
+                } else if self.use_items_endpoint && link.rel == "items" {
+                    let mut url: Url = link.href.try_into()?;
+                    // TODO make this configurable
+                    let _ = url
+                        .query_pairs_mut()
+                        .append_pair("limit", "1")
+                        .append_pair("sortby", "-properties.datetime");
+                    let _ = join_set.spawn(async move { (crate::io::get(url).await, false) });
+                } else {
+                    node.value.links_mut().push(link);
+                }
+            }
+            while let Some(result) = join_set.join_next().await {
+                let (result, is_child) = result?;
+                let value = result?;
+                if is_child {
+                    let child = Container::try_from(value)?.into();
+                    node.children.push_back(child);
+                } else if let Value::ItemCollection(item_collection) = value {
+                    node.items.extend(item_collection.into_iter());
+                } else {
+                    node.items.push_back(value.try_into()?);
+                }
+            }
+            if self.recursive {
+                let children = std::mem::take(&mut node.children);
+                for child in children {
+                    node.children.push_back(self.resolve(child).await?);
+                }
+            }
+            Ok(node)
+        })
     }
 }
 
@@ -205,7 +255,7 @@ impl SelfHref for Container {
 #[cfg(test)]
 mod tests {
     use super::Node;
-    use crate::{Catalog, Collection, Links};
+    use crate::{Catalog, Collection};
 
     #[test]
     fn into_node() {
@@ -213,12 +263,15 @@ mod tests {
         let _ = Node::from(Collection::new("an-id", "a description"));
     }
 
-    #[test]
-    fn resolve() {
-        let mut node: Node = crate::read::<Catalog>("examples/catalog.json")
+    #[tokio::test]
+    #[cfg(feature = "object-store")]
+    async fn resolve() {
+        use crate::Links;
+
+        let node: Node = crate::read::<Catalog>("examples/catalog.json")
             .unwrap()
             .into();
-        node.resolve().unwrap();
+        let node = node.resolve().await.unwrap();
         assert_eq!(node.children.len(), 3);
         assert_eq!(node.items.len(), 1);
         assert_eq!(node.value.links().len(), 2);

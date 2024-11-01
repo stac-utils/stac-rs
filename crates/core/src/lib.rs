@@ -176,6 +176,8 @@ mod value;
 
 use std::fmt::Display;
 
+#[cfg(feature = "object-store")]
+pub use node::Resolver;
 pub use stac_types::{mime, Fields, Href, Link, Links, Migrate, SelfHref, Version, STAC_VERSION};
 #[cfg(feature = "validate-blocking")]
 pub use validate::ValidateBlocking;

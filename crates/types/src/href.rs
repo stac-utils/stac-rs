@@ -214,6 +214,16 @@ impl From<PathBuf> for Href {
     }
 }
 
+impl TryFrom<Href> for Url {
+    type Error = Error;
+    fn try_from(value: Href) -> Result<Self> {
+        match value {
+            Href::Url(url) => Ok(url),
+            Href::String(s) => s.parse().map_err(Error::from),
+        }
+    }
+}
+
 #[cfg(feature = "reqwest")]
 impl From<reqwest::Url> for Href {
     fn from(value: reqwest::Url) -> Self {
