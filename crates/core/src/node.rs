@@ -53,7 +53,6 @@ impl Node {
                 }
                 // TODO enable object store
                 tracing::debug!("resolving child: {}", link.href);
-                println!("resolving: {}", link.href);
                 let child: Container = crate::read::<Value>(link.href)?.try_into()?;
                 self.children.push_back(child.into());
             } else if link.is_item() {
@@ -61,7 +60,6 @@ impl Node {
                     link.make_absolute(href)?;
                 }
                 tracing::debug!("resolving item: {}", link.href);
-                println!("resolving: {}", link.href);
                 let item = crate::read::<Item>(link.href)?;
                 self.items.push_back(item);
             } else {
