@@ -338,17 +338,8 @@ mod tests {
             tempdir.path().join("item.json").to_string_lossy()
         );
         let item = Item::new("an-id");
-        println!("putting");
         assert!(super::put(path, item).await.unwrap().is_some());
-        println!("reading");
-        let item: Item = crate::read(
-            tempdir
-                .path()
-                .join("item.json")
-                .to_string_lossy()
-                .into_owned(),
-        )
-        .unwrap();
+        let item: Item = crate::read(tempdir.path().join("item.json")).unwrap();
         assert_eq!(item.id, "an-id");
     }
 }
