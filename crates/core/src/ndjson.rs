@@ -1,6 +1,7 @@
-use crate::{Error, FromJson, Href, Item, ItemCollection, Result, Value};
+use crate::{Error, FromJson, Item, ItemCollection, Result, Value};
 use bytes::Bytes;
 use serde::Serialize;
+use stac_types::SelfHref;
 use std::{
     fs::File,
     io::{BufRead, BufReader, BufWriter, Write},
@@ -99,7 +100,7 @@ impl FromNdjson for ItemCollection {
             items.push(serde_json::from_str(&line?)?);
         }
         let mut item_collection = ItemCollection::from(items);
-        item_collection.set_href(path.to_string_lossy());
+        *item_collection.self_href_mut() = Some(path.into());
         Ok(item_collection)
     }
     fn from_ndjson_bytes(bytes: impl Into<Bytes>) -> Result<Self> {
@@ -249,7 +250,7 @@ impl ToNdjson for serde_json::Value {
 #[cfg(test)]
 mod tests {
     use super::FromNdjson;
-    use crate::{Href, ItemCollection, Value};
+    use crate::{ItemCollection, SelfHref, Value};
     use std::{fs::File, io::Read};
 
     #[test]
@@ -257,8 +258,9 @@ mod tests {
         let item_collection = ItemCollection::from_ndjson_path("data/items.ndjson").unwrap();
         assert_eq!(item_collection.items.len(), 2);
         assert!(item_collection
-            .href()
+            .self_href()
             .unwrap()
+            .as_str()
             .ends_with("data/items.ndjson"));
     }
 

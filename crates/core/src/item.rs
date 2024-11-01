@@ -1,11 +1,11 @@
 //! STAC Items.
 
-use crate::{Asset, Assets, Bbox, Error, Fields, Link, Result, Version, STAC_VERSION};
+use crate::{Asset, Assets, Bbox, Error, Fields, Href, Link, Result, Version, STAC_VERSION};
 use chrono::{DateTime, FixedOffset, Utc};
 use geojson::{feature::Id, Feature, Geometry};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use stac_derive::{Href, Links, Migrate};
+use stac_derive::{Links, Migrate, SelfHref};
 use std::{collections::HashMap, path::Path};
 use url::Url;
 
@@ -27,7 +27,7 @@ const TOP_LEVEL_ATTRIBUTES: [&str; 8] = [
 /// `Item` is the core object in a STAC catalog, containing the core metadata that
 /// enables any client to search or crawl online catalogs of spatial 'assets'
 /// (e.g., satellite imagery, derived data, DEMs).
-#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, Href, Links, Migrate)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, SelfHref, Links, Migrate)]
 #[serde(tag = "type", rename = "Feature")]
 pub struct Item {
     /// The STAC version the `Item` implements.
@@ -92,7 +92,7 @@ pub struct Item {
     pub additional_fields: Map<String, Value>,
 
     #[serde(skip)]
-    href: Option<String>,
+    self_href: Option<Href>,
 }
 
 /// A [FlatItem] has all of its properties at the top level.
@@ -336,7 +336,7 @@ impl Item {
             assets: HashMap::new(),
             collection: None,
             additional_fields: Map::new(),
-            href: None,
+            self_href: None,
         }
     }
 

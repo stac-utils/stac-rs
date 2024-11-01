@@ -76,14 +76,13 @@
 //! }
 //! ```
 
-use std::path::Path;
-
 use crate::{
     geoparquet::{FromGeoparquet, IntoGeoparquet},
     json::{FromJson, ToJson},
     ndjson::{FromNdjson, ToNdjson},
-    Format, Href, Result,
+    Format, Href, Result, SelfHref,
 };
+use std::path::Path;
 
 /// Reads a STAC value from an href.
 ///
@@ -95,9 +94,11 @@ use crate::{
 /// ```
 /// let item: stac::Item = stac::read("examples/simple-item.json").unwrap();
 /// ```
-pub fn read<T: Href + FromJson + FromNdjson + FromGeoparquet>(href: impl ToString) -> Result<T> {
-    let href = href.to_string();
-    let format = Format::infer_from_href(&href).unwrap_or_default();
+pub fn read<T: SelfHref + FromJson + FromNdjson + FromGeoparquet>(
+    href: impl Into<Href>,
+) -> Result<T> {
+    let href = href.into();
+    let format = Format::infer_from_href(href.as_str()).unwrap_or_default();
     format.read(href)
 }
 
@@ -116,8 +117,8 @@ pub fn read<T: Href + FromJson + FromNdjson + FromGeoparquet>(href: impl ToStrin
 /// }
 /// ```
 #[cfg(feature = "object-store")]
-pub async fn get<T: Href + FromJson + FromNdjson + FromGeoparquet>(
-    href: impl ToString,
+pub async fn get<T: SelfHref + FromJson + FromNdjson + FromGeoparquet>(
+    href: impl Into<Href>,
 ) -> Result<T> {
     let options: [(&str, &str); 0] = [];
     get_opts(href, options).await
@@ -140,15 +141,15 @@ pub async fn get<T: Href + FromJson + FromNdjson + FromGeoparquet>(
 /// }
 /// ```
 #[cfg(feature = "object-store")]
-pub async fn get_opts<T, I, K, V>(href: impl ToString, options: I) -> Result<T>
+pub async fn get_opts<T, I, K, V>(href: impl Into<Href>, options: I) -> Result<T>
 where
-    T: Href + FromJson + FromNdjson + FromGeoparquet,
+    T: SelfHref + FromJson + FromNdjson + FromGeoparquet,
     I: IntoIterator<Item = (K, V)>,
     K: AsRef<str>,
     V: Into<String>,
 {
-    let href = href.to_string();
-    let format = Format::infer_from_href(&href).unwrap_or_default();
+    let href = href.into();
+    let format = Format::infer_from_href(href.as_str()).unwrap_or_default();
     format.get_opts(href, options).await
 }
 
@@ -244,10 +245,10 @@ mod tests {
             #[test]
             $(#[$meta])?
             fn $function() {
-                use crate::Href;
+                use crate::SelfHref;
 
                 let value: $value = crate::read($filename).unwrap();
-                assert!(value.href().is_some());
+                assert!(value.self_href().is_some());
             }
         };
     }
@@ -324,7 +325,7 @@ mod tests {
         let tempdir = TempDir::new().unwrap();
         let item = Item::new("an-id");
         super::write(tempdir.path().join("item.json"), item).unwrap();
-        let item: Item = super::read(tempdir.path().join("item.json").to_string_lossy()).unwrap();
+        let item: Item = super::read(tempdir.path().join("item.json")).unwrap();
         assert_eq!(item.id, "an-id");
     }
 
@@ -338,7 +339,7 @@ mod tests {
         );
         let item = Item::new("an-id");
         assert!(super::put(path, item).await.unwrap().is_some());
-        let item: Item = crate::read(tempdir.path().join("item.json").to_string_lossy()).unwrap();
+        let item: Item = crate::read(tempdir.path().join("item.json")).unwrap();
         assert_eq!(item.id, "an-id");
     }
 }

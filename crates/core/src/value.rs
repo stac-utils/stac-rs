@@ -3,6 +3,7 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Map;
+use stac_types::SelfHref;
 use std::convert::TryFrom;
 
 /// An enum that can hold any STAC object type.
@@ -186,34 +187,24 @@ impl Value {
     }
 }
 
-impl Href for Value {
-    fn href(&self) -> Option<&str> {
+impl SelfHref for Value {
+    fn self_href(&self) -> Option<&Href> {
         use Value::*;
         match self {
-            Catalog(catalog) => catalog.href(),
-            Collection(collection) => collection.href(),
-            Item(item) => item.href(),
-            ItemCollection(item_collection) => item_collection.href(),
+            Catalog(catalog) => catalog.self_href(),
+            Collection(collection) => collection.self_href(),
+            Item(item) => item.self_href(),
+            ItemCollection(item_collection) => item_collection.self_href(),
         }
     }
 
-    fn set_href(&mut self, href: impl ToString) {
+    fn self_href_mut(&mut self) -> &mut Option<Href> {
         use Value::*;
         match self {
-            Catalog(catalog) => catalog.set_href(href),
-            Collection(collection) => collection.set_href(href),
-            Item(item) => item.set_href(href),
-            ItemCollection(item_collection) => item_collection.set_href(href),
-        }
-    }
-
-    fn clear_href(&mut self) {
-        use Value::*;
-        match self {
-            Catalog(catalog) => catalog.clear_href(),
-            Collection(collection) => collection.clear_href(),
-            Item(item) => item.clear_href(),
-            ItemCollection(item_collection) => item_collection.clear_href(),
+            Catalog(catalog) => catalog.self_href_mut(),
+            Collection(collection) => collection.self_href_mut(),
+            Item(item) => item.self_href_mut(),
+            ItemCollection(item_collection) => item_collection.self_href_mut(),
         }
     }
 }

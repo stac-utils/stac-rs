@@ -168,6 +168,7 @@ mod item_asset;
 mod item_collection;
 mod json;
 mod ndjson;
+mod node;
 mod statistics;
 #[cfg(feature = "validate")]
 mod validate;
@@ -175,7 +176,7 @@ mod value;
 
 use std::fmt::Display;
 
-pub use stac_types::{mime, Fields, Href, Link, Links, Migrate, Version, STAC_VERSION};
+pub use stac_types::{mime, Fields, Href, Link, Links, Migrate, SelfHref, Version, STAC_VERSION};
 #[cfg(feature = "validate-blocking")]
 pub use validate::ValidateBlocking;
 #[cfg(feature = "validate")]
@@ -196,6 +197,7 @@ pub use {
     item_collection::ItemCollection,
     json::{FromJson, ToJson},
     ndjson::{FromNdjson, ToNdjson},
+    node::Node,
     statistics::Statistics,
     value::Value,
 };

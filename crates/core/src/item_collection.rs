@@ -1,13 +1,13 @@
-use crate::{Error, Item, Link, Migrate, Version};
+use crate::{Error, Href, Item, Link, Migrate, Version};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use stac_derive::{Href, Links};
+use stac_derive::{Links, SelfHref};
 use std::{ops::Deref, vec::IntoIter};
 
 /// A [GeoJSON FeatureCollection](https://www.rfc-editor.org/rfc/rfc7946#page-12) of items.
 ///
 /// While not part of the STAC specification, ItemCollections are often used to store many items in a single file.
-#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, Href, Links)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, SelfHref, Links)]
 #[serde(tag = "type", rename = "FeatureCollection")]
 pub struct ItemCollection {
     /// The list of [Items](Item).
@@ -25,7 +25,7 @@ pub struct ItemCollection {
     pub additional_fields: Map<String, Value>,
 
     #[serde(skip)]
-    href: Option<String>,
+    self_href: Option<Href>,
 }
 
 impl From<Vec<Item>> for ItemCollection {
@@ -34,7 +34,7 @@ impl From<Vec<Item>> for ItemCollection {
             items,
             links: Vec::new(),
             additional_fields: Map::new(),
-            href: None,
+            self_href: None,
         }
     }
 }

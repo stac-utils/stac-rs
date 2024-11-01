@@ -182,7 +182,7 @@ impl IntoGeoparquet for serde_json::Value {
 
 #[cfg(test)]
 mod tests {
-    use crate::{FromGeoparquet, Href, Item, ItemCollection, Value};
+    use crate::{FromGeoparquet, Item, ItemCollection, SelfHref, Value};
     use bytes::Bytes;
     use std::{
         fs::File,
@@ -207,7 +207,7 @@ mod tests {
     #[test]
     fn roundtrip() {
         let mut item: Item = crate::read("examples/simple-item.json").unwrap();
-        item.clear_href();
+        *item.self_href_mut() = None;
         let mut cursor = Cursor::new(Vec::new());
         super::into_writer(&mut cursor, vec![item.clone()]).unwrap();
         let bytes = Bytes::from(cursor.into_inner());

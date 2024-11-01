@@ -42,7 +42,7 @@ object-store-all = [
     "object-store-gcp",
     "object-store-http",
 ]
-reqwest = ["dep:reqwest"]
+reqwest = ["dep:reqwest", "stac-types/reqwest"]
 reqwest-rustls = ["reqwest/rustls-tls"]
 validate = ["dep:jsonschema", "dep:reqwest", "dep:tokio", "dep:fluent-uri"]
 validate-blocking = ["validate", "tokio/rt"]

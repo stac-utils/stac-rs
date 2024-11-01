@@ -11,7 +11,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub use {
     error::Error,
     fields::Fields,
-    href::Href,
+    href::{Href, RealizedHref, SelfHref},
     link::{Link, Links},
     migrate::Migrate,
     version::Version,

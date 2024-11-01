@@ -1,8 +1,8 @@
 use crate::{Item, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use stac::Link;
-use stac_derive::{Href, Links};
+use stac::{Href, Link};
+use stac_derive::{Links, SelfHref};
 
 /// The return value of the `/items` and `/search` endpoints.
 ///
@@ -10,7 +10,7 @@ use stac_derive::{Href, Links};
 /// extension](https://github.com/stac-api-extensions/fields) is used, it might
 /// not be. Defined by the [itemcollection
 /// fragment](https://github.com/radiantearth/stac-api-spec/blob/main/fragments/itemcollection/README.md).
-#[derive(Debug, Serialize, Deserialize, Default, Links, Href)]
+#[derive(Debug, Serialize, Deserialize, Default, Links, SelfHref)]
 #[serde(tag = "type", rename = "FeatureCollection")]
 pub struct ItemCollection {
     /// A possibly-empty array of Item objects.
@@ -67,7 +67,7 @@ pub struct ItemCollection {
     pub last: Option<Map<String, Value>>,
 
     #[serde(skip)]
-    href: Option<String>,
+    self_href: Option<Href>,
 }
 
 /// The search-related metadata for the [ItemCollection].
@@ -114,7 +114,7 @@ impl ItemCollection {
             prev: None,
             first: None,
             last: None,
-            href: None,
+            self_href: None,
         })
     }
 }
