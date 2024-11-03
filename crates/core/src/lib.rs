@@ -169,6 +169,8 @@ mod item_collection;
 mod json;
 mod ndjson;
 mod node;
+#[cfg(feature = "object-store")]
+mod resolver;
 mod statistics;
 #[cfg(feature = "validate")]
 mod validate;
@@ -177,7 +179,7 @@ mod value;
 use std::fmt::Display;
 
 #[cfg(feature = "object-store")]
-pub use node::Resolver;
+pub use resolver::Resolver;
 pub use stac_types::{mime, Fields, Href, Link, Links, Migrate, SelfHref, Version, STAC_VERSION};
 #[cfg(feature = "validate-blocking")]
 pub use validate::ValidateBlocking;
@@ -199,7 +201,7 @@ pub use {
     item_collection::ItemCollection,
     json::{FromJson, ToJson},
     ndjson::{FromNdjson, ToNdjson},
-    node::Node,
+    node::{Container, Node},
     statistics::Statistics,
     value::Value,
 };
