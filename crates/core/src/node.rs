@@ -32,8 +32,11 @@ pub struct IntoValues {
     items: VecDeque<Item>,
 }
 
+/// A resolver that uses object store.
 impl Node {
     /// Resolves all child and item links in this node.
+    ///
+    /// This method uses [crate::Resolver] to resolve links.
     ///
     /// # Examples
     ///
@@ -41,32 +44,14 @@ impl Node {
     /// use stac::{Catalog, Node};
     ///
     /// let mut node: Node = stac::read::<Catalog>("examples/catalog.json").unwrap().into();
-    /// node.resolve().unwrap();
+    /// # tokio_test::block_on(async {
+    /// let node = node.resolve().await.unwrap();
+    /// });
     /// ```
-    pub fn resolve(&mut self) -> Result<()> {
-        let links = std::mem::take(self.value.links_mut());
-        let href = self.value.self_href().cloned();
-        for mut link in links {
-            if link.is_child() {
-                if let Some(href) = &href {
-                    link.make_absolute(href)?;
-                }
-                // TODO enable object store
-                tracing::debug!("resolving child: {}", link.href);
-                let child: Container = crate::read::<Value>(link.href)?.try_into()?;
-                self.children.push_back(child.into());
-            } else if link.is_item() {
-                if let Some(href) = &href {
-                    link.make_absolute(href)?;
-                }
-                tracing::debug!("resolving item: {}", link.href);
-                let item = crate::read::<Item>(link.href)?;
-                self.items.push_back(item);
-            } else {
-                self.value.links_mut().push(link);
-            }
-        }
-        Ok(())
+    #[cfg(feature = "object-store")]
+    pub async fn resolve(self) -> Result<Node> {
+        let resolver = crate::Resolver::default();
+        resolver.resolve(self).await
     }
 
     /// Creates a consuming iterator over this node and its children and items.
@@ -205,7 +190,7 @@ impl SelfHref for Container {
 #[cfg(test)]
 mod tests {
     use super::Node;
-    use crate::{Catalog, Collection, Links};
+    use crate::{Catalog, Collection};
 
     #[test]
     fn into_node() {
@@ -213,12 +198,15 @@ mod tests {
         let _ = Node::from(Collection::new("an-id", "a description"));
     }
 
-    #[test]
-    fn resolve() {
-        let mut node: Node = crate::read::<Catalog>("examples/catalog.json")
+    #[tokio::test]
+    #[cfg(feature = "object-store")]
+    async fn resolve() {
+        use crate::Links;
+
+        let node: Node = crate::read::<Catalog>("examples/catalog.json")
             .unwrap()
             .into();
-        node.resolve().unwrap();
+        let node = node.resolve().await.unwrap();
         assert_eq!(node.children.len(), 3);
         assert_eq!(node.items.len(), 1);
         assert_eq!(node.value.links().len(), 2);

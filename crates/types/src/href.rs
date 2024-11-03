@@ -214,10 +214,20 @@ impl From<PathBuf> for Href {
     }
 }
 
+impl TryFrom<Href> for Url {
+    type Error = Error;
+    fn try_from(value: Href) -> Result<Self> {
+        match value {
+            Href::Url(url) => Ok(url),
+            Href::String(s) => s.parse().map_err(Error::from),
+        }
+    }
+}
+
 #[cfg(feature = "reqwest")]
 impl From<reqwest::Url> for Href {
     fn from(value: reqwest::Url) -> Self {
-        Href::Url(url::Url::from(value))
+        Href::Url(value)
     }
 }
 
@@ -241,7 +251,7 @@ fn make_absolute(href: &str, base: &str) -> String {
     } else {
         let (base, _) = base.split_at(base.rfind('/').unwrap_or(0));
         if base.is_empty() {
-            normalize_path(&href)
+            normalize_path(href)
         } else {
             normalize_path(&format!("{}/{}", base, href))
         }
