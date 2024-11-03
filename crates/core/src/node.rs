@@ -36,7 +36,7 @@ pub struct IntoValues {
 impl Node {
     /// Resolves all child and item links in this node.
     ///
-    /// This method uses the default [Resolver].
+    /// This method uses [crate::Resolver] to resolve links.
     ///
     /// # Examples
     ///
