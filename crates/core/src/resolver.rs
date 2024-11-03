@@ -13,10 +13,7 @@ pub struct Resolver {
 
 impl Resolver {
     /// Resolves the links of a node.
-    pub fn resolve<'a>(
-        &'a self,
-        mut node: Node,
-    ) -> Pin<Box<impl Future<Output = Result<Node>> + 'a>> {
+    pub fn resolve(&self, mut node: Node) -> Pin<Box<impl Future<Output = Result<Node>> + '_>> {
         Box::pin(async {
             let links = std::mem::take(node.value.links_mut());
             let href = node.value.self_href().cloned();
