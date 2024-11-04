@@ -1,19 +1,12 @@
-use crate::{input::Input, run::Run, Error, Result, Value};
+use crate::{Error, Result};
 use serde::de::DeserializeOwned;
 use stac_api::{Client, GetItems, ItemCollection, Items, Search};
 use std::{fs::File, io::BufReader};
-use tokio::sync::mpsc::Sender;
 use tokio_stream::StreamExt;
-use tracing::info;
 
 #[derive(Debug, clap::Args)]
-pub(crate) struct Args {
-    /// The href of the STAC API or the stac-geoparquet file to search
-    #[cfg(feature = "duckdb")]
-    href: String,
-
-    /// The href of the STAC API to search
-    #[cfg(not(feature = "duckdb"))]
+pub struct Args {
+    /// The href to search.
     href: String,
 
     /// The maximum number of items to return
@@ -86,134 +79,111 @@ pub(crate) struct Args {
     outfile: Option<String>,
 }
 
-async fn search_api(
-    href: String,
-    search: Search,
-    sender: Option<Sender<Value>>,
-    max_items: Option<usize>,
-) -> Result<Option<Value>> {
-    info!("searching '{}' using an api client", href);
-    let client = Client::new(&href)?;
-    let stream = client.search(search).await?;
-    tokio::pin!(stream);
-    let mut count = 0;
-    if let Some(sender) = sender {
-        while let Some(item) = stream.next().await {
-            let item = item?;
-            count += 1;
-            sender.send(item.into()).await?;
-            if max_items
-                .map(|max_items| count >= max_items)
-                .unwrap_or_default()
-            {
-                break;
-            }
+impl crate::Args {
+    pub async fn search(&self, args: &Args) -> Result<()> {
+        if self.stream && args.outfile.is_some() {
+            tracing::warn!("streaming to a file is not supported");
         }
-        Ok(None)
-    } else {
-        let mut items = if let Some(max_items) = max_items {
-            Vec::with_capacity(max_items)
-        } else {
-            Vec::new()
-        };
-        while let Some(item) = stream.next().await {
-            items.push(item?);
-            count += 1;
-            if max_items
-                .map(|max_items| count >= max_items)
-                .unwrap_or_default()
-            {
-                break;
-            }
-        }
-        let item_collection = ItemCollection::new(items)?;
-        Ok(Some(Value::Json(serde_json::to_value(item_collection)?)))
-    }
-}
-
-#[cfg(feature = "duckdb")]
-async fn search_geoparquet(
-    href: String,
-    mut search: Search,
-    sender: Option<Sender<Value>>,
-    max_items: Option<usize>,
-) -> Result<Option<Value>> {
-    info!("searching '{}' using duckdb", href);
-    if let Some(max_items) = max_items {
-        let max_items: u64 = max_items.try_into()?;
-        if search.limit.map(|limit| limit > max_items).unwrap_or(true) {
-            search.limit = Some(max_items);
-        }
-    }
-    let client = stac_duckdb::Client::from_href(href)?;
-    let items = client.search_to_json(search)?;
-    if let Some(sender) = sender {
-        for item in items.items {
-            sender.send(item.into()).await?;
-        }
-        Ok(None)
-    } else {
-        Ok(Some(Value::Json(serde_json::to_value(items)?)))
-    }
-}
-
-impl Run for Args {
-    async fn run(self, _: Input, stream: Option<Sender<Value>>) -> Result<Option<Value>> {
         let get_items = GetItems {
-            bbox: self.bbox,
-            datetime: self.datetime,
-            fields: self.fields,
-            sortby: self.sortby,
-            filter_crs: self.filter_crs,
-            filter_lang: self.filter_lang,
-            filter: self.filter,
+            bbox: args.bbox.clone(),
+            datetime: args.datetime.clone(),
+            fields: args.fields.clone(),
+            sortby: args.sortby.clone(),
+            filter_crs: args.filter_crs.clone(),
+            filter_lang: args.filter_lang.clone(),
+            filter: args.filter.clone(),
             ..Default::default()
         };
         let mut items: Items = get_items.try_into()?;
-        items.limit = self.limit;
-        items.query = self.query.map(json).transpose()?;
+        items.limit = args.limit.clone();
+        items.query = args.query.as_deref().map(json).transpose()?;
         let mut search: Search = items.into();
-        search.intersects = self.intersects.map(json).transpose()?;
-        search.ids = if self.ids.is_empty() {
-            None
-        } else {
-            Some(self.ids)
-        };
-        search.collections = if self.collections.is_empty() {
-            None
-        } else {
-            Some(self.collections)
-        };
+        search.intersects = args.intersects.as_deref().map(json).transpose()?;
+        search.ids = Some(args.ids.clone()).filter(|v| !v.is_empty());
+        search.collections = Some(args.collections.clone()).filter(|v| !v.is_empty());
         #[cfg(feature = "duckdb")]
+        let value = if args
+            .duckdb
+            .or_else(|| Some(stac::Format::is_geoparquet_href(&args.href)))
+            .unwrap_or_default()
         {
-            if self.duckdb.unwrap_or_else(|| {
-                matches!(
-                    stac::Format::infer_from_href(&self.href),
-                    Some(stac::Format::Geoparquet(_))
-                )
-            }) {
-                search_geoparquet(self.href, search, stream, self.max_items).await
-            } else {
-                search_api(self.href, search, stream, self.max_items).await
-            }
-        }
+            self.search_duckdb(args, search).await?
+        } else {
+            self.search_api(args, search).await?
+        };
         #[cfg(not(feature = "duckdb"))]
-        {
-            search_api(self.href, search, stream, self.max_items).await
+        let value = self.search_api(args, search).await?;
+        if let Some(value) = value {
+            let value = serde_json::to_value(value)?;
+            self.put(value, args.outfile.as_deref()).await?;
         }
+        Ok(())
     }
 
-    fn take_outfile(&mut self) -> Option<String> {
-        self.outfile.take()
+    async fn search_api(&self, args: &Args, search: Search) -> Result<Option<ItemCollection>> {
+        tracing::info!("search {} with a STAC API client", args.href);
+        tracing::debug!("search: {:?}", search);
+        let client = Client::new(&args.href)?;
+        let stream = client.search(search).await?;
+        tokio::pin!(stream);
+        let mut count = 0;
+        let mut items = if !self.stream && args.max_items.is_some() {
+            Vec::with_capacity(args.max_items.unwrap())
+        } else {
+            Vec::new()
+        };
+        while let Some(result) = stream.next().await {
+            let item = result?;
+            count += 1;
+            if self.stream {
+                // We've already warned about the fact that we can't stream to an outfile
+                self.put(item, None).await?;
+            } else {
+                items.push(item);
+            }
+            if args
+                .max_items
+                .map(|max_items| count >= max_items)
+                .unwrap_or_default()
+            {
+                break;
+            }
+        }
+        ItemCollection::new(items).map(Some).map_err(Error::from)
+    }
+
+    #[cfg(feature = "duckdb")]
+    async fn search_duckdb(
+        &self,
+        args: &Args,
+        mut search: Search,
+    ) -> Result<Option<ItemCollection>> {
+        tracing::info!("search {} with a STAC API client", args.href);
+        if let Some(max_items) = args.max_items {
+            let max_items: u64 = max_items.try_into()?;
+            if search.limit.map(|limit| limit > max_items).unwrap_or(true) {
+                search.limit = Some(max_items);
+            }
+        }
+        let client = stac_duckdb::Client::from_href(args.href.clone())?;
+        let item_collection = client.search_to_json(search)?;
+        if self.stream {
+            for item in item_collection.items {
+                self.put(item, None).await?;
+            }
+            Ok(None)
+        } else {
+            Ok(Some(item_collection))
+        }
     }
 }
 
-fn json<T>(s: String) -> Result<T>
+fn json<T>(s: &str) -> Result<T>
 where
     T: DeserializeOwned,
 {
     if s.starts_with('@') && s.len() > 1 {
-        info!("reading {}", &s[1..]);
+        tracing::info!("reading {} as JSON", &s[1..]);
         let file = BufReader::new(File::open(&s[1..])?);
         serde_json::from_reader(file).map_err(Error::from)
     } else {

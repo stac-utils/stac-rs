@@ -35,6 +35,11 @@ impl Format {
         href.rsplit_once('.').and_then(|(_, ext)| ext.parse().ok())
     }
 
+    /// Returns true if this is a geoparquet href.
+    pub fn is_geoparquet_href(href: &str) -> bool {
+        matches!(Format::infer_from_href(href), Some(Format::Geoparquet(_)))
+    }
+
     /// Reads a STAC object from an href in this format.
     ///
     /// # Examples

@@ -220,7 +220,12 @@ impl Client {
         if let Some(headers) = headers.into() {
             request = request.headers(headers);
         }
-        let response = request.send().await?.error_for_status()?;
+        let response = request.send().await?;
+        if !response.status().is_success() {
+            let status_code = response.status();
+            let text = response.text().await.ok().unwrap_or_default();
+            return Err(Error::Search { status_code, text });
+        }
         response.json().await.map_err(Error::from)
     }
 

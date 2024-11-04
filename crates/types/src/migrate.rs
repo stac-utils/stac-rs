@@ -81,6 +81,7 @@ impl Step {
         if let Some(mut object) = value.as_object_mut() {
             match self {
                 Step::v1_0_0_to_v1_1_0_beta_1 | Step::v1_0_0_to_v1_1_0 => {
+                    tracing::debug!("migrating from v1.0.0 to v1.1.0");
                     if let Some(assets) = object.get_mut("assets").and_then(|v| v.as_object_mut()) {
                         for asset in assets.values_mut().filter_map(|v| v.as_object_mut()) {
                             migrate_bands(asset)?;

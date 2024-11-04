@@ -3,19 +3,14 @@
 // The verbosity stuff is cribbed from https://github.com/clap-rs/clap-verbosity-flag/blob/c621a6a8a7c0b6df8f1464a985a5d076b4915693/src/lib.rs and updated for tracing
 
 use crate::{
-    input::Input,
-    options::KeyValue,
-    output::Output,
-    run::Run,
-    subcommand::{item, items, migrate, search, serve, translate, validate},
-    Result, Value,
+    subcommand::{search, serve, translate, validate},
+    Error, Result, Value,
 };
 use clap::Parser;
 use stac::Format;
-use tokio::{sync::mpsc::Sender, task::JoinHandle};
+use std::{convert::Infallible, io::Write, str::FromStr};
+use tokio::io::AsyncReadExt;
 use tracing::metadata::Level;
-
-const BUFFER: usize = 100;
 
 /// Arguments, as parsed from the command line (usually).
 #[derive(Parser, Debug)]
@@ -23,31 +18,27 @@ const BUFFER: usize = 100;
 pub struct Args {
     /// The input format, if not provided will be inferred from the input file's extension, falling back to json
     #[arg(short, long, global = true)]
-    input_format: Option<Format>,
+    pub input_format: Option<Format>,
 
     /// key=value pairs to use for the input object store
     #[arg(long = "input-option")]
-    input_options: Vec<KeyValue>,
+    pub input_options: Vec<KeyValue>,
 
     /// The output format, if not provided will be inferred from the output file's extension, falling back to json
     #[arg(short, long, global = true)]
-    output_format: Option<Format>,
+    pub output_format: Option<Format>,
 
     /// key=value pairs to use for the output object store
     #[arg(long = "output-option")]
-    output_options: Vec<KeyValue>,
+    pub output_options: Vec<KeyValue>,
 
     /// key=value pairs to use for both the input and the output object store
     #[arg(short = 'c', long = "option")]
-    options: Vec<KeyValue>,
-
-    /// If the output is a local file, create its parent directories before creating the file
-    #[arg(long, default_value_t = true)]
-    create_parent_directories: bool,
+    pub options: Vec<KeyValue>,
 
     /// Stream the items to output as ndjson, default behavior is to return them all at the end of the operation
     #[arg(short, long)]
-    stream: bool,
+    pub stream: bool,
 
     #[arg(
         long,
@@ -57,7 +48,7 @@ pub struct Args {
         help = ErrorLevel::verbose_help(),
         long_help = ErrorLevel::verbose_long_help(),
     )]
-    verbose: u8,
+    pub verbose: u8,
 
     #[arg(
         long,
@@ -68,26 +59,17 @@ pub struct Args {
         long_help = ErrorLevel::quiet_long_help(),
         conflicts_with = "verbose",
     )]
-    quiet: u8,
+    pub quiet: u8,
 
     /// The subcommand to run.
     #[command(subcommand)]
-    subcommand: Subcommand,
+    pub subcommand: Subcommand,
 }
 
 /// A subcommand.
 #[derive(Debug, clap::Subcommand)]
 #[allow(clippy::large_enum_variant)]
-enum Subcommand {
-    /// Create a STAC Item from an id or the href to an asset
-    Item(item::Args),
-
-    /// Creates a STAC item collection from one or more asset hrefs
-    Items(items::Args),
-
-    /// Migrate a STAC value from one version to another
-    Migrate(migrate::Args),
-
+pub enum Subcommand {
     /// Search for STAC items
     Search(search::Args),
 
@@ -115,100 +97,74 @@ impl Args {
     }
 
     /// Runs whatever these arguments say that we should run.
-    pub async fn run(mut self) -> Result<()> {
-        let input = Input::new(
-            self.subcommand.take_infile(),
-            self.input_format,
-            self.options
-                .clone()
-                .into_iter()
-                .chain(self.input_options)
-                .collect::<Vec<_>>(),
-        );
-        let mut output = Output::new(
-            self.subcommand.take_outfile(),
-            self.output_format.or({
-                if self.stream {
-                    Some(Format::NdJson)
-                } else {
-                    None
-                }
-            }),
-            self.options
-                .into_iter()
-                .chain(self.output_options)
-                .collect::<Vec<_>>(),
-            self.create_parent_directories,
-        )
-        .await?;
-        let value = if self.stream {
-            if output.format != Format::NdJson {
-                tracing::warn!(
-                    "format was set to {}, but stream=true so re-setting to nd-json",
-                    output.format
-                );
-            }
-            let (stream, mut receiver) = tokio::sync::mpsc::channel(BUFFER);
-            let streamer: JoinHandle<Result<_>> = tokio::task::spawn(async move {
-                while let Some(value) = receiver.recv().await {
-                    output.stream(value).await?;
-                }
-                Ok(output)
-            });
-            let value = self.subcommand.run(input, Some(stream)).await?;
-            output = streamer.await??;
-            value
+    pub async fn run(self) -> Result<()> {
+        match &self.subcommand {
+            Subcommand::Search(args) => self.search(args).await,
+            Subcommand::Serve(args) => self.serve(args).await,
+            Subcommand::Translate(args) => self.translate(args).await,
+            Subcommand::Validate(args) => self.validate(args).await,
+        }
+    }
+
+    pub async fn get(&self, href: impl Into<Option<&str>>) -> Result<stac::Value> {
+        let mut href = href.into();
+        if href.as_deref() == Some("-") {
+            href = None;
+        }
+        let format = self
+            .input_format
+            .or(href.and_then(Format::infer_from_href))
+            .unwrap_or_default();
+        if let Some(href) = href {
+            format
+                .get_opts(
+                    href,
+                    option_iter(&self.input_options).chain(option_iter(&self.options)),
+                )
+                .await
+                .map_err(Error::from)
         } else {
-            self.subcommand.run(input, None).await?
-        };
-        if let Some(value) = value {
-            if let Some(put_result) = output.put(value).await? {
-                tracing::info!(
-                    "put result: etag={} version={}",
-                    put_result.e_tag.unwrap_or_default(),
-                    put_result.version.unwrap_or_default()
-                );
+            let mut buf = Vec::new();
+            let _ = tokio::io::stdin().read_to_end(&mut buf).await?;
+            format.from_bytes(buf).map_err(Error::from)
+        }
+    }
+
+    pub async fn put(&self, value: impl Into<Value>, href: impl Into<Option<&str>>) -> Result<()> {
+        let mut href = href.into();
+        if href.as_deref() == Some("-") {
+            href = None;
+        }
+        let format = self
+            .output_format
+            .or(href.and_then(Format::infer_from_href))
+            .unwrap_or_default();
+        let value = value.into();
+        if let Some(href) = href {
+            let put_result = format
+                .put_opts(
+                    href,
+                    value,
+                    option_iter(&self.output_options).chain(option_iter(&self.options)),
+                )
+                .await?;
+            if let Some(put_result) = put_result {
+                if put_result.e_tag.is_some() || put_result.version.is_some() {
+                    tracing::info!(
+                        "put result: e_tag={}, version={}",
+                        put_result.e_tag.as_deref().unwrap_or("None"),
+                        put_result.version.as_deref().unwrap_or("None")
+                    );
+                } else {
+                    tracing::info!("put ok");
+                }
             }
+        } else {
+            let mut bytes = format.into_vec(value)?;
+            bytes.push(b'\n');
+            std::io::stdout().write_all(&bytes)?;
         }
         Ok(())
-    }
-}
-
-impl Run for Subcommand {
-    async fn run(self, input: Input, stream: Option<Sender<Value>>) -> Result<Option<Value>> {
-        match self {
-            Subcommand::Item(args) => args.run(input, stream).await,
-            Subcommand::Items(args) => args.run(input, stream).await,
-            Subcommand::Migrate(args) => args.run(input, stream).await,
-            Subcommand::Search(args) => args.run(input, stream).await,
-            Subcommand::Serve(args) => args.run(input, stream).await,
-            Subcommand::Translate(args) => args.run(input, stream).await,
-            Subcommand::Validate(args) => args.run(input, stream).await,
-        }
-    }
-
-    fn take_infile(&mut self) -> Option<String> {
-        match self {
-            Subcommand::Item(args) => args.take_infile(),
-            Subcommand::Items(args) => args.take_infile(),
-            Subcommand::Migrate(args) => args.take_infile(),
-            Subcommand::Search(args) => args.take_infile(),
-            Subcommand::Serve(args) => args.take_infile(),
-            Subcommand::Translate(args) => args.take_infile(),
-            Subcommand::Validate(args) => args.take_infile(),
-        }
-    }
-
-    fn take_outfile(&mut self) -> Option<String> {
-        match self {
-            Subcommand::Item(args) => args.take_outfile(),
-            Subcommand::Items(args) => args.take_outfile(),
-            Subcommand::Migrate(args) => args.take_outfile(),
-            Subcommand::Search(args) => args.take_outfile(),
-            Subcommand::Serve(args) => args.take_outfile(),
-            Subcommand::Translate(args) => args.take_outfile(),
-            Subcommand::Validate(args) => args.take_outfile(),
-        }
     }
 }
 
@@ -254,4 +210,35 @@ fn level_value(level: Option<Level>) -> i8 {
         Some(Level::DEBUG) => 3,
         Some(Level::TRACE) => 4,
     }
+}
+
+/// A collection of configuration entries.
+/// `key=value`` pairs for object store configuration
+#[derive(Clone, Debug)]
+pub struct KeyValue {
+    key: String,
+    value: String,
+}
+
+impl FromStr for KeyValue {
+    type Err = Infallible;
+    fn from_str(s: &str) -> std::result::Result<Self, Infallible> {
+        if let Some((key, value)) = s.split_once('=') {
+            Ok(KeyValue {
+                key: key.to_string(),
+                value: value.to_string(),
+            })
+        } else {
+            Ok(KeyValue {
+                key: s.to_string(),
+                value: String::new(),
+            })
+        }
+    }
+}
+
+fn option_iter(options: &[KeyValue]) -> impl Iterator<Item = (&str, &str)> {
+    options
+        .iter()
+        .map(|kv| (kv.key.as_str(), kv.value.as_str()))
 }

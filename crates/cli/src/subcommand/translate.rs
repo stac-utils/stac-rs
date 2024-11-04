@@ -1,26 +1,28 @@
-use crate::{input::Input, run::Run, Result, Value};
-use tokio::sync::mpsc::Sender;
+use crate::Result;
+use stac::{Migrate, Version, STAC_VERSION};
 
 /// Arguments for the `translate` subcommand.
 #[derive(clap::Args, Debug)]
-pub(crate) struct Args {
-    /// The input file, if not provided or `-` the input will be read from standard input
+pub struct Args {
+    /// The input file.
+    ///
+    /// If not provided or `-`, the input will be read from standard input.
     infile: Option<String>,
 
-    /// The output file, if not provided the item will be printed to standard output
+    /// The output file.
+    ///
+    /// If not provided or `-` the item will be printed to standard output.
     outfile: Option<String>,
+
+    /// The output version.
+    #[arg(long, default_value_t = STAC_VERSION)]
+    version: Version,
 }
 
-impl Run for Args {
-    async fn run(self, input: Input, _: Option<Sender<Value>>) -> Result<Option<Value>> {
-        input.get().await.map(|value| Some(value.into()))
-    }
-
-    fn take_infile(&mut self) -> Option<String> {
-        self.infile.take()
-    }
-
-    fn take_outfile(&mut self) -> Option<String> {
-        self.outfile.take()
+impl crate::Args {
+    pub async fn translate(&self, args: &Args) -> Result<()> {
+        let value = self.get(args.infile.as_deref()).await?;
+        let value = value.migrate(&args.version)?;
+        self.put(value, args.outfile.as_deref()).await
     }
 }

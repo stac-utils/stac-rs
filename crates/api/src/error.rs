@@ -75,6 +75,17 @@ pub enum Error {
     #[cfg(feature = "client")]
     Reqwest(#[from] reqwest::Error),
 
+    /// A search error.
+    #[error("HTTP status error ({status_code}): {text}")]
+    #[cfg(feature = "client")]
+    Search {
+        /// The status code
+        status_code: reqwest::StatusCode,
+
+        /// The text of the server response.
+        text: String,
+    },
+
     /// A search has both bbox and intersects.
     #[error("search has bbox and intersects")]
     SearchHasBboxAndIntersects(Box<Search>),
