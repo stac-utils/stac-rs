@@ -1,5 +1,5 @@
 services:
-  database:
+  pgstac:
     container_name: stac-rs
     image: ghcr.io/stac-utils/pgstac:v0.8.6
     environment:

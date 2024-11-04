@@ -211,6 +211,12 @@ impl Search {
             Ok(true)
         }
     }
+
+    /// Converts this search's filter to cql2-json, if set.
+    pub fn into_cql2_json(mut self) -> Result<Search> {
+        self.items = self.items.into_cql2_json()?;
+        Ok(self)
+    }
 }
 
 impl TryFrom<Search> for GetSearch {

@@ -71,6 +71,7 @@ where
         params: impl ToString,
         tls: Tls,
     ) -> Result<PgstacBackend<Tls>> {
+        let params = params.to_string();
         let connection_manager = PostgresConnectionManager::new_from_stringlike(params, tls)?;
         let pool = Pool::builder().build(connection_manager).await?;
         Ok(PgstacBackend { pool })
@@ -112,6 +113,13 @@ where
         client.add_item(item).await.map_err(Error::from)
     }
 
+    async fn add_items(&mut self, items: Vec<Item>) -> Result<()> {
+        tracing::debug!("adding {} items using pgstac loading", items.len());
+        let client = self.pool.get().await?;
+        let client = Client::new(&*client);
+        client.add_items(&items).await.map_err(Error::from)
+    }
+
     async fn items(&self, collection_id: &str, items: Items) -> Result<Option<ItemCollection>> {
         // TODO should we check for collection existence?
         let search = items.search_collection(collection_id);
@@ -125,12 +133,6 @@ where
             .item(item_id, collection_id)
             .await
             .map_err(Error::from)
-    }
-
-    async fn add_items(&mut self, items: Vec<Item>) -> Result<()> {
-        let client = self.pool.get().await?;
-        let client = Client::new(&*client);
-        client.add_items(&items).await.map_err(Error::from)
     }
 
     async fn search(&self, search: Search) -> Result<ItemCollection> {

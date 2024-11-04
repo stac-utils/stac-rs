@@ -21,6 +21,10 @@ pub enum Error {
     #[error(transparent)]
     ChronoParse(#[from] chrono::ParseError),
 
+    /// [cql2::Error]
+    #[error(transparent)]
+    Cql2(#[from] cql2::Error),
+
     /// [geojson::Error]
     #[error(transparent)]
     GeoJson(#[from] Box<geojson::Error>),
@@ -74,17 +78,6 @@ pub enum Error {
     #[error(transparent)]
     #[cfg(feature = "client")]
     Reqwest(#[from] reqwest::Error),
-
-    /// A search error.
-    #[error("HTTP status error ({status_code}): {text}")]
-    #[cfg(feature = "client")]
-    Request {
-        /// The status code
-        status_code: reqwest::StatusCode,
-
-        /// The text of the server response.
-        text: String,
-    },
 
     /// A search has both bbox and intersects.
     #[error("search has bbox and intersects")]

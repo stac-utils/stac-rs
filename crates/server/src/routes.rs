@@ -216,6 +216,7 @@ pub async fn get_search<B: Backend>(
     State(api): State<Api<B>>,
     search: Query<GetSearch>,
 ) -> Result<GeoJson<ItemCollection>> {
+    tracing::debug!("GET /search: {:?}", search.0);
     let search = Search::try_from(search.0)
         .and_then(Search::valid)
         .map_err(|error| Error::BadRequest(error.to_string()))?;

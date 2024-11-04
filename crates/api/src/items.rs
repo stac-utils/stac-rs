@@ -291,6 +291,14 @@ impl Items {
             collections: Some(vec![collection_id.to_string()]),
         }
     }
+
+    /// Converts the filter to cql2-json, if it is set.
+    pub fn into_cql2_json(mut self) -> Result<Items> {
+        if let Some(filter) = self.filter {
+            self.filter = Some(filter.into_cql2_json()?);
+        }
+        Ok(self)
+    }
 }
 
 impl TryFrom<Items> for GetItems {
