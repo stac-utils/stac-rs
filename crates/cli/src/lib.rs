@@ -21,7 +21,6 @@
     meta_variable_misuse,
     missing_abi,
     missing_debug_implementations,
-    missing_docs,
     non_ascii_idents,
     noop_method_call,
     rust_2021_incompatible_closure_captures,
@@ -45,13 +44,9 @@
 
 mod args;
 mod error;
-mod input;
-mod options;
-mod output;
 #[cfg(feature = "python")]
 mod python;
-mod run;
-mod subcommand;
+pub mod subcommand;
 mod value;
 
 pub use {args::Args, error::Error, value::Value};

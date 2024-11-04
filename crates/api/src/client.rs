@@ -220,7 +220,12 @@ impl Client {
         if let Some(headers) = headers.into() {
             request = request.headers(headers);
         }
-        let response = request.send().await?.error_for_status()?;
+        let response = request.send().await?;
+        if !response.status().is_success() {
+            let status_code = response.status();
+            let text = response.text().await.ok().unwrap_or_default();
+            return Err(Error::Request { status_code, text });
+        }
         response.json().await.map_err(Error::from)
     }
 
@@ -356,12 +361,8 @@ fn stream_pages(
 
 fn not_found_to_none<T>(result: Result<T>) -> Result<Option<T>> {
     let mut result = result.map(Some);
-    if let Err(Error::Reqwest(ref err)) = result {
-        if err
-            .status()
-            .map(|s| s == StatusCode::NOT_FOUND)
-            .unwrap_or_default()
-        {
+    if let Err(Error::Request { status_code, .. }) = result {
+        if status_code == StatusCode::NOT_FOUND {
             result = Ok(None);
         }
     }

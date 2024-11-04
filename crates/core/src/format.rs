@@ -35,6 +35,11 @@ impl Format {
         href.rsplit_once('.').and_then(|(_, ext)| ext.parse().ok())
     }
 
+    /// Returns true if this is a geoparquet href.
+    pub fn is_geoparquet_href(href: &str) -> bool {
+        matches!(Format::infer_from_href(href), Some(Format::Geoparquet(_)))
+    }
+
     /// Reads a STAC object from an href in this format.
     ///
     /// # Examples
@@ -86,11 +91,22 @@ impl Format {
         &self,
         path: impl AsRef<Path>,
     ) -> Result<T> {
+        let path = path.as_ref().canonicalize()?;
         match self {
-            Format::Json(_) => T::from_json_path(path),
-            Format::NdJson => T::from_ndjson_path(path),
-            Format::Geoparquet(_) => T::from_geoparquet_path(path),
+            Format::Json(_) => T::from_json_path(&path),
+            Format::NdJson => T::from_ndjson_path(&path),
+            Format::Geoparquet(_) => T::from_geoparquet_path(&path),
         }
+        .map_err(|err| {
+            if let Error::Io(err) = err {
+                Error::FromPath {
+                    io: err,
+                    path: path.to_string_lossy().into_owned(),
+                }
+            } else {
+                err
+            }
+        })
     }
 
     /// Reads a STAC object from some bytes.
@@ -138,7 +154,8 @@ impl Format {
         K: AsRef<str>,
         V: Into<String>,
     {
-        match href.into().realize() {
+        let href = href.into();
+        match href.realize() {
             RealizedHref::Url(url) => {
                 use object_store::ObjectStore;
 

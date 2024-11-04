@@ -26,7 +26,7 @@ pub enum Error {
     SerdeJson(#[from] serde_json::Error),
 
     /// [stac_api::Error]
-    #[error(transparent)]
+    #[error("[stac-api] {0}")]
     StacApi(#[from] stac_api::Error),
 
     /// [stac::Error]

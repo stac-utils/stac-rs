@@ -22,6 +22,17 @@ pub enum Error {
     #[cfg(feature = "validate")]
     FluentUriParse(#[from] fluent_uri::error::ParseError),
 
+    /// Returned when unable to read a STAC value from a path.
+    #[error("{io}: {path}")]
+    FromPath {
+        /// The [std::io::Error]
+        #[source]
+        io: std::io::Error,
+
+        /// The path.
+        path: String,
+    },
+
     /// [geoarrow::error::GeoArrowError]
     #[error(transparent)]
     #[cfg(feature = "geoarrow")]
