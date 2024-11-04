@@ -113,7 +113,7 @@ impl Args {
         }
         let format = self
             .input_format
-            .or(href.as_deref().and_then(|h| Format::infer_from_href(h)))
+            .or(href.as_deref().and_then(Format::infer_from_href))
             .unwrap_or_default();
         if let Some(href) = href {
             format
