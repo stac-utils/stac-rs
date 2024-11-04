@@ -3,7 +3,7 @@ use stac_server::{Api, Backend, MemoryBackend};
 use tokio::net::TcpListener;
 
 /// Arguments for serving an API.
-#[derive(Debug, clap::Args)]
+#[derive(Debug, clap::Args, Clone)]
 pub struct Args {
     /// Hrefs of collections, items, and item collections to load into the server on start
     ///
@@ -49,10 +49,21 @@ impl crate::Args {
         }
     }
 
-    async fn load_and_serve(&self, args: &Args, backend: impl Backend) -> Result<()> {
-        tracing::warn!(
-            "FIXME: once https://github.com/stac-utils/stac-rs/pull/513 lands, re-enable loading"
-        );
+    async fn load_and_serve(&self, args: &Args, mut backend: impl Backend) -> Result<()> {
+        if !args.hrefs.is_empty() {
+            let load = self
+                .load(
+                    &mut backend,
+                    args.hrefs.iter().map(|s| s.as_str()),
+                    args.load_collection_items,
+                    args.create_collections,
+                )
+                .await?;
+            eprintln!(
+                "Loaded {} collection(s) and {} item(s)",
+                load.collections, load.items
+            );
+        }
         let root = format!("http://{}", &args.addr);
         let api = Api::new(backend, &root)?;
         let router = stac_server::routes::from_api(api);

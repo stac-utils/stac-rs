@@ -2,7 +2,7 @@ use crate::Result;
 use stac::{Migrate, Version, STAC_VERSION};
 
 /// Arguments for the `translate` subcommand.
-#[derive(clap::Args, Debug)]
+#[derive(clap::Args, Debug, Clone)]
 pub struct Args {
     /// The input file.
     ///
@@ -21,7 +21,7 @@ pub struct Args {
 
 impl crate::Args {
     pub async fn translate(&self, args: &Args) -> Result<()> {
-        let value = self.get(args.infile.as_deref()).await?;
+        let value = self.get(args.infile.clone()).await?;
         let value = value.migrate(&args.version)?;
         self.put(value, args.outfile.as_deref()).await
     }

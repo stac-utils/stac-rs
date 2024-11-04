@@ -88,6 +88,16 @@ pub trait Backend: Clone + Sync + Send + 'static {
     /// ```
     fn add_item(&mut self, item: Item) -> impl Future<Output = Result<()>> + Send;
 
+    /// Adds several items.
+    fn add_items(&mut self, items: Vec<Item>) -> impl Future<Output = Result<()>> + Send {
+        async move {
+            for item in items {
+                self.add_item(item).await?;
+            }
+            Ok(())
+        }
+    }
+
     /// Retrieves items for a given collection.
     ///
     /// # Examples

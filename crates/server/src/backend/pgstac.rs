@@ -127,6 +127,12 @@ where
             .map_err(Error::from)
     }
 
+    async fn add_items(&mut self, items: Vec<Item>) -> Result<()> {
+        let client = self.pool.get().await?;
+        let client = Client::new(&*client);
+        client.add_items(&items).await.map_err(Error::from)
+    }
+
     async fn search(&self, search: Search) -> Result<ItemCollection> {
         let client = self.pool.get().await?;
         let client = Client::new(&*client);

@@ -2,7 +2,7 @@ use crate::Result;
 use stac::Validate;
 
 /// Arguments for the `validate` subcommand.
-#[derive(clap::Args, Debug)]
+#[derive(clap::Args, Debug, Clone)]
 pub struct Args {
     /// The input file.
     ///
@@ -12,7 +12,7 @@ pub struct Args {
 
 impl crate::Args {
     pub async fn validate(&self, args: &Args) -> Result<()> {
-        let value = self.get(args.infile.as_deref()).await?;
+        let value = self.get(args.infile.clone()).await?;
         if let Err(error) = value.validate().await {
             if let stac::Error::Validation(errors) = &error {
                 for error in errors {

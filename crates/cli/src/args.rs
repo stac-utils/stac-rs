@@ -13,7 +13,7 @@ use tokio::io::AsyncReadExt;
 use tracing::metadata::Level;
 
 /// Arguments, as parsed from the command line (usually).
-#[derive(Parser, Debug)]
+#[derive(Parser, Debug, Clone)]
 #[command(author, version, about, long_about = None)]
 pub struct Args {
     /// The input format, if not provided will be inferred from the input file's extension, falling back to json
@@ -67,7 +67,7 @@ pub struct Args {
 }
 
 /// A subcommand.
-#[derive(Debug, clap::Subcommand)]
+#[derive(Debug, clap::Subcommand, Clone)]
 #[allow(clippy::large_enum_variant)]
 pub enum Subcommand {
     /// Search for STAC items
@@ -106,14 +106,14 @@ impl Args {
         }
     }
 
-    pub async fn get(&self, href: impl Into<Option<&str>>) -> Result<stac::Value> {
+    pub async fn get(&self, href: impl Into<Option<String>>) -> Result<stac::Value> {
         let mut href = href.into();
-        if href == Some("-") {
+        if href.as_deref() == Some("-") {
             href = None;
         }
         let format = self
             .input_format
-            .or(href.and_then(Format::infer_from_href))
+            .or(href.as_deref().and_then(|h| Format::infer_from_href(h)))
             .unwrap_or_default();
         if let Some(href) = href {
             format
@@ -165,6 +165,117 @@ impl Args {
             std::io::stdout().write_all(&bytes)?;
         }
         Ok(())
+    }
+
+    pub async fn load(
+        &self,
+        backend: &mut impl stac_server::Backend,
+        hrefs: impl Iterator<Item = &str>,
+        load_collection_items: bool,
+        create_collections: bool,
+    ) -> Result<Load> {
+        use stac::{Collection, Links, Value};
+        use std::collections::{HashMap, HashSet};
+        use tokio::task::JoinSet;
+
+        let mut join_set = JoinSet::new();
+        let mut read_from_stdin = false;
+        for href in hrefs {
+            if href == "-" {
+                read_from_stdin = true;
+            } else {
+                let args = self.clone();
+                let href = href.to_string();
+                let _ = join_set.spawn(async move { args.get(Some(href)).await });
+            }
+        }
+        if read_from_stdin {
+            let args = self.clone();
+            let _ = join_set.spawn(async move { args.get(None).await });
+        }
+        let mut item_join_set = JoinSet::new();
+        let mut items: HashMap<Option<String>, Vec<_>> = HashMap::new();
+        let mut collections = HashSet::new();
+        let mut load = Load::default();
+        while let Some(result) = join_set.join_next().await {
+            let value = result??;
+            match value {
+                Value::Collection(mut collection) => {
+                    if load_collection_items {
+                        collection.make_links_absolute()?;
+                        for link in collection.iter_item_links() {
+                            let args = self.clone();
+                            let href = link.href.to_string().clone();
+                            let _ = item_join_set.spawn(async move { args.get(href).await });
+                        }
+                    }
+                    let _ = collections.insert(collection.id.clone());
+                    collection.remove_structural_links();
+                    load.collections += 1;
+                    backend.add_collection(collection).await?;
+                }
+                Value::Item(item) => {
+                    items.entry(item.collection.clone()).or_default().push(item);
+                }
+                Value::ItemCollection(item_collection) => {
+                    for item in item_collection.items {
+                        items.entry(item.collection.clone()).or_default().push(item);
+                    }
+                }
+                Value::Catalog(catalog) => {
+                    tracing::warn!("skipping catalog: {}", catalog.id);
+                }
+            }
+        }
+        while let Some(result) = item_join_set.join_next().await {
+            let value = result??;
+            if let Value::Item(item) = value {
+                items.entry(item.collection.clone()).or_default().push(item);
+            } else {
+                tracing::warn!(
+                    "skipping {} that was behind an item link",
+                    value.type_name()
+                );
+            }
+        }
+        for (collection, items) in items {
+            if let Some(collection) = collection {
+                if collections.contains(&collection) {
+                    load.items += items.len();
+                    backend.add_items(items).await?;
+                } else if create_collections {
+                    tracing::info!(
+                        "creating collection={} for {} item(s)",
+                        collection,
+                        items.len()
+                    );
+                    let collection = Collection::from_id_and_items(collection, &items);
+                    load.collections += 1;
+                    backend.add_collection(collection).await?;
+                    load.items += items.len();
+                    backend.add_items(items).await?;
+                } else {
+                    tracing::warn!(
+                        "skipping {} item(s) with collection {}",
+                        items.len(),
+                        collection
+                    );
+                }
+            } else if create_collections {
+                tracing::info!(
+                    "creating auto-generated collection for {} item(s)",
+                    items.len()
+                );
+                let collection = Collection::from_id_and_items("auto-generated", &items);
+                load.collections += 1;
+                backend.add_collection(collection).await?;
+                load.items += items.len();
+                backend.add_items(items).await?;
+            } else {
+                tracing::warn!("skipping {} item(s) without a collection", items.len());
+            }
+        }
+        Ok(load)
     }
 }
 
@@ -241,4 +352,11 @@ fn option_iter(options: &[KeyValue]) -> impl Iterator<Item = (&str, &str)> {
     options
         .iter()
         .map(|kv| (kv.key.as_str(), kv.value.as_str()))
+}
+
+/// The counts from a load
+#[derive(Debug, Default)]
+pub struct Load {
+    pub collections: usize,
+    pub items: usize,
 }

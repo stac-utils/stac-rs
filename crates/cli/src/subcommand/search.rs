@@ -4,7 +4,7 @@ use stac_api::{Client, GetItems, ItemCollection, Items, Search};
 use std::{fs::File, io::BufReader};
 use tokio_stream::StreamExt;
 
-#[derive(Debug, clap::Args)]
+#[derive(Debug, clap::Args, Clone)]
 pub struct Args {
     /// The href to search.
     href: String,
