@@ -95,7 +95,7 @@ impl crate::Args {
             ..Default::default()
         };
         let mut items: Items = get_items.try_into()?;
-        items.limit = args.limit.clone();
+        items.limit = args.limit;
         items.query = args.query.as_deref().map(json).transpose()?;
         let mut search: Search = items.into();
         search.intersects = args.intersects.as_deref().map(json).transpose()?;
@@ -187,6 +187,6 @@ where
         let file = BufReader::new(File::open(&s[1..])?);
         serde_json::from_reader(file).map_err(Error::from)
     } else {
-        serde_json::from_str(&s).map_err(Error::from)
+        serde_json::from_str(s).map_err(Error::from)
     }
 }

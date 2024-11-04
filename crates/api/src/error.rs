@@ -78,7 +78,7 @@ pub enum Error {
     /// A search error.
     #[error("HTTP status error ({status_code}): {text}")]
     #[cfg(feature = "client")]
-    Search {
+    Request {
         /// The status code
         status_code: reqwest::StatusCode,
 

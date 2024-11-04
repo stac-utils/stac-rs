@@ -108,7 +108,7 @@ impl Args {
 
     pub async fn get(&self, href: impl Into<Option<&str>>) -> Result<stac::Value> {
         let mut href = href.into();
-        if href.as_deref() == Some("-") {
+        if href == Some("-") {
             href = None;
         }
         let format = self
@@ -132,7 +132,7 @@ impl Args {
 
     pub async fn put(&self, value: impl Into<Value>, href: impl Into<Option<&str>>) -> Result<()> {
         let mut href = href.into();
-        if href.as_deref() == Some("-") {
+        if href == Some("-") {
             href = None;
         }
         let format = self
