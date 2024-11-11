@@ -38,7 +38,7 @@ pub struct Items {
     pub filter_crs: Option<String>,
 
     /// CQL2 filter expression.
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", flatten)]
     pub filter: Option<Filter>,
 
     /// Additional filtering based on properties.

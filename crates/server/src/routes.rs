@@ -16,7 +16,7 @@ use stac::{
     Collection, Item,
 };
 use stac_api::{Collections, GetItems, GetSearch, ItemCollection, Items, Root, Search};
-use tower_http::cors::CorsLayer;
+use tower_http::{cors::CorsLayer, trace::TraceLayer};
 
 /// Errors for our axum routes.
 #[derive(Debug)]
@@ -111,6 +111,7 @@ pub fn from_api<B: Backend>(api: Api<B>) -> Router {
         .route("/search", get(get_search))
         .route("/search", post(post_search))
         .layer(CorsLayer::permissive()) // TODO make this configurable
+        .layer(TraceLayer::new_for_http())
         .with_state(api)
 }
 

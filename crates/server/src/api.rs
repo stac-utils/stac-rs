@@ -286,11 +286,17 @@ impl<B: Backend> Api<B> {
     /// let item_collection = api.search(Search::default(), Method::GET).await.unwrap();
     /// # })
     /// ```
-    pub async fn search(&self, search: Search, method: Method) -> Result<ItemCollection> {
+    pub async fn search(&self, mut search: Search, method: Method) -> Result<ItemCollection> {
         let mut item_collection = self.backend.search(search.clone()).await?;
+        if method == Method::GET {
+            if let Some(filter) = search.filter.take() {
+                search.filter = Some(filter.into_cql2_text()?);
+            }
+        }
         item_collection.set_link(Link::root(self.root.clone()).json());
         let search_url = self.url("/search")?;
         if let Some(next) = item_collection.next.take() {
+            tracing::debug!("adding next pagination link");
             item_collection.set_link(self.pagination_link(
                 search_url.clone(),
                 search.clone(),
@@ -300,6 +306,7 @@ impl<B: Backend> Api<B> {
             )?);
         }
         if let Some(prev) = item_collection.prev.take() {
+            tracing::debug!("adding prev pagination link");
             item_collection
                 .set_link(self.pagination_link(search_url, search, prev, "prev", &method)?);
         }

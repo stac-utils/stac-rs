@@ -1,4 +1,5 @@
 use crate::Result;
+use cql2::Expr;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::{convert::Infallible, str::FromStr};
@@ -26,6 +27,17 @@ impl Filter {
                 Ok(Filter::Cql2Json(serde_json::from_value(
                     serde_json::to_value(expr)?,
                 )?))
+            }
+        }
+    }
+
+    /// Converts this filter to cql2-json.
+    pub fn into_cql2_text(self) -> Result<Filter> {
+        match self {
+            Filter::Cql2Text(_) => Ok(self),
+            Filter::Cql2Json(json) => {
+                let expr: Expr = serde_json::from_value(Value::Object(json))?;
+                Ok(Filter::Cql2Text(expr.to_text()?))
             }
         }
     }
