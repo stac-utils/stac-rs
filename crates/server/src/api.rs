@@ -136,6 +136,9 @@ impl<B: Backend> Api<B> {
         if self.backend.has_item_search() {
             conformance = conformance.item_search();
         }
+        if self.backend.has_filter() {
+            conformance = conformance.filter();
+        }
         conformance
     }
 

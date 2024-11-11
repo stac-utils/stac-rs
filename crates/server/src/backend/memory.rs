@@ -38,6 +38,10 @@ impl Backend for MemoryBackend {
         true
     }
 
+    fn has_filter(&self) -> bool {
+        false
+    }
+
     async fn collections(&self) -> Result<Vec<Collection>> {
         let collections = self.collections.read().unwrap();
         Ok(collections.values().cloned().collect())
