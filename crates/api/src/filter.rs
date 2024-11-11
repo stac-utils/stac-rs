@@ -1,7 +1,8 @@
-use std::{convert::Infallible, str::FromStr};
-
+use crate::Result;
+use cql2::Expr;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
+use std::{convert::Infallible, str::FromStr};
 
 /// The language of the filter expression.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -16,6 +17,32 @@ pub enum Filter {
     Cql2Json(Map<String, Value>),
 }
 
+impl Filter {
+    /// Converts this filter to cql2-json.
+    pub fn into_cql2_json(self) -> Result<Filter> {
+        match self {
+            Filter::Cql2Json(_) => Ok(self),
+            Filter::Cql2Text(text) => {
+                let expr = cql2::parse_text(&text)?;
+                Ok(Filter::Cql2Json(serde_json::from_value(
+                    serde_json::to_value(expr)?,
+                )?))
+            }
+        }
+    }
+
+    /// Converts this filter to cql2-json.
+    pub fn into_cql2_text(self) -> Result<Filter> {
+        match self {
+            Filter::Cql2Text(_) => Ok(self),
+            Filter::Cql2Json(json) => {
+                let expr: Expr = serde_json::from_value(Value::Object(json))?;
+                Ok(Filter::Cql2Text(expr.to_text()?))
+            }
+        }
+    }
+}
+
 impl Default for Filter {
     fn default() -> Self {
         Filter::Cql2Json(Default::default())
@@ -24,7 +51,7 @@ impl Default for Filter {
 
 impl FromStr for Filter {
     type Err = Infallible;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         Ok(Filter::Cql2Text(s.to_string()))
     }
 }

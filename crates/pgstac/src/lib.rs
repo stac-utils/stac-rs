@@ -60,6 +60,10 @@ pub enum Error {
     #[error(transparent)]
     SerdeJson(#[from] serde_json::Error),
 
+    /// [stac_api::Error]
+    #[error(transparent)]
+    StacApi(#[from] stac_api::Error),
+
     /// [tokio_postgres::Error]
     #[error(transparent)]
     TokioPostgres(#[from] tokio_postgres::Error),

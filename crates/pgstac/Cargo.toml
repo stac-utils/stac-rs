@@ -24,6 +24,7 @@ stac-api.workspace = true
 thiserror.workspace = true
 tokio-postgres = { workspace = true, features = ["with-serde_json-1"] }
 tokio-postgres-rustls = { workspace = true, optional = true }
+tracing.workspace = true
 webpki-roots = { workspace = true, optional = true }
 
 [dev-dependencies]

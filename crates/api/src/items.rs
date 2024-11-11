@@ -38,7 +38,7 @@ pub struct Items {
     pub filter_crs: Option<String>,
 
     /// CQL2 filter expression.
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", flatten)]
     pub filter: Option<Filter>,
 
     /// Additional filtering based on properties.
@@ -290,6 +290,14 @@ impl Items {
             ids: None,
             collections: Some(vec![collection_id.to_string()]),
         }
+    }
+
+    /// Converts the filter to cql2-json, if it is set.
+    pub fn into_cql2_json(mut self) -> Result<Items> {
+        if let Some(filter) = self.filter {
+            self.filter = Some(filter.into_cql2_json()?);
+        }
+        Ok(self)
     }
 }
 

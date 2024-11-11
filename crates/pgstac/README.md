@@ -24,9 +24,9 @@ See the [documentation](https://docs.rs/pgstac) for more.
 To test:
 
 ```shell
-docker-compose -f pgstac/docker-compose.yml up -d
+docker compose up -d
 cargo test -p pgstac
-docker-compose -f pgstac/docker-compose.yml down
+docker compose down
 ```
 
 Each test is run in its own transaction, which is rolled back after the test.

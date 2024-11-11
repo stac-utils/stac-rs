@@ -1,7 +1,7 @@
 [project]
 name = "stac-rs"
 version = "0.0.0"
-description = "This package should never be released, its just for uv."
+description = "This package should never be released, it's just for uv."
 requires-python = ">=3.12"
 dependencies = []
 

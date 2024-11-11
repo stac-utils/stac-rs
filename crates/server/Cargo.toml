@@ -31,7 +31,8 @@ stac-api = { workspace = true, features = ["geo"] }
 stac-types.workspace = true
 thiserror.workspace = true
 tokio-postgres = { workspace = true, optional = true }
-tower-http = { workspace = true, features = ["cors"], optional = true }
+tower-http = { workspace = true, features = ["cors", "trace"], optional = true }
+tracing.workspace = true
 url.workspace = true
 
 [dev-dependencies]

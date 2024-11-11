@@ -16,7 +16,7 @@ use stac::{
     Collection, Item,
 };
 use stac_api::{Collections, GetItems, GetSearch, ItemCollection, Items, Root, Search};
-use tower_http::cors::CorsLayer;
+use tower_http::{cors::CorsLayer, trace::TraceLayer};
 
 /// Errors for our axum routes.
 #[derive(Debug)]
@@ -111,6 +111,7 @@ pub fn from_api<B: Backend>(api: Api<B>) -> Router {
         .route("/search", get(get_search))
         .route("/search", post(post_search))
         .layer(CorsLayer::permissive()) // TODO make this configurable
+        .layer(TraceLayer::new_for_http())
         .with_state(api)
 }
 
@@ -216,6 +217,7 @@ pub async fn get_search<B: Backend>(
     State(api): State<Api<B>>,
     search: Query<GetSearch>,
 ) -> Result<GeoJson<ItemCollection>> {
+    tracing::debug!("GET /search: {:?}", search.0);
     let search = Search::try_from(search.0)
         .and_then(Search::valid)
         .map_err(|error| Error::BadRequest(error.to_string()))?;

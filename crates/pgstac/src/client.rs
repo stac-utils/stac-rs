@@ -177,7 +177,9 @@ impl<'a, C: GenericClient> Client<'a, C> {
 
     /// Searches for items.
     pub async fn search(&self, search: Search) -> Result<Page> {
+        let search = search.into_cql2_json()?;
         let search = serde_json::to_value(search)?;
+        tracing::debug!("searching: {:?}", search);
         self.value("search", &[&search]).await
     }
 

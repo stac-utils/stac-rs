@@ -70,6 +70,10 @@ pub struct Args {
 #[derive(Debug, clap::Subcommand, Clone)]
 #[allow(clippy::large_enum_variant)]
 pub enum Subcommand {
+    /// Interact with a pgstac database
+    #[cfg(feature = "pgstac")]
+    Pgstac(crate::subcommand::pgstac::Args),
+
     /// Search for STAC items
     Search(search::Args),
 
@@ -99,6 +103,8 @@ impl Args {
     /// Runs whatever these arguments say that we should run.
     pub async fn run(self) -> Result<()> {
         match &self.subcommand {
+            #[cfg(feature = "pgstac")]
+            Subcommand::Pgstac(args) => self.pgstac(args).await,
             Subcommand::Search(args) => self.search(args).await,
             Subcommand::Serve(args) => self.serve(args).await,
             Subcommand::Translate(args) => self.translate(args).await,
