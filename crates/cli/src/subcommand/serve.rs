@@ -35,6 +35,7 @@ impl crate::Args {
         #[cfg(feature = "pgstac")]
         {
             if let Some(pgstac) = args.pgstac.as_deref() {
+                let _ = tokio_postgres::connect(pgstac, tokio_postgres::NoTls).await?;
                 let backend = stac_server::PgstacBackend::new_from_stringlike(pgstac).await?;
                 self.load_and_serve(args, backend).await
             } else {

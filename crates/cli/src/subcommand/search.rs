@@ -52,10 +52,6 @@ pub struct Args {
     #[arg(long)]
     filter_crs: Option<String>,
 
-    /// `cql2-text` or `cql2-json`. If undefined, defaults to cql2-text for a GET request and cql2-json for a POST request.
-    #[arg(long)]
-    filter_lang: Option<String>,
-
     /// CQL2 filter expression.
     #[arg(short, long)]
     filter: Option<String>,
@@ -90,7 +86,6 @@ impl crate::Args {
             fields: args.fields.clone(),
             sortby: args.sortby.clone(),
             filter_crs: args.filter_crs.clone(),
-            filter_lang: args.filter_lang.clone(),
             filter: args.filter.clone(),
             ..Default::default()
         };
