@@ -10,11 +10,13 @@ set -e
 
 args="crates/server/data/sentinel-2/*"
 build_args="--no-default-features"
+conformance="--conformance core --conformance features --conformance item-search"
 
 if [ $# -eq 1 ]; then
     if [ "$1" = "--pgstac" ]; then
         args="$args --pgstac postgres://username:password@localhost/postgis"
         build_args="$build_args -F pgstac"
+        conformance="$conformance --conformance filter"
     else
         echo "Unknown argument: $1"
         exit 1
@@ -29,9 +31,7 @@ set +e
 scripts/wait-for-it.sh localhost:7822 && \
     stac-api-validator \
         --root-url http://localhost:7822 \
-        --conformance core \
-        --conformance features \
-        --conformance item-search \
+        $conformance \
         --collection sentinel-2-c1-l2a \
         --geometry '{"type":"Point","coordinates":[-105.07,40.08]}'
 status=$?
