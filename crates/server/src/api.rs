@@ -1,7 +1,7 @@
 use crate::{Backend, Error, Result, DEFAULT_DESCRIPTION, DEFAULT_ID};
 use http::Method;
 use serde::Serialize;
-use serde_json::{Map, Value};
+use serde_json::{json, Map, Value};
 use stac::{mime::APPLICATION_OPENAPI_3_0, Catalog, Collection, Fields, Item, Link, Links};
 use stac_api::{Collections, Conformance, ItemCollection, Items, Root, Search};
 use url::Url;
@@ -115,6 +115,15 @@ impl<B: Backend> Api<B> {
         catalog
             .links
             .push(Link::new(search_url, "search").geojson().method("POST"));
+        if self.backend.has_filter() {
+            catalog.links.push(
+                Link::new(
+                    self.url("/queryables")?,
+                    "http://www.opengis.net/def/rel/ogc/1.0/queryables",
+                )
+                .r#type("application/schema+json".to_string()),
+            );
+        }
         Ok(Root {
             catalog,
             conformance: self.conformance(),
@@ -140,6 +149,21 @@ impl<B: Backend> Api<B> {
             conformance = conformance.filter();
         }
         conformance
+    }
+
+    /// Returns queryables.
+    pub fn queryables(&self) -> Value {
+        // This is a pure punt from https://github.com/stac-api-extensions/filter?tab=readme-ov-file#queryables
+        json!({
+          "$schema" : "https://json-schema.org/draft/2019-09/schema",
+          "$id" : "https://stac-api.example.com/queryables",
+          "type" : "object",
+          "title" : "Queryables for Example STAC API",
+          "description" : "Queryable names for the example STAC API Item Search filter.",
+          "properties" : {
+          },
+          "additionalProperties": true
+        })
     }
 
     /// Returns the collections from the backend.
