@@ -23,6 +23,17 @@ pub trait Backend: Clone + Sync + Send + 'static {
     /// ```
     fn has_item_search(&self) -> bool;
 
+    /// Returns true if this backend has [filter](https://github.com/stac-api-extensions/filter) capabilities.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac_server::{MemoryBackend, Backend};
+    ///
+    /// assert!(!MemoryBackend::new().has_filter());
+    /// ```
+    fn has_filter(&self) -> bool;
+
     /// Returns all collections.
     ///
     /// # Examples

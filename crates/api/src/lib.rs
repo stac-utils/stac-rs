@@ -82,8 +82,8 @@ pub use client::{BlockingClient, Client};
 pub use {
     collections::Collections,
     conformance::{
-        Conformance, COLLECTIONS_URI, CORE_URI, FEATURES_URI, GEOJSON_URI, ITEM_SEARCH_URI,
-        OGC_API_FEATURES_URI,
+        Conformance, COLLECTIONS_URI, CORE_URI, FEATURES_URI, FILTER_URIS, GEOJSON_URI,
+        ITEM_SEARCH_URI, OGC_API_FEATURES_URI,
     },
     error::Error,
     fields::Fields,

@@ -54,6 +54,11 @@ pub enum Error {
     #[error(transparent)]
     TokioJoinError(#[from] tokio::task::JoinError),
 
+    /// [tokio_postgres::Error]
+    #[cfg(feature = "pgstac")]
+    #[error(transparent)]
+    TokioPostgres(#[from] tokio_postgres::Error),
+
     /// [std::num::TryFromIntError]
     #[error(transparent)]
     TryFromInt(#[from] std::num::TryFromIntError),

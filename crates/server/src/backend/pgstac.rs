@@ -89,6 +89,10 @@ where
         true
     }
 
+    fn has_filter(&self) -> bool {
+        true
+    }
+
     async fn add_collection(&mut self, collection: Collection) -> Result<()> {
         let client = self.pool.get().await?;
         let client = Client::new(&*client);

@@ -87,8 +87,8 @@ pub struct GetItems {
     #[serde(skip_serializing_if = "Option::is_none", rename = "filter-crs")]
     pub filter_crs: Option<String>,
 
-    /// CQL2 filter expression.
-    #[serde(skip_serializing_if = "Option::is_none")]
+    /// This should always be cql2-text if present.
+    #[serde(skip_serializing_if = "Option::is_none", rename = "filter-lang")]
     pub filter_lang: Option<String>,
 
     /// CQL2 filter expression.
@@ -335,7 +335,11 @@ impl TryFrom<Items> for GetItems {
                     .join(",")
             }),
             filter_crs: items.filter_crs,
-            filter_lang: filter.as_ref().map(|_| "cql2-text".to_string()),
+            filter_lang: if filter.is_some() {
+                Some("cql2-text".to_string())
+            } else {
+                None
+            },
             filter,
             additional_fields: items
                 .additional_fields
@@ -413,7 +417,7 @@ fn maybe_parse_from_rfc3339(s: &str) -> Result<Option<DateTime<FixedOffset>>> {
 mod tests {
     use super::{GetItems, Items};
     use crate::{sort::Direction, Fields, Filter, Sortby};
-    use serde_json::{Map, Value};
+    use serde_json::{json, Map, Value};
     use std::collections::HashMap;
 
     #[test]
@@ -492,5 +496,15 @@ mod tests {
         assert_eq!(get_items.sortby.unwrap(), "-foo");
         assert_eq!(get_items.filter.unwrap(), "dummy text");
         assert_eq!(get_items.additional_fields["token"], "\"foobar\"");
+    }
+
+    #[test]
+    fn filter() {
+        let value = json!({
+            "filter": "eo:cloud_cover >= 5 AND eo:cloud_cover < 10",
+            "filter-lang": "cql2-text",
+        });
+        let items: Items = serde_json::from_value(value).unwrap();
+        assert!(items.filter.is_some());
     }
 }

@@ -71,7 +71,7 @@ This table lists the provided backends and their supported conformance classes a
 | [Collection search extension](https://github.com/stac-api-extensions/collection-search) | ✖️ | ✖️ |
 | [Collection transaction extension](https://github.com/stac-api-extensions/collection-transaction) | ✖️ | ✖️ |
 | [Fields extension](https://github.com/stac-api-extensions/fields) | ✖️ | ✖️ |
-| [Filter extension](https://github.com/stac-api-extensions/filter) | ✖️ | ✖️ |
+| [Filter extension](https://github.com/stac-api-extensions/filter) | ✖️ | ✅️ |
 | [Free-text search extension](https://github.com/stac-api-extensions/freetext-search) | ✖️ | ✖️ |
 | [Language (I18N) extension](https://github.com/stac-api-extensions/language) | ✖️ | ✖️ |
 | [Query extension](https://github.com/stac-api-extensions/query) | ✖️ | ✖️ |

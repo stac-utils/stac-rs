@@ -19,6 +19,15 @@ pub const GEOJSON_URI: &str = "http://www.opengis.net/spec/ogcapi-features-1/1.0
 /// The item search conformance uri.
 pub const ITEM_SEARCH_URI: &str = "https://api.stacspec.org/v1.0.0/item-search";
 
+/// The filter conformance uris.
+pub const FILTER_URIS: [&str; 5] = [
+    "http://www.opengis.net/spec/ogcapi-features-3/1.0/conf/filter",
+    "http://www.opengis.net/spec/cql2/1.0/conf/basic-cql2",
+    "https://api.stacspec.org/v1.0.0-rc.3/item-search#filter",
+    "http://www.opengis.net/spec/cql2/1.0/conf/cql2-text",
+    "http://www.opengis.net/spec/cql2/1.0/conf/cql2-json",
+];
+
 /// To support "generic" clients that want to access multiple OGC API Features
 /// implementations - and not "just" a specific API / server, the server has to
 /// declare the conformance classes it implements and conforms to.
@@ -74,6 +83,21 @@ impl Conformance {
     /// ```
     pub fn item_search(mut self) -> Conformance {
         self.conforms_to.push(ITEM_SEARCH_URI.to_string());
+        self
+    }
+
+    /// Adds [filter](https://github.com/stac-api-extensions/filter) conformance
+    /// class.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac_api::Conformance;
+    /// let conformance = Conformance::new().item_search();
+    /// ```
+    pub fn filter(mut self) -> Conformance {
+        self.conforms_to
+            .extend(FILTER_URIS.iter().map(|s| s.to_string()));
         self
     }
 }

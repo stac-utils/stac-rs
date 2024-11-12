@@ -104,6 +104,7 @@ pub fn from_api<B: Backend>(api: Api<B>) -> Router {
         .route("/api", get(service_desc))
         .route("/api.html", get(service_doc))
         .route("/conformance", get(conformance))
+        .route("/queryables", get(queryables))
         .route("/collections", get(collections))
         .route("/collections/:collection_id", get(collection))
         .route("/collections/:collection_id/items", get(items))
@@ -145,6 +146,15 @@ pub async fn service_doc() -> Response {
 /// class](https://github.com/radiantearth/stac-api-spec/blob/release/v1.0.0/ogcapi-features/README.md#endpoints).
 pub async fn conformance<B: Backend>(State(api): State<Api<B>>) -> Response {
     Json(api.conformance()).into_response()
+}
+
+/// Returns the `/queryables` endpoint.
+pub async fn queryables<B: Backend>(State(api): State<Api<B>>) -> Response {
+    (
+        [(CONTENT_TYPE, "application/schema+json")],
+        Json(api.queryables()),
+    )
+        .into_response()
 }
 
 /// Returns the `/collections` endpoint from the [ogcapi-features conformance
