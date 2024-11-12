@@ -1,5 +1,6 @@
 [package]
 name = "stac-types"
+description = "Low-level types for stac-rs. Should not be used directly, usually."
 version = "0.1.0"
 authors.workspace = true
 edition.workspace = true
