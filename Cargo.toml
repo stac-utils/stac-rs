@@ -77,7 +77,7 @@ stac = { version = "0.10.2", path = "crates/core" }
 stac-api = { version = "0.6.1", path = "crates/api" }
 stac-derive = { version = "0.1.0", path = "crates/derive" }
 stac-duckdb = { version = "0.0.2", path = "crates/duckdb" }
-stac-server = { version = "0.3.1", path = "crates/server" }
+stac-server = { version = "0.3.2", path = "crates/server" }
 stac-types = { version = "0.1.0", path = "crates/types" }
 syn = "2.0"
 tempfile = "3.13"
