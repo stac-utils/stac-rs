@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Filter extension for **pgstac** backend ([#519](https://github.com/stac-utils/stac-rs/pull/519))
+
 ## [0.3.1] - 2024.09-19
 
 ### Changed
