@@ -1,5 +1,6 @@
 [package]
 name = "stac-derive"
+description = "Proc macros for deriving STAC traits. Should usually not be used directly."
 version = "0.1.0"
 authors.workspace = true
 edition.workspace = true
