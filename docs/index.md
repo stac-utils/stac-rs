@@ -6,7 +6,7 @@ Command Line Interface (CLI), Rust crates, and other libraries for the [SpatioTe
 
 ## Python documentation
 
-Our Python package is named **stacrs** and its documentation is available [here](./python/index.md).
+Our Python package is named **stacrs** and its documentation is available [here](./python/stacrs/index.md).
 
 ## Rust documentation on docs.rs
 

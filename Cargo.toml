@@ -10,7 +10,8 @@ members = [
     "crates/pgstac",
     "crates/server",
     "crates/types",
-    "python",
+    "python/stacrs",
+    "python/pgstacrs",
 ]
 default-members = [
     "crates/api",
@@ -64,7 +65,12 @@ openssl = { version = "0.10.68", features = ["vendored"] }
 openssl-src = "=300.3.1" # joinked from https://github.com/iopsystems/rpc-perf/commit/705b290d2105af6f33150da04b217422c6d68701#diff-2e9d962a08321605940b5a657135052fbcef87b5e360662bb527c96d9a615542R41 to cross-compile Python
 parquet = { version = "52.2", default-features = false }
 pgstac = { version = "0.2.2", path = "crates/pgstac" }
+postgres = "0.19.9"
 pyo3 = "0.22.3"
+pyo3-async-runtimes = { version = "0.22.0", features = [
+    "attributes",
+    "tokio-runtime",
+] }
 pythonize = "0.22.0"
 quote = "1.0"
 reqwest = "0.12.8"

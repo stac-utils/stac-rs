@@ -18,16 +18,16 @@ theme:
 nav:
   - Home: index.md
   - Python:
-      - python/index.md
-      - Example notebook: python/example.ipynb
+      - python/stacrs/index.md
+      - Example notebook: python/stacrs/example.ipynb
       - API:
-          - python/api/index.md
-          - migrate: python/api/migrate.md
-          - read: python/api/read.md
-          - search: python/api/search.md
-          - validate: python/api/validate.md
-          - version: python/api/version.md
-          - write: python/api/write.md
+          - python/stacrs/api/index.md
+          - migrate: python/stacrs/api/migrate.md
+          - read: python/stacrs/api/read.md
+          - search: python/stacrs/api/search.md
+          - validate: python/stacrs/api/validate.md
+          - version: python/stacrs/api/version.md
+          - write: python/stacrs/api/write.md
   - Command-line interface:
       - cli/index.md
 

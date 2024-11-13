@@ -212,7 +212,8 @@ impl<'a, C: GenericClient> Client<'a, C> {
         }
     }
 
-    async fn opt<T>(&self, function: &str, params: &[&(dyn ToSql + Sync)]) -> Result<Option<T>>
+    /// Return an optional, deserializable thing.
+    pub async fn opt<T>(&self, function: &str, params: &[&(dyn ToSql + Sync)]) -> Result<Option<T>>
     where
         T: DeserializeOwned,
     {
@@ -244,7 +245,8 @@ impl<'a, C: GenericClient> Client<'a, C> {
         serde_json::from_value(value).map_err(Error::from)
     }
 
-    async fn void(&self, function: &str, params: &[&(dyn ToSql + Sync)]) -> Result<()> {
+    /// Run a function and return nothing if it works.
+    pub async fn void(&self, function: &str, params: &[&(dyn ToSql + Sync)]) -> Result<()> {
         let _ = self.query_one(function, params).await?;
         Ok(())
     }

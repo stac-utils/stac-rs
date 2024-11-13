@@ -35,7 +35,7 @@ stacrs.search_to("items-compressed.parquet",
 )
 ```
 
-See [the Python documentation](https://stac-utils.github.io/stac-rs/latest/python/) for more information.
+See [the Python documentation](https://stac-utils.github.io/stac-rs/latest/python/stacrs/) for more information.
 
 ## Command line interface
 
