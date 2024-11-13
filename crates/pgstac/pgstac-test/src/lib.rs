@@ -13,6 +13,8 @@ fn impl_pgstac_test(ast: ItemFn) -> TokenStream {
     let gen = quote! {
         #[tokio::test]
         async fn #ident() {
+            use pgstac_test_inner::MUTEX;
+
             let _mutex = MUTEX.lock().unwrap();
             let config = std::env::var("PGSTAC_RS_TEST_DB")
                 .unwrap_or("postgresql://username:password@localhost:5432/postgis".to_string());
