@@ -14,13 +14,13 @@ To run a server from the command-line, use [stac-cli](../cli/README.md).
 Any arguments will be interpreted as hrefs to STAC collections, items, and item collections, and will be loaded into the server on startup.
 
 ```shell
-stac serve collection.json items.json
+stacrs serve collection.json items.json
 ```
 
 To use the [pgstac](https://github.com/stac-utils/pgstac) backend:
 
 ```shell
-stac serve --pgstac postgresql://username:password@localhost:5432/postgis
+stacrs serve --pgstac postgresql://username:password@localhost:5432/postgis
 ```
 
 If you'd like to serve your own **pgstac** backend with some sample items:
