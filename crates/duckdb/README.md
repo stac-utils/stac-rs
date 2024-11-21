@@ -9,11 +9,8 @@ Experimental client using [DuckDB](https://duckdb.org/) to search [stac-geoparqu
 
 ## Usage
 
-In your `Cargo.toml`:
-
-```toml
-[dependencies]
-stac-duckdb = "0.0.2"
+```shell
+cargo add stac-duckdb
 ```
 
 See the [documentation](https://docs.rs/stac-duckdb) for more.
