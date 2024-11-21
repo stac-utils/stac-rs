@@ -2,33 +2,38 @@ name: Docs
 
 on:
   push:
-    tags:
-      - "python-v*"
-  workflow_dispatch:
-
-permissions:
-  contents: write
-  pages: write
+    branches:
+      - "main"
 
 jobs:
-  docs:
+  build:
     runs-on: ubuntu-latest
     env:
       GIT_COMMITTER_NAME: ci-bot
       GIT_COMMITTER_EMAIL: ci-bot@example.com
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # for git describe
       - uses: Swatinem/rust-cache@v2
       - uses: astral-sh/setup-uv@v3
         with:
           enable-cache: true
-      - name: Install Python
-        run: uv python install # we use uv instead of setup-python so we get python-version resolution between our two packages
       - name: Sync
-        run: uv sync --extra docs && uv sync --no-dev --inexact --project stacrs
-      - name: Deploy
-        run: |
-          VERSION=$(git describe --tags --match="python-v*" --abbrev=0)
-          uv run mike deploy $VERSION latest --update-aliases --push
+        run: uv sync --extra docs
+      - name: Build
+        run: uv run mkdocs build
+      - uses: actions/upload-pages-artifact@v3
+        id: deployment
+        with:
+          path: site/
+  deploy:
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/deploy-pages@v4
+        id: deployment
