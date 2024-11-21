@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.0.3] - 2024-11-21
+
 ### Added
 
 - `version` ([#476](https://github.com/stac-utils/stac-rs/pull/476))
@@ -21,7 +23,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 Initial release of **stac-duckdb**.
 
-[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-duckdb-v0.0.2...main
+[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-duckdb-v0.0.3...main
+[0.0.3]: https://github.com/stac-utils/stac-rs/compare/stac-duckdb-v0.0.2...stac-duckdb-v0.0.3
 [0.0.2]: https://github.com/stac-utils/stac-rs/compare/stac-duckdb-v0.0.1...stac-duckdb-v0.0.2
 [0.0.1]: https://github.com/stac-utils/stac-rs/releases/tag/stac-duckdb-v0.0.1
 
