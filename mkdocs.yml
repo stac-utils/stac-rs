@@ -1,5 +1,5 @@
 site_name: stac-rs
-site_description: Command Line Interface (CLI), Rust crates, and other libraries for the SpatioTemporal Asset Catalog (STAC) specification.
+site_description: Command Line Interface (CLI) and Rust crates the SpatioTemporal Asset Catalog (STAC) specification.
 site_url: https://stac-utils.github.io/stac-rs/
 repo_url: https://github.com/stac-utils/stac-rs
 theme:
@@ -17,53 +17,28 @@ theme:
 
 nav:
   - Home: index.md
-  - Python:
-      - python/index.md
-      - Example notebook: python/example.ipynb
-      - API:
-          - python/api/index.md
-          - migrate: python/api/migrate.md
-          - read: python/api/read.md
-          - search: python/api/search.md
-          - validate: python/api/validate.md
-          - version: python/api/version.md
-          - write: python/api/write.md
   - Command-line interface:
       - cli/index.md
 
 plugins:
-  - mike
-  - mkdocs-jupyter
-  - mkdocstrings:
-      enable_inventory: true
-      handlers:
-        python:
-          load_external_modules: false
-          options:
-            show_root_heading: true
-            show_signature: true
-            show_signature_annotations: true
-            separate_signature: true
   - search
   - social:
       cards_layout_options:
         color: rgb(26, 78, 99)
         background_color: rgb(228, 246, 251)
+  - redirects:
+      redirect_maps:
+        python/index.md: https://www.gadom.ski/stacrs/latest/
+        python/example.md: https://www.gadom.ski/stacrs/latest/example/
+        python/api/index.md: https://www.gadom.ski/stacrs/latest/api/
+        python/api/migrate.md: https://www.gadom.ski/stacrs/latest/api/migrate/
+        python/api/read.md: https://www.gadom.ski/stacrs/latest/api/read/
+        python/api/search.md: https://www.gadom.ski/stacrs/latest/api/search/
+        python/api/version.md: https://www.gadom.ski/stacrs/latest/api/version/
+        python/api/write.md: https://www.gadom.ski/stacrs/latest/api/write/
 
 markdown_extensions:
   - admonition
-  - pymdownx.highlight:
-      anchor_linenums: true
-      line_spans: __span
-      pygments_lang_class: true
-  - pymdownx.inlinehilite
-  - pymdownx.snippets
-  - pymdownx.superfences
-  - pymdownx.details
-
-extra:
-  version:
-    provider: mike
 
 extra_css:
   - stylesheets/extra.css

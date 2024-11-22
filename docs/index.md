@@ -2,11 +2,7 @@
 
 ![Ferris holding STAC](./img/ferris-holding-stac-small.png)
 
-Command Line Interface (CLI), Rust crates, and other libraries for the [SpatioTemporal Asset Catalog (STAC)](https://stacspec.org/) specification.
-
-## Python documentation
-
-Our Python package is named **stacrs** and its documentation is available [here](./python/index.md).
+Command Line Interface (CLI) and Rust crates for the [SpatioTemporal Asset Catalog (STAC)](https://stacspec.org/) specification.
 
 ## Rust documentation on docs.rs
 

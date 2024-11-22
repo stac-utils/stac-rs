@@ -6,36 +6,7 @@
 
 ![Ferris the crab holding the STAC logo](./img/ferris-holding-stac-small.png)
 
-Command Line Interface (CLI), Rust libraries, and more for the [SpatioTemporal Asset Catalog (STAC)](https://stacspec.org/) specification.
-
-## Python
-
-🦀 🤝 🐍
-
-**stacrs** is a small, no-dependency Python library that uses **stac-rs** under the hood.
-It is meant to supplement (not replace) existing Python STAC tooling such as [pystac](https://pystac.readthedocs.io) and [pystac-client](https://pystac-client.readthedocs.io/en/stable/).
-To install:
-
-```shell
-python -m pip install stacrs
-```
-
-Then:
-
-```python
-import stacrs
-
-stacrs.search_to("items-compressed.parquet",
-    "https://landsatlook.usgs.gov/stac-server",
-    collections="landsat-c2l2-sr",
-    intersects={"type": "Point", "coordinates": [-105.119, 40.173]},
-    sortby="-properties.datetime",
-    max_items=1000,
-    format="parquet[snappy]",
-)
-```
-
-See [the Python documentation](https://stac-utils.github.io/stac-rs/latest/python/) for more information.
+Command Line Interface (CLI) and Rust libraries for the [SpatioTemporal Asset Catalog (STAC)](https://stacspec.org/) specification.
 
 ## Command line interface
 

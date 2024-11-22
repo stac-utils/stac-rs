@@ -10,7 +10,6 @@ members = [
     "crates/pgstac",
     "crates/server",
     "crates/types",
-    "python",
 ]
 default-members = [
     "crates/api",

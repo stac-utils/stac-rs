@@ -126,30 +126,9 @@ jobs:
       - name: Test
         run: cargo test -p pgstac
       - name: Install Python dependencies
-        run: uv sync --extra stac-api-validator
+        run: uv sync --group stac-api-validator
       - name: Validate
         run: uv run scripts/validate-stac-server --pgstac
-  test-python:
-    name: Test stacrs (python)
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: python
-    steps:
-      - uses: actions/checkout@v4
-      - uses: Swatinem/rust-cache@v2
-      - uses: actions/setup-python@v5
-        with:
-          python-version: 3.x
-      - uses: astral-sh/setup-uv@v3
-        with:
-          enable-cache: true
-      - name: Install
-        run: uv sync
-      - name: Check
-        run: uv run ruff check && uv run ruff format --check && uv run mypy .
-      - name: Test
-        run: uv run pytest
   test-server:
     name: Test stac-server
     runs-on: ubuntu-latest
@@ -165,7 +144,7 @@ jobs:
       - name: Test
         run: cargo test -p stac-server --all-features
       - name: Install Python dependencies
-        run: uv sync --extra stac-api-validator
+        run: uv sync --group stac-api-validator
       - name: Validate
         run: uv run scripts/validate-stac-server
   lint:
@@ -218,6 +197,6 @@ jobs:
         with:
           enable-cache: true
       - name: Install Python dependencies
-        run: uv sync --extra stac-geoparquet
+        run: uv sync --group stac-geoparquet
       - name: Validate
         run: uv run scripts/validate-stac-geoparquet
