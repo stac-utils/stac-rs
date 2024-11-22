@@ -423,6 +423,18 @@ wheels = [
 ]
 
 [[package]]
+name = "mkdocs-redirects"
+version = "1.2.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "mkdocs" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/f1/a8/6d44a6cf07e969c7420cb36ab287b0669da636a2044de38a7d2208d5a758/mkdocs_redirects-1.2.2.tar.gz", hash = "sha256:3094981b42ffab29313c2c1b8ac3969861109f58b2dd58c45fc81cd44bfa0095", size = 7162 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c4/ec/38443b1f2a3821bbcb24e46cd8ba979154417794d54baf949fefde1c2146/mkdocs_redirects-1.2.2-py3-none-any.whl", hash = "sha256:7dbfa5647b79a3589da4401403d69494bd1f4ad03b9c15136720367e1f340ed5", size = 6142 },
+]
+
+[[package]]
 name = "more-itertools"
 version = "10.5.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1020,9 +1032,10 @@ name = "stac-rs"
 version = "0.0.0"
 source = { virtual = "." }
 
-[package.optional-dependencies]
+[package.dev-dependencies]
 docs = [
     { name = "mkdocs-material", extra = ["imaging"] },
+    { name = "mkdocs-redirects" },
 ]
 stac-api-validator = [
     { name = "setuptools" },
@@ -1035,13 +1048,20 @@ stac-geoparquet = [
 ]
 
 [package.metadata]
-requires-dist = [
-    { name = "deepdiff", marker = "extra == 'stac-geoparquet'", specifier = ">=8.0.1" },
-    { name = "mkdocs-material", extras = ["imaging"], marker = "extra == 'docs'", specifier = ">=9.5.40" },
-    { name = "pyarrow", marker = "extra == 'stac-geoparquet'", specifier = ">=17.0.0" },
-    { name = "setuptools", marker = "extra == 'stac-api-validator'", specifier = ">=75.1.0" },
-    { name = "stac-api-validator", marker = "extra == 'stac-api-validator'", specifier = ">=0.6.3" },
-    { name = "stac-geoparquet", marker = "extra == 'stac-geoparquet'", specifier = ">=0.6.0" },
+
+[package.metadata.requires-dev]
+docs = [
+    { name = "mkdocs-material", extras = ["imaging"], specifier = ">=9.5.40" },
+    { name = "mkdocs-redirects", specifier = ">=1.2.2" },
+]
+stac-api-validator = [
+    { name = "setuptools", specifier = ">=75.1.0" },
+    { name = "stac-api-validator", specifier = ">=0.6.3" },
+]
+stac-geoparquet = [
+    { name = "deepdiff", specifier = ">=8.0.1" },
+    { name = "pyarrow", specifier = ">=17.0.0" },
+    { name = "stac-geoparquet", specifier = ">=0.6.0" },
 ]
 
 [[package]]

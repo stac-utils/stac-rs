@@ -5,8 +5,8 @@ description = "This package should never be released, it's just for uv."
 requires-python = ">=3.12"
 dependencies = []
 
-[project.optional-dependencies]
-docs = ["mkdocs-material[imaging]>=9.5.40"]
+[dependency-groups]
+docs = ["mkdocs-material[imaging]>=9.5.40", "mkdocs-redirects>=1.2.2"]
 stac-geoparquet = [
     "deepdiff>=8.0.1",
     "pyarrow>=17.0.0",

@@ -126,7 +126,7 @@ jobs:
       - name: Test
         run: cargo test -p pgstac
       - name: Install Python dependencies
-        run: uv sync --extra stac-api-validator
+        run: uv sync --group stac-api-validator
       - name: Validate
         run: uv run scripts/validate-stac-server --pgstac
   test-server:
@@ -144,7 +144,7 @@ jobs:
       - name: Test
         run: cargo test -p stac-server --all-features
       - name: Install Python dependencies
-        run: uv sync --extra stac-api-validator
+        run: uv sync --group stac-api-validator
       - name: Validate
         run: uv run scripts/validate-stac-server
   lint:
@@ -197,6 +197,6 @@ jobs:
         with:
           enable-cache: true
       - name: Install Python dependencies
-        run: uv sync --extra stac-geoparquet
+        run: uv sync --group stac-geoparquet
       - name: Validate
         run: uv run scripts/validate-stac-geoparquet

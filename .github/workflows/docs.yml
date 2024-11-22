@@ -13,12 +13,9 @@ jobs:
       GIT_COMMITTER_EMAIL: ci-bot@example.com
     steps:
       - uses: actions/checkout@v4
-      - uses: Swatinem/rust-cache@v2
       - uses: astral-sh/setup-uv@v3
-        with:
-          enable-cache: true
       - name: Sync
-        run: uv sync --extra docs
+        run: uv sync --group docs
       - name: Build
         run: uv run mkdocs build
       - uses: actions/upload-pages-artifact@v3
