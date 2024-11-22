@@ -30,7 +30,7 @@ categories = ["science", "data-structures"]
 rust-version = "1.80"
 
 [workspace.dependencies]
-arrow = "52.2"
+arrow = "53.3"
 arrow-array = "52.2"
 arrow-cast = "52.2"
 arrow-json = "52.2"
