@@ -31,7 +31,7 @@ rust-version = "1.80"
 
 [workspace.dependencies]
 arrow = "52.2"
-arrow-array = "52.2"
+arrow-array = "53.3"
 arrow-cast = "52.2"
 arrow-json = "52.2"
 arrow-schema = "52.2"
