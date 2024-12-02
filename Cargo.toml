@@ -80,7 +80,7 @@ stac-server = { version = "0.3.2", path = "crates/server" }
 stac-types = { version = "0.1.0", path = "crates/types" }
 syn = "2.0"
 tempfile = "3.13"
-thiserror = "1.0"
+thiserror = "2.0"
 tokio = "1.37"
 tokio-postgres = "0.7.12"
 tokio-postgres-rustls = "0.13.0"
