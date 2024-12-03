@@ -390,7 +390,7 @@ impl From<FormatWrapper> for Format {
     fn from(wrapper: FormatWrapper) -> Self {
         match wrapper {
             FormatWrapper::Json => Format::json(),
-            FormatWrapper::Ndkson => Format::ndjson(),
+            FormatWrapper::Ndjson => Format::ndjson(),
             FormatWrapper::Geoparquet => Format::geoparquet(),
         }
     }
