@@ -4,6 +4,7 @@ use crate::{mime::APPLICATION_GEOJSON, Error, Href, Result, SelfHref};
 use mime::APPLICATION_JSON;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
+use stac_derive::Fields;
 
 /// Child links.
 pub const CHILD_REL: &str = "child";
@@ -31,7 +32,7 @@ pub const COLLECTION_REL: &str = "collection";
 /// Generally we keep STAC API structures in the [stac-api
 /// crate](https://github.com/stac-utils/stac-rs/stac-api), but in this case it
 /// was simpler to include these attributes in the base [Link] rather to create a new one.
-#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, Fields)]
 pub struct Link {
     /// The actual link in the format of an URL.
     ///

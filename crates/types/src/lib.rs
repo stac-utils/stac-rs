@@ -19,3 +19,4 @@ pub use {
 
 /// The default STAC version of this library.
 pub const STAC_VERSION: Version = Version::v1_1_0;
+extern crate self as stac_types;
