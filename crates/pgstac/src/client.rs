@@ -1,3 +1,4 @@
+use crate::JsonValue;
 use crate::{Error, Page, Result};
 use serde::de::DeserializeOwned;
 use stac::{Collection, Item};
@@ -108,12 +109,12 @@ impl<'a, C: GenericClient> Client<'a, C> {
     }
 
     /// Fetches all collections.
-    pub async fn collections(&self) -> Result<Vec<Collection>> {
+    pub async fn collections(&self) -> Result<Vec<JsonValue>> {
         self.vec("all_collections", &[]).await
     }
 
     /// Fetches a collection by id.
-    pub async fn collection(&self, id: &str) -> Result<Option<Collection>> {
+    pub async fn collection(&self, id: &str) -> Result<Option<JsonValue>> {
         self.opt("get_collection", &[&id]).await
     }
 
@@ -141,7 +142,7 @@ impl<'a, C: GenericClient> Client<'a, C> {
     }
 
     /// Fetches an item.
-    pub async fn item(&self, id: &str, collection: &str) -> Result<Option<Item>> {
+    pub async fn item(&self, id: &str, collection: &str) -> Result<Option<JsonValue>> {
         self.opt("get_item", &[&id, &collection]).await
     }
 
@@ -314,13 +315,7 @@ pub(crate) mod tests {
         collection.title = Some("a title".to_string());
         client.upsert_collection(collection).await.unwrap();
         assert_eq!(
-            client
-                .collection("an-id")
-                .await
-                .unwrap()
-                .unwrap()
-                .title
-                .unwrap(),
+            client.collection("an-id").await.unwrap().unwrap()["title"],
             "a title"
         );
     }
@@ -334,19 +329,13 @@ pub(crate) mod tests {
             .await
             .unwrap()
             .unwrap()
-            .title
+            .get("title")
             .is_none());
         collection.title = Some("a title".to_string());
         client.update_collection(collection).await.unwrap();
         assert_eq!(client.collections().await.unwrap().len(), 1);
         assert_eq!(
-            client
-                .collection("an-id")
-                .await
-                .unwrap()
-                .unwrap()
-                .title
-                .unwrap(),
+            client.collection("an-id").await.unwrap().unwrap()["title"],
             "a title"
         );
     }
@@ -397,7 +386,7 @@ pub(crate) mod tests {
                 .await
                 .unwrap()
                 .unwrap(),
-            item
+            serde_json::to_value(item).unwrap(),
         );
     }
 
@@ -424,9 +413,7 @@ pub(crate) mod tests {
                 .item("an-id", "collection-id")
                 .await
                 .unwrap()
-                .unwrap()
-                .properties
-                .additional_fields["foo"],
+                .unwrap()["properties"]["foo"],
             "bar"
         );
     }

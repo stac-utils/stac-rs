@@ -77,3 +77,6 @@ pub enum Error {
 
 /// Crate-specific result type.
 pub type Result<T> = std::result::Result<T, Error>;
+
+/// A [serde_json::Value].
+pub type JsonValue = serde_json::Value;

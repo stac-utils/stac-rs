@@ -102,13 +102,21 @@ where
     async fn collection(&self, id: &str) -> Result<Option<Collection>> {
         let client = self.pool.get().await?;
         let client = Client::new(&*client);
-        client.collection(id).await.map_err(Error::from)
+        let value = client.collection(id).await?;
+        value
+            .map(|v| serde_json::from_value(v))
+            .transpose()
+            .map_err(Error::from)
     }
 
     async fn collections(&self) -> Result<Vec<Collection>> {
         let client = self.pool.get().await?;
         let client = Client::new(&*client);
-        client.collections().await.map_err(Error::from)
+        let values = client.collections().await?;
+        values
+            .into_iter()
+            .map(|v| serde_json::from_value(v).map_err(Error::from))
+            .collect()
     }
 
     async fn add_item(&mut self, item: Item) -> Result<()> {
@@ -133,9 +141,10 @@ where
     async fn item(&self, collection_id: &str, item_id: &str) -> Result<Option<Item>> {
         let client = self.pool.get().await?;
         let client = Client::new(&*client);
-        client
-            .item(item_id, collection_id)
-            .await
+        let value = client.item(item_id, collection_id).await?;
+        value
+            .map(serde_json::from_value)
+            .transpose()
             .map_err(Error::from)
     }
 
