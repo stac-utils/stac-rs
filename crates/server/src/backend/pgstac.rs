@@ -104,7 +104,7 @@ where
         let client = Client::new(&*client);
         let value = client.collection(id).await?;
         value
-            .map(|v| serde_json::from_value(v))
+            .map(serde_json::from_value)
             .transpose()
             .map_err(Error::from)
     }
