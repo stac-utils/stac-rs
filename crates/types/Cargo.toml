@@ -21,6 +21,7 @@ serde_json.workspace = true
 thiserror.workspace = true
 url = { workspace = true, features = ["serde"] }
 tracing.workspace = true
+stac-derive.workspace = true
 
 [dev-dependencies]
 assert-json-diff.workspace = true

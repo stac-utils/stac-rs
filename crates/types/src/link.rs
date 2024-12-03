@@ -1,9 +1,10 @@
 //! Links.
 
-use crate::{mime::APPLICATION_GEOJSON, Error, Fields, Href, Result, SelfHref};
+use crate::{mime::APPLICATION_GEOJSON, Error, Href, Result, SelfHref};
 use mime::APPLICATION_JSON;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
+use stac_derive::Fields;
 
 /// Child links.
 pub const CHILD_REL: &str = "child";
@@ -699,25 +700,6 @@ mod tests {
         assert_eq!(link.rel, "a-rel");
         assert!(link.r#type.is_none());
         assert!(link.title.is_none());
-    }
-
-    mod fields {
-        use serde_json::Value;
-        use stac::{Fields, Link};
-
-        #[test]
-        fn empty() {
-            let link = Link::new("an-href", "a-rel");
-            assert!(link.fields().is_empty());
-        }
-
-        #[test]
-        fn set_get() {
-            let mut link = Link::new("an-href", "a-rel");
-            _ = link.set_field("some", "value");
-            assert!(link.field("some") == Some(&Value::from("value")));
-            assert!(*link.fields() == link.additional_fields);
-        }
     }
 
     #[test]
