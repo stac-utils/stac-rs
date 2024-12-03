@@ -6,7 +6,7 @@ use crate::{
     subcommand::{search, serve, translate, validate},
     Error, Result, Value,
 };
-use clap::Parser;
+use clap::{Parser, ValueEnum};
 use stac::Format;
 use std::{convert::Infallible, io::Write, str::FromStr};
 use tokio::io::AsyncReadExt;
@@ -18,7 +18,7 @@ use tracing::metadata::Level;
 pub struct Args {
     /// The input format, if not provided will be inferred from the input file's extension, falling back to json
     #[arg(short, long, global = true)]
-    pub input_format: Option<Format>,
+    pub input_format: Option<FormatWrapper>,
 
     /// key=value pairs to use for the input object store
     #[arg(long = "input-option")]
@@ -26,7 +26,7 @@ pub struct Args {
 
     /// The output format, if not provided will be inferred from the output file's extension, falling back to json
     #[arg(short, long, global = true)]
-    pub output_format: Option<Format>,
+    pub output_format: Option<FormatWrapper>,
 
     /// key=value pairs to use for the output object store
     #[arg(long = "output-option")]
@@ -119,6 +119,7 @@ impl Args {
         }
         let format = self
             .input_format
+            .map(Into::into)
             .or(href.as_deref().and_then(Format::infer_from_href))
             .unwrap_or_default();
         if let Some(href) = href {
@@ -143,6 +144,7 @@ impl Args {
         }
         let format = self
             .output_format
+            .map(Into::into)
             .or(href.and_then(Format::infer_from_href))
             .unwrap_or_default();
         let value = value.into();
@@ -365,4 +367,31 @@ fn option_iter(options: &[KeyValue]) -> impl Iterator<Item = (&str, &str)> {
 pub struct Load {
     pub collections: usize,
     pub items: usize,
+}
+
+#[derive(Debug, Copy, Clone, ValueEnum)]
+pub enum FormatWrapper {
+    Json,
+    Ndjson,
+    Geoparquet,
+}
+
+impl From<Format> for FormatWrapper {
+    fn from(format: Format) -> Self {
+        match format {
+            Format::Json(_) => Self::Json,
+            Format::NdJson => Self::Ndjson,
+            Format::Geoparquet(_) => Self::Geoparquet,
+        }
+    }
+}
+
+impl From<FormatWrapper> for Format {
+    fn from(wrapper: FormatWrapper) -> Self {
+        match wrapper {
+            FormatWrapper::Json => Format::json(),
+            FormatWrapper::Ndkson => Format::ndjson(),
+            FormatWrapper::Geoparquet => Format::geoparquet(),
+        }
+    }
 }
