@@ -6,8 +6,11 @@ use crate::{
     subcommand::{search, serve, translate, validate},
     Error, Result, Value,
 };
-use clap::{Parser, ValueEnum};
-use stac::Format;
+use clap::{
+    builder::{PossibleValue, PossibleValuesParser, TypedValueParser},
+    Parser, ValueEnum,
+};
+use stac::{geoparquet::Compression, Format};
 use std::{convert::Infallible, io::Write, str::FromStr};
 use tokio::io::AsyncReadExt;
 use tracing::metadata::Level;
@@ -17,8 +20,8 @@ use tracing::metadata::Level;
 #[command(author, version, about, long_about = None)]
 pub struct Args {
     /// The input format, if not provided will be inferred from the input file's extension, falling back to json
-    #[arg(short, long, global = true)]
-    pub input_format: Option<FormatWrapper>,
+    #[arg(short, long, global = true, value_parser=PossibleValuesParser::new(["json", "json-pretty", "ndjson", "geoparquet", "geoparquet[snappy]"]).try_map(|s| Format::from_str(&s[..])))]
+    pub input_format: Option<Format>,
 
     /// key=value pairs to use for the input object store
     #[arg(long = "input-option")]
@@ -117,7 +120,7 @@ impl Args {
         if href.as_deref() == Some("-") {
             href = None;
         }
-        let format = self
+        let format: Format = self
             .input_format
             .map(Into::into)
             .or(href.as_deref().and_then(Format::infer_from_href))
@@ -369,19 +372,58 @@ pub struct Load {
     pub items: usize,
 }
 
-#[derive(Debug, Copy, Clone, ValueEnum)]
+#[derive(Debug, Copy, Clone)]
 pub enum FormatWrapper {
-    Json,
+    Json(bool),
     Ndjson,
-    Geoparquet,
+    Geoparquet(Option<Compression>),
+}
+
+impl ValueEnum for FormatWrapper {
+    fn value_variants<'a>() -> &'a [Self] {
+        &[
+            FormatWrapper::Json(true),
+            FormatWrapper::Json(false),
+            FormatWrapper::Ndjson,
+            FormatWrapper::Geoparquet(None),
+            FormatWrapper::Geoparquet(Some(Compression::LZ4)),
+            FormatWrapper::Geoparquet(Some(Compression::SNAPPY)),
+            // Do not know how to deal with options below:
+            // FormatWrapper::Geoparquet(Some(Compression::BROTLI(???))),
+            // FormatWrapper::Geoparquet(Some(Compression::from_str("BROTLI").unwrap())),
+        ]
+    }
+
+    fn to_possible_value(&self) -> Option<PossibleValue> {
+        match self {
+            FormatWrapper::Json(false) => {
+                Some(PossibleValue::new("json").alias("geojson").help("GeoJson"))
+            }
+            FormatWrapper::Json(true) => Some(
+                PossibleValue::new("json-pretty")
+                    .alias("geojson-pretty")
+                    .help("Pretty-printed GeoJson"),
+            ),
+            FormatWrapper::Ndjson => Some(PossibleValue::new("ndjson")),
+            FormatWrapper::Geoparquet(None) => Some(PossibleValue::new("geoparquet")),
+            FormatWrapper::Geoparquet(Some(Compression::SNAPPY)) => {
+                Some(PossibleValue::new("geoparquet[snappy]"))
+            }
+            FormatWrapper::Geoparquet(Some(Compression::LZ4)) => {
+                Some(PossibleValue::new("geoparquet[lz4]"))
+            }
+
+            _ => None,
+        }
+    }
 }
 
 impl From<Format> for FormatWrapper {
     fn from(format: Format) -> Self {
         match format {
-            Format::Json(_) => Self::Json,
+            Format::Json(pretty) => Self::Json(pretty),
             Format::NdJson => Self::Ndjson,
-            Format::Geoparquet(_) => Self::Geoparquet,
+            Format::Geoparquet(comp) => Self::Geoparquet(comp),
         }
     }
 }
@@ -389,9 +431,9 @@ impl From<Format> for FormatWrapper {
 impl From<FormatWrapper> for Format {
     fn from(wrapper: FormatWrapper) -> Self {
         match wrapper {
-            FormatWrapper::Json => Format::json(),
+            FormatWrapper::Json(pretty) => Self::Json(pretty),
             FormatWrapper::Ndjson => Format::ndjson(),
-            FormatWrapper::Geoparquet => Format::geoparquet(),
+            FormatWrapper::Geoparquet(comp) => Self::Geoparquet(comp),
         }
     }
 }
