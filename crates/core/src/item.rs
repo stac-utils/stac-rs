@@ -1,11 +1,11 @@
 //! STAC Items.
 
-use crate::{Asset, Assets, Bbox, Error, Fields, Href, Link, Result, Version, STAC_VERSION};
+use crate::{Asset, Assets, Bbox, Error, Href, Link, Result, Version, STAC_VERSION};
 use chrono::{DateTime, FixedOffset, Utc};
 use geojson::{feature::Id, Feature, Geometry};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use stac_derive::{Links, Migrate, SelfHref};
+use stac_derive::{Fields, Links, Migrate, SelfHref};
 use std::{collections::HashMap, path::Path};
 use url::Url;
 
@@ -27,7 +27,7 @@ const TOP_LEVEL_ATTRIBUTES: [&str; 8] = [
 /// `Item` is the core object in a STAC catalog, containing the core metadata that
 /// enables any client to search or crawl online catalogs of spatial 'assets'
 /// (e.g., satellite imagery, derived data, DEMs).
-#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, SelfHref, Links, Migrate)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, SelfHref, Links, Migrate, Fields)]
 #[serde(tag = "type", rename = "Feature")]
 pub struct Item {
     /// The STAC version the `Item` implements.
@@ -570,15 +570,6 @@ impl Assets for Item {
     }
     fn assets_mut(&mut self) -> &mut HashMap<String, Asset> {
         &mut self.assets
-    }
-}
-
-impl Fields for Item {
-    fn fields(&self) -> &Map<String, Value> {
-        &self.properties.additional_fields
-    }
-    fn fields_mut(&mut self) -> &mut Map<String, Value> {
-        &mut self.properties.additional_fields
     }
 }
 
