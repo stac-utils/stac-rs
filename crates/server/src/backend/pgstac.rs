@@ -135,7 +135,7 @@ where
 
     async fn item(&self, collection_id: &str, item_id: &str) -> Result<Option<Item>> {
         let client = self.pool.get().await?;
-        let value = client.item(item_id, collection_id).await?;
+        let value = client.item(item_id, Some(collection_id)).await?;
         value
             .map(serde_json::from_value)
             .transpose()
