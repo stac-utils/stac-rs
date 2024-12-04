@@ -183,7 +183,7 @@ pub trait Pgstac: GenericClient {
     }
 
     /// Fetches an item.
-    async fn item(&self, id: &str, collection: &str) -> Result<Option<JsonValue>> {
+    async fn item(&self, id: &str, collection: Option<&str>) -> Result<Option<JsonValue>> {
         self.opt("get_item", &[&id, &collection]).await
     }
 
@@ -422,7 +422,7 @@ pub(crate) mod tests {
     #[pgstac_test]
     async fn item(client: &Transaction<'_>) {
         assert!(client
-            .item("an-id", "collection-id")
+            .item("an-id", Some("collection-id"))
             .await
             .unwrap()
             .is_none());
@@ -437,7 +437,7 @@ pub(crate) mod tests {
         client.add_item(item.clone()).await.unwrap();
         assert_eq!(
             client
-                .item("an-id", "collection-id")
+                .item("an-id", Some("collection-id"))
                 .await
                 .unwrap()
                 .unwrap(),
@@ -466,7 +466,7 @@ pub(crate) mod tests {
         client.update_item(item).await.unwrap();
         assert_eq!(
             client
-                .item("an-id", "collection-id")
+                .item("an-id", Some("collection-id"))
                 .await
                 .unwrap()
                 .unwrap()["properties"]["foo"],
@@ -496,12 +496,12 @@ pub(crate) mod tests {
         other_item.id = "other-id".to_string();
         client.add_items(&[item, other_item]).await.unwrap();
         assert!(client
-            .item("an-id", "collection-id")
+            .item("an-id", Some("collection-id"))
             .await
             .unwrap()
             .is_some());
         assert!(client
-            .item("other-id", "collection-id")
+            .item("other-id", Some("collection-id"))
             .await
             .unwrap()
             .is_some());
