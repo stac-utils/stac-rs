@@ -21,9 +21,8 @@ fn impl_pgstac_test(ast: ItemFn) -> TokenStream {
                 connection.await.unwrap()
             });
             let transaction = client.transaction().await.unwrap();
-            let client = Client::new(&transaction);
             #ast
-            #ident(&client).await;
+            #ident(&transaction).await;
             transaction.rollback().await.unwrap();
         }
     };

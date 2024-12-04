@@ -20,39 +20,11 @@ pub struct Page {
 
 impl Page {
     /// Returns this page's next token, if it has one.
-    ///
-    /// # Examples
-    ///
-    /// ```no_run
-    /// use pgstac::Client;
-    /// use tokio_postgres::NoTls;
-    /// let config = "postgresql://username:password@localhost:5432/postgis";
-    /// # tokio_test::block_on(async {
-    /// let (client, connection) = tokio_postgres::connect(config, NoTls).await.unwrap();
-    /// let client = Client::new(&client);
-    /// let page = client.search(Default::default()).await.unwrap();
-    /// let next_token = page.next_token().unwrap();
-    /// # });
-    /// ```
     pub fn next_token(&self) -> Option<String> {
         self.next.as_ref().map(|next| format!("next:{}", next))
     }
 
     /// Returns this page's prev token, if it has one.
-    ///
-    /// # Examples
-    ///
-    /// ```no_run
-    /// use pgstac::Client;
-    /// use tokio_postgres::NoTls;
-    /// let config = "postgresql://username:password@localhost:5432/postgis";
-    /// # tokio_test::block_on(async {
-    /// let (client, connection) = tokio_postgres::connect(config, NoTls).await.unwrap();
-    /// let client = Client::new(&client);
-    /// let page = client.search(Default::default()).await.unwrap();
-    /// let prev_token = page.prev_token().unwrap();
-    /// # });
-    /// ```
     pub fn prev_token(&self) -> Option<String> {
         self.prev.as_ref().map(|prev| format!("prev:{}", prev))
     }
