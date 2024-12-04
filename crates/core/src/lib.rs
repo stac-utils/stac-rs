@@ -144,8 +144,7 @@
     unused_import_braces,
     unused_lifetimes,
     unused_qualifications,
-    unused_results,
-    warnings
+    unused_results
 )]
 
 mod asset;
