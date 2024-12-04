@@ -1,8 +1,8 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use stac_api::{Context, Item};
 
 /// A page of search results.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Page {
     /// These are the out features, usually STAC items, but maybe not legal STAC
     /// items if fields are excluded.
