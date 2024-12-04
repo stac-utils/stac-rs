@@ -96,14 +96,12 @@ impl Default for DummyTlsVerifier {
 
 #[cfg(test)]
 mod tests {
-    use crate::tests::MUTEX;
 
     #[tokio::test]
     async fn connect() {
-        let _mutex = MUTEX.lock().unwrap();
-        let config = std::env::var("PGSTAC_RS_TEST_DB")
-            .unwrap_or("postgresql://username:password@localhost:5432/postgis".to_string());
         let tls = super::make_unverified_tls();
-        let (_, _) = tokio_postgres::connect(&config, tls).await.unwrap();
+        let (_, _) = tokio_postgres::connect("host=/var/run/postgresql", tls)
+            .await
+            .unwrap();
     }
 }

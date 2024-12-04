@@ -26,8 +26,8 @@ webpki-roots = { workspace = true, optional = true }
 
 [dev-dependencies]
 geojson.workspace = true
+rstest.workspace = true
 stac.workspace = true
-pgstac-test = { path = "pgstac-test" }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 tokio-test.workspace = true
 
