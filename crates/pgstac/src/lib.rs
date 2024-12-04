@@ -235,6 +235,11 @@ pub trait Pgstac: GenericClient {
         self.void("upsert_items", &[&items]).await
     }
 
+    /// Deletes an item.
+    async fn delete_item(&self, id: &str, collection: Option<&str>) -> Result<()> {
+        self.void("delete_item", &[&id, &collection]).await
+    }
+
     /// Searches for items.
     async fn search(&self, search: Search) -> Result<Page> {
         let search = search.into_cql2_json()?;
@@ -471,6 +476,24 @@ pub(crate) mod tests {
                 .unwrap()
                 .unwrap()["properties"]["foo"],
             "bar"
+        );
+    }
+
+    #[pgstac_test]
+    async fn delete_item(client: &Transaction<'_>) {
+        let collection = Collection::new("collection-id", "a description");
+        client.add_collection(collection).await.unwrap();
+        let mut item = Item::new("an-id");
+        item.collection = Some("collection-id".to_string());
+        item.geometry = Some(longmont());
+        client.add_item(item.clone()).await.unwrap();
+        client
+            .delete_item(&item.id, Some("collection-id"))
+            .await
+            .unwrap();
+        assert_eq!(
+            client.item("an-id", Some("collection-id")).await.unwrap(),
+            None,
         );
     }
 
