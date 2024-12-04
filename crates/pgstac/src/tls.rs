@@ -96,7 +96,7 @@ impl Default for DummyTlsVerifier {
 
 #[cfg(test)]
 mod tests {
-    use crate::client::tests::MUTEX;
+    use crate::tests::MUTEX;
 
     #[tokio::test]
     async fn connect() {

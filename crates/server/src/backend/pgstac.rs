@@ -1,8 +1,8 @@
 use crate::{Backend, Error, Result};
 use bb8::Pool;
 use bb8_postgres::PostgresConnectionManager;
-use pgstac::Client;
 use pgstac::MakeRustlsConnect;
+use pgstac::Pgstac;
 use serde_json::Map;
 use stac::{Collection, Item};
 use stac_api::{ItemCollection, Items, Search};
@@ -95,13 +95,11 @@ where
 
     async fn add_collection(&mut self, collection: Collection) -> Result<()> {
         let client = self.pool.get().await?;
-        let client = Client::new(&*client);
         client.add_collection(collection).await.map_err(Error::from)
     }
 
     async fn collection(&self, id: &str) -> Result<Option<Collection>> {
         let client = self.pool.get().await?;
-        let client = Client::new(&*client);
         let value = client.collection(id).await?;
         value
             .map(serde_json::from_value)
@@ -111,7 +109,6 @@ where
 
     async fn collections(&self) -> Result<Vec<Collection>> {
         let client = self.pool.get().await?;
-        let client = Client::new(&*client);
         let values = client.collections().await?;
         values
             .into_iter()
@@ -121,14 +118,12 @@ where
 
     async fn add_item(&mut self, item: Item) -> Result<()> {
         let client = self.pool.get().await?;
-        let client = Client::new(&*client);
         client.add_item(item).await.map_err(Error::from)
     }
 
     async fn add_items(&mut self, items: Vec<Item>) -> Result<()> {
         tracing::debug!("adding {} items using pgstac loading", items.len());
         let client = self.pool.get().await?;
-        let client = Client::new(&*client);
         client.add_items(&items).await.map_err(Error::from)
     }
 
@@ -140,7 +135,6 @@ where
 
     async fn item(&self, collection_id: &str, item_id: &str) -> Result<Option<Item>> {
         let client = self.pool.get().await?;
-        let client = Client::new(&*client);
         let value = client.item(item_id, collection_id).await?;
         value
             .map(serde_json::from_value)
@@ -150,7 +144,6 @@ where
 
     async fn search(&self, search: Search) -> Result<ItemCollection> {
         let client = self.pool.get().await?;
-        let client = Client::new(&*client);
         let page = client.search(search).await?;
         let next_token = page.next_token();
         let prev_token = page.prev_token();
