@@ -81,6 +81,7 @@ mod tls;
 
 pub use page::Page;
 use serde::{de::DeserializeOwned, Serialize};
+use stac_api::Search;
 use tokio_postgres::{types::ToSql, GenericClient, Row};
 #[cfg(feature = "tls")]
 pub use {tls::make_unverified_tls, tokio_postgres_rustls::MakeRustlsConnect};
@@ -91,6 +92,10 @@ pub enum Error {
     /// [serde_json::Error]
     #[error(transparent)]
     SerdeJson(#[from] serde_json::Error),
+
+    /// [stac_api::Error]
+    #[error(transparent)]
+    StacApi(#[from] stac_api::Error),
 
     /// [tokio_postgres::Error]
     #[error(transparent)]
@@ -231,12 +236,9 @@ pub trait Pgstac: GenericClient {
     }
 
     /// Searches for items.
-    async fn search<T>(&self, search: T) -> Result<Page>
-    where
-        T: Serialize,
-    {
+    async fn search(&self, search: Search) -> Result<Page> {
+        let search = search.into_cql2_json()?;
         let search = serde_json::to_value(search)?;
-        // TODO do we want to check for cql2-text?
         self.value("search", &[&search]).await
     }
 
