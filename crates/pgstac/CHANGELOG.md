@@ -6,9 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+
+- `Pgstac` trait ([#551](https://github.com/stac-utils/stac-rs/pull/551))
+
 ### Changed
 
 - Return JSON, not STAC ([#550](https://github.com/stac-utils/stac-rs/pull/550))
+
+### Removed
+
+- `Client` ([#551](https://github.com/stac-utils/stac-rs/pull/551))
 
 ## [0.2.2] - 2024-11-12
 
