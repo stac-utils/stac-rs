@@ -18,6 +18,7 @@ tls = ["dep:rustls", "dep:tokio-postgres-rustls", "dep:webpki-roots"]
 rustls = { workspace = true, features = ["ring", "std"], optional = true }
 serde.workspace = true
 serde_json.workspace = true
+stac.workspace = true
 stac-api.workspace = true
 thiserror.workspace = true
 tokio-postgres = { workspace = true, features = ["with-serde_json-1"] }
@@ -26,8 +27,7 @@ webpki-roots = { workspace = true, optional = true }
 
 [dev-dependencies]
 geojson.workspace = true
-stac.workspace = true
-pgstac-test = { path = "pgstac-test" }
+rstest.workspace = true
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 tokio-test.workspace = true
 

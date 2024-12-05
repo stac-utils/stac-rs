@@ -1,4 +1,6 @@
 use serde::{Deserialize, Serialize};
+use serde_json::{Map, Value};
+use stac::Link;
 use stac_api::{Context, Item};
 
 /// A page of search results.
@@ -15,7 +17,26 @@ pub struct Page {
     pub prev: Option<String>,
 
     /// The search context.
-    pub context: Context,
+    ///
+    /// This was removed in pgstac v0.9
+    #[serde(default)]
+    pub context: Option<Context>,
+
+    /// The number of values returned.
+    ///
+    /// Added in pgstac v0.9
+    #[serde(rename = "numberReturned")]
+    pub number_returned: Option<usize>,
+
+    /// Links
+    ///
+    /// Added in pgstac v0.9
+    #[serde(default)]
+    pub links: Vec<Link>,
+
+    /// Additional fields.
+    #[serde(flatten)]
+    pub additional_fields: Map<String, Value>,
 }
 
 impl Page {

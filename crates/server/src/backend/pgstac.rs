@@ -158,7 +158,7 @@ where
             let _ = prev.insert("token".into(), prev_token.into());
             item_collection.prev = Some(prev);
         }
-        item_collection.context = Some(page.context);
+        item_collection.context = page.context;
         Ok(item_collection)
     }
 }
