@@ -31,6 +31,7 @@ pub struct Page {
     /// Links
     ///
     /// Added in pgstac v0.9
+    #[serde(default)]
     pub links: Vec<Link>,
 
     /// Additional fields.
