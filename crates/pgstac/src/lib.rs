@@ -726,7 +726,13 @@ pub(crate) mod tests {
         search.items.limit = Some(1);
         let page = client.search(search).await.unwrap();
         assert_eq!(page.features.len(), 1);
-        assert_eq!(page.context.limit.unwrap(), 1);
+        if let Some(context) = page.context {
+            // v0.8
+            assert_eq!(context.limit.unwrap(), 1);
+        } else {
+            // v0.9
+            assert_eq!(page.number_returned.unwrap(), 1);
+        }
     }
 
     #[rstest]
@@ -832,12 +838,12 @@ pub(crate) mod tests {
         assert_eq!(page.features[0]["id"], "an-id");
         let _ = search
             .additional_fields
-            .insert("token".to_string(), page.next_token().into());
+            .insert("token".to_string(), "next:collection-id:an-id".into());
         let page = client.search(search.clone()).await.unwrap();
         assert_eq!(page.features[0]["id"], "another-id");
         let _ = search
             .additional_fields
-            .insert("token".to_string(), page.prev_token().into());
+            .insert("token".to_string(), "prev:collection-id:another-id".into());
         let page = client.search(search).await.unwrap();
         assert_eq!(page.features[0]["id"], "an-id");
     }
