@@ -72,6 +72,8 @@ mod fields;
 mod filter;
 mod item_collection;
 mod items;
+#[cfg(feature = "client")]
+pub mod python;
 mod root;
 mod search;
 mod sort;
