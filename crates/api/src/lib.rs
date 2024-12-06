@@ -72,7 +72,7 @@ mod fields;
 mod filter;
 mod item_collection;
 mod items;
-#[cfg(feature = "client")]
+#[cfg(feature = "python")]
 pub mod python;
 mod root;
 mod search;
