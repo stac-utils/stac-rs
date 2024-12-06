@@ -1,9 +1,8 @@
 use crate::{
     geoparquet::{Compression, FromGeoparquet, IntoGeoparquet},
-    Error, FromJson, FromNdjson, Href, Result, SelfHref, ToJson, ToNdjson,
+    Error, FromJson, FromNdjson, Href, RealizedHref, Result, SelfHref, ToJson, ToNdjson,
 };
 use bytes::Bytes;
-use stac_types::RealizedHref;
 use std::{fmt::Display, path::Path, str::FromStr};
 
 /// The format of STAC data.

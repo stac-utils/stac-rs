@@ -1,7 +1,6 @@
-use crate::{Error, FromJson, Item, ItemCollection, Result, Value};
+use crate::{Error, FromJson, Item, ItemCollection, Result, SelfHref, Value};
 use bytes::Bytes;
 use serde::Serialize;
-use stac_types::SelfHref;
 use std::{
     fs::File,
     io::{BufRead, BufReader, BufWriter, Write},

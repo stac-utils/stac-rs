@@ -18,7 +18,6 @@ client = [
     "dep:http",
     "dep:reqwest",
     "dep:tokio",
-    "stac-types/reqwest",
 ]
 geo = ["dep:geo", "stac/geo"]
 python = ["dep:pyo3", "dep:pythonize"]
@@ -37,7 +36,6 @@ serde_json.workspace = true
 serde_urlencoded.workspace = true
 stac.workspace = true
 stac-derive.workspace = true
-stac-types.workspace = true
 pyo3 = { workspace = true, optional = true }
 pythonize = { workspace = true, optional = true }
 thiserror.workspace = true

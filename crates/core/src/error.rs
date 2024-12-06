@@ -1,3 +1,4 @@
+use crate::Version;
 use thiserror::Error;
 
 /// Error enum for crate-specific errors.
@@ -46,6 +47,16 @@ pub enum Error {
     #[error(transparent)]
     Io(#[from] std::io::Error),
 
+    /// Returned when a STAC object has the wrong type field.
+    #[error("incorrect type: expected={expected}, actual={actual}")]
+    IncorrectType {
+        /// The actual type field on the object.
+        actual: String,
+
+        /// The expected value.
+        expected: String,
+    },
+
     /// Returned when a property name conflicts with a top-level STAC field, or
     /// it's an invalid top-level field name.
     #[error("invalid attribute name: {0}")]
@@ -66,6 +77,14 @@ pub enum Error {
     /// There are no items, when items are required.
     #[error("no items")]
     NoItems,
+
+    /// There is not an href, when an href is required.
+    #[error("no href")]
+    NoHref,
+
+    /// This is not a JSON object.
+    #[error("json value is not an object")]
+    NotAnObject(serde_json::Value),
 
     /// [object_store::Error]
     #[error(transparent)]
@@ -95,10 +114,6 @@ pub enum Error {
     #[error(transparent)]
     SerdeJson(#[from] serde_json::Error),
 
-    /// [stac_types::Error]
-    #[error(transparent)]
-    StacTypes(#[from] stac_types::Error),
-
     /// [tokio::task::JoinError]
     #[error(transparent)]
     #[cfg(any(feature = "validate", feature = "object-store"))]
@@ -119,6 +134,10 @@ pub enum Error {
     /// Unsupported geoparquet type
     #[error("unsupported geoparquet type")]
     UnsupportedGeoparquetType,
+
+    /// Unsupported migration.
+    #[error("unsupported migration: {0} to {1}")]
+    UnsupportedMigration(Version, Version),
 
     /// [url::ParseError]
     #[error(transparent)]

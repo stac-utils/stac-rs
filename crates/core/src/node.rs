@@ -137,7 +137,7 @@ impl TryFrom<Value> for Container {
         match value {
             Value::Catalog(c) => Ok(c.into()),
             Value::Collection(c) => Ok(c.into()),
-            _ => Err(stac_types::Error::IncorrectType {
+            _ => Err(Error::IncorrectType {
                 actual: value.type_name().to_string(),
                 expected: "Catalog or Collection".to_string(),
             }

@@ -7,11 +7,11 @@ pub fn self_href_derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     let name = input.ident;
     let expanded = quote! {
-        impl stac_types::SelfHref for #name {
-            fn self_href(&self) -> Option<&stac_types::Href> {
+        impl ::stac::SelfHref for #name {
+            fn self_href(&self) -> Option<&::stac::Href> {
                 self.self_href.as_ref()
             }
-            fn self_href_mut(&mut self) -> &mut Option<stac_types::Href> {
+            fn self_href_mut(&mut self) -> &mut Option<::stac::Href> {
                 &mut self.self_href
             }
         }
@@ -24,11 +24,11 @@ pub fn links_derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     let name = input.ident;
     let expanded = quote! {
-        impl stac_types::Links for #name {
-            fn links(&self) -> &[stac_types::Link] {
+        impl ::stac::Links for #name {
+            fn links(&self) -> &[::stac::Link] {
                 &self.links
             }
-            fn links_mut(&mut self) -> &mut Vec<stac_types::Link> {
+            fn links_mut(&mut self) -> &mut Vec<::stac::Link> {
                 &mut self.links
             }
         }
@@ -41,7 +41,7 @@ pub fn migrate_derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     let name = input.ident;
     let expanded = quote! {
-        impl stac_types::Migrate for #name {}
+        impl ::stac::Migrate for #name {}
     };
     TokenStream::from(expanded)
 }
@@ -51,7 +51,7 @@ pub fn fields_derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     let name = input.ident;
     let expanded = quote! {
-        impl stac_types::Fields for #name {
+        impl ::stac::Fields for #name {
             fn fields(&self) -> &serde_json::Map<String, serde_json::Value> {
                 &self.additional_fields
             }
