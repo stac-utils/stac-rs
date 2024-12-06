@@ -21,6 +21,7 @@ pub enum Href {
     String(String),
 }
 
+/// An href that has been realized to a path or a url.
 #[derive(Debug)]
 pub enum RealizedHref {
     /// A path buf
@@ -225,8 +226,8 @@ impl TryFrom<Href> for Url {
 }
 
 #[cfg(feature = "reqwest")]
-impl From<reqwest::Url> for Href {
-    fn from(value: reqwest::Url) -> Self {
+impl From<Url> for Href {
+    fn from(value: Url) -> Self {
         Href::Url(value)
     }
 }

@@ -147,6 +147,10 @@
     unused_results
 )]
 
+// Enables derive macros here and elsewhere.
+// https://users.rust-lang.org/t/use-of-imported-types-in-derive-macro/94676/3
+extern crate self as stac;
+
 mod asset;
 mod band;
 mod bbox;
@@ -155,17 +159,22 @@ mod collection;
 mod data_type;
 pub mod datetime;
 mod error;
+mod fields;
 mod format;
 #[cfg(feature = "geo")]
 pub mod geo;
 #[cfg(feature = "geoarrow")]
 pub mod geoarrow;
 pub mod geoparquet;
+mod href;
 pub mod io;
 pub mod item;
 mod item_asset;
 mod item_collection;
 mod json;
+pub mod link;
+mod migrate;
+pub mod mime;
 mod ndjson;
 mod node;
 #[cfg(feature = "object-store")]
@@ -174,12 +183,12 @@ mod statistics;
 #[cfg(feature = "validate")]
 mod validate;
 mod value;
+mod version;
 
 use std::fmt::Display;
 
 #[cfg(feature = "object-store")]
 pub use resolver::Resolver;
-pub use stac_types::{mime, Fields, Href, Link, Links, Migrate, SelfHref, Version, STAC_VERSION};
 #[cfg(feature = "validate-blocking")]
 pub use validate::ValidateBlocking;
 #[cfg(feature = "validate")]
@@ -192,18 +201,26 @@ pub use {
     collection::{Collection, Extent, Provider, SpatialExtent, TemporalExtent},
     data_type::DataType,
     error::Error,
+    fields::Fields,
     format::Format,
     geoparquet::{FromGeoparquet, IntoGeoparquet},
+    href::{Href, RealizedHref, SelfHref},
     io::{read, write},
     item::{FlatItem, Item, Properties},
     item_asset::ItemAsset,
     item_collection::ItemCollection,
     json::{FromJson, ToJson},
+    link::{Link, Links},
+    migrate::Migrate,
     ndjson::{FromNdjson, ToNdjson},
     node::{Container, Node},
     statistics::Statistics,
     value::Value,
+    version::Version,
 };
+
+/// The default STAC version of this library.
+pub const STAC_VERSION: Version = Version::v1_1_0;
 
 /// Custom [Result](std::result::Result) type for this crate.
 pub type Result<T> = std::result::Result<T, Error>;

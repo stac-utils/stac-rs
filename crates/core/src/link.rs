@@ -711,7 +711,7 @@ mod tests {
     }
 
     mod links {
-        use stac::{Catalog, Item, Link, Links};
+        use crate::{Catalog, Item, Link, Links};
 
         #[test]
         fn link() {

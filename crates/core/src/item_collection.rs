@@ -1,4 +1,4 @@
-use crate::{Error, Href, Item, Link, Migrate, Version};
+use crate::{Error, Href, Item, Link, Migrate, Result, Version};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use stac_derive::{Links, SelfHref};
@@ -61,7 +61,7 @@ impl Deref for ItemCollection {
 }
 
 impl Migrate for ItemCollection {
-    fn migrate(mut self, version: &Version) -> stac_types::Result<Self> {
+    fn migrate(mut self, version: &Version) -> Result<Self> {
         let mut items = Vec::with_capacity(self.items.len());
         for item in self.items {
             items.push(item.migrate(version)?);
@@ -74,7 +74,7 @@ impl Migrate for ItemCollection {
 impl TryFrom<Value> for ItemCollection {
     type Error = Error;
 
-    fn try_from(value: Value) -> Result<Self, Self::Error> {
+    fn try_from(value: Value) -> Result<Self> {
         match serde_json::from_value::<ItemCollection>(value.clone()) {
             Ok(item_collection) => Ok(item_collection),
             Err(err) => {

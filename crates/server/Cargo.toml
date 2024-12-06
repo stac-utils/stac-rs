@@ -28,7 +28,6 @@ serde_json.workspace = true
 serde_urlencoded.workspace = true
 stac.workspace = true
 stac-api = { workspace = true, features = ["geo"] }
-stac-types.workspace = true
 thiserror.workspace = true
 tokio-postgres = { workspace = true, optional = true }
 tower-http = { workspace = true, features = ["cors", "trace"], optional = true }

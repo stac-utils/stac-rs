@@ -1,9 +1,9 @@
 use crate::{
-    Catalog, Collection, Error, Href, Item, ItemCollection, Link, Links, Migrate, Result, Version,
+    Catalog, Collection, Error, Href, Item, ItemCollection, Link, Links, Migrate, Result, SelfHref,
+    Version,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Map;
-use stac_types::SelfHref;
 use std::convert::TryFrom;
 
 /// An enum that can hold any STAC object type.
@@ -260,7 +260,7 @@ macro_rules! impl_try_from {
                 if let Value::$object(o) = value {
                     Ok(o)
                 } else {
-                    Err(stac_types::Error::IncorrectType {
+                    Err(Error::IncorrectType {
                         actual: value.type_name().to_string(),
                         expected: $name.to_string(),
                     }
@@ -284,7 +284,7 @@ impl TryFrom<Value> for ItemCollection {
         match value {
             Value::Item(item) => Ok(ItemCollection::from(vec![item])),
             Value::ItemCollection(item_collection) => Ok(item_collection),
-            Value::Catalog(_) | Value::Collection(_) => Err(stac_types::Error::IncorrectType {
+            Value::Catalog(_) | Value::Collection(_) => Err(Error::IncorrectType {
                 actual: value.type_name().to_string(),
                 expected: "ItemCollection".to_string(),
             }
@@ -294,7 +294,7 @@ impl TryFrom<Value> for ItemCollection {
 }
 
 impl Migrate for Value {
-    fn migrate(self, version: &Version) -> stac_types::Result<Value> {
+    fn migrate(self, version: &Version) -> Result<Value> {
         match self {
             Value::Item(item) => item.migrate(version).map(Value::Item),
             Value::Catalog(catalog) => catalog.migrate(version).map(Value::Catalog),

@@ -9,7 +9,6 @@ members = [
     "crates/extensions",
     "crates/pgstac",
     "crates/server",
-    "crates/types",
 ]
 default-members = [
     "crates/api",
@@ -17,7 +16,6 @@ default-members = [
     "crates/core",
     "crates/derive",
     "crates/extensions",
-    "crates/types",
 ]
 
 [workspace.package]
@@ -77,7 +75,6 @@ stac-api = { version = "0.6.2", path = "crates/api" }
 stac-derive = { version = "0.1.0", path = "crates/derive" }
 stac-duckdb = { version = "0.0.3", path = "crates/duckdb" }
 stac-server = { version = "0.3.2", path = "crates/server" }
-stac-types = { version = "0.1.0", path = "crates/types" }
 syn = "2.0"
 tempfile = "3.13"
 thiserror = "2.0"

@@ -225,13 +225,13 @@ fn migrate_license(object: &mut Map<String, Value>) {
 
 #[cfg(test)]
 mod tests {
+    use crate::{Collection, DataType, Item, Link, Links, Migrate, Version};
     use assert_json_diff::assert_json_eq;
     use serde_json::Value;
-    use stac::{Collection, DataType, Item, Link, Links, Migrate, Version};
 
     #[test]
     fn migrate_v1_0_0_to_v1_1_0() {
-        let item: Item = stac::read("data/bands-v1.0.0.json").unwrap();
+        let item: Item = crate::read("data/bands-v1.0.0.json").unwrap();
         let item = item.migrate(&Version::v1_1_0).unwrap();
         let asset = &item.assets["example"];
         assert_eq!(asset.data_type.as_ref().unwrap(), &DataType::UInt16);
@@ -241,7 +241,7 @@ mod tests {
         assert_eq!(asset.bands[3].name.as_ref().unwrap(), "nir");
 
         let expected: Value =
-            serde_json::to_value(stac::read::<Item>("data/bands-v1.1.0.json").unwrap()).unwrap();
+            serde_json::to_value(crate::read::<Item>("data/bands-v1.1.0.json").unwrap()).unwrap();
         assert_json_eq!(expected, serde_json::to_value(item).unwrap());
 
         let mut collection = Collection::new("an-id", "a description");
@@ -259,7 +259,7 @@ mod tests {
     #[test]
     fn remove_empty_bands() {
         // https://github.com/stac-utils/stac-rs/issues/350
-        let item: Item = stac::read("data/20201211_223832_CS2.json").unwrap();
+        let item: Item = crate::read("data/20201211_223832_CS2.json").unwrap();
         let item = item.migrate(&Version::v1_1_0).unwrap();
         let asset = &item.assets["data"];
         assert!(asset.bands.is_empty());
@@ -267,7 +267,7 @@ mod tests {
 
     #[test]
     fn migrate_v1_1_0_to_v1_1_0() {
-        let item: Item = stac::read("../../spec-examples/v1.1.0/simple-item.json").unwrap();
+        let item: Item = crate::read("../../spec-examples/v1.1.0/simple-item.json").unwrap();
         let _ = item.migrate(&Version::v1_1_0).unwrap();
     }
 }
