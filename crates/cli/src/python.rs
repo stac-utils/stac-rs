@@ -9,7 +9,7 @@ use pyo3::{
 
 #[pyfunction]
 fn main(py: Python<'_>) -> PyResult<i64> {
-    let signal = py.import_bound("signal")?;
+    let signal = py.import("signal")?;
     let _ = signal
         .getattr("signal")?
         .call1((signal.getattr("SIGINT")?, signal.getattr("SIG_DFL")?))?;
