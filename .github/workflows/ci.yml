@@ -129,7 +129,7 @@ jobs:
         with:
           enable-cache: true
       - name: Test
-        run: cargo test -p pgstac
+        run: cargo test -p pgstac --all-features
       - name: Install Python dependencies
         run: uv sync --group stac-api-validator
       - name: Validate
