@@ -10,6 +10,7 @@ use pyo3::{
 use stac::Bbox;
 
 /// Creates a [Search] from Python arguments.
+#[allow(clippy::too_many_arguments)]
 pub fn search<'py>(
     intersects: Option<StringOrDict<'py>>,
     ids: Option<StringOrList>,
@@ -38,10 +39,7 @@ pub fn search<'py>(
     let query = query
         .map(|query| pythonize::depythonize(&query))
         .transpose()?;
-    let bbox = bbox
-        .map(|bbox| Bbox::try_from(bbox))
-        .transpose()
-        .map_err(Error::from)?;
+    let bbox = bbox.map(Bbox::try_from).transpose().map_err(Error::from)?;
     let sortby = sortby.map(|sortby| {
         Vec::<String>::from(sortby)
             .into_iter()
