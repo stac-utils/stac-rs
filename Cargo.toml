@@ -28,11 +28,11 @@ categories = ["science", "data-structures"]
 rust-version = "1.80"
 
 [workspace.dependencies]
-arrow = "52.2"
-arrow-array = "52.2"
-arrow-cast = "52.2"
-arrow-json = "52.2"
-arrow-schema = "52.2"
+arrow = "53.1.0"
+arrow-array = "53.1.0"
+arrow-cast = "53.1.0"
+arrow-json = "53.1.0"
+arrow-schema = "53.1.0"
 assert-json-diff = "2.0"
 assert_cmd = "2.0"
 async-stream = "0.3.6"
@@ -43,23 +43,23 @@ bytes = "1.7"
 chrono = "0.4.38"
 clap = "4.5"
 cql2 = "0.3.0"
-duckdb = "=1.0.0"
+duckdb = "1.1.1"
 fluent-uri = "0.3.1"
 futures = "0.3.31"
 geo = "0.28.0"
 geo-types = "0.7.13"
-geoarrow = "0.3.0"
+geoarrow = "0.4.0-beta.1"
 geojson = "0.24.1"
 http = "1.1"
 jsonschema = { version = "0.22.3", default-features = false }
-libduckdb-sys = "=1.0.0"
+libduckdb-sys = "1.1.1"
 log = "0.4.22"
 mime = "0.3.17"
 mockito = "1.5"
 object_store = "0.11.0"
 openssl = { version = "0.10.68", features = ["vendored"] }
 openssl-src = "=300.4.1" # joinked from https://github.com/iopsystems/rpc-perf/commit/705b290d2105af6f33150da04b217422c6d68701#diff-2e9d962a08321605940b5a657135052fbcef87b5e360662bb527c96d9a615542R41 to cross-compile Python
-parquet = { version = "52.2", default-features = false }
+parquet = { version = "53.1.0", default-features = false }
 pgstac = { version = "0.2.2", path = "crates/pgstac" }
 pyo3 = "0.23.3"
 pythonize = "0.23.0"

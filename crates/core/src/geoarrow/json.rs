@@ -44,12 +44,8 @@ use arrow_array::*;
 use arrow_cast::display::{ArrayFormatter, FormatOptions};
 use arrow_json::JsonSerializable;
 use arrow_schema::*;
+use geoarrow::datatypes::Dimension;
 use geoarrow::table::Table;
-use geoarrow::{
-    array::AsGeometryArray,
-    datatypes::{Dimension, GeoDataType},
-    trait_::GeometryArrayAccessor,
-};
 use serde_json::json;
 use serde_json::map::Map as JsonMap;
 use serde_json::Value;
@@ -423,8 +419,8 @@ fn set_column_for_json_rows(
 
 /// Converts a table to json rows.
 pub fn from_table(table: Table) -> Result<Vec<serde_json::Map<String, Value>>, crate::Error> {
+    use geoarrow::{array::AsNativeArray, datatypes::NativeType::*, trait_::ArrayAccessor};
     use geojson::Value;
-    use GeoDataType::*;
 
     let index = table
         .schema()
@@ -452,28 +448,12 @@ pub fn from_table(table: Table) -> Result<Vec<serde_json::Map<String, Value>>, c
                             Value::from(&chunk.as_ref().as_line_string::<3>().value_as_geo(i))
                         }
                     },
-                    LargeLineString(_, dimension) => match dimension {
-                        Dimension::XY => {
-                            Value::from(&chunk.as_ref().as_large_line_string::<2>().value_as_geo(i))
-                        }
-                        Dimension::XYZ => {
-                            Value::from(&chunk.as_ref().as_large_line_string::<3>().value_as_geo(i))
-                        }
-                    },
                     Polygon(_, dimension) => match dimension {
                         Dimension::XY => {
                             Value::from(&chunk.as_ref().as_polygon::<2>().value_as_geo(i))
                         }
                         Dimension::XYZ => {
                             Value::from(&chunk.as_ref().as_polygon::<3>().value_as_geo(i))
-                        }
-                    },
-                    LargePolygon(_, dimension) => match dimension {
-                        Dimension::XY => {
-                            Value::from(&chunk.as_ref().as_large_polygon::<2>().value_as_geo(i))
-                        }
-                        Dimension::XYZ => {
-                            Value::from(&chunk.as_ref().as_large_polygon::<3>().value_as_geo(i))
                         }
                     },
                     MultiPoint(_, dimension) => match dimension {
@@ -484,14 +464,6 @@ pub fn from_table(table: Table) -> Result<Vec<serde_json::Map<String, Value>>, c
                             Value::from(&chunk.as_ref().as_multi_point::<3>().value_as_geo(i))
                         }
                     },
-                    LargeMultiPoint(_, dimension) => match dimension {
-                        Dimension::XY => {
-                            Value::from(&chunk.as_ref().as_large_multi_point::<2>().value_as_geo(i))
-                        }
-                        Dimension::XYZ => {
-                            Value::from(&chunk.as_ref().as_large_multi_point::<3>().value_as_geo(i))
-                        }
-                    },
                     MultiLineString(_, dimension) => match dimension {
                         Dimension::XY => {
                             Value::from(&chunk.as_ref().as_multi_line_string::<2>().value_as_geo(i))
@@ -499,20 +471,6 @@ pub fn from_table(table: Table) -> Result<Vec<serde_json::Map<String, Value>>, c
                         Dimension::XYZ => {
                             Value::from(&chunk.as_ref().as_multi_line_string::<3>().value_as_geo(i))
                         }
-                    },
-                    LargeMultiLineString(_, dimension) => match dimension {
-                        Dimension::XY => Value::from(
-                            &chunk
-                                .as_ref()
-                                .as_large_multi_line_string::<2>()
-                                .value_as_geo(i),
-                        ),
-                        Dimension::XYZ => Value::from(
-                            &chunk
-                                .as_ref()
-                                .as_large_multi_line_string::<3>()
-                                .value_as_geo(i),
-                        ),
                     },
                     MultiPolygon(_, dimension) => match dimension {
                         Dimension::XY => {
@@ -522,28 +480,12 @@ pub fn from_table(table: Table) -> Result<Vec<serde_json::Map<String, Value>>, c
                             Value::from(&chunk.as_ref().as_multi_polygon::<3>().value_as_geo(i))
                         }
                     },
-                    LargeMultiPolygon(_, dimension) => match dimension {
-                        Dimension::XY => Value::from(
-                            &chunk.as_ref().as_large_multi_polygon::<2>().value_as_geo(i),
-                        ),
-                        Dimension::XYZ => Value::from(
-                            &chunk.as_ref().as_large_multi_polygon::<3>().value_as_geo(i),
-                        ),
-                    },
                     Mixed(_, dimension) => match dimension {
                         Dimension::XY => {
                             Value::from(&chunk.as_ref().as_mixed::<2>().value_as_geo(i))
                         }
                         Dimension::XYZ => {
                             Value::from(&chunk.as_ref().as_mixed::<3>().value_as_geo(i))
-                        }
-                    },
-                    LargeMixed(_, dimension) => match dimension {
-                        Dimension::XY => {
-                            Value::from(&chunk.as_ref().as_large_mixed::<2>().value_as_geo(i))
-                        }
-                        Dimension::XYZ => {
-                            Value::from(&chunk.as_ref().as_large_mixed::<3>().value_as_geo(i))
                         }
                     },
                     GeometryCollection(_, dimension) => match dimension {
@@ -554,30 +496,7 @@ pub fn from_table(table: Table) -> Result<Vec<serde_json::Map<String, Value>>, c
                             &chunk.as_ref().as_geometry_collection::<3>().value_as_geo(i),
                         ),
                     },
-                    LargeGeometryCollection(_, dimension) => match dimension {
-                        Dimension::XY => Value::from(
-                            &chunk
-                                .as_ref()
-                                .as_large_geometry_collection::<2>()
-                                .value_as_geo(i),
-                        ),
-                        Dimension::XYZ => Value::from(
-                            &chunk
-                                .as_ref()
-                                .as_large_geometry_collection::<3>()
-                                .value_as_geo(i),
-                        ),
-                    },
-                    WKB => Value::from(&chunk.as_ref().as_wkb().value_as_geo(i)),
-                    LargeWKB => Value::from(&chunk.as_ref().as_large_wkb().value_as_geo(i)),
-                    Rect(dimension) => match dimension {
-                        Dimension::XY => {
-                            Value::from(&chunk.as_ref().as_rect::<2>().value_as_geo(i))
-                        }
-                        Dimension::XYZ => {
-                            Value::from(&chunk.as_ref().as_rect::<3>().value_as_geo(i))
-                        }
-                    },
+                    Rect(_) => todo!(),
                 };
                 let mut row = json_rows
                     .next()
