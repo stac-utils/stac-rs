@@ -51,7 +51,7 @@ geo-types = "0.7.13"
 geoarrow = "0.3.0"
 geojson = "0.24.1"
 http = "1.1"
-jsonschema = { version = "0.22.3", default-features = false }
+jsonschema = { version = "0.26.1", default-features = false }
 libduckdb-sys = "=1.0.0"
 log = "0.4.22"
 mime = "0.3.17"
