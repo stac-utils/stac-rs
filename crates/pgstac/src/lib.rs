@@ -332,13 +332,17 @@ pub(crate) mod tests {
         dbname: String,
     }
 
+    pub(crate) fn config() -> Config {
+        std::env::var("PGSTAC_RS_TEST_DB")
+            .unwrap_or("postgresql://username:password@localhost:5432/postgis".to_string())
+            .parse()
+            .unwrap()
+    }
+
     impl TestClient {
         async fn new(id: u16) -> TestClient {
             let dbname = format!("pgstac_test_{}", id);
-            let config: Config = std::env::var("PGSTAC_RS_TEST_DB")
-                .unwrap_or("postgresql://username:password@localhost:5432/postgis".to_string())
-                .parse()
-                .unwrap();
+            let config = config();
             {
                 let _mutex = MUTEX.lock().unwrap();
                 let (client, connection) = config.connect(NoTls).await.unwrap();
