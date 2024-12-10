@@ -156,9 +156,7 @@ impl Format {
         let href = href.into();
         match href.realize() {
             RealizedHref::Url(url) => {
-                use object_store::ObjectStore;
-
-                let (object_store, path) = crate::parse_url_opts(&url, options)?;
+                let (object_store, path) = crate::parse_url_opts(&url, options).await?;
                 let get_result = object_store.get(&path).await?;
                 let mut value: T = self.from_bytes(get_result.bytes().await?)?;
                 *value.self_href_mut() = Some(Href::Url(url));
