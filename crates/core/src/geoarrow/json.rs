@@ -44,7 +44,6 @@ use arrow_array::*;
 use arrow_cast::display::{ArrayFormatter, FormatOptions};
 use arrow_json::JsonSerializable;
 use arrow_schema::*;
-use geoarrow::datatypes::Dimension;
 use geoarrow::table::Table;
 use serde_json::json;
 use serde_json::map::Map as JsonMap;
@@ -432,71 +431,25 @@ pub fn from_table(table: Table) -> Result<Vec<serde_json::Map<String, Value>>, c
         for chunk in table.geometry_column(Some(index))?.geometry_chunks() {
             for i in 0..chunk.len() {
                 let value = match chunk.data_type() {
-                    Point(_, dimension) => match dimension {
-                        Dimension::XY => {
-                            Value::from(&chunk.as_ref().as_point::<2>().value_as_geo(i))
-                        }
-                        Dimension::XYZ => {
-                            Value::from(&chunk.as_ref().as_point::<3>().value_as_geo(i))
-                        }
-                    },
-                    LineString(_, dimension) => match dimension {
-                        Dimension::XY => {
-                            Value::from(&chunk.as_ref().as_line_string::<2>().value_as_geo(i))
-                        }
-                        Dimension::XYZ => {
-                            Value::from(&chunk.as_ref().as_line_string::<3>().value_as_geo(i))
-                        }
-                    },
-                    Polygon(_, dimension) => match dimension {
-                        Dimension::XY => {
-                            Value::from(&chunk.as_ref().as_polygon::<2>().value_as_geo(i))
-                        }
-                        Dimension::XYZ => {
-                            Value::from(&chunk.as_ref().as_polygon::<3>().value_as_geo(i))
-                        }
-                    },
-                    MultiPoint(_, dimension) => match dimension {
-                        Dimension::XY => {
-                            Value::from(&chunk.as_ref().as_multi_point::<2>().value_as_geo(i))
-                        }
-                        Dimension::XYZ => {
-                            Value::from(&chunk.as_ref().as_multi_point::<3>().value_as_geo(i))
-                        }
-                    },
-                    MultiLineString(_, dimension) => match dimension {
-                        Dimension::XY => {
-                            Value::from(&chunk.as_ref().as_multi_line_string::<2>().value_as_geo(i))
-                        }
-                        Dimension::XYZ => {
-                            Value::from(&chunk.as_ref().as_multi_line_string::<3>().value_as_geo(i))
-                        }
-                    },
-                    MultiPolygon(_, dimension) => match dimension {
-                        Dimension::XY => {
-                            Value::from(&chunk.as_ref().as_multi_polygon::<2>().value_as_geo(i))
-                        }
-                        Dimension::XYZ => {
-                            Value::from(&chunk.as_ref().as_multi_polygon::<3>().value_as_geo(i))
-                        }
-                    },
-                    Mixed(_, dimension) => match dimension {
-                        Dimension::XY => {
-                            Value::from(&chunk.as_ref().as_mixed::<2>().value_as_geo(i))
-                        }
-                        Dimension::XYZ => {
-                            Value::from(&chunk.as_ref().as_mixed::<3>().value_as_geo(i))
-                        }
-                    },
-                    GeometryCollection(_, dimension) => match dimension {
-                        Dimension::XY => Value::from(
-                            &chunk.as_ref().as_geometry_collection::<2>().value_as_geo(i),
-                        ),
-                        Dimension::XYZ => Value::from(
-                            &chunk.as_ref().as_geometry_collection::<3>().value_as_geo(i),
-                        ),
-                    },
-                    Rect(_) => todo!(),
+                    Point(_, _) => Value::from(&chunk.as_ref().as_point().value_as_geo(i)),
+                    LineString(_, _) => {
+                        Value::from(&chunk.as_ref().as_line_string().value_as_geo(i))
+                    }
+                    Polygon(_, _) => Value::from(&chunk.as_ref().as_polygon().value_as_geo(i)),
+                    MultiPoint(_, _) => {
+                        Value::from(&chunk.as_ref().as_multi_point().value_as_geo(i))
+                    }
+                    MultiLineString(_, _) => {
+                        Value::from(&chunk.as_ref().as_multi_line_string().value_as_geo(i))
+                    }
+                    MultiPolygon(_, _) => {
+                        Value::from(&chunk.as_ref().as_multi_polygon().value_as_geo(i))
+                    }
+                    Geometry(_) => Value::from(&chunk.as_ref().as_geometry().value_as_geo(i)),
+                    GeometryCollection(_, _) => {
+                        Value::from(&chunk.as_ref().as_geometry_collection().value_as_geo(i))
+                    }
+                    Rect(_) => Value::from(&chunk.as_ref().as_rect().value_as_geo(i)),
                 };
                 let mut row = json_rows
                     .next()

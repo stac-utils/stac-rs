@@ -8,7 +8,7 @@ use crate::{Error, ItemCollection, Result};
 use arrow_json::ReaderBuilder;
 use arrow_schema::{DataType, Field, SchemaBuilder, TimeUnit};
 use geo_types::Geometry;
-use geoarrow::{array::MixedGeometryBuilder, table::Table};
+use geoarrow::{array::GeometryBuilder, table::Table};
 use serde_json::{json, Value};
 use std::sync::Arc;
 
@@ -40,7 +40,7 @@ const DATETIME_COLUMNS: [&str; 8] = [
 pub fn to_table(item_collection: impl Into<ItemCollection>) -> Result<Table> {
     let item_collection = item_collection.into();
     let mut values = Vec::with_capacity(item_collection.items.len());
-    let mut builder = MixedGeometryBuilder::<2>::new();
+    let mut builder = GeometryBuilder::new();
     for mut item in item_collection.items {
         builder.push_geometry(
             item.geometry
