@@ -99,9 +99,8 @@ mod tests {
 
     #[tokio::test]
     async fn connect() {
+        let config = crate::tests::config();
         let tls = super::make_unverified_tls();
-        let (_, _) = tokio_postgres::connect("host=/var/run/postgresql", tls)
-            .await
-            .unwrap();
+        let (_, _) = config.connect(tls).await.unwrap();
     }
 }
