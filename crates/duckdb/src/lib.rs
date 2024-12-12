@@ -2,15 +2,25 @@
 
 #![deny(unused_crate_dependencies)]
 
-use arrow::{array::RecordBatch, datatypes::SchemaBuilder};
+use arrow::{
+    array::{ArrayAccessor, GenericBinaryArray, RecordBatch},
+    datatypes::{Field, SchemaBuilder},
+};
 use duckdb::{types::Value, Connection};
-use geoarrow::{io::parquet::GeoParquetRecordBatchReaderBuilder, table::Table};
+use geoarrow::{
+    array::{metadata::ArrayMetadata, WKBArray},
+    io::{parquet::GeoParquetRecordBatchReaderBuilder, wkb},
+    table::Table,
+    ArrayBase,
+};
 use libduckdb_sys as _;
 use stac_api::{Direction, Search};
 use std::{
+    any::Any,
     collections::{HashMap, HashSet},
     fmt::Debug,
     fs::File,
+    ops::Deref,
     sync::Arc,
 };
 use thiserror::Error;
@@ -64,7 +74,6 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub struct Client {
     connection: Connection,
     collections: HashMap<String, Vec<String>>,
-    geometry_metadata: HashMap<String, HashMap<String, String>>,
 }
 
 /// A SQL query.
@@ -97,7 +106,6 @@ impl Client {
         Ok(Client {
             connection,
             collections: HashMap::new(),
-            geometry_metadata: HashMap::new(),
         })
     }
 
@@ -113,15 +121,6 @@ impl Client {
     /// ```
     pub fn add_href(&mut self, href: impl ToString) -> Result<()> {
         let href = href.to_string();
-        let file = File::open(&href)?;
-        let mut reader = GeoParquetRecordBatchReaderBuilder::try_new(file)?.build()?;
-        if let Some(result) = reader.next() {
-            let record_batch = result?;
-            if let Ok(field) = record_batch.schema().field_with_name("geometry") {
-                self.geometry_metadata
-                    .insert(href.clone(), field.metadata().clone());
-            }
-        }
         let mut statement = self
             .connection
             .prepare(&format!("SELECT collection FROM read_parquet('{}')", href))?;
@@ -217,20 +216,32 @@ impl Client {
                         statement
                             .query_arrow(duckdb::params_from_iter(&sql.params))?
                             .map(|mut record_batch| {
-                                let schema = record_batch.schema();
-                                if let Some(metadata) = self.geometry_metadata.get(href) {
-                                    if let Ok(mut field) =
-                                        schema.field_with_name("geometry").cloned()
+                                if let Some((index, _)) =
+                                    record_batch.schema().column_with_name("geometry")
+                                {
+                                    let array = record_batch.remove_column(index);
+                                    if let Some(array) =
+                                        array.as_any().downcast_ref::<GenericBinaryArray<i32>>()
+                                    // TODO can we make this generic?
                                     {
-                                        dbg!(&field);
-                                        field.set_metadata(metadata.clone());
-                                        let mut schema_builder = SchemaBuilder::from(&*schema);
-                                        schema_builder.try_merge(&Arc::new(field))?;
-                                        record_batch = record_batch
-                                            .with_schema(schema_builder.finish().into())?;
+                                        // TODO remove clone
+                                        // TODO actually use the metadata
+                                        let array =
+                                            WKBArray::new(array.clone(), Default::default());
+                                        let mut builder =
+                                            SchemaBuilder::from(record_batch.schema().deref());
+                                        builder.push(array.extension_field());
+                                        let schema = builder.finish();
+                                        let mut columns = record_batch.columns().to_vec();
+                                        columns.push(array.into_array_ref());
+                                        RecordBatch::try_new(schema.into(), columns)
+                                            .map_err(Error::from)
+                                    } else {
+                                        todo!()
                                     }
+                                } else {
+                                    Ok(record_batch)
                                 }
-                                Ok(record_batch)
                             })
                             .collect::<Result<_>>()?,
                     );
@@ -293,13 +304,11 @@ impl Sql {
             params.extend(collections.into_iter().map(Value::from));
         }
         if let Some(intersects) = search.intersects {
-            wheres
-                .push("ST_Intersects(ST_GeomFromWKB(geometry), ST_GeomFromGeoJSON(?))".to_string());
+            wheres.push("ST_Intersects(geometry, ST_GeomFromGeoJSON(?))".to_string());
             params.push(Value::from(intersects.to_string()));
         }
         if let Some(bbox) = search.items.bbox {
-            wheres
-                .push("ST_Intersects(ST_GeomFromWKB(geometry), ST_GeomFromGeoJSON(?))".to_string());
+            wheres.push("ST_Intersects(geometry, ST_GeomFromGeoJSON(?))".to_string());
             params.push(Value::from(bbox.to_geometry().to_string()));
         }
         if let Some(datetime) = search.items.datetime {
