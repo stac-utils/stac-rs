@@ -9,6 +9,26 @@ pub trait ProjectionCalculations {
     fn spatial_ref(&self) -> Result<Option<SpatialRef>>;
 }
 
+/// Calculations based on GDAL for projection.
+///
+/// # Examples:
+/// ```
+/// use stac::Bbox;
+/// use stac_extensions::Projection;
+/// use stac_gdal::projection::ProjectionCalculations;
+/// let mut projection = Projection::default();
+/// projection.code = Some("EPSG:32633".to_owned());
+/// projection.bbox = Some(Bbox::from([399960.0, 4090200.0, 509760.0, 4200000.0]).into());
+/// assert_eq!(
+///     projection.wgs84_bounds().unwrap(),
+///     Some(Bbox::new(
+///         36.9525649,
+///         13.8614709,
+///         37.9475895,
+///         15.1110860
+///     ))
+/// );
+/// ```
 impl ProjectionCalculations for Projection {
     fn spatial_ref(&self) -> Result<Option<SpatialRef>> {
         if self.code.as_ref().is_some_and(|c| c.starts_with("EPSG:")) {
@@ -44,12 +64,13 @@ impl ProjectionCalculations for Projection {
                 let bounds =
                     coord_transform.transform_bounds(&[bbox[0], bbox[1], bbox[2], bbox[3]], 21)?;
                 let [x1, y1, x2, y2] = bounds;
-                Ok(Some(Bbox::from([
-                    x1.min(x2),
-                    y1.min(y2),
-                    x1.max(x2),
-                    y1.max(y2),
-                ])))
+                let round = |n: f64| (n * 10_000_000.).round() / 10_000_000.;
+                Ok(Some(Bbox::new(
+                    round(x1.min(x2)),
+                    round(y1.min(y2)),
+                    round(x1.max(x2)),
+                    round(y1.max(y2)),
+                )))
             } else {
                 Ok(None)
             }

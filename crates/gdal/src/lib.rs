@@ -29,8 +29,8 @@
 // )]
 
 mod error;
-mod item;
-mod projection;
+pub mod item;
+pub mod projection;
 
 /// Crate specific Error.
 pub use error::Error;
@@ -38,4 +38,4 @@ pub use error::Error;
 pub type Result<T> = std::result::Result<T, Error>;
 
 pub use item::update_item;
-// pub(crate) use projection::ProjectionCalculations;
+pub use projection::ProjectionCalculations;

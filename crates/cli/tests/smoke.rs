@@ -39,3 +39,13 @@ fn validate_stdin() {
         .unwrap();
     command.arg("validate").write_stdin(item).assert().success();
 }
+
+#[test]
+fn create_stac_item() {
+    let mut command = Command::cargo_bin("stacrs").unwrap();
+    command
+        .arg("create_item")
+        .arg("assets/dataset_geo.tif")
+        .assert()
+        .success();
+}

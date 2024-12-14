@@ -14,7 +14,8 @@ use crate::{projection::ProjectionCalculations, Result};
 /// # Examples
 ///
 /// ```
-/// use stac::{Asset, Item, Extensions, extensions::Raster};
+/// use stac::{Asset, Item};
+/// use stac_extensions::{Extensions, Raster};
 /// let mut item = Item::new("an-id");
 /// item.assets.insert("data".to_string(), Asset::new("assets/dataset.tif"));
 /// stac_gdal::update_item(&mut item, false, true).unwrap();
@@ -50,7 +51,8 @@ pub fn update_item(
         }
     }
     if bounds.is_valid() {
-        item.set_geometry(geojson::Geometry::new(bounds.to_geometry().value))?;
+        item.geometry = Some(geojson::Geometry::new(bounds.to_geometry().value));
+        item.bbox = Some(bounds);
     }
     if has_projection {
         if !projections.is_empty()
@@ -84,19 +86,9 @@ fn virtual_path(path: &str) -> String {
     }
 }
 
-fn update_asset(
-    asset: &mut Asset,
-    force_statistics: bool,
-    is_approx_statistics_ok: bool,
-) -> Result<()> {
-    let dataset = Dataset::open(virtual_path(&asset.href))?;
-    let sparef = dataset.spatial_ref()?;
-    let _ = sparef.to_wkt();
-
-    let mut spatial_resolution = None;
+fn extract_projection(dataset: &Dataset) -> Option<Projection> {
     let mut projection = Projection::default();
     if let Ok(geo_transform) = dataset.geo_transform() {
-        spatial_resolution = Some((geo_transform[1].abs() + geo_transform[5].abs()) / 2.0);
         let (width, height) = dataset.raster_size();
         // Yes, height comes first, see https://github.com/stac-extensions/projection/tree/f17b5707439e4d6aa5102a9018e5e52984d0d744?tab=readme-ov-file#projshape
         projection.shape = Some(vec![height, width]);
@@ -151,6 +143,23 @@ fn update_asset(
                 .and_then(|s| serde_json::from_str(&s).ok());
         }
     }
+    if !projection.is_empty() {
+        Some(projection)
+    } else {
+        None
+    }
+}
+
+fn extract_raster_bands(
+    dataset: &Dataset,
+    force_statistics: bool,
+    is_approx_statistics_ok: bool,
+) -> Result<Option<Vec<Band>>> {
+    let mut spatial_resolution = None;
+    if let Ok(geo_transform) = dataset.geo_transform() {
+        spatial_resolution = Some((geo_transform[1].abs() + geo_transform[5].abs()) / 2.0);
+    }
+
     let count = dataset.raster_count();
     let mut bands = Vec::with_capacity(count);
     for i in 1..=count {
@@ -163,7 +172,9 @@ fn update_asset(
             offset: band.offset(),
             unit: Some(band.unit()).filter(|s| !s.is_empty()),
             statistics: band
-                .get_statistics(force_statistics, is_approx_statistics_ok)?
+                .get_statistics(force_statistics, is_approx_statistics_ok)
+                .ok()
+                .flatten()
                 .map(gdal_statistics_to_stac),
             // TODO: Check if we can read/calculate three values below
             histogram: None,
@@ -171,8 +182,28 @@ fn update_asset(
             bits_per_sample: None,
         })
     }
-    asset.set_extension(projection)?;
-    asset.set_extension(Raster { bands })?;
+    if !bands.is_empty() {
+        Ok(Some(bands))
+    } else {
+        Ok(None)
+    }
+}
+
+fn update_asset(
+    asset: &mut Asset,
+    force_statistics: bool,
+    is_approx_statistics_ok: bool,
+) -> Result<()> {
+    let dataset = Dataset::open(virtual_path(&asset.href))?;
+
+    if let Some(projection) = extract_projection(&dataset) {
+        asset.set_extension(projection)?;
+    }
+
+    if let Some(bands) = extract_raster_bands(&dataset, force_statistics, is_approx_statistics_ok)?
+    {
+        asset.set_extension(Raster { bands })?;
+    }
     Ok(())
 }
 
@@ -200,5 +231,95 @@ fn gdal_statistics_to_stac(value: StatisticsAll) -> Statistics {
         stddev: Some(value.std_dev),
         // TODO: Check if we can get/calculate value below
         valid_percent: None,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use gdal::Dataset;
+    use stac::Asset;
+    use stac_extensions::{Extensions, Projection, Raster};
+
+    use crate::{item::extract_raster_bands, update_item};
+
+    use super::{extract_projection, update_asset};
+
+    #[test]
+    fn test_update_asset() {
+        let mut asset = Asset::new("assets/dataset_geo.tif");
+
+        update_asset(&mut asset, false, false).unwrap();
+
+        assert!(asset.has_extension::<Projection>());
+        assert!(asset.has_extension::<Raster>());
+    }
+
+    #[test]
+    fn test_update_item() {
+        let asset = Asset::new("assets/dataset_geo.tif");
+        let mut item = stac::item::Builder::new("an-id")
+            .asset("asset_key", asset)
+            .build()
+            .unwrap();
+
+        update_item(&mut item, false, false).unwrap();
+
+        assert!(item.has_extension::<Projection>());
+        assert!(item.has_extension::<Raster>());
+
+        assert!(!item
+            .assets
+            .get("asset_key")
+            .unwrap()
+            .has_extension::<Projection>());
+        assert!(item
+            .assets
+            .get("asset_key")
+            .unwrap()
+            .has_extension::<Raster>());
+    }
+
+    #[test]
+    fn projection() {
+        let dataset = Dataset::open("assets/dataset_geo.tif").unwrap();
+        let actual = extract_projection(&dataset).unwrap();
+
+        let expected = Projection {
+            code: Some("EPSG:32621".to_owned()),
+            bbox: Some(vec![
+                373185.0,
+                8019284.949381611,
+                639014.9492102272,
+                8286015.0,
+            ]),
+            shape: Some(vec![2667, 2658]),
+            transform: Some(vec![
+                100.01126757344893,
+                0.0,
+                373185.0,
+                0.0,
+                -100.01126757344893,
+                8286015.0,
+                0.0,
+                0.0,
+                1.0,
+            ]),
+            ..Default::default()
+        };
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn raster() {
+        let dataset = Dataset::open("assets/dataset_geo.tif").unwrap();
+        let bands = extract_raster_bands(&dataset, false, false)
+            .unwrap()
+            .unwrap();
+
+        assert!(!bands.is_empty());
+
+        let band = &bands[0];
+        assert_eq!(band.data_type, Some(stac::DataType::UInt16));
+        assert_eq!(band.spatial_resolution, Some(100.01126757344893));
     }
 }
