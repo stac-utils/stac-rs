@@ -39,6 +39,7 @@ stac = { workspace = true, features = [
 stac-api = { workspace = true, features = ["client"] }
 stac-duckdb = { workspace = true, optional = true }
 stac-server = { workspace = true, features = ["axum"] }
+stac-gdal.workspace = true
 thiserror.workspace = true
 tokio = { workspace = true, features = [
     "macros",

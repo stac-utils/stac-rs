@@ -1,0 +1,60 @@
+use crate::{Error, Result};
+use gdal::spatial_ref::{CoordTransform, SpatialRef};
+use serde_json::Value;
+use stac::Bbox;
+use stac_extensions::Projection;
+
+pub trait ProjectionCalculations {
+    fn wgs84_bounds(&self) -> Result<Option<Bbox>>;
+    fn spatial_ref(&self) -> Result<Option<SpatialRef>>;
+}
+
+impl ProjectionCalculations for Projection {
+    fn spatial_ref(&self) -> Result<Option<SpatialRef>> {
+        if self.code.as_ref().is_some_and(|c| c.starts_with("EPSG:")) {
+            let code = self
+                .code
+                .as_ref()
+                .and_then(|c| c.strip_prefix("EPSG:"))
+                .ok_or(Error::ParseEPSGProjectionError(
+                    self.code.as_ref().unwrap().to_string(),
+                ))?
+                .parse()?;
+
+            SpatialRef::from_epsg(code).map(Some).map_err(Error::from)
+        } else if let Some(wkt) = self.wkt2.as_ref() {
+            SpatialRef::from_wkt(wkt).map(Some).map_err(Error::from)
+        } else if let Some(projjson) = self.projjson.clone() {
+            SpatialRef::from_definition(&serde_json::to_string(&Value::Object(projjson))?)
+                .map(Some)
+                .map_err(Error::from)
+        } else {
+            Ok(None)
+        }
+    }
+
+    fn wgs84_bounds(&self) -> Result<Option<Bbox>> {
+        if let Some(bbox) = self.bbox.as_ref() {
+            if bbox.len() != 4 {
+                return Ok(None);
+            }
+            if let Some(spatial_ref) = self.spatial_ref()? {
+                let wgs84 = SpatialRef::from_epsg(4326)?;
+                let coord_transform = CoordTransform::new(&spatial_ref, &wgs84)?;
+                let bounds =
+                    coord_transform.transform_bounds(&[bbox[0], bbox[1], bbox[2], bbox[3]], 21)?;
+                let [x1, y1, x2, y2] = bounds;
+                Ok(Some(Bbox::from([
+                    x1.min(x2),
+                    y1.min(y2),
+                    x1.max(x2),
+                    y1.max(y2),
+                ])))
+            } else {
+                Ok(None)
+            }
+        } else {
+            Ok(None)
+        }
+    }
+}

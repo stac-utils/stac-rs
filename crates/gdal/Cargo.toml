@@ -1,0 +1,20 @@
+[package]
+name = "stac-gdal"
+description = "STAC utilities that use GDAL"
+version = "0.1.0"
+authors.workspace = true
+edition.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license.workspace = true
+categories.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+gdal.workspace = true
+geojson.workspace = true
+log.workspace = true
+serde_json.workspace = true
+stac.workspace = true
+stac-extensions.workspace = true
+thiserror.workspace = true

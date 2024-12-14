@@ -218,6 +218,18 @@ impl Default for Bbox {
     }
 }
 
+impl From<[f64; 4]> for Bbox {
+    fn from(value: [f64; 4]) -> Self {
+        Bbox::TwoDimensional(value)
+    }
+}
+
+impl From<[f64; 6]> for Bbox {
+    fn from(value: [f64; 6]) -> Self {
+        Bbox::ThreeDimensional(value)
+    }
+}
+
 #[cfg(feature = "geo")]
 impl From<geo::Rect> for Bbox {
     fn from(rect: geo::Rect) -> Bbox {

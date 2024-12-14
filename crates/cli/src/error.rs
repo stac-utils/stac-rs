@@ -33,6 +33,10 @@ pub enum Error {
     #[error(transparent)]
     Stac(#[from] stac::Error),
 
+    /// [stac_gdal::Error]
+    #[error(transparent)]
+    StacGdal(#[from] stac_gdal::Error),
+
     /// [stac_duckdb::Error]
     #[cfg(feature = "duckdb")]
     #[error(transparent)]
