@@ -29,6 +29,9 @@
 )]
 
 //! Use [gdal] to instrument [stac] and [stac_extensions] crates.
+//!
+//! This crate is work in progress, expect changes in API.
+//!
 //! ## Usage:
 //! ```
 //! use stac::{Asset, Item};

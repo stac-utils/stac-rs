@@ -1,7 +1,8 @@
 [package]
 name = "stac-gdal"
-description = "STAC utilities that use GDAL"
+description = "Instrument STAC objects with GDAL."
 version = "0.1.0"
+keywords = ["geospatial", "stac", "metadata", "geo", "raster"]
 authors.workspace = true
 edition.workspace = true
 homepage.workspace = true
