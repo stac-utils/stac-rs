@@ -152,6 +152,22 @@ jobs:
         run: uv sync --group stac-api-validator
       - name: Validate
         run: uv run scripts/validate-stac-server
+  test-gdal:
+    name: Test stac-gdal
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: crates/gdal
+    steps:
+      - name: Install GDAL
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gdal-bin libgdal-dev
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.81
+      - uses: Swatinem/rust-cache@v2
+      - name: Test
+        run: cargo test -p stac-gdal
   lint:
     name: Lint
     runs-on: ubuntu-latest
