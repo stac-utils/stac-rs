@@ -15,11 +15,15 @@ use crate::{projection::ProjectionCalculations, Result};
 ///
 /// ```
 /// use stac::{Asset, Item};
-/// use stac_extensions::{Extensions, Raster};
+/// use stac_extensions::{Extensions, Raster, Projection};
+///
 /// let mut item = Item::new("an-id");
-/// item.assets.insert("data".to_string(), Asset::new("assets/dataset.tif"));
+/// item.assets.insert("data".to_string(), Asset::new("assets/dataset_geo.tif"));
+///
 /// stac_gdal::update_item(&mut item, false, true).unwrap();
+///
 /// assert!(item.has_extension::<Raster>());
+/// assert!(item.has_extension::<Projection>());
 /// ```
 pub fn update_item(
     item: &mut Item,
@@ -207,7 +211,7 @@ fn update_asset(
     Ok(())
 }
 
-fn gdal_type_to_stac(value: GdalDataType) -> stac::DataType {
+fn gdal_type_to_stac(value: GdalDataType) -> DataType {
     match value {
         GdalDataType::Unknown => DataType::Other,
         GdalDataType::UInt8 => DataType::UInt8,
@@ -243,6 +247,24 @@ mod tests {
     use crate::{item::extract_raster_bands, update_item};
 
     use super::{extract_projection, update_asset};
+
+    // #[test]
+    // fn test_interface() {
+    //     let item = Item::new("an-id");
+    //     item.extract_extensions(vec![
+    //         SupportedExtension::Raster,
+    //         SupportedExtension::Projection,
+    //     ]);
+    //     asset.extract_extensions(vec![
+    //         SupportedExtensions::Raster,
+    //         SupportedExtensions::Projection,
+    //     ]);
+    //     item.extract_extension::<Raster>();
+    //     item.extract_extension::<Projection>();
+    //     catalog.extract_extension::<Raster>(); // imporssible
+    //     collection.extract_extension::<Raster>();
+    //     // item.extract_extensions(Raster, Projection);
+    // }
 
     #[test]
     fn test_update_asset() {

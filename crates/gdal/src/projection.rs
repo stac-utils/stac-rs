@@ -4,21 +4,18 @@ use serde_json::Value;
 use stac::Bbox;
 use stac_extensions::Projection;
 
-pub trait ProjectionCalculations {
-    fn wgs84_bounds(&self) -> Result<Option<Bbox>>;
-    fn spatial_ref(&self) -> Result<Option<SpatialRef>>;
-}
-
-/// Calculations based on GDAL for projection.
+/// Calculations based on [gdal] for [Projection].
 ///
 /// # Examples:
 /// ```
 /// use stac::Bbox;
 /// use stac_extensions::Projection;
 /// use stac_gdal::projection::ProjectionCalculations;
+///
 /// let mut projection = Projection::default();
 /// projection.code = Some("EPSG:32633".to_owned());
 /// projection.bbox = Some(Bbox::from([399960.0, 4090200.0, 509760.0, 4200000.0]).into());
+///
 /// assert_eq!(
 ///     projection.wgs84_bounds().unwrap(),
 ///     Some(Bbox::new(
@@ -29,6 +26,13 @@ pub trait ProjectionCalculations {
 ///     ))
 /// );
 /// ```
+pub trait ProjectionCalculations {
+    /// Calculate [Bbox] in WGS84.
+    fn wgs84_bounds(&self) -> Result<Option<Bbox>>;
+    /// Get [SpatialRef] for current [Projection].
+    fn spatial_ref(&self) -> Result<Option<SpatialRef>>;
+}
+
 impl ProjectionCalculations for Projection {
     fn spatial_ref(&self) -> Result<Option<SpatialRef>> {
         if self.code.as_ref().is_some_and(|c| c.starts_with("EPSG:")) {
