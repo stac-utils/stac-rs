@@ -15,12 +15,12 @@ rust-version.workspace = true
 arrow.workspace = true
 duckdb.workspace = true
 libduckdb-sys.workspace = true
-geoarrow.workspace = true
+geoarrow = { workspace = true, features = ["parquet"] }
 parquet.workspace = true
 stac = { workspace = true, features = ["geoarrow"] }
 stac-api.workspace = true
 thiserror.workspace = true
 
 [dev-dependencies]
-duckdb-test = { path = "duckdb-test" }
 geo.workspace = true
+rstest.workspace = true
