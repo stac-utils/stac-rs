@@ -3,7 +3,7 @@
 // The verbosity stuff is cribbed from https://github.com/clap-rs/clap-verbosity-flag/blob/c621a6a8a7c0b6df8f1464a985a5d076b4915693/src/lib.rs and updated for tracing
 
 use crate::{
-    subcommand::{create_item, search, serve, translate, validate},
+    subcommand::{item, search, serve, translate, validate},
     Error, Result, Value,
 };
 use clap::Parser;
@@ -87,7 +87,7 @@ pub enum Subcommand {
     Validate(validate::Args),
 
     /// Create a STAC Item from a href.
-    CreateItem(create_item::Args),
+    Item(item::Args),
 }
 
 #[derive(Copy, Clone, Debug, Default)]
@@ -112,7 +112,7 @@ impl Args {
             Subcommand::Serve(args) => self.serve(args).await,
             Subcommand::Translate(args) => self.translate(args).await,
             Subcommand::Validate(args) => self.validate(args).await,
-            Subcommand::CreateItem(args) => self.create_item(args).await,
+            Subcommand::Item(args) => self.create(args).await,
         }
     }
 

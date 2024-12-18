@@ -1,4 +1,4 @@
-pub mod create_item;
+pub mod item;
 #[cfg(feature = "pgstac")]
 pub mod pgstac;
 pub mod search;

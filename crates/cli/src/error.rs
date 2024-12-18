@@ -34,6 +34,7 @@ pub enum Error {
     Stac(#[from] stac::Error),
 
     /// [stac_gdal::Error]
+    #[cfg(feature = "gdal")]
     #[error(transparent)]
     StacGdal(#[from] stac_gdal::Error),
 

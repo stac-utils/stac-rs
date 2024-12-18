@@ -1,4 +1,10 @@
 [package]
+categories = [
+    "science",
+    "data-structures",
+    "science:geo",
+    "command-line-utilities",
+]
 name = "stac-cli"
 description = "Command line interface for stac-rs"
 version = "0.4.1"
@@ -8,7 +14,6 @@ edition.workspace = true
 homepage.workspace = true
 repository.workspace = true
 license.workspace = true
-categories.workspace = true
 rust-version.workspace = true
 
 [features]
@@ -16,6 +21,7 @@ default = ["pgstac"]
 duckdb = ["dep:stac-duckdb", "dep:duckdb"]
 pgstac = ["stac-server/pgstac", "dep:tokio-postgres"]
 python = ["dep:pyo3", "pgstac"]
+gdal = ["dep:stac-gdal"]
 
 [dependencies]
 axum.workspace = true
@@ -38,8 +44,8 @@ stac = { workspace = true, features = [
 ] }
 stac-api = { workspace = true, features = ["client"] }
 stac-duckdb = { workspace = true, optional = true }
+stac-gdal = { workspace = true, optional = true }
 stac-server = { workspace = true, features = ["axum"] }
-stac-gdal.workspace = true
 thiserror.workspace = true
 tokio = { workspace = true, features = [
     "macros",
