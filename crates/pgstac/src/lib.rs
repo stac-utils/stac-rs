@@ -113,7 +113,12 @@ pub type JsonValue = serde_json::Value;
 pub trait Pgstac: GenericClient {
     /// Returns the **pgstac** version.
     async fn pgstac_version(&self) -> Result<String> {
-        self.string("get_version", &[]).await
+        self.pgstac_string("get_version", &[]).await
+    }
+
+    /// Returns whether the **pgstac** database is readonly.
+    async fn readonly(&self) -> Result<bool> {
+        self.pgstac_bool("readonly", &[]).await
     }
 
     /// Returns the value of the `context` **pgstac** setting.
@@ -122,7 +127,7 @@ pub trait Pgstac: GenericClient {
     /// docs](https://github.com/stac-utils/pgstac/blob/main/docs/src/pgstac.md#pgstac-settings)
     /// for more information on the settings and their meaning.
     async fn context(&self) -> Result<bool> {
-        self.string("get_setting", &[&"context"])
+        self.pgstac_string("get_setting", &[&"context"])
             .await
             .map(|value| value == "on")
     }
@@ -142,12 +147,12 @@ pub trait Pgstac: GenericClient {
 
     /// Fetches all collections.
     async fn collections(&self) -> Result<Vec<JsonValue>> {
-        self.vec("all_collections", &[]).await
+        self.pgstac_vec("all_collections", &[]).await
     }
 
     /// Fetches a collection by id.
     async fn collection(&self, id: &str) -> Result<Option<JsonValue>> {
-        self.opt("get_collection", &[&id]).await
+        self.pgstac_opt("get_collection", &[&id]).await
     }
 
     /// Adds a collection.
@@ -156,7 +161,7 @@ pub trait Pgstac: GenericClient {
         T: Serialize,
     {
         let collection = serde_json::to_value(collection)?;
-        self.void("create_collection", &[&collection]).await
+        self.pgstac_void("create_collection", &[&collection]).await
     }
 
     /// Adds or updates a collection.
@@ -165,7 +170,7 @@ pub trait Pgstac: GenericClient {
         T: Serialize,
     {
         let collection = serde_json::to_value(collection)?;
-        self.void("upsert_collection", &[&collection]).await
+        self.pgstac_void("upsert_collection", &[&collection]).await
     }
 
     /// Updates a collection.
@@ -174,17 +179,17 @@ pub trait Pgstac: GenericClient {
         T: Serialize,
     {
         let collection = serde_json::to_value(collection)?;
-        self.void("update_collection", &[&collection]).await
+        self.pgstac_void("update_collection", &[&collection]).await
     }
 
     /// Deletes a collection.
     async fn delete_collection(&self, id: &str) -> Result<()> {
-        self.void("delete_collection", &[&id]).await
+        self.pgstac_void("delete_collection", &[&id]).await
     }
 
     /// Fetches an item.
     async fn item(&self, id: &str, collection: Option<&str>) -> Result<Option<JsonValue>> {
-        self.opt("get_item", &[&id, &collection]).await
+        self.pgstac_opt("get_item", &[&id, &collection]).await
     }
 
     /// Adds an item.
@@ -193,7 +198,7 @@ pub trait Pgstac: GenericClient {
         T: Serialize,
     {
         let item = serde_json::to_value(item)?;
-        self.void("create_item", &[&item]).await
+        self.pgstac_void("create_item", &[&item]).await
     }
 
     /// Adds items.
@@ -202,7 +207,7 @@ pub trait Pgstac: GenericClient {
         T: Serialize,
     {
         let items = serde_json::to_value(items)?;
-        self.void("create_items", &[&items]).await
+        self.pgstac_void("create_items", &[&items]).await
     }
 
     /// Updates an item.
@@ -211,7 +216,7 @@ pub trait Pgstac: GenericClient {
         T: Serialize,
     {
         let item = serde_json::to_value(item)?;
-        self.void("update_item", &[&item]).await
+        self.pgstac_void("update_item", &[&item]).await
     }
 
     /// Upserts an item.
@@ -220,7 +225,7 @@ pub trait Pgstac: GenericClient {
         T: Serialize,
     {
         let item = serde_json::to_value(item)?;
-        self.void("upsert_item", &[&item]).await
+        self.pgstac_void("upsert_item", &[&item]).await
     }
 
     /// Upserts items.
@@ -232,19 +237,19 @@ pub trait Pgstac: GenericClient {
         T: Serialize,
     {
         let items = serde_json::to_value(items)?;
-        self.void("upsert_items", &[&items]).await
+        self.pgstac_void("upsert_items", &[&items]).await
     }
 
     /// Deletes an item.
     async fn delete_item(&self, id: &str, collection: Option<&str>) -> Result<()> {
-        self.void("delete_item", &[&id, &collection]).await
+        self.pgstac_void("delete_item", &[&id, &collection]).await
     }
 
     /// Searches for items.
     async fn search(&self, search: Search) -> Result<Page> {
         let search = search.into_cql2_json()?;
         let search = serde_json::to_value(search)?;
-        self.value("search", &[&search]).await
+        self.pgstac_value("search", &[&search]).await
     }
 
     /// Runs a pgstac function.
@@ -262,17 +267,27 @@ pub trait Pgstac: GenericClient {
     }
 
     /// Returns a string result from a pgstac function.
-    async fn string(&self, function: &str, params: &[&(dyn ToSql + Sync)]) -> Result<String> {
+    async fn pgstac_string(
+        &self,
+        function: &str,
+        params: &[&(dyn ToSql + Sync)],
+    ) -> Result<String> {
+        let row = self.pgstac(function, params).await?;
+        row.try_get(function).map_err(Error::from)
+    }
+
+    /// Returns a bool result from a pgstac function.
+    async fn pgstac_bool(&self, function: &str, params: &[&(dyn ToSql + Sync)]) -> Result<bool> {
         let row = self.pgstac(function, params).await?;
         row.try_get(function).map_err(Error::from)
     }
 
     /// Returns a vector from a pgstac function.
-    async fn vec<T>(&self, function: &str, params: &[&(dyn ToSql + Sync)]) -> Result<Vec<T>>
+    async fn pgstac_vec<T>(&self, function: &str, params: &[&(dyn ToSql + Sync)]) -> Result<Vec<T>>
     where
         T: DeserializeOwned,
     {
-        if let Some(value) = self.opt(function, params).await? {
+        if let Some(value) = self.pgstac_opt(function, params).await? {
             Ok(value)
         } else {
             Ok(Vec::new())
@@ -280,7 +295,11 @@ pub trait Pgstac: GenericClient {
     }
 
     /// Returns an optional value from a pgstac function.
-    async fn opt<T>(&self, function: &str, params: &[&(dyn ToSql + Sync)]) -> Result<Option<T>>
+    async fn pgstac_opt<T>(
+        &self,
+        function: &str,
+        params: &[&(dyn ToSql + Sync)],
+    ) -> Result<Option<T>>
     where
         T: DeserializeOwned,
     {
@@ -291,7 +310,7 @@ pub trait Pgstac: GenericClient {
     }
 
     /// Returns a deserializable value from a pgstac function.
-    async fn value<T>(&self, function: &str, params: &[&(dyn ToSql + Sync)]) -> Result<T>
+    async fn pgstac_value<T>(&self, function: &str, params: &[&(dyn ToSql + Sync)]) -> Result<T>
     where
         T: DeserializeOwned,
     {
@@ -301,7 +320,7 @@ pub trait Pgstac: GenericClient {
     }
 
     /// Returns nothing from a pgstac function.
-    async fn void(&self, function: &str, params: &[&(dyn ToSql + Sync)]) -> Result<()> {
+    async fn pgstac_void(&self, function: &str, params: &[&(dyn ToSql + Sync)]) -> Result<()> {
         let _ = self.pgstac(function, params).await?;
         Ok(())
     }
@@ -422,6 +441,12 @@ pub(crate) mod tests {
     #[tokio::test]
     async fn pgstac_version(#[future(awt)] client: TestClient) {
         let _ = client.pgstac_version().await.unwrap();
+    }
+
+    #[rstest]
+    #[tokio::test]
+    async fn readonly(#[future(awt)] client: TestClient) {
+        assert!(!client.readonly().await.unwrap());
     }
 
     #[rstest]
