@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - `Pgstac` trait ([#551](https://github.com/stac-utils/stac-rs/pull/551))
 - `python` feature ([#558](https://github.com/stac-utils/stac-rs/pull/558))
+- `readonly` ([#570](https://github.com/stac-utils/stac-rs/pull/570))
 
 ### Changed
 
