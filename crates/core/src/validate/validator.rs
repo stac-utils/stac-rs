@@ -61,6 +61,11 @@ impl Validator {
                 Client::builder()
             }
         };
+        let client_builder = client_builder.user_agent(concat!(
+            env!("CARGO_PKG_NAME"),
+            "/",
+            env!("CARGO_PKG_VERSION"),
+        ));
         Ok(Validator {
             schemas: Arc::new(RwLock::new(schemas(&validation_options))),
             validation_options,
