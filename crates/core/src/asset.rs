@@ -81,6 +81,10 @@ pub struct Asset {
     /// Additional fields on the asset.
     #[serde(flatten)]
     pub additional_fields: Map<String, Value>,
+
+    /// Phantom field to make extensions work
+    #[serde(skip)]
+    pub extensions: Vec<String>,
 }
 
 /// Trait implemented by anything that has assets.
@@ -139,6 +143,7 @@ impl Asset {
             statistics: None,
             unit: None,
             additional_fields: Map::new(),
+            extensions: Vec::new(),
         }
     }
 

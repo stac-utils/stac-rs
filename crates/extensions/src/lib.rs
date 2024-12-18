@@ -49,7 +49,7 @@ pub mod projection;
 pub mod raster;
 
 use serde::{de::DeserializeOwned, Serialize};
-use stac::{Catalog, Collection, Error, Fields, Item, Result};
+use stac::{Asset, Catalog, Collection, Error, Fields, Item, Result};
 pub use {projection::Projection, raster::Raster};
 
 /// A trait implemented by extensions.
@@ -215,6 +215,7 @@ macro_rules! impl_extensions {
     };
 }
 
+impl_extensions!(Asset);
 impl_extensions!(Item);
 impl_extensions!(Catalog);
 impl_extensions!(Collection);

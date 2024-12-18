@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 /// Statistics of all pixels in the band.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Statistics {
     /// Mean value of all the pixels in the band
     #[serde(skip_serializing_if = "Option::is_none")]
