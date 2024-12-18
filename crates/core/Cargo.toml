@@ -31,7 +31,7 @@ geoparquet-compression = [
     "parquet/lz4",
     "parquet/zstd",
 ]
-object-store = ["dep:object_store", "dep:tokio"]
+object-store = ["dep:object_store", "dep:tokio", "dep:once_cell"]
 object-store-aws = ["object-store", "object_store/aws"]
 object-store-azure = ["object-store", "object_store/azure"]
 object-store-gcp = ["object-store", "object_store/gcp"]
@@ -63,6 +63,7 @@ jsonschema = { workspace = true, optional = true }
 log.workspace = true
 mime.workspace = true
 object_store = { workspace = true, optional = true }
+once_cell = { workspace = true, optional = true }
 parquet = { workspace = true, optional = true }
 reqwest = { workspace = true, features = ["json", "blocking"], optional = true }
 serde = { workspace = true, features = ["derive"] }
