@@ -183,8 +183,6 @@ mod tests {
 
         assert!(Arc::ptr_eq(&store, &store2));
         assert!(std::ptr::addr_eq(Arc::as_ptr(&store), Arc::as_ptr(&store2)));
-        // assert_eq!(store.as_ref(), store2.as_ref());
-        // assert_eq!(Arc::as_ptr(&store), Arc::as_ptr(&store2));
         assert_eq!(path.as_ref(), "some/path");
     }
 

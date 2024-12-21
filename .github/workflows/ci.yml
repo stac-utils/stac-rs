@@ -99,6 +99,14 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Test
         run: cargo test -p stac-extensions
+  test-object-store-cache:
+    name: Test stac-object-store-cache
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
+      - name: Test
+        run: cargo test -p stac-object-store-cache --all-features
   test-pgstac:
     name: Test pgstac
     runs-on: ubuntu-latest

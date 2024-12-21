@@ -5,7 +5,6 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 #[non_exhaustive]
 pub enum Error {
-    /// TODO: Better error description
     #[error("Failed to create object_store for {scheme:?}. Check if required feature is enabled.")]
     ObjectStoreCreate {
         /// feature
