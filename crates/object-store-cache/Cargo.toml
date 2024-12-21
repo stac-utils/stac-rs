@@ -1,0 +1,35 @@
+[package]
+name = "stac-object-store-cache"
+description = "Create and cache object stores based on url in stac."
+version = "0.1.0"
+authors.workspace = true
+edition.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license.workspace = true
+categories.workspace = true
+rust-version.workspace = true
+
+[features]
+object-store-aws = ["object_store/aws"]
+object-store-azure = ["object_store/azure"]
+object-store-gcp = ["object_store/gcp"]
+object-store-http = ["object_store/http"]
+object-store-all = [
+    "object-store-aws",
+    "object-store-azure",
+    "object-store-gcp",
+    "object-store-http",
+]
+
+
+[dependencies]
+object_store = { workspace = true }
+once_cell = { workspace = true }
+thiserror.workspace = true
+tokio = { workspace = true }
+url = { workspace = true, features = ["serde"] }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros"] }
+tokio-test.workspace = true

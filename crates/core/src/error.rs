@@ -86,6 +86,11 @@ pub enum Error {
     #[error("json value is not an object")]
     NotAnObject(serde_json::Value),
 
+    /// [stac-object-store-cache::Error]
+    #[error(transparent)]
+    #[cfg(feature = "object-store")]
+    ObjectStoreCache(#[from] stac_object_store_cache::Error),
+
     /// [object_store::Error]
     #[error(transparent)]
     #[cfg(feature = "object-store")]
