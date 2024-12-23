@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - `Fields` trait impl for `Link` ([#542](https://github.com/stac-utils/stac-rs/pull/542))
 
+### Fixed
+
+- Set user agent for validation client ([#572](https://github.com/stac-utils/stac-rs/pull/572))
+
 ## [0.11.0] - 2024-11-12
 
 ### Added
