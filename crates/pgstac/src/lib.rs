@@ -173,6 +173,11 @@ pub trait Pgstac: GenericClient {
         self.pgstac_void("upsert_collection", &[&collection]).await
     }
 
+    /// Updates all collection extents.
+    async fn update_collection_extents(&self) -> Result<()> {
+        self.pgstac_void("update_collection_extents", &[]).await
+    }
+
     /// Updates a collection.
     async fn update_collection<T>(&self, collection: T) -> Result<()>
     where
@@ -571,6 +576,7 @@ pub(crate) mod tests {
                 .unwrap(),
             serde_json::to_value(item).unwrap(),
         );
+        client.update_collection_extents().await.unwrap();
     }
 
     #[rstest]
