@@ -79,7 +79,6 @@ impl Client {
     /// Searches this client, returning a [stac::ItemCollection].
     pub fn search(&self, href: &str, search: impl Into<Search>) -> Result<stac::ItemCollection> {
         let record_batches = self.search_to_arrow(href, search)?;
-        dbg!(&record_batches);
         if record_batches.is_empty() {
             return Ok(Vec::new().into());
         }
@@ -116,7 +115,6 @@ impl Client {
         search: impl Into<Search>,
     ) -> Result<Vec<RecordBatch>> {
         let query = self.query(search, href)?;
-        dbg!(&query);
         let mut statement = self.connection.prepare(&query.sql)?;
         statement
             .query_arrow(duckdb::params_from_iter(query.params))?
@@ -166,6 +164,10 @@ impl Client {
                     .join(",")
             ));
             params.extend(search.collections.into_iter().map(|id| Value::Text(id)));
+        }
+        if let Some(bbox) = search.items.bbox {
+            wheres.push(format!("ST_Intersects(geometry, ST_GeomFromGeoJSON(?))"));
+            params.push(Value::Text(bbox.to_geometry().to_string()));
         }
 
         let mut suffix = String::new();
@@ -221,7 +223,7 @@ mod tests {
     use super::Client;
     use geo::Geometry;
     use rstest::{fixture, rstest};
-    use stac::ValidateBlocking;
+    use stac::{Bbox, ValidateBlocking};
     use stac_api::Search;
     use std::sync::Mutex;
 
@@ -287,5 +289,16 @@ mod tests {
             )
             .unwrap();
         assert_eq!(item_collection.items.len(), 0);
+    }
+
+    #[rstest]
+    fn search_bbox(client: Client) {
+        let item_collection = client
+            .search(
+                "data/100-sentinel-2-items.parquet",
+                Search::default().bbox(Bbox::new(-106.1, 40.5, -106.0, 40.6)),
+            )
+            .unwrap();
+        assert_eq!(item_collection.items.len(), 50);
     }
 }

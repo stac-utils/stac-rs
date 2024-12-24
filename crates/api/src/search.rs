@@ -1,10 +1,9 @@
-use std::ops::{Deref, DerefMut};
-
 use crate::{Error, GetItems, Items, Result};
 use geojson::Geometry;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use stac::Item;
+use stac::{Bbox, Item};
+use std::ops::{Deref, DerefMut};
 
 /// The core parameters for STAC search are defined by OAFeat, and STAC adds a few parameters for convenience.
 #[derive(Clone, Default, Debug, Serialize, Deserialize)]
@@ -86,6 +85,12 @@ impl Search {
     /// Sets the collections of this search.
     pub fn collections(mut self, collections: Vec<String>) -> Search {
         self.collections = collections;
+        self
+    }
+
+    /// Sets the bbox of this items query.
+    pub fn bbox(mut self, bbox: impl Into<Bbox>) -> Search {
+        self.items.bbox = Some(bbox.into());
         self
     }
 
