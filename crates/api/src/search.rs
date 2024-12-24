@@ -100,6 +100,12 @@ impl Search {
         self
     }
 
+    /// Sets the limit of this search.
+    pub fn limit(mut self, limit: u64) -> Search {
+        self.items.limit = Some(limit);
+        self
+    }
+
     /// Returns an error if this search is invalid, e.g. if both bbox and intersects are specified.
     ///
     /// Returns the search unchanged if it is valid.

@@ -124,6 +124,7 @@ impl Client {
 
     fn query(&self, search: impl Into<Search>, href: &str) -> Result<Query> {
         let search: Search = search.into();
+        let limit = search.items.limit.clone(); // Get limit early so we can take ownership of other parts of search as we go along.
         let mut statement = self.connection.prepare(&format!(
             "SELECT column_name FROM (DESCRIBE SELECT * from read_parquet('{}'))",
             href
@@ -202,10 +203,19 @@ impl Client {
                 params.push(Value::Text(end.to_rfc3339()));
             }
         }
+        if let Some(filter) = search.items.filter {
+            todo!("Implement the filter extension");
+        }
+        if let Some(query) = search.items.query {
+            todo!("Implement the query extension");
+        }
 
         let mut suffix = String::new();
         if !wheres.is_empty() {
             suffix.push_str(&format!(" WHERE {}", wheres.join(" AND ")));
+        }
+        if let Some(limit) = limit {
+            suffix.push_str(&format!(" LIMIT {}", limit));
         }
         Ok(Query {
             sql: format!(
@@ -351,5 +361,16 @@ mod tests {
             )
             .unwrap();
         assert_eq!(item_collection.items.len(), 99);
+    }
+
+    #[rstest]
+    fn search_limit(client: Client) {
+        let item_collection = client
+            .search(
+                "data/100-sentinel-2-items.parquet",
+                Search::default().limit(42),
+            )
+            .unwrap();
+        assert_eq!(item_collection.items.len(), 42);
     }
 }
