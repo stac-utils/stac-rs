@@ -1,4 +1,4 @@
-use crate::{Error, GetItems, Items, Result};
+use crate::{Error, GetItems, Items, Result, Sortby};
 use geojson::Geometry;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
@@ -103,6 +103,12 @@ impl Search {
     /// Sets the limit of this search.
     pub fn limit(mut self, limit: u64) -> Search {
         self.items.limit = Some(limit);
+        self
+    }
+
+    /// Sets the sortby of this search.
+    pub fn sortby(mut self, sortby: Vec<Sortby>) -> Search {
+        self.items.sortby = sortby;
         self
     }
 

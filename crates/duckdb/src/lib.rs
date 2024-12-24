@@ -12,7 +12,7 @@ use geoarrow::{
     datatypes::NativeType,
     table::Table,
 };
-use stac_api::Search;
+use stac_api::{Direction, Search};
 use std::fmt::Debug;
 use thiserror::Error;
 
@@ -123,8 +123,11 @@ impl Client {
     }
 
     fn query(&self, search: impl Into<Search>, href: &str) -> Result<Query> {
-        let search: Search = search.into();
-        let limit = search.items.limit.clone(); // Get limit early so we can take ownership of other parts of search as we go along.
+        let mut search: Search = search.into();
+        // Get suffix information early so we can take ownership of other parts of search as we go along.
+        let limit = search.items.limit.take();
+        let sortby = std::mem::take(&mut search.items.sortby);
+
         let mut statement = self.connection.prepare(&format!(
             "SELECT column_name FROM (DESCRIBE SELECT * from read_parquet('{}'))",
             href
@@ -203,16 +206,30 @@ impl Client {
                 params.push(Value::Text(end.to_rfc3339()));
             }
         }
-        if let Some(filter) = search.items.filter {
+        if let Some(_) = search.items.filter {
             todo!("Implement the filter extension");
         }
-        if let Some(query) = search.items.query {
+        if let Some(_) = search.items.query {
             todo!("Implement the query extension");
         }
 
         let mut suffix = String::new();
         if !wheres.is_empty() {
             suffix.push_str(&format!(" WHERE {}", wheres.join(" AND ")));
+        }
+        if !sortby.is_empty() {
+            let mut order_by = Vec::with_capacity(sortby.len());
+            for sortby in sortby {
+                order_by.push(format!(
+                    "{} {}",
+                    sortby.field,
+                    match sortby.direction {
+                        Direction::Ascending => "ASC",
+                        Direction::Descending => "DESC",
+                    }
+                ));
+            }
+            suffix.push_str(&format!(" ORDER BY {}", order_by.join(", ")));
         }
         if let Some(limit) = limit {
             suffix.push_str(&format!(" LIMIT {}", limit));
@@ -267,7 +284,7 @@ mod tests {
     use geo::Geometry;
     use rstest::{fixture, rstest};
     use stac::{Bbox, ValidateBlocking};
-    use stac_api::Search;
+    use stac_api::{Search, Sortby};
     use std::sync::Mutex;
 
     static MUTEX: Mutex<()> = Mutex::new(());
@@ -372,5 +389,34 @@ mod tests {
             )
             .unwrap();
         assert_eq!(item_collection.items.len(), 42);
+    }
+
+    #[rstest]
+    fn search_sortby(client: Client) {
+        let item_collection = client
+            .search(
+                "data/100-sentinel-2-items.parquet",
+                Search::default()
+                    .sortby(vec![Sortby::asc("datetime")])
+                    .limit(1),
+            )
+            .unwrap();
+        assert_eq!(
+            item_collection.items[0].id,
+            "S2A_MSIL2A_20240326T174951_R141_T13TDE_20240329T224429"
+        );
+
+        let item_collection = client
+            .search(
+                "data/100-sentinel-2-items.parquet",
+                Search::default()
+                    .sortby(vec![Sortby::desc("datetime")])
+                    .limit(1),
+            )
+            .unwrap();
+        assert_eq!(
+            item_collection.items[0].id,
+            "S2B_MSIL2A_20241203T174629_R098_T13TDE_20241203T211406"
+        );
     }
 }

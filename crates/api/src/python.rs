@@ -40,12 +40,14 @@ pub fn search<'py>(
         .map(|query| pythonize::depythonize(&query))
         .transpose()?;
     let bbox = bbox.map(Bbox::try_from).transpose().map_err(Error::from)?;
-    let sortby = sortby.map(|sortby| {
-        Vec::<String>::from(sortby)
-            .into_iter()
-            .map(|s| s.parse::<Sortby>().unwrap()) // the parse is infallible
-            .collect::<Vec<_>>()
-    });
+    let sortby = sortby
+        .map(|sortby| {
+            Vec::<String>::from(sortby)
+                .into_iter()
+                .map(|s| s.parse::<Sortby>().unwrap()) // the parse is infallible
+                .collect::<Vec<_>>()
+        })
+        .unwrap_or_default();
     let filter = filter
         .map(|filter| match filter {
             StringOrDict::Dict(cql_json) => pythonize::depythonize(&cql_json).map(Filter::Cql2Json),
