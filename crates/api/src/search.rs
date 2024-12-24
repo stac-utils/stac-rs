@@ -20,8 +20,8 @@ pub struct Search {
     pub intersects: Option<Geometry>,
 
     /// Array of Item ids to return.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub ids: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
+    pub ids: Vec<String>,
 
     /// Array of one or more Collection IDs that each matching Item must be in.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -72,8 +72,14 @@ impl Search {
     /// use stac_api::Search;
     /// let search = Search::new().ids(vec!["an-id".to_string()]);
     /// ```
-    pub fn ids(mut self, ids: impl Into<Option<Vec<String>>>) -> Search {
-        self.ids = ids.into();
+    pub fn ids(mut self, ids: Vec<String>) -> Search {
+        self.ids = ids;
+        self
+    }
+
+    /// Sets the intersects of this search.
+    pub fn intersects(mut self, intersects: impl Into<Geometry>) -> Search {
+        self.intersects = Some(intersects.into());
         self
     }
 
@@ -168,11 +174,7 @@ impl Search {
     /// assert!(!search.id_matches(&item));
     /// ```
     pub fn id_matches(&self, item: &Item) -> bool {
-        if let Some(ids) = self.ids.as_ref() {
-            ids.contains(&item.id)
-        } else {
-            true
-        }
+        self.ids.is_empty() || self.ids.contains(&item.id)
     }
 
     /// Returns true if this item's geometry matches this search's intersects.
@@ -229,7 +231,11 @@ impl TryFrom<Search> for GetSearch {
             .map(|intersects| serde_json::to_string(&intersects))
             .transpose()?;
         let collections = search.collections.map(|collections| collections.join(","));
-        let ids = search.ids.map(|ids| ids.join(","));
+        let ids = if search.ids.is_empty() {
+            None
+        } else {
+            Some(search.ids.join(","))
+        };
         Ok(GetSearch {
             items: get_items,
             intersects,
@@ -253,7 +259,8 @@ impl TryFrom<GetSearch> for Search {
             .map(|collections| collections.split(',').map(|s| s.to_string()).collect());
         let ids = get_search
             .ids
-            .map(|ids| ids.split(',').map(|s| s.to_string()).collect());
+            .map(|ids| ids.split(',').map(|s| s.to_string()).collect())
+            .unwrap_or_default();
         Ok(Search {
             items,
             intersects,

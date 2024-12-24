@@ -79,24 +79,14 @@ impl Client {
     /// Searches this client, returning a [stac::ItemCollection].
     pub fn search(&self, href: &str, search: impl Into<Search>) -> Result<stac::ItemCollection> {
         let record_batches = self.search_to_arrow(href, search)?;
+        dbg!(&record_batches);
+        if record_batches.is_empty() {
+            return Ok(Vec::new().into());
+        }
         let schema = record_batches[0].schema();
         let table = Table::try_new(record_batches, schema)?;
         let items = stac::geoarrow::from_table(table)?;
         Ok(items)
-    }
-
-    /// Searches this client, returning a vector of vectors of all matched record batches.
-    pub fn search_to_arrow(
-        &self,
-        href: &str,
-        search: impl Into<Search>,
-    ) -> Result<Vec<RecordBatch>> {
-        let query = self.query(search, href)?;
-        let mut statement = self.connection.prepare(&query.sql)?;
-        statement
-            .query_arrow(duckdb::params_from_iter(query.params))?
-            .map(to_geoarrow_record_batch)
-            .collect::<Result<_>>()
     }
 
     /// Searches this client, returning a [stac_api::ItemCollection].
@@ -108,8 +98,10 @@ impl Client {
         href: &str,
         search: impl Into<Search>,
     ) -> Result<stac_api::ItemCollection> {
-        // TODO verify that we don't panic when zero items match
         let record_batches = self.search_to_arrow(href, search)?;
+        if record_batches.is_empty() {
+            return Ok(Vec::new().into());
+        }
         let schema = record_batches[0].schema();
         let table = Table::try_new(record_batches, schema)?;
         let items = stac::geoarrow::json::from_table(table)?;
@@ -117,13 +109,23 @@ impl Client {
         Ok(item_collection)
     }
 
-    fn query(&self, search: impl Into<Search>, href: &str) -> Result<Query> {
-        // Ok(Sql {
-        //     select: Some("ST_AsWKB(geometry)::BLOB geometry".to_string()),
-        //     query: String::new(),
-        //     params: Vec::new(),
-        // })
+    /// Searches this client, returning a vector of vectors of all matched record batches.
+    pub fn search_to_arrow(
+        &self,
+        href: &str,
+        search: impl Into<Search>,
+    ) -> Result<Vec<RecordBatch>> {
+        let query = self.query(search, href)?;
+        dbg!(&query);
+        let mut statement = self.connection.prepare(&query.sql)?;
+        statement
+            .query_arrow(duckdb::params_from_iter(query.params))?
+            .map(to_geoarrow_record_batch)
+            .collect::<Result<_>>()
+    }
 
+    fn query(&self, search: impl Into<Search>, href: &str) -> Result<Query> {
+        let search: Search = search.into();
         let mut statement = self.connection.prepare(&format!(
             "SELECT column_name FROM (DESCRIBE SELECT * from read_parquet('{}'))",
             href
@@ -132,18 +134,42 @@ impl Client {
         for row in statement.query_map([], |row| row.get::<_, String>(0))? {
             let column = row?;
             if column == "geometry" {
-                columns.push("ST_AsWKB(geometry)::BLOB geometry".to_string());
+                columns.push("ST_AsWKB(geometry) geometry".to_string());
             } else {
                 columns.push(format!("\"{}\"", column));
             }
         }
+
+        // TODO refactor this out, since it doesn't need a connection to build.
+        let mut wheres = Vec::new();
+        let mut params = Vec::new();
+        if !search.ids.is_empty() {
+            wheres.push(format!(
+                "id IN ({})",
+                (0..search.ids.len())
+                    .map(|_| "?")
+                    .collect::<Vec<_>>()
+                    .join(",")
+            ));
+            params.extend(search.ids.into_iter().map(|id| Value::Text(id)));
+        }
+        if let Some(intersects) = search.intersects {
+            wheres.push(format!("ST_Intersects(geometry, ST_GeomFromGeoJSON(?))"));
+            params.push(Value::Text(intersects.to_string()));
+        }
+
+        let mut suffix = String::new();
+        if !wheres.is_empty() {
+            suffix.push_str(&format!(" WHERE {}", wheres.join(" AND ")));
+        }
         Ok(Query {
             sql: format!(
-                "SELECT {} FROM read_parquet('{}')",
-                columns.join(", "),
-                href
+                "SELECT {} FROM read_parquet('{}'){}",
+                columns.join(","),
+                href,
+                suffix,
             ),
-            params: Vec::new(),
+            params,
         })
     }
 }
@@ -183,6 +209,7 @@ fn to_geoarrow_record_batch(mut record_batch: RecordBatch) -> Result<RecordBatch
 #[cfg(test)]
 mod tests {
     use super::Client;
+    use geo::Geometry;
     use rstest::{fixture, rstest};
     use stac::ValidateBlocking;
     use stac_api::Search;
@@ -203,5 +230,33 @@ mod tests {
             .unwrap();
         assert_eq!(item_collection.items.len(), 100);
         item_collection.items[0].validate_blocking().unwrap();
+    }
+
+    #[rstest]
+    fn search_ids(client: Client) {
+        let item_collection = client
+            .search(
+                "data/100-sentinel-2-items.parquet",
+                Search::default().ids(vec![
+                    "S2A_MSIL2A_20240326T174951_R141_T13TDE_20240329T224429".to_string(),
+                ]),
+            )
+            .unwrap();
+        assert_eq!(item_collection.items.len(), 1);
+        assert_eq!(
+            item_collection.items[0].id,
+            "S2A_MSIL2A_20240326T174951_R141_T13TDE_20240329T224429"
+        );
+    }
+
+    #[rstest]
+    fn search_intersects(client: Client) {
+        let item_collection = client
+            .search(
+                "data/100-sentinel-2-items.parquet",
+                Search::default().intersects(&Geometry::Point(geo::point! { x: -106., y: 40.5 })),
+            )
+            .unwrap();
+        assert_eq!(item_collection.items.len(), 50);
     }
 }

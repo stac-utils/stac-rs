@@ -80,7 +80,7 @@ pub fn search<'py>(
                 .map_err(|err| PyValueError::new_err(err.to_string())),
         })
         .transpose()?;
-    let ids = ids.map(|ids| ids.into());
+    let ids = ids.map(|ids| ids.into()).unwrap_or_default();
     let collections = collections.map(|ids| ids.into());
     Ok(Search {
         items,

@@ -287,7 +287,7 @@ impl Items {
         Search {
             items: self,
             intersects: None,
-            ids: None,
+            ids: Vec::new(),
             collections: Some(vec![collection_id.to_string()]),
         }
     }
