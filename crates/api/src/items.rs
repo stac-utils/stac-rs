@@ -281,7 +281,7 @@ impl Items {
     ///     ..Default::default()
     /// };
     /// let search = items.search_collection("collection-id");
-    /// assert_eq!(search.collections.unwrap(), vec!["collection-id"]);
+    /// assert_eq!(search.collections, vec!["collection-id"]);
     /// ```
     pub fn search_collection(self, collection_id: impl ToString) -> Search {
         Search {

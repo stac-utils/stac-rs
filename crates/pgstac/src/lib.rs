@@ -714,12 +714,12 @@ pub(crate) mod tests {
         item.geometry = Some(longmont());
         client.add_item(item.clone()).await.unwrap();
         let search = Search {
-            ids: Some(vec!["an-id".to_string()]),
+            ids: vec!["an-id".to_string()],
             ..Default::default()
         };
         assert_eq!(client.search(search).await.unwrap().features.len(), 1);
         let search = Search {
-            ids: Some(vec!["not-an-id".to_string()]),
+            ids: vec!["not-an-id".to_string()],
             ..Default::default()
         };
         assert!(client.search(search).await.unwrap().features.is_empty());
@@ -735,12 +735,12 @@ pub(crate) mod tests {
         item.geometry = Some(longmont());
         client.add_item(item.clone()).await.unwrap();
         let search = Search {
-            collections: Some(vec!["collection-id".to_string()]),
+            collections: vec!["collection-id".to_string()],
             ..Default::default()
         };
         assert_eq!(client.search(search).await.unwrap().features.len(), 1);
         let search = Search {
-            collections: Some(vec!["not-an-id".to_string()]),
+            collections: vec!["not-an-id".to_string()],
             ..Default::default()
         };
         assert!(client.search(search).await.unwrap().features.is_empty());
@@ -923,12 +923,12 @@ pub(crate) mod tests {
         item.id = "b".to_string();
         client.add_item(item).await.unwrap();
         let mut search = Search::default();
-        search.items.sortby = Some(vec![Sortby::asc("id")]);
+        search.items.sortby = vec![Sortby::asc("id")];
         let page = client.search(search.clone()).await.unwrap();
         assert_eq!(page.features[0]["id"], "a");
         assert_eq!(page.features[1]["id"], "b");
 
-        search.items.sortby = Some(vec![Sortby::desc("id")]);
+        search.items.sortby = vec![Sortby::desc("id")];
         let page = client.search(search).await.unwrap();
         assert_eq!(page.features[0]["id"], "b");
         assert_eq!(page.features[1]["id"], "a");

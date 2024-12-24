@@ -98,11 +98,11 @@ impl Backend for MemoryBackend {
 
     async fn search(&self, mut search: Search) -> Result<ItemCollection> {
         let items = self.items.read().unwrap();
-        if search.collections.is_none() {
-            search.collections = Some(items.keys().cloned().collect());
+        if !search.collections.is_empty() {
+            search.collections = items.keys().cloned().collect();
         }
         let mut item_references = Vec::new();
-        for collection in search.collections.as_ref().unwrap() {
+        for collection in &search.collections {
             if let Some(items) = items.get(collection) {
                 item_references.extend(
                     items

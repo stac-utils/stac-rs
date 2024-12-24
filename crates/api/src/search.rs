@@ -167,7 +167,7 @@ impl Search {
     /// let mut search = Search::new();
     /// let mut item = Item::new("item-id");
     /// assert!(search.collection_matches(&item));
-    /// search.collections = Some(vec!["collection-id".to_string()]);
+    /// search.collections = vec!["collection-id".to_string()];
     /// assert!(!search.collection_matches(&item));
     /// item.collection = Some("collection-id".to_string());
     /// assert!(search.collection_matches(&item));
@@ -195,9 +195,9 @@ impl Search {
     /// let mut search = Search::new();
     /// let mut item = Item::new("item-id");
     /// assert!(search.id_matches(&item));
-    /// search.ids = Some(vec!["item-id".to_string()]);
+    /// search.ids = vec!["item-id".to_string()];
     /// assert!(search.id_matches(&item));
-    /// search.ids = Some(vec!["another-id".to_string()]);
+    /// search.ids = vec!["another-id".to_string()];
     /// assert!(!search.id_matches(&item));
     /// ```
     pub fn id_matches(&self, item: &Item) -> bool {

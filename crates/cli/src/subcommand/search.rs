@@ -94,8 +94,8 @@ impl crate::Args {
         items.query = args.query.as_deref().map(json).transpose()?;
         let mut search: Search = items.into();
         search.intersects = args.intersects.as_deref().map(json).transpose()?;
-        search.ids = Some(args.ids.clone()).filter(|v| !v.is_empty());
-        search.collections = Some(args.collections.clone()).filter(|v| !v.is_empty());
+        search.ids = args.ids.clone();
+        search.collections = args.collections.clone();
         #[cfg(feature = "duckdb")]
         let value = if args
             .duckdb
@@ -160,8 +160,8 @@ impl crate::Args {
                 search.limit = Some(max_items);
             }
         }
-        let client = stac_duckdb::Client::from_href(args.href.clone())?;
-        let item_collection = client.search_to_json(search)?;
+        let client = stac_duckdb::Client::new()?;
+        let item_collection = client.search_to_json(&args.href, search)?;
         if self.stream {
             for item in item_collection.items {
                 self.put(item, None).await?;
