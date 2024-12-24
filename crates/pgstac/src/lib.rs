@@ -356,13 +356,17 @@ pub(crate) mod tests {
         dbname: String,
     }
 
+    pub(crate) fn config() -> Config {
+        std::env::var("PGSTAC_RS_TEST_DB")
+            .unwrap_or("postgresql://username:password@localhost:5432/postgis".to_string())
+            .parse()
+            .unwrap()
+    }
+
     impl TestClient {
         async fn new(id: u16) -> TestClient {
             let dbname = format!("pgstac_test_{}", id);
-            let config: Config = std::env::var("PGSTAC_RS_TEST_DB")
-                .unwrap_or("postgresql://username:password@localhost:5432/postgis".to_string())
-                .parse()
-                .unwrap();
+            let config = config();
             {
                 let _mutex = MUTEX.lock().unwrap();
                 let (client, connection) = config.connect(NoTls).await.unwrap();
@@ -710,12 +714,12 @@ pub(crate) mod tests {
         item.geometry = Some(longmont());
         client.add_item(item.clone()).await.unwrap();
         let search = Search {
-            ids: Some(vec!["an-id".to_string()]),
+            ids: vec!["an-id".to_string()],
             ..Default::default()
         };
         assert_eq!(client.search(search).await.unwrap().features.len(), 1);
         let search = Search {
-            ids: Some(vec!["not-an-id".to_string()]),
+            ids: vec!["not-an-id".to_string()],
             ..Default::default()
         };
         assert!(client.search(search).await.unwrap().features.is_empty());
@@ -731,12 +735,12 @@ pub(crate) mod tests {
         item.geometry = Some(longmont());
         client.add_item(item.clone()).await.unwrap();
         let search = Search {
-            collections: Some(vec!["collection-id".to_string()]),
+            collections: vec!["collection-id".to_string()],
             ..Default::default()
         };
         assert_eq!(client.search(search).await.unwrap().features.len(), 1);
         let search = Search {
-            collections: Some(vec!["not-an-id".to_string()]),
+            collections: vec!["not-an-id".to_string()],
             ..Default::default()
         };
         assert!(client.search(search).await.unwrap().features.is_empty());
@@ -919,12 +923,12 @@ pub(crate) mod tests {
         item.id = "b".to_string();
         client.add_item(item).await.unwrap();
         let mut search = Search::default();
-        search.items.sortby = Some(vec![Sortby::asc("id")]);
+        search.items.sortby = vec![Sortby::asc("id")];
         let page = client.search(search.clone()).await.unwrap();
         assert_eq!(page.features[0]["id"], "a");
         assert_eq!(page.features[1]["id"], "b");
 
-        search.items.sortby = Some(vec![Sortby::desc("id")]);
+        search.items.sortby = vec![Sortby::desc("id")];
         let page = client.search(search).await.unwrap();
         assert_eq!(page.features[0]["id"], "b");
         assert_eq!(page.features[1]["id"], "a");

@@ -59,7 +59,6 @@ jobs:
         working-directory: crates/cli
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@1.81
       - uses: Swatinem/rust-cache@v2
       - name: Test
         run: cargo test -p stac-cli
@@ -71,7 +70,6 @@ jobs:
         working-directory: crates/cli
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@1.81
       - uses: Swatinem/rust-cache@v2
       - uses: actions/setup-python@v5
         with:
@@ -129,7 +127,7 @@ jobs:
         with:
           enable-cache: true
       - name: Test
-        run: cargo test -p pgstac
+        run: cargo test -p pgstac --all-features
       - name: Install Python dependencies
         run: uv sync --group stac-api-validator
       - name: Validate

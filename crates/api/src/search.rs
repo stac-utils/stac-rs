@@ -1,10 +1,9 @@
-use std::ops::{Deref, DerefMut};
-
-use crate::{Error, GetItems, Items, Result};
+use crate::{Error, GetItems, Items, Result, Sortby};
 use geojson::Geometry;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use stac::Item;
+use stac::{Bbox, Item};
+use std::ops::{Deref, DerefMut};
 
 /// The core parameters for STAC search are defined by OAFeat, and STAC adds a few parameters for convenience.
 #[derive(Clone, Default, Debug, Serialize, Deserialize)]
@@ -20,12 +19,12 @@ pub struct Search {
     pub intersects: Option<Geometry>,
 
     /// Array of Item ids to return.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub ids: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
+    pub ids: Vec<String>,
 
     /// Array of one or more Collection IDs that each matching Item must be in.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub collections: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
+    pub collections: Vec<String>,
 }
 
 /// GET parameters for the item search endpoint.
@@ -72,8 +71,44 @@ impl Search {
     /// use stac_api::Search;
     /// let search = Search::new().ids(vec!["an-id".to_string()]);
     /// ```
-    pub fn ids(mut self, ids: impl Into<Option<Vec<String>>>) -> Search {
-        self.ids = ids.into();
+    pub fn ids(mut self, ids: Vec<String>) -> Search {
+        self.ids = ids;
+        self
+    }
+
+    /// Sets the intersects of this search.
+    pub fn intersects(mut self, intersects: impl Into<Geometry>) -> Search {
+        self.intersects = Some(intersects.into());
+        self
+    }
+
+    /// Sets the collections of this search.
+    pub fn collections(mut self, collections: Vec<String>) -> Search {
+        self.collections = collections;
+        self
+    }
+
+    /// Sets the bbox of this search.
+    pub fn bbox(mut self, bbox: impl Into<Bbox>) -> Search {
+        self.items.bbox = Some(bbox.into());
+        self
+    }
+
+    /// Sets the datetime of this search.
+    pub fn datetime(mut self, datetime: impl ToString) -> Search {
+        self.items.datetime = Some(datetime.to_string());
+        self
+    }
+
+    /// Sets the limit of this search.
+    pub fn limit(mut self, limit: u64) -> Search {
+        self.items.limit = Some(limit);
+        self
+    }
+
+    /// Sets the sortby of this search.
+    pub fn sortby(mut self, sortby: Vec<Sortby>) -> Search {
+        self.items.sortby = sortby;
         self
     }
 
@@ -132,7 +167,7 @@ impl Search {
     /// let mut search = Search::new();
     /// let mut item = Item::new("item-id");
     /// assert!(search.collection_matches(&item));
-    /// search.collections = Some(vec!["collection-id".to_string()]);
+    /// search.collections = vec!["collection-id".to_string()];
     /// assert!(!search.collection_matches(&item));
     /// item.collection = Some("collection-id".to_string());
     /// assert!(search.collection_matches(&item));
@@ -140,14 +175,12 @@ impl Search {
     /// assert!(!search.collection_matches(&item));
     /// ```
     pub fn collection_matches(&self, item: &Item) -> bool {
-        if let Some(collections) = self.collections.as_ref() {
-            if let Some(collection) = item.collection.as_ref() {
-                collections.contains(collection)
-            } else {
-                false
-            }
-        } else {
+        if self.collections.is_empty() {
             true
+        } else if let Some(collection) = item.collection.as_ref() {
+            self.collections.contains(collection)
+        } else {
+            false
         }
     }
 
@@ -162,17 +195,13 @@ impl Search {
     /// let mut search = Search::new();
     /// let mut item = Item::new("item-id");
     /// assert!(search.id_matches(&item));
-    /// search.ids = Some(vec!["item-id".to_string()]);
+    /// search.ids = vec!["item-id".to_string()];
     /// assert!(search.id_matches(&item));
-    /// search.ids = Some(vec!["another-id".to_string()]);
+    /// search.ids = vec!["another-id".to_string()];
     /// assert!(!search.id_matches(&item));
     /// ```
     pub fn id_matches(&self, item: &Item) -> bool {
-        if let Some(ids) = self.ids.as_ref() {
-            ids.contains(&item.id)
-        } else {
-            true
-        }
+        self.ids.is_empty() || self.ids.contains(&item.id)
     }
 
     /// Returns true if this item's geometry matches this search's intersects.
@@ -228,8 +257,16 @@ impl TryFrom<Search> for GetSearch {
             .intersects
             .map(|intersects| serde_json::to_string(&intersects))
             .transpose()?;
-        let collections = search.collections.map(|collections| collections.join(","));
-        let ids = search.ids.map(|ids| ids.join(","));
+        let collections = if search.collections.is_empty() {
+            None
+        } else {
+            Some(search.collections.join(","))
+        };
+        let ids = if search.ids.is_empty() {
+            None
+        } else {
+            Some(search.ids.join(","))
+        };
         Ok(GetSearch {
             items: get_items,
             intersects,
@@ -250,10 +287,12 @@ impl TryFrom<GetSearch> for Search {
             .transpose()?;
         let collections = get_search
             .collections
-            .map(|collections| collections.split(',').map(|s| s.to_string()).collect());
+            .map(|collections| collections.split(',').map(|s| s.to_string()).collect())
+            .unwrap_or_default();
         let ids = get_search
             .ids
-            .map(|ids| ids.split(',').map(|s| s.to_string()).collect());
+            .map(|ids| ids.split(',').map(|s| s.to_string()).collect())
+            .unwrap_or_default();
         Ok(Search {
             items,
             intersects,

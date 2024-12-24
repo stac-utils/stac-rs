@@ -28,8 +28,8 @@ pub struct Items {
     pub fields: Option<Fields>,
 
     /// Fields by which to sort results.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub sortby: Option<Vec<Sortby>>,
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
+    pub sortby: Vec<Sortby>,
 
     /// Recommended to not be passed, but server must only accept
     /// <http://www.opengis.net/def/crs/OGC/1.3/CRS84> as a valid value, may
@@ -281,14 +281,14 @@ impl Items {
     ///     ..Default::default()
     /// };
     /// let search = items.search_collection("collection-id");
-    /// assert_eq!(search.collections.unwrap(), vec!["collection-id"]);
+    /// assert_eq!(search.collections, vec!["collection-id"]);
     /// ```
     pub fn search_collection(self, collection_id: impl ToString) -> Search {
         Search {
             items: self,
             intersects: None,
-            ids: None,
-            collections: Some(vec![collection_id.to_string()]),
+            ids: Vec::new(),
+            collections: vec![collection_id.to_string()],
         }
     }
 
@@ -327,13 +327,18 @@ impl TryFrom<Items> for GetItems {
             }),
             datetime: items.datetime,
             fields: items.fields.map(|fields| fields.to_string()),
-            sortby: items.sortby.map(|sortby| {
-                sortby
-                    .into_iter()
-                    .map(|s| s.to_string())
-                    .collect::<Vec<_>>()
-                    .join(",")
-            }),
+            sortby: if items.sortby.is_empty() {
+                None
+            } else {
+                Some(
+                    items
+                        .sortby
+                        .into_iter()
+                        .map(|s| s.to_string())
+                        .collect::<Vec<_>>()
+                        .join(","),
+                )
+            },
             filter_crs: items.filter_crs,
             filter_lang: if filter.is_some() {
                 Some("cql2-text".to_string())
@@ -364,15 +369,16 @@ impl TryFrom<GetItems> for Items {
             None
         };
 
-        let sortby = if let Some(value) = get_items.sortby {
-            let mut sortby = Vec::new();
-            for s in value.split(',') {
-                sortby.push(s.parse().expect("infallible"));
-            }
-            Some(sortby)
-        } else {
-            None
-        };
+        let sortby = get_items
+            .sortby
+            .map(|s| {
+                let mut sortby = Vec::new();
+                for s in s.split(',') {
+                    sortby.push(s.parse().expect("infallible"));
+                }
+                sortby
+            })
+            .unwrap_or_default();
 
         Ok(Items {
             limit: get_items.limit.map(|limit| limit.parse()).transpose()?,
@@ -452,7 +458,7 @@ mod tests {
             }
         );
         assert_eq!(
-            items.sortby.unwrap(),
+            items.sortby,
             vec![Sortby {
                 field: "foo".to_string(),
                 direction: Direction::Descending,
@@ -478,10 +484,10 @@ mod tests {
                 include: vec!["foo".to_string()],
                 exclude: vec!["bar".to_string()],
             }),
-            sortby: Some(vec![Sortby {
+            sortby: vec![Sortby {
                 field: "foo".to_string(),
                 direction: Direction::Descending,
-            }]),
+            }],
             filter_crs: None,
             filter: Some(Filter::Cql2Text("dummy text".to_string())),
             query: None,

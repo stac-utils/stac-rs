@@ -8,6 +8,14 @@
 
 Command Line Interface (CLI) and Rust libraries for the [SpatioTemporal Asset Catalog (STAC)](https://stacspec.org/) specification.
 
+There's a couple Python projects based on **stac-rs** that might be of interest to you, as well:
+
+- [stacrs](https://github.com/gadomski/stacrs) provides a Python API to **stac-rs**, including
+  - Reading and writing [stac-geoparquet](https://github.com/stac-utils/stac-geoparquet)
+  - Migrating to [STAC v1.1](https://github.com/radiantearth/stac-spec/releases/tag/v1.1.0)
+  - [More...](https://www.gadom.ski/posts/stacrs-python-v0-1/)
+- [pgstacrs](https://github.com/stac-utils/pgstacrs) is a Python library for working with [pgstac](https://github.com/stac-utils/pgstac)
+
 ## Command line interface
 
 Our command line interface (CLI) can query STAC APIs, validate STAC, and more.

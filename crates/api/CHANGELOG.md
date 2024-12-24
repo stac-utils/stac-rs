@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Convenience methods on `Search` ([#562](https://github.com/stac-utils/stac-rs/pull/562))
+
+### Changed
+
+- Many vectors on `Search` and `Items` are no longer `Options` ([#562](https://github.com/stac-utils/stac-rs/pull/562))
+
 ## [0.6.2] - 2024-11-12
 
 ### Added

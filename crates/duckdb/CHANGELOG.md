@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- Updated to **DuckDB** v1.1 and **geoarrow-rs** v0.4.0-beta.3 ([#562](https://github.com/stac-utils/stac-rs/pull/562))
+- Only allow searching one **stac-geoparquet** file at a time ([#562](https://github.com/stac-utils/stac-rs/pull/562))
+
 ## [0.0.3] - 2024-11-21
 
 ### Added
