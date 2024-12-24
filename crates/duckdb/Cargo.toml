@@ -14,13 +14,11 @@ rust-version.workspace = true
 [dependencies]
 arrow.workspace = true
 duckdb.workspace = true
-libduckdb-sys.workspace = true
 geoarrow = { workspace = true, features = ["parquet"] }
-parquet.workspace = true
 stac = { workspace = true, features = ["geoarrow"] }
 stac-api.workspace = true
 thiserror.workspace = true
 
 [dev-dependencies]
-geo.workspace = true
 rstest.workspace = true
+stac = { workspace = true, features = ["validate-blocking"] }

@@ -11,14 +11,9 @@ use geoarrow::{
     array::{CoordType, WKBArray},
     datatypes::NativeType,
     table::Table,
-    ArrayBase,
 };
-use libduckdb_sys as _;
 use stac_api::Search;
-use std::{
-    collections::{HashMap, HashSet},
-    fmt::Debug,
-};
+use std::fmt::Debug;
 use thiserror::Error;
 
 /// A crate-specific error enum.
@@ -37,25 +32,13 @@ pub enum Error {
     #[error(transparent)]
     GeoArrow(#[from] geoarrow::error::GeoArrowError),
 
-    /// [std::io::Error]
-    #[error(transparent)]
-    Io(#[from] std::io::Error),
-
-    /// [parquet::errors::ParquetError]
-    #[error(transparent)]
-    Parquet(#[from] parquet::errors::ParquetError),
-
     /// [stac::Error]
     #[error(transparent)]
     Stac(#[from] stac::Error),
 
-    /// [std::num::TryFromIntError]
+    /// [stac_api::Error]
     #[error(transparent)]
-    TryFromInt(#[from] std::num::TryFromIntError),
-
-    /// Utf 8 error
-    #[error(transparent)]
-    Utf8(#[from] std::str::Utf8Error),
+    StacApi(#[from] stac_api::Error),
 }
 
 /// A crate-specific result type.
@@ -65,19 +48,15 @@ pub type Result<T> = std::result::Result<T, Error>;
 #[derive(Debug)]
 pub struct Client {
     connection: Connection,
-    collections: HashMap<String, Vec<String>>,
 }
 
 /// A SQL query.
 #[derive(Debug)]
-pub struct Sql {
-    /// The select.
-    pub select: Option<String>,
+pub struct Query {
+    /// The SQL.
+    pub sql: String,
 
-    /// The query.
-    pub query: String,
-
-    /// The query parameters.
+    /// The parameters.
     pub params: Vec<Value>,
 }
 
@@ -95,158 +74,75 @@ impl Client {
         let connection = Connection::open_in_memory()?;
         connection.execute("INSTALL spatial", [])?;
         connection.execute("LOAD spatial", [])?;
-        Ok(Client {
-            connection,
-            collections: HashMap::new(),
-        })
+        Ok(Client { connection })
     }
-
-    /// Adds a [stac-geoparquet](https://github.com/stac-utils/stac-geoparquet) href to this client.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use stac_duckdb::Client;
-    ///
-    /// let mut client = Client::new().unwrap();
-    /// client.add_href("data/100-sentinel-2-items.parquet").unwrap();
-    /// ```
-    pub fn add_href(&mut self, href: impl ToString) -> Result<()> {
-        let href = href.to_string();
-        let mut statement = self
-            .connection
-            .prepare(&format!("SELECT collection FROM read_parquet('{}')", href))?;
-        let collections = statement
-            .query_map([], |row| row.get::<_, String>(0))?
-            .collect::<std::result::Result<HashSet<_>, duckdb::Error>>()?;
-        for collection in collections {
-            let entry = self.collections.entry(collection).or_default();
-            entry.push(href.clone());
-        }
-        Ok(())
-    }
-
-    /// Creates a new client from a path.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use stac_duckdb::Client;
-    ///
-    /// let client = Client::from_href("data/100-sentinel-2-items.parquet").unwrap();
-    /// ```
-    pub fn from_href(href: impl ToString) -> Result<Client> {
-        let mut client = Client::new()?;
-        client.add_href(href)?;
-        Ok(client)
-    }
-
     /// Searches this client, returning a [stac::ItemCollection].
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use stac_duckdb::Client;
-    /// use stac_api::Search;
-    ///
-    /// let client = Client::from_href("data/100-sentinel-2-items.parquet").unwrap();
-    /// let item_collection = client.search(Search::default()).unwrap();
-    /// assert_eq!(item_collection.items.len(), 100);
-    /// ```
-    pub fn search(&self, search: impl Into<Search>) -> Result<stac::ItemCollection> {
-        let mut items = Vec::new();
-        for record_batches in self
-            .search_to_arrow(search)?
-            .into_iter()
-            .filter(|r| !r.is_empty())
-        {
-            let schema = record_batches[0].schema();
-            let table = Table::try_new(record_batches, schema)?;
-            items.extend(stac::geoarrow::from_table(table)?.items);
-        }
-        Ok(items.into())
+    pub fn search(&self, href: &str, search: impl Into<Search>) -> Result<stac::ItemCollection> {
+        let record_batches = self.search_to_arrow(href, search)?;
+        let schema = record_batches[0].schema();
+        let table = Table::try_new(record_batches, schema)?;
+        let items = stac::geoarrow::from_table(table)?;
+        Ok(items)
     }
 
     /// Searches this client, returning a vector of vectors of all matched record batches.
-    ///
-    /// # Examples
-    ///
-    /// Each inner grouping of record batches comes from the same source table:
-    ///
-    /// ```
-    /// use stac_duckdb::Client;
-    /// use stac_api::Search;
-    ///
-    /// let client = Client::from_href("data/100-sentinel-2-items.parquet").unwrap();
-    /// for record_batches in client.search_to_arrow(Search::default()).unwrap() {
-    ///     // Schema can be different between groups of record batches
-    ///     for record_batch in record_batches {
-    ///         // Each record batch in this scope will have the same schema
-    ///     }
-    /// }
-    /// ```
-    pub fn search_to_arrow(&self, search: impl Into<Search>) -> Result<Vec<Vec<RecordBatch>>> {
-        let mut record_batches = Vec::new();
-        let search = search.into();
-        let collections = search.collections.clone();
-        let sql = Sql::new(search)?;
-        for collection in collections.unwrap_or_else(|| self.collections.keys().cloned().collect())
-        {
-            if let Some(hrefs) = self.collections.get(&collection) {
-                for href in hrefs {
-                    let statement = format!(
-                        "SELECT {} FROM read_parquet('{}')",
-                        sql.select.as_deref().unwrap_or("*"),
-                        href
-                    );
-                    let mut statement = self.connection.prepare(&statement)?;
-                    record_batches.push(
-                        statement
-                            .query_arrow(duckdb::params_from_iter(&sql.params))?
-                            .map(to_geoarrow_record_batch)
-                            .collect::<Result<_>>()?,
-                    );
-                }
-            }
-        }
-        Ok(record_batches)
+    pub fn search_to_arrow(
+        &self,
+        href: &str,
+        search: impl Into<Search>,
+    ) -> Result<Vec<RecordBatch>> {
+        let query = self.query(search, href)?;
+        let mut statement = self.connection.prepare(&query.sql)?;
+        statement
+            .query_arrow(duckdb::params_from_iter(query.params))?
+            .map(to_geoarrow_record_batch)
+            .collect::<Result<_>>()
     }
 
     /// Searches this client, returning a [stac_api::ItemCollection].
     ///
     /// Use this method if you want JSON that might not be valid STAC items,
     /// e.g. if you've excluded required fields from the response.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use stac_duckdb::Client;
-    /// use stac_api::Search;
-    ///
-    /// let client = Client::from_href("data/100-sentinel-2-items.parquet").unwrap();
-    /// let item_collection = client.search_to_json(Search::default()).unwrap();
-    /// assert_eq!(item_collection.items.len(), 100);
-    /// ```
-    pub fn search_to_json(&self, search: impl Into<Search>) -> Result<stac_api::ItemCollection> {
-        let mut items = Vec::new();
-        for record_batches in self
-            .search_to_arrow(search)?
-            .into_iter()
-            .filter(|r| !r.is_empty())
-        {
-            let schema = record_batches[0].schema();
-            let table = Table::try_new(record_batches, schema)?;
-            items.extend(stac::geoarrow::json::from_table(table)?);
-        }
-        Ok(items.into())
+    pub fn search_to_json(
+        &self,
+        href: &str,
+        search: impl Into<Search>,
+    ) -> Result<stac_api::ItemCollection> {
+        // TODO verify that we don't panic when zero items match
+        let record_batches = self.search_to_arrow(href, search)?;
+        let schema = record_batches[0].schema();
+        let table = Table::try_new(record_batches, schema)?;
+        let items = stac::geoarrow::json::from_table(table)?;
+        let item_collection = stac_api::ItemCollection::new(items)?;
+        Ok(item_collection)
     }
-}
 
-impl Sql {
-    fn new(search: Search) -> Result<Sql> {
-        Ok(Sql {
-            select: Some("ST_AsWKB(geometry)::BLOB geometry".to_string()),
-            query: String::new(),
+    fn query(&self, search: impl Into<Search>, href: &str) -> Result<Query> {
+        // Ok(Sql {
+        //     select: Some("ST_AsWKB(geometry)::BLOB geometry".to_string()),
+        //     query: String::new(),
+        //     params: Vec::new(),
+        // })
+
+        let mut statement = self.connection.prepare(&format!(
+            "SELECT column_name FROM (DESCRIBE SELECT * from read_parquet('{}'))",
+            href
+        ))?;
+        let mut columns = Vec::new();
+        for row in statement.query_map([], |row| row.get::<_, String>(0))? {
+            let column = row?;
+            if column == "geometry" {
+                columns.push("ST_AsWKB(geometry)::BLOB geometry".to_string());
+            } else {
+                columns.push(format!("\"{}\"", column));
+            }
+        }
+        Ok(Query {
+            sql: format!(
+                "SELECT {} FROM read_parquet('{}')",
+                columns.join(", "),
+                href
+            ),
             params: Vec::new(),
         })
     }
@@ -264,21 +160,23 @@ pub fn version() -> &'static str {
 }
 
 fn to_geoarrow_record_batch(mut record_batch: RecordBatch) -> Result<RecordBatch> {
-    let geometry_column = record_batch.remove_column(0);
-    let binary_array: GenericByteArray<GenericBinaryType<i32>> =
-        arrow::array::downcast_array(&geometry_column);
-    let wkb_array = WKBArray::new(binary_array, Default::default());
-    let geometry_array = geoarrow::io::wkb::from_wkb(
-        &wkb_array,
-        NativeType::Geometry(CoordType::Interleaved),
-        false,
-    )?;
-    let mut columns = record_batch.columns().to_vec();
-    let mut schema_builder = SchemaBuilder::from(&*record_batch.schema());
-    schema_builder.push(geometry_array.extension_field());
-    let schema = schema_builder.finish();
-    columns.push(geometry_array.to_array_ref());
-    let record_batch = RecordBatch::try_new(schema.into(), columns)?;
+    if let Some((index, _)) = record_batch.schema().column_with_name("geometry") {
+        let geometry_column = record_batch.remove_column(index);
+        let binary_array: GenericByteArray<GenericBinaryType<i32>> =
+            arrow::array::downcast_array(&geometry_column);
+        let wkb_array = WKBArray::new(binary_array, Default::default());
+        let geometry_array = geoarrow::io::wkb::from_wkb(
+            &wkb_array,
+            NativeType::Geometry(CoordType::Interleaved),
+            false,
+        )?;
+        let mut columns = record_batch.columns().to_vec();
+        let mut schema_builder = SchemaBuilder::from(&*record_batch.schema());
+        schema_builder.push(geometry_array.extension_field());
+        let schema = schema_builder.finish();
+        columns.push(geometry_array.to_array_ref());
+        record_batch = RecordBatch::try_new(schema.into(), columns)?;
+    }
     Ok(record_batch)
 }
 
@@ -286,6 +184,7 @@ fn to_geoarrow_record_batch(mut record_batch: RecordBatch) -> Result<RecordBatch
 mod tests {
     use super::Client;
     use rstest::{fixture, rstest};
+    use stac::ValidateBlocking;
     use stac_api::Search;
     use std::sync::Mutex;
 
@@ -294,12 +193,15 @@ mod tests {
     #[fixture]
     fn client() -> Client {
         let _mutex = MUTEX.lock().unwrap();
-        Client::from_href("data/100-sentinel-2-items.parquet").unwrap()
+        Client::new().unwrap()
     }
 
     #[rstest]
     fn search_all(client: Client) {
-        let item_collection = client.search(Search::default()).unwrap();
+        let item_collection = client
+            .search("data/100-sentinel-2-items.parquet", Search::default())
+            .unwrap();
         assert_eq!(item_collection.items.len(), 100);
+        item_collection.items[0].validate_blocking().unwrap();
     }
 }
