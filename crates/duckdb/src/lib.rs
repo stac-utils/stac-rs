@@ -157,6 +157,16 @@ impl Client {
             wheres.push(format!("ST_Intersects(geometry, ST_GeomFromGeoJSON(?))"));
             params.push(Value::Text(intersects.to_string()));
         }
+        if !search.collections.is_empty() {
+            wheres.push(format!(
+                "collection IN ({})",
+                (0..search.collections.len())
+                    .map(|_| "?")
+                    .collect::<Vec<_>>()
+                    .join(",")
+            ));
+            params.extend(search.collections.into_iter().map(|id| Value::Text(id)));
+        }
 
         let mut suffix = String::new();
         if !wheres.is_empty() {
@@ -258,5 +268,24 @@ mod tests {
             )
             .unwrap();
         assert_eq!(item_collection.items.len(), 50);
+    }
+
+    #[rstest]
+    fn search_collections(client: Client) {
+        let item_collection = client
+            .search(
+                "data/100-sentinel-2-items.parquet",
+                Search::default().collections(vec!["sentinel-2-l2a".to_string()]),
+            )
+            .unwrap();
+        assert_eq!(item_collection.items.len(), 100);
+
+        let item_collection = client
+            .search(
+                "data/100-sentinel-2-items.parquet",
+                Search::default().collections(vec!["foobar".to_string()]),
+            )
+            .unwrap();
+        assert_eq!(item_collection.items.len(), 0);
     }
 }

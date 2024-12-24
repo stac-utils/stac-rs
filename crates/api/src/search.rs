@@ -24,8 +24,8 @@ pub struct Search {
     pub ids: Vec<String>,
 
     /// Array of one or more Collection IDs that each matching Item must be in.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub collections: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
+    pub collections: Vec<String>,
 }
 
 /// GET parameters for the item search endpoint.
@@ -80,6 +80,12 @@ impl Search {
     /// Sets the intersects of this search.
     pub fn intersects(mut self, intersects: impl Into<Geometry>) -> Search {
         self.intersects = Some(intersects.into());
+        self
+    }
+
+    /// Sets the collections of this search.
+    pub fn collections(mut self, collections: Vec<String>) -> Search {
+        self.collections = collections;
         self
     }
 
@@ -146,14 +152,12 @@ impl Search {
     /// assert!(!search.collection_matches(&item));
     /// ```
     pub fn collection_matches(&self, item: &Item) -> bool {
-        if let Some(collections) = self.collections.as_ref() {
-            if let Some(collection) = item.collection.as_ref() {
-                collections.contains(collection)
-            } else {
-                false
-            }
-        } else {
+        if self.collections.is_empty() {
             true
+        } else if let Some(collection) = item.collection.as_ref() {
+            self.collections.contains(collection)
+        } else {
+            false
         }
     }
 
@@ -230,7 +234,11 @@ impl TryFrom<Search> for GetSearch {
             .intersects
             .map(|intersects| serde_json::to_string(&intersects))
             .transpose()?;
-        let collections = search.collections.map(|collections| collections.join(","));
+        let collections = if search.collections.is_empty() {
+            None
+        } else {
+            Some(search.collections.join(","))
+        };
         let ids = if search.ids.is_empty() {
             None
         } else {
@@ -256,7 +264,8 @@ impl TryFrom<GetSearch> for Search {
             .transpose()?;
         let collections = get_search
             .collections
-            .map(|collections| collections.split(',').map(|s| s.to_string()).collect());
+            .map(|collections| collections.split(',').map(|s| s.to_string()).collect())
+            .unwrap_or_default();
         let ids = get_search
             .ids
             .map(|ids| ids.split(',').map(|s| s.to_string()).collect())

@@ -81,7 +81,7 @@ pub fn search<'py>(
         })
         .transpose()?;
     let ids = ids.map(|ids| ids.into()).unwrap_or_default();
-    let collections = collections.map(|ids| ids.into());
+    let collections = collections.map(|ids| ids.into()).unwrap_or_default();
     Ok(Search {
         items,
         intersects,

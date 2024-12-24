@@ -288,7 +288,7 @@ impl Items {
             items: self,
             intersects: None,
             ids: Vec::new(),
-            collections: Some(vec![collection_id.to_string()]),
+            collections: vec![collection_id.to_string()],
         }
     }
 
