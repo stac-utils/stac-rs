@@ -430,7 +430,7 @@ mod tests {
 
         let client = Client::new(&server.url()).unwrap();
         let mut search = Search {
-            collections: Some(vec!["sentinel-2-l2a".to_string()]),
+            collections: vec!["sentinel-2-l2a".to_string()],
             ..Default::default()
         };
         search.items.limit = Some(1);

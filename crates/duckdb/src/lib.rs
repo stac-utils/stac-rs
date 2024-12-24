@@ -129,16 +129,24 @@ impl Client {
             href
         ))?;
         let mut columns = Vec::new();
+        // Can we use SQL magic to make our query not depend on which columns are present?
+        let mut has_start_datetime = false;
+        let mut has_end_datetime: bool = false;
         for row in statement.query_map([], |row| row.get::<_, String>(0))? {
             let column = row?;
             if column == "geometry" {
                 columns.push("ST_AsWKB(geometry) geometry".to_string());
-            } else {
-                columns.push(format!("\"{}\"", column));
+                continue;
             }
+            if column == "start_datetime" {
+                has_start_datetime = true;
+            }
+            if column == "end_datetime" {
+                has_end_datetime = true;
+            }
+            columns.push(format!("\"{}\"", column));
         }
 
-        // TODO refactor this out, since it doesn't need a connection to build.
         let mut wheres = Vec::new();
         let mut params = Vec::new();
         if !search.ids.is_empty() {
@@ -168,6 +176,31 @@ impl Client {
         if let Some(bbox) = search.items.bbox {
             wheres.push(format!("ST_Intersects(geometry, ST_GeomFromGeoJSON(?))"));
             params.push(Value::Text(bbox.to_geometry().to_string()));
+        }
+        if let Some(datetime) = search.items.datetime {
+            let interval = stac::datetime::parse(&datetime)?;
+            if let Some(start) = interval.0 {
+                wheres.push(format!(
+                    "?::TIMESTAMPTZ <= {}",
+                    if has_start_datetime {
+                        "start_datetime"
+                    } else {
+                        "datetime"
+                    }
+                ));
+                params.push(Value::Text(start.to_rfc3339()));
+            }
+            if let Some(end) = interval.1 {
+                wheres.push(format!(
+                    "?::TIMESTAMPTZ >= {}", // Inclusive, https://github.com/radiantearth/stac-spec/pull/1280
+                    if has_end_datetime {
+                        "end_datetime"
+                    } else {
+                        "datetime"
+                    }
+                ));
+                params.push(Value::Text(end.to_rfc3339()));
+            }
         }
 
         let mut suffix = String::new();
@@ -300,5 +333,23 @@ mod tests {
             )
             .unwrap();
         assert_eq!(item_collection.items.len(), 50);
+    }
+
+    #[rstest]
+    fn search_datetime(client: Client) {
+        let item_collection = client
+            .search(
+                "data/100-sentinel-2-items.parquet",
+                Search::default().datetime("2024-12-02T00:00:00Z/.."),
+            )
+            .unwrap();
+        assert_eq!(item_collection.items.len(), 1);
+        let item_collection = client
+            .search(
+                "data/100-sentinel-2-items.parquet",
+                Search::default().datetime("../2024-12-02T00:00:00Z"),
+            )
+            .unwrap();
+        assert_eq!(item_collection.items.len(), 99);
     }
 }

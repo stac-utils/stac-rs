@@ -88,9 +88,15 @@ impl Search {
         self
     }
 
-    /// Sets the bbox of this items query.
+    /// Sets the bbox of this search.
     pub fn bbox(mut self, bbox: impl Into<Bbox>) -> Search {
         self.items.bbox = Some(bbox.into());
+        self
+    }
+
+    /// Sets the datetime of this search.
+    pub fn datetime(mut self, datetime: impl ToString) -> Search {
+        self.items.datetime = Some(datetime.to_string());
         self
     }
 
