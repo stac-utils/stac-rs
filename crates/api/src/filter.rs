@@ -23,7 +23,7 @@ impl Filter {
         match self {
             Filter::Cql2Json(_) => Ok(self),
             Filter::Cql2Text(text) => {
-                let expr = cql2::parse_text(&text)?;
+                let expr = cql2::parse_text(&text).map_err(Box::new)?;
                 Ok(Filter::Cql2Json(serde_json::from_value(
                     serde_json::to_value(expr)?,
                 )?))
@@ -37,7 +37,7 @@ impl Filter {
             Filter::Cql2Text(_) => Ok(self),
             Filter::Cql2Json(json) => {
                 let expr: Expr = serde_json::from_value(Value::Object(json))?;
-                Ok(Filter::Cql2Text(expr.to_text()?))
+                Ok(Filter::Cql2Text(expr.to_text().map_err(Box::new)?))
             }
         }
     }

@@ -161,10 +161,10 @@ impl Client {
                     .collect::<Vec<_>>()
                     .join(",")
             ));
-            params.extend(search.ids.into_iter().map(|id| Value::Text(id)));
+            params.extend(search.ids.into_iter().map(Value::Text));
         }
         if let Some(intersects) = search.intersects {
-            wheres.push(format!("ST_Intersects(geometry, ST_GeomFromGeoJSON(?))"));
+            wheres.push("ST_Intersects(geometry, ST_GeomFromGeoJSON(?))".to_string());
             params.push(Value::Text(intersects.to_string()));
         }
         if !search.collections.is_empty() {
@@ -175,10 +175,10 @@ impl Client {
                     .collect::<Vec<_>>()
                     .join(",")
             ));
-            params.extend(search.collections.into_iter().map(|id| Value::Text(id)));
+            params.extend(search.collections.into_iter().map(Value::Text));
         }
         if let Some(bbox) = search.items.bbox {
-            wheres.push(format!("ST_Intersects(geometry, ST_GeomFromGeoJSON(?))"));
+            wheres.push("ST_Intersects(geometry, ST_GeomFromGeoJSON(?))".to_string());
             params.push(Value::Text(bbox.to_geometry().to_string()));
         }
         if let Some(datetime) = search.items.datetime {
@@ -206,10 +206,10 @@ impl Client {
                 params.push(Value::Text(end.to_rfc3339()));
             }
         }
-        if let Some(_) = search.items.filter {
+        if search.items.filter.is_some() {
             todo!("Implement the filter extension");
         }
-        if let Some(_) = search.items.query {
+        if search.items.query.is_some() {
             todo!("Implement the query extension");
         }
 

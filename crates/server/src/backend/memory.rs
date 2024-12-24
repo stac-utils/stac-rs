@@ -134,7 +134,7 @@ impl Backend for MemoryBackend {
         }
         if skip > 0 {
             let mut prev = Map::new();
-            let skip = if skip > limit { skip - limit } else { 0 };
+            let skip = skip.saturating_sub(limit);
             let _ = prev.insert("skip".to_string(), skip.into());
             item_collection.prev = Some(prev);
         }
