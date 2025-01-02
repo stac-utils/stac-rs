@@ -108,7 +108,7 @@ impl Client {
         Ok(item_collection)
     }
 
-    /// Searches this client, returning a vector of vectors of all matched record batches.
+    /// Searches this client, returning a vector of all matched record batches.
     pub fn search_to_arrow(
         &self,
         href: &str,
