@@ -127,6 +127,7 @@ impl Client {
         // Get suffix information early so we can take ownership of other parts of search as we go along.
         let limit = search.items.limit.take();
         let sortby = std::mem::take(&mut search.items.sortby);
+        let fields = std::mem::take(&mut search.items.fields);
 
         let mut statement = self.connection.prepare(&format!(
             "SELECT column_name FROM (DESCRIBE SELECT * from read_parquet('{}'))",
@@ -138,17 +139,26 @@ impl Client {
         let mut has_end_datetime: bool = false;
         for row in statement.query_map([], |row| row.get::<_, String>(0))? {
             let column = row?;
-            if column == "geometry" {
-                columns.push("ST_AsWKB(geometry) geometry".to_string());
-                continue;
-            }
             if column == "start_datetime" {
                 has_start_datetime = true;
             }
             if column == "end_datetime" {
                 has_end_datetime = true;
             }
-            columns.push(format!("\"{}\"", column));
+
+            if let Some(fields) = fields.as_ref() {
+                if fields.exclude.contains(&column)
+                    || !(fields.include.is_empty() || fields.include.contains(&column))
+                {
+                    continue;
+                }
+            }
+
+            if column == "geometry" {
+                columns.push("ST_AsWKB(geometry) geometry".to_string());
+            } else {
+                columns.push(format!("\"{}\"", column));
+            }
         }
 
         let mut wheres = Vec::new();
@@ -418,5 +428,16 @@ mod tests {
             item_collection.items[0].id,
             "S2B_MSIL2A_20241203T174629_R098_T13TDE_20241203T211406"
         );
+    }
+
+    #[rstest]
+    fn search_fields(client: Client) {
+        let item_collection = client
+            .search_to_json(
+                "data/100-sentinel-2-items.parquet",
+                Search::default().fields("+id".parse().unwrap()).limit(1),
+            )
+            .unwrap();
+        assert_eq!(item_collection.items[0].len(), 1);
     }
 }
