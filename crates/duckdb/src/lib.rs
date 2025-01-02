@@ -3,7 +3,7 @@
 #![warn(unused_crate_dependencies)]
 
 use arrow::{
-    array::{GenericByteArray, RecordBatch},
+    array::{AsArray, GenericByteArray, RecordBatch},
     datatypes::{GenericBinaryType, SchemaBuilder},
 };
 use duckdb::{types::Value, Connection};
@@ -271,7 +271,7 @@ fn to_geoarrow_record_batch(mut record_batch: RecordBatch) -> Result<RecordBatch
     if let Some((index, _)) = record_batch.schema().column_with_name("geometry") {
         let geometry_column = record_batch.remove_column(index);
         let binary_array: GenericByteArray<GenericBinaryType<i32>> =
-            arrow::array::downcast_array(&geometry_column);
+            geometry_column.as_binary::<i32>().clone();
         let wkb_array = WKBArray::new(binary_array, Default::default());
         let geometry_array = geoarrow::io::wkb::from_wkb(
             &wkb_array,
