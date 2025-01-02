@@ -56,8 +56,6 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 #[cfg(feature = "duckdb")]
 use duckdb as _;
-use openssl as _;
-use openssl_src as _;
 use tracing_subscriber as _;
 
 #[cfg(test)]

@@ -24,8 +24,6 @@ duckdb = { workspace = true, optional = true, features = [
     "bundled",
 ] } # We have this dependency only to allow us to bundle it
 object_store.workspace = true
-openssl.workspace = true # same as duckdb, these openssls are just for bundling
-openssl-src.workspace = true
 pyo3 = { workspace = true, optional = true }
 reqwest.workspace = true
 serde.workspace = true
