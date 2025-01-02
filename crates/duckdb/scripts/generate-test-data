@@ -1,0 +1,22 @@
+#!/usr/bin/env sh
+
+set -e
+
+scripts=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+duckdb=$(dirname $scripts)
+data="$duckdb/data"
+
+cargo run -- \
+    search https://planetarycomputer.microsoft.com/api/stac/v1 "$data/100-sentinel-2-items.parquet" \
+    -c sentinel-2-l2a \
+    --max-items 100 \
+    --sortby=-datetime \
+    --intersects '{"type":"Point","coordinates":[-105.1019,40.1672]}'
+   
+cargo run -- \
+    search https://planetarycomputer.microsoft.com/api/stac/v1 "$data/100-landsat-items.parquet" \
+    -c landsat-c2-l2 \
+    --max-items 100 \
+    --sortby=-datetime \
+    --intersects '{"type":"Point","coordinates":[-105.1019,40.1672]}'
+   

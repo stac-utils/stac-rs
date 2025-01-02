@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.7.0] - 2025-01-02
+
+### Added
+
+- Convenience methods on `Search` ([#562](https://github.com/stac-utils/stac-rs/pull/562), [#584](https://github.com/stac-utils/stac-rs/pull/584))
+
+### Changed
+
+- Many vectors on `Search` and `Items` are no longer `Options` ([#562](https://github.com/stac-utils/stac-rs/pull/562))
+
 ## [0.6.2] - 2024-11-12
 
 ### Added
@@ -137,7 +147,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 Initial release
 
-[unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-api-v0.6.2...main
+[unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-api-v0.7.0...main
+[0.7.0]: https://github.com/stac-utils/stac-rs/compare/stac-api-v0.6.2...stac-api-v0.7.0
 [0.6.2]: https://github.com/stac-utils/stac-rs/compare/stac-api-v0.6.1...stac-api-v0.6.2
 [0.6.1]: https://github.com/stac-utils/stac-rs/compare/stac-api-v0.6.0...stac-api-v0.6.1
 [0.6.0]: https://github.com/stac-utils/stac-rs/compare/stac-api-v0.5.0...stac-api-v0.6.0

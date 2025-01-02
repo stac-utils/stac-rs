@@ -1,16 +1,19 @@
 //! Use [duckdb](https://duckdb.org/) with [STAC](https://stacspec.org).
 
-#![deny(unused_crate_dependencies)]
+#![warn(unused_crate_dependencies)]
 
-use arrow::array::RecordBatch;
-use duckdb::{types::Value, Connection};
-use geoarrow::table::Table;
-use libduckdb_sys as _;
-use stac_api::{Direction, Search};
-use std::{
-    collections::{HashMap, HashSet},
-    fmt::Debug,
+use arrow::{
+    array::{AsArray, GenericByteArray, RecordBatch},
+    datatypes::{GenericBinaryType, SchemaBuilder},
 };
+use duckdb::{types::Value, Connection};
+use geoarrow::{
+    array::{CoordType, WKBArray},
+    datatypes::NativeType,
+    table::Table,
+};
+use stac_api::{Direction, Search};
+use std::fmt::Debug;
 use thiserror::Error;
 
 /// A crate-specific error enum.
@@ -29,25 +32,13 @@ pub enum Error {
     #[error(transparent)]
     GeoArrow(#[from] geoarrow::error::GeoArrowError),
 
-    /// [std::io::Error]
-    #[error(transparent)]
-    Io(#[from] std::io::Error),
-
-    /// [parquet::errors::ParquetError]
-    #[error(transparent)]
-    Parquet(#[from] parquet::errors::ParquetError),
-
     /// [stac::Error]
     #[error(transparent)]
     Stac(#[from] stac::Error),
 
-    /// [std::num::TryFromIntError]
+    /// [stac_api::Error]
     #[error(transparent)]
-    TryFromInt(#[from] std::num::TryFromIntError),
-
-    /// Unimplemented feature.
-    #[error("unimplemented: {0}")]
-    Unimplemented(&'static str),
+    StacApi(#[from] stac_api::Error),
 }
 
 /// A crate-specific result type.
@@ -57,19 +48,15 @@ pub type Result<T> = std::result::Result<T, Error>;
 #[derive(Debug)]
 pub struct Client {
     connection: Connection,
-    collections: HashMap<String, Vec<String>>,
 }
 
 /// A SQL query.
 #[derive(Debug)]
-pub struct Sql {
-    /// The select.
-    pub select: Option<String>,
+pub struct Query {
+    /// The SQL.
+    pub sql: String,
 
-    /// The query.
-    pub query: String,
-
-    /// The query parameters.
+    /// The parameters.
     pub params: Vec<Value>,
 }
 
@@ -87,263 +74,186 @@ impl Client {
         let connection = Connection::open_in_memory()?;
         connection.execute("INSTALL spatial", [])?;
         connection.execute("LOAD spatial", [])?;
-        Ok(Client {
-            connection,
-            collections: HashMap::new(),
-        })
+        Ok(Client { connection })
     }
-
-    /// Adds a [stac-geoparquet](https://github.com/stac-utils/stac-geoparquet) href to this client.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use stac_duckdb::Client;
-    ///
-    /// let mut client = Client::new().unwrap();
-    /// client.add_href("data/100-sentinel-2-items.parquet").unwrap();
-    /// ```
-    pub fn add_href(&mut self, href: impl ToString) -> Result<()> {
-        let href = href.to_string();
-        let mut statement = self
-            .connection
-            .prepare(&format!("SELECT collection FROM read_parquet('{}')", href))?;
-        let collections = statement
-            .query_map([], |row| row.get::<_, String>(0))?
-            .collect::<std::result::Result<HashSet<_>, duckdb::Error>>()?;
-        for collection in collections {
-            let entry = self.collections.entry(collection).or_default();
-            entry.push(href.clone());
-        }
-        Ok(())
-    }
-
-    /// Creates a new client from a path.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use stac_duckdb::Client;
-    ///
-    /// let client = Client::from_href("data/100-sentinel-2-items.parquet").unwrap();
-    /// ```
-    pub fn from_href(href: impl ToString) -> Result<Client> {
-        let mut client = Client::new()?;
-        client.add_href(href)?;
-        Ok(client)
-    }
-
     /// Searches this client, returning a [stac::ItemCollection].
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use stac_duckdb::Client;
-    /// use stac_api::Search;
-    ///
-    /// let client = Client::from_href("data/100-sentinel-2-items.parquet").unwrap();
-    /// let item_collection = client.search(Search::default()).unwrap();
-    /// assert_eq!(item_collection.items.len(), 100);
-    /// ```
-    pub fn search(&self, search: impl Into<Search>) -> Result<stac::ItemCollection> {
-        let mut items = Vec::new();
-        for record_batches in self
-            .search_to_arrow(search)?
-            .into_iter()
-            .filter(|r| !r.is_empty())
-        {
-            let schema = record_batches[0].schema();
-            let table = Table::try_new(record_batches, schema)?;
-            items.extend(stac::geoarrow::from_table(table)?.items);
+    pub fn search(&self, href: &str, search: impl Into<Search>) -> Result<stac::ItemCollection> {
+        let record_batches = self.search_to_arrow(href, search)?;
+        if record_batches.is_empty() {
+            return Ok(Vec::new().into());
         }
-        Ok(items.into())
-    }
-
-    /// Searches this client, returning a vector of vectors of all matched record batches.
-    ///
-    /// # Examples
-    ///
-    /// Each inner grouping of record batches comes from the same source table:
-    ///
-    /// ```
-    /// use stac_duckdb::Client;
-    /// use stac_api::Search;
-    ///
-    /// let client = Client::from_href("data/100-sentinel-2-items.parquet").unwrap();
-    /// for record_batches in client.search_to_arrow(Search::default()).unwrap() {
-    ///     // Schema can be different between groups of record batches
-    ///     for record_batch in record_batches {
-    ///         // Each record batch in this scope will have the same schema
-    ///     }
-    /// }
-    /// ```
-    pub fn search_to_arrow(&self, search: impl Into<Search>) -> Result<Vec<Vec<RecordBatch>>> {
-        let mut record_batches = Vec::new();
-        let search = search.into();
-        let collections = search.collections.clone();
-        let sql = Sql::new(search)?;
-        for collection in collections.unwrap_or_else(|| self.collections.keys().cloned().collect())
-        {
-            if let Some(hrefs) = self.collections.get(&collection) {
-                for href in hrefs {
-                    let mut statement = format!(
-                        "SELECT {} FROM read_parquet('{}')",
-                        sql.select.as_deref().unwrap_or("*"),
-                        href
-                    );
-                    if !sql.is_empty() {
-                        statement.push(' ');
-                        statement.push_str(&sql.query);
-                    }
-                    let mut statement = self.connection.prepare(&statement)?;
-                    record_batches.push(
-                        statement
-                            .query_arrow(duckdb::params_from_iter(&sql.params))?
-                            .collect(),
-                    );
-                }
-            }
-        }
-        Ok(record_batches)
+        let schema = record_batches[0].schema();
+        let table = Table::try_new(record_batches, schema)?;
+        let items = stac::geoarrow::from_table(table)?;
+        Ok(items)
     }
 
     /// Searches this client, returning a [stac_api::ItemCollection].
     ///
     /// Use this method if you want JSON that might not be valid STAC items,
     /// e.g. if you've excluded required fields from the response.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use stac_duckdb::Client;
-    /// use stac_api::Search;
-    ///
-    /// let client = Client::from_href("data/100-sentinel-2-items.parquet").unwrap();
-    /// let item_collection = client.search_to_json(Search::default()).unwrap();
-    /// assert_eq!(item_collection.items.len(), 100);
-    /// ```
-    pub fn search_to_json(&self, search: impl Into<Search>) -> Result<stac_api::ItemCollection> {
-        let mut items = Vec::new();
-        for record_batches in self
-            .search_to_arrow(search)?
-            .into_iter()
-            .filter(|r| !r.is_empty())
-        {
-            let schema = record_batches[0].schema();
-            let table = Table::try_new(record_batches, schema)?;
-            items.extend(stac::geoarrow::json::from_table(table)?);
+    pub fn search_to_json(
+        &self,
+        href: &str,
+        search: impl Into<Search>,
+    ) -> Result<stac_api::ItemCollection> {
+        let record_batches = self.search_to_arrow(href, search)?;
+        if record_batches.is_empty() {
+            return Ok(Vec::new().into());
         }
-        Ok(items.into())
+        let schema = record_batches[0].schema();
+        let table = Table::try_new(record_batches, schema)?;
+        let items = stac::geoarrow::json::from_table(table)?;
+        let item_collection = stac_api::ItemCollection::new(items)?;
+        Ok(item_collection)
     }
-}
 
-impl Sql {
-    fn new(search: Search) -> Result<Sql> {
+    /// Searches this client, returning a vector of all matched record batches.
+    pub fn search_to_arrow(
+        &self,
+        href: &str,
+        search: impl Into<Search>,
+    ) -> Result<Vec<RecordBatch>> {
+        let query = self.query(search, href)?;
+        let mut statement = self.connection.prepare(&query.sql)?;
+        statement
+            .query_arrow(duckdb::params_from_iter(query.params))?
+            .map(to_geoarrow_record_batch)
+            .collect::<Result<_>>()
+    }
+
+    fn query(&self, search: impl Into<Search>, href: &str) -> Result<Query> {
+        let mut search: Search = search.into();
+        // Get suffix information early so we can take ownership of other parts of search as we go along.
+        let limit = search.items.limit.take();
+        let sortby = std::mem::take(&mut search.items.sortby);
+        let fields = std::mem::take(&mut search.items.fields);
+
+        let mut statement = self.connection.prepare(&format!(
+            "SELECT column_name FROM (DESCRIBE SELECT * from read_parquet('{}'))",
+            href
+        ))?;
+        let mut columns = Vec::new();
+        // Can we use SQL magic to make our query not depend on which columns are present?
+        let mut has_start_datetime = false;
+        let mut has_end_datetime: bool = false;
+        for row in statement.query_map([], |row| row.get::<_, String>(0))? {
+            let column = row?;
+            if column == "start_datetime" {
+                has_start_datetime = true;
+            }
+            if column == "end_datetime" {
+                has_end_datetime = true;
+            }
+
+            if let Some(fields) = fields.as_ref() {
+                if fields.exclude.contains(&column)
+                    || !(fields.include.is_empty() || fields.include.contains(&column))
+                {
+                    continue;
+                }
+            }
+
+            if column == "geometry" {
+                columns.push("ST_AsWKB(geometry) geometry".to_string());
+            } else {
+                columns.push(format!("\"{}\"", column));
+            }
+        }
+
         let mut wheres = Vec::new();
         let mut params = Vec::new();
-        if let Some(ids) = search
-            .ids
-            .and_then(|ids| if ids.is_empty() { None } else { Some(ids) })
-        {
-            wheres.push(format!("id IN ({})", repeat_vars(ids.len())));
-            params.extend(ids.into_iter().map(Value::from));
-        }
-        if let Some(collections) =
-            search
-                .collections
-                .and_then(|c| if c.is_empty() { None } else { Some(c) })
-        {
+        if !search.ids.is_empty() {
             wheres.push(format!(
-                "collection IN ({})",
-                repeat_vars(collections.len())
+                "id IN ({})",
+                (0..search.ids.len())
+                    .map(|_| "?")
+                    .collect::<Vec<_>>()
+                    .join(",")
             ));
-            params.extend(collections.into_iter().map(Value::from));
+            params.extend(search.ids.into_iter().map(Value::Text));
         }
         if let Some(intersects) = search.intersects {
-            wheres
-                .push("ST_Intersects(ST_GeomFromWKB(geometry), ST_GeomFromGeoJSON(?))".to_string());
-            params.push(Value::from(intersects.to_string()));
+            wheres.push("ST_Intersects(geometry, ST_GeomFromGeoJSON(?))".to_string());
+            params.push(Value::Text(intersects.to_string()));
+        }
+        if !search.collections.is_empty() {
+            wheres.push(format!(
+                "collection IN ({})",
+                (0..search.collections.len())
+                    .map(|_| "?")
+                    .collect::<Vec<_>>()
+                    .join(",")
+            ));
+            params.extend(search.collections.into_iter().map(Value::Text));
         }
         if let Some(bbox) = search.items.bbox {
-            wheres
-                .push("ST_Intersects(ST_GeomFromWKB(geometry), ST_GeomFromGeoJSON(?))".to_string());
-            params.push(Value::from(bbox.to_geometry().to_string()));
+            wheres.push("ST_Intersects(geometry, ST_GeomFromGeoJSON(?))".to_string());
+            params.push(Value::Text(bbox.to_geometry().to_string()));
         }
         if let Some(datetime) = search.items.datetime {
-            // TODO support start and end datetimes
-            let (start, end) = stac::datetime::parse(&datetime)?;
-            if let Some(start) = start {
-                wheres.push("datetime >= make_timestamp(?)".to_string());
-                params.push(Value::from(start.timestamp_micros()));
+            let interval = stac::datetime::parse(&datetime)?;
+            if let Some(start) = interval.0 {
+                wheres.push(format!(
+                    "?::TIMESTAMPTZ <= {}",
+                    if has_start_datetime {
+                        "start_datetime"
+                    } else {
+                        "datetime"
+                    }
+                ));
+                params.push(Value::Text(start.to_rfc3339()));
             }
-            if let Some(end) = end {
-                wheres.push("datetime <= make_timestamp(?)".to_string());
-                params.push(Value::from(end.timestamp_micros()));
+            if let Some(end) = interval.1 {
+                wheres.push(format!(
+                    "?::TIMESTAMPTZ >= {}", // Inclusive, https://github.com/radiantearth/stac-spec/pull/1280
+                    if has_end_datetime {
+                        "end_datetime"
+                    } else {
+                        "datetime"
+                    }
+                ));
+                params.push(Value::Text(end.to_rfc3339()));
             }
-        }
-        let mut query = String::new();
-        if !wheres.is_empty() {
-            query.push_str("WHERE ");
-            query.push_str(&wheres.join(" AND "));
-        }
-        let mut select = None;
-        if let Some(fields) = search.items.fields {
-            // TODO protect against injection
-            if !fields.include.is_empty() {
-                select = Some(fields.include.join(","));
-            }
-            // TODO implement
-            if !fields.exclude.is_empty() {
-                return Err(Error::Unimplemented("fields.exclude"));
-            }
-        }
-        if let Some(sortby) = search.items.sortby {
-            query.push_str(" ORDER BY ");
-            let sortby: Vec<_> = sortby
-                .into_iter()
-                .map(|sortby| {
-                    format!(
-                        "{} {}",
-                        sortby.field,
-                        match sortby.direction {
-                            Direction::Ascending => "ASC",
-                            Direction::Descending => "DESC",
-                        }
-                    )
-                })
-                .collect();
-            query.push_str(&sortby.join(","));
-        }
-        if let Some(limit) = search.items.limit {
-            query.push_str(" LIMIT ");
-            query.push_str(&limit.to_string());
         }
         if search.items.filter.is_some() {
-            return Err(Error::Unimplemented("filter"));
-        }
-        if search.items.filter_crs.is_some() {
-            return Err(Error::Unimplemented("filter_crs"));
+            todo!("Implement the filter extension");
         }
         if search.items.query.is_some() {
-            return Err(Error::Unimplemented("query"));
+            todo!("Implement the query extension");
         }
-        Ok(Sql {
-            select,
-            query,
+
+        let mut suffix = String::new();
+        if !wheres.is_empty() {
+            suffix.push_str(&format!(" WHERE {}", wheres.join(" AND ")));
+        }
+        if !sortby.is_empty() {
+            let mut order_by = Vec::with_capacity(sortby.len());
+            for sortby in sortby {
+                order_by.push(format!(
+                    "{} {}",
+                    sortby.field,
+                    match sortby.direction {
+                        Direction::Ascending => "ASC",
+                        Direction::Descending => "DESC",
+                    }
+                ));
+            }
+            suffix.push_str(&format!(" ORDER BY {}", order_by.join(", ")));
+        }
+        if let Some(limit) = limit {
+            suffix.push_str(&format!(" LIMIT {}", limit));
+        }
+        Ok(Query {
+            sql: format!(
+                "SELECT {} FROM read_parquet('{}'){}",
+                columns.join(","),
+                href,
+                suffix,
+            ),
             params,
         })
     }
-
-    fn is_empty(&self) -> bool {
-        self.query.is_empty()
-    }
-}
-
-fn repeat_vars(count: usize) -> String {
-    assert_ne!(count, 0);
-    let mut s = "?,".repeat(count);
-    s.pop();
-    s
 }
 
 /// Return this crate's version.
@@ -357,132 +267,177 @@ pub fn version() -> &'static str {
     env!("CARGO_PKG_VERSION")
 }
 
+fn to_geoarrow_record_batch(mut record_batch: RecordBatch) -> Result<RecordBatch> {
+    if let Some((index, _)) = record_batch.schema().column_with_name("geometry") {
+        let geometry_column = record_batch.remove_column(index);
+        let binary_array: GenericByteArray<GenericBinaryType<i32>> =
+            geometry_column.as_binary::<i32>().clone();
+        let wkb_array = WKBArray::new(binary_array, Default::default());
+        let geometry_array = geoarrow::io::wkb::from_wkb(
+            &wkb_array,
+            NativeType::Geometry(CoordType::Interleaved),
+            false,
+        )?;
+        let mut columns = record_batch.columns().to_vec();
+        let mut schema_builder = SchemaBuilder::from(&*record_batch.schema());
+        schema_builder.push(geometry_array.extension_field());
+        let schema = schema_builder.finish();
+        columns.push(geometry_array.to_array_ref());
+        record_batch = RecordBatch::try_new(schema.into(), columns)?;
+    }
+    Ok(record_batch)
+}
+
 #[cfg(test)]
 mod tests {
     use super::Client;
-    use duckdb_test::duckdb_test;
-    use stac_api::{Direction, Fields, Items, Search, Sortby};
+    use geo::Geometry;
+    use rstest::{fixture, rstest};
+    use stac::{Bbox, ValidateBlocking};
+    use stac_api::{Search, Sortby};
     use std::sync::Mutex;
 
-    // This is an absolutely heinous way to ensure that only one test is hitting
-    // the DB at a time -- the MUTEX is used in the duckdb-test crate as part of
-    // the code generated by `duckdb_test`.
-    //
-    // There's got to be a better way.
     static MUTEX: Mutex<()> = Mutex::new(());
 
-    #[duckdb_test]
-    fn search_all() {
-        let client = Client::from_href("data/100-sentinel-2-items.parquet").unwrap();
-        let item_collection = client.search(Search::default()).unwrap();
-        assert_eq!(item_collection.items.len(), 100);
+    #[fixture]
+    fn client() -> Client {
+        let _mutex = MUTEX.lock().unwrap();
+        Client::new().unwrap()
     }
 
-    #[duckdb_test]
-    fn search_ids() {
-        let client = Client::from_href("data/100-sentinel-2-items.parquet").unwrap();
-        let search = Search {
-            ids: Some(vec![
-                "S2B_MSIL2A_20240828T174909_R141_T13SEB_20240828T214916".to_string(),
-                "S2B_MSIL2A_20240828T174909_R141_T13SDD_20240828T214916".to_string(),
-            ]),
-            ..Default::default()
-        };
-        let item_collection = client.search(search).unwrap();
-        assert_eq!(item_collection.items.len(), 2);
-    }
-
-    #[duckdb_test]
-    fn search_collections() {
-        let mut client = Client::new().unwrap();
-        client
-            .add_href("data/100-sentinel-2-items.parquet")
+    #[rstest]
+    fn search_all(client: Client) {
+        let item_collection = client
+            .search("data/100-sentinel-2-items.parquet", Search::default())
             .unwrap();
-        client.add_href("data/100-landsat-items.parquet").unwrap();
-        let search = Search {
-            collections: Some(vec!["sentinel-2-l2a".to_string()]),
-            ..Default::default()
-        };
-        let item_collection = client.search(search).unwrap();
         assert_eq!(item_collection.items.len(), 100);
+        item_collection.items[0].validate_blocking().unwrap();
     }
 
-    #[duckdb_test]
-    fn search_intersects() {
-        let client = Client::from_href("data/100-sentinel-2-items.parquet").unwrap();
-        let search = Search {
-            intersects: Some((&geo::point!(x: -105., y: 41.)).into()),
-            ..Default::default()
-        };
-        let item_collection = client.search(search).unwrap();
-        assert_eq!(item_collection.items.len(), 2);
+    #[rstest]
+    fn search_ids(client: Client) {
+        let item_collection = client
+            .search(
+                "data/100-sentinel-2-items.parquet",
+                Search::default().ids(vec![
+                    "S2A_MSIL2A_20240326T174951_R141_T13TDE_20240329T224429".to_string(),
+                ]),
+            )
+            .unwrap();
+        assert_eq!(item_collection.items.len(), 1);
+        assert_eq!(
+            item_collection.items[0].id,
+            "S2A_MSIL2A_20240326T174951_R141_T13TDE_20240329T224429"
+        );
     }
 
-    #[duckdb_test]
-    fn search_limit() {
-        let client = Client::from_href("data/100-sentinel-2-items.parquet").unwrap();
-        let items = Items {
-            limit: Some(10),
-            ..Default::default()
-        };
-        let item_collection = client.search(items).unwrap();
-        assert_eq!(item_collection.items.len(), 10);
+    #[rstest]
+    fn search_intersects(client: Client) {
+        let item_collection = client
+            .search(
+                "data/100-sentinel-2-items.parquet",
+                Search::default().intersects(&Geometry::Point(geo::point! { x: -106., y: 40.5 })),
+            )
+            .unwrap();
+        assert_eq!(item_collection.items.len(), 50);
     }
 
-    #[duckdb_test]
-    fn search_bbox() {
-        let client = Client::from_href("data/100-sentinel-2-items.parquet").unwrap();
-        let items = Items {
-            bbox: Some(vec![-105., 41., -104., 42.].try_into().unwrap()),
-            ..Default::default()
-        };
-        let item_collection = client.search(items).unwrap();
-        assert_eq!(item_collection.items.len(), 4);
-    }
-
-    #[duckdb_test]
-    fn search_datetime() {
-        let client = Client::from_href("data/100-sentinel-2-items.parquet").unwrap();
-        let items = Items {
-            datetime: Some("2024-08-29T00:00:00Z/2024-09-01T00:00:00Z".to_string()),
-            ..Default::default()
-        };
-        let item_collection = client.search(items).unwrap();
-        assert_eq!(item_collection.items.len(), 53);
-    }
-
-    #[duckdb_test]
-    fn search_fields() {
-        let client = Client::from_href("data/100-sentinel-2-items.parquet").unwrap();
-        let items = Items {
-            fields: Some(Fields {
-                include: vec!["id".to_string()],
-                exclude: Vec::new(),
-            }),
-            ..Default::default()
-        };
-        let item_collection = client.search_to_json(items).unwrap();
+    #[rstest]
+    fn search_collections(client: Client) {
+        let item_collection = client
+            .search(
+                "data/100-sentinel-2-items.parquet",
+                Search::default().collections(vec!["sentinel-2-l2a".to_string()]),
+            )
+            .unwrap();
         assert_eq!(item_collection.items.len(), 100);
-        assert_eq!(item_collection.items[0].keys().len(), 1);
+
+        let item_collection = client
+            .search(
+                "data/100-sentinel-2-items.parquet",
+                Search::default().collections(vec!["foobar".to_string()]),
+            )
+            .unwrap();
+        assert_eq!(item_collection.items.len(), 0);
     }
 
-    #[duckdb_test]
-    fn search_sortby() {
-        let client = Client::from_href("data/100-sentinel-2-items.parquet").unwrap();
-        let items = Items {
-            sortby: Some(vec![Sortby {
-                field: "datetime".to_string(),
-                direction: Direction::Ascending,
-            }]),
-            ..Default::default()
-        };
-        let item_collection = client.search(items).unwrap();
-        for (a, b) in item_collection
-            .items
-            .iter()
-            .zip(item_collection.items.iter().skip(1))
-        {
-            assert!(a.properties.datetime <= b.properties.datetime);
-        }
+    #[rstest]
+    fn search_bbox(client: Client) {
+        let item_collection = client
+            .search(
+                "data/100-sentinel-2-items.parquet",
+                Search::default().bbox(Bbox::new(-106.1, 40.5, -106.0, 40.6)),
+            )
+            .unwrap();
+        assert_eq!(item_collection.items.len(), 50);
+    }
+
+    #[rstest]
+    fn search_datetime(client: Client) {
+        let item_collection = client
+            .search(
+                "data/100-sentinel-2-items.parquet",
+                Search::default().datetime("2024-12-02T00:00:00Z/.."),
+            )
+            .unwrap();
+        assert_eq!(item_collection.items.len(), 1);
+        let item_collection = client
+            .search(
+                "data/100-sentinel-2-items.parquet",
+                Search::default().datetime("../2024-12-02T00:00:00Z"),
+            )
+            .unwrap();
+        assert_eq!(item_collection.items.len(), 99);
+    }
+
+    #[rstest]
+    fn search_limit(client: Client) {
+        let item_collection = client
+            .search(
+                "data/100-sentinel-2-items.parquet",
+                Search::default().limit(42),
+            )
+            .unwrap();
+        assert_eq!(item_collection.items.len(), 42);
+    }
+
+    #[rstest]
+    fn search_sortby(client: Client) {
+        let item_collection = client
+            .search(
+                "data/100-sentinel-2-items.parquet",
+                Search::default()
+                    .sortby(vec![Sortby::asc("datetime")])
+                    .limit(1),
+            )
+            .unwrap();
+        assert_eq!(
+            item_collection.items[0].id,
+            "S2A_MSIL2A_20240326T174951_R141_T13TDE_20240329T224429"
+        );
+
+        let item_collection = client
+            .search(
+                "data/100-sentinel-2-items.parquet",
+                Search::default()
+                    .sortby(vec![Sortby::desc("datetime")])
+                    .limit(1),
+            )
+            .unwrap();
+        assert_eq!(
+            item_collection.items[0].id,
+            "S2B_MSIL2A_20241203T174629_R098_T13TDE_20241203T211406"
+        );
+    }
+
+    #[rstest]
+    fn search_fields(client: Client) {
+        let item_collection = client
+            .search_to_json(
+                "data/100-sentinel-2-items.parquet",
+                Search::default().fields("+id".parse().unwrap()).limit(1),
+            )
+            .unwrap();
+        assert_eq!(item_collection.items[0].len(), 1);
     }
 }

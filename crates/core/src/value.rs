@@ -287,8 +287,7 @@ impl TryFrom<Value> for ItemCollection {
             Value::Catalog(_) | Value::Collection(_) => Err(Error::IncorrectType {
                 actual: value.type_name().to_string(),
                 expected: "ItemCollection".to_string(),
-            }
-            .into()),
+            }),
         }
     }
 }

@@ -147,7 +147,7 @@ impl Client {
     /// use futures::StreamExt;
     ///
     /// let client = Client::new("https://planetarycomputer.microsoft.com/api/stac/v1").unwrap();
-    /// let mut search = Search { collections: Some(vec!["sentinel-2-l2a".to_string()]), ..Default::default() };
+    /// let mut search = Search { collections: vec!["sentinel-2-l2a".to_string()], ..Default::default() };
     /// # tokio_test::block_on(async {
     /// let items: Vec<_> = client
     ///     .search(search)
@@ -272,7 +272,7 @@ impl BlockingClient {
     /// use stac_api::{Search, BlockingClient};
     ///
     /// let client = BlockingClient::new("https://planetarycomputer.microsoft.com/api/stac/v1").unwrap();
-    /// let mut search = Search { collections: Some(vec!["sentinel-2-l2a".to_string()]), ..Default::default() };
+    /// let mut search = Search { collections: vec!["sentinel-2-l2a".to_string()], ..Default::default() };
     /// let items: Vec<_> = client
     ///     .search(search)
     ///     .unwrap()
@@ -430,7 +430,7 @@ mod tests {
 
         let client = Client::new(&server.url()).unwrap();
         let mut search = Search {
-            collections: Some(vec!["sentinel-2-l2a".to_string()]),
+            collections: vec!["sentinel-2-l2a".to_string()],
             ..Default::default()
         };
         search.items.limit = Some(1);

@@ -1,7 +1,7 @@
 [package]
 name = "stac-duckdb"
-description = "Experimental client for querying stac-geoparquet using DuckDB"
-version = "0.0.3"
+description = "Client for querying stac-geoparquet using DuckDB"
+version = "0.1.0"
 keywords = ["geospatial", "stac", "metadata", "geo", "raster"]
 authors.workspace = true
 edition.workspace = true
@@ -14,13 +14,12 @@ rust-version.workspace = true
 [dependencies]
 arrow.workspace = true
 duckdb.workspace = true
-libduckdb-sys.workspace = true
-geoarrow.workspace = true
-parquet.workspace = true
+geoarrow = { workspace = true, features = ["parquet"] }
 stac = { workspace = true, features = ["geoarrow"] }
 stac-api.workspace = true
 thiserror.workspace = true
 
 [dev-dependencies]
-duckdb-test = { path = "duckdb-test" }
 geo.workspace = true
+rstest.workspace = true
+stac = { workspace = true, features = ["validate-blocking"] }

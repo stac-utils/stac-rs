@@ -18,10 +18,10 @@ pub struct Node {
 #[derive(Debug)]
 pub enum Container {
     /// A [Collection].
-    Collection(Collection),
+    Collection(Box<Collection>), // To avoid large enum variant
 
     /// A [Catalog].
-    Catalog(Catalog),
+    Catalog(Box<Catalog>),
 }
 
 /// An iterator over a node and all of its descendants.
@@ -104,7 +104,7 @@ impl From<Catalog> for Node {
 
 impl From<Catalog> for Container {
     fn from(value: Catalog) -> Self {
-        Container::Catalog(value)
+        Container::Catalog(Box::new(value))
     }
 }
 
@@ -116,7 +116,7 @@ impl From<Collection> for Node {
 
 impl From<Collection> for Container {
     fn from(value: Collection) -> Self {
-        Container::Collection(value)
+        Container::Collection(Box::new(value))
     }
 }
 
@@ -140,8 +140,7 @@ impl TryFrom<Value> for Container {
             _ => Err(Error::IncorrectType {
                 actual: value.type_name().to_string(),
                 expected: "Catalog or Collection".to_string(),
-            }
-            .into()),
+            }),
         }
     }
 }
@@ -149,8 +148,8 @@ impl TryFrom<Value> for Container {
 impl From<Container> for Value {
     fn from(value: Container) -> Self {
         match value {
-            Container::Catalog(c) => Value::Catalog(c),
-            Container::Collection(c) => Value::Collection(c),
+            Container::Catalog(c) => Value::Catalog(*c),
+            Container::Collection(c) => Value::Collection(*c),
         }
     }
 }

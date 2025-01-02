@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.1.0] - 2025-01-02
+
+### Changed
+
+- Updated to **DuckDB** v1.1 and **geoarrow-rs** v0.4.0-beta.3 ([#562](https://github.com/stac-utils/stac-rs/pull/562))
+- Only allow searching one **stac-geoparquet** file at a time ([#562](https://github.com/stac-utils/stac-rs/pull/562))
+
 ## [0.0.3] - 2024-11-21
 
 ### Added
@@ -23,7 +30,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 Initial release of **stac-duckdb**.
 
-[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-duckdb-v0.0.3...main
+[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-duckdb-v0.1.0...main
+[0.1.0]: https://github.com/stac-utils/stac-rs/compare/stac-duckdb-v0.0.3...stac-duckdb-v0.1.0
 [0.0.3]: https://github.com/stac-utils/stac-rs/compare/stac-duckdb-v0.0.2...stac-duckdb-v0.0.3
 [0.0.2]: https://github.com/stac-utils/stac-rs/compare/stac-duckdb-v0.0.1...stac-duckdb-v0.0.2
 [0.0.1]: https://github.com/stac-utils/stac-rs/releases/tag/stac-duckdb-v0.0.1

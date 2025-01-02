@@ -5,7 +5,7 @@
 [![Crates.io](https://img.shields.io/crates/v/stac-duckdb?style=for-the-badge)](https://crates.io/crates/stac-duckdb)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?style=for-the-badge)](./CODE_OF_CONDUCT)
 
-Experimental client using [DuckDB](https://duckdb.org/) to search [stac-geoparquet](https://github.com/stac-utils/stac-geoparquet).
+Use [DuckDB](https://duckdb.org/) to search [stac-geoparquet](https://github.com/stac-utils/stac-geoparquet).
 
 ## Usage
 
