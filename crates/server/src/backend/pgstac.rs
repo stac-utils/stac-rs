@@ -1,8 +1,8 @@
 use crate::{Backend, Error, Result};
 use bb8::Pool;
 use bb8_postgres::PostgresConnectionManager;
-use pgstac::MakeRustlsConnect;
 use pgstac::Pgstac;
+use rustls::{ClientConfig, RootCertStore};
 use serde_json::Map;
 use stac::{Collection, Item};
 use stac_api::{ItemCollection, Items, Search};
@@ -10,6 +10,7 @@ use tokio_postgres::{
     tls::{MakeTlsConnect, TlsConnect},
     Socket,
 };
+use tokio_postgres_rustls::MakeRustlsConnect;
 
 /// A backend for a [pgstac](https://github.com/stac-utils/pgstac) database.
 #[derive(Clone, Debug)]
@@ -40,7 +41,10 @@ impl PgstacBackend<MakeRustlsConnect> {
     pub async fn new_from_stringlike(
         params: impl ToString,
     ) -> Result<PgstacBackend<MakeRustlsConnect>> {
-        let tls = pgstac::make_unverified_tls();
+        let config = ClientConfig::builder()
+            .with_root_certificates(RootCertStore::empty())
+            .with_no_client_auth();
+        let tls = MakeRustlsConnect::new(config);
         PgstacBackend::new_from_stringlike_and_tls(params, tls).await
     }
 }
@@ -53,20 +57,6 @@ where
     <<Tls as MakeTlsConnect<Socket>>::TlsConnect as TlsConnect<Socket>>::Future: Send,
 {
     /// Creates a new PgstacBackend from a string-like configuration and a tls.
-    ///
-    /// # Examples
-    ///
-    /// ```no_run
-    /// use stac_server::PgstacBackend;
-    ///
-    /// let tls = pgstac::make_unverified_tls();
-    /// # tokio_test::block_on(async {
-    /// let backend = PgstacBackend::new_from_stringlike_and_tls(
-    ///     "postgresql://username:password@localhost:5432/postgis",
-    ///     tls
-    /// ).await.unwrap();
-    /// # })
-    /// ```
     pub async fn new_from_stringlike_and_tls(
         params: impl ToString,
         tls: Tls,
