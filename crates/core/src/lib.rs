@@ -115,7 +115,6 @@
 //!     - `object-store-http`
 //!     - `object-store-all` (enable them all)
 //! - `reqwest`: get from `http` and `https` urls when using [read]
-//!     - `reqwest-rustls`: enable the `rustls-tls` feature in reqwest
 
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 #![deny(
