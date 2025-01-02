@@ -1,4 +1,4 @@
-use crate::{Error, GetItems, Items, Result, Sortby};
+use crate::{Error, Fields, GetItems, Items, Result, Sortby};
 use geojson::Geometry;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
@@ -109,6 +109,12 @@ impl Search {
     /// Sets the sortby of this search.
     pub fn sortby(mut self, sortby: Vec<Sortby>) -> Search {
         self.items.sortby = sortby;
+        self
+    }
+
+    /// Sets the fields of this search.
+    pub fn fields(mut self, fields: Fields) -> Search {
+        self.items.fields = Some(fields);
         self
     }
 

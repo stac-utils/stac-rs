@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Added
 
-- Convenience methods on `Search` ([#562](https://github.com/stac-utils/stac-rs/pull/562))
+- Convenience methods on `Search` ([#562](https://github.com/stac-utils/stac-rs/pull/562), [#584](https://github.com/stac-utils/stac-rs/pull/584))
 
 ### Changed
 
