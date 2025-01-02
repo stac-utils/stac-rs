@@ -96,6 +96,7 @@ jobs:
         env:
           DUCKDB_LIB_DIR: /opt/duckdb
           DUCKDB_INCLUDE_DIR: /opt/duckdb
+          LD_LIBRARY_PATH: /opt/duckdb
   test-extensions:
     name: Test stac-extensions
     runs-on: ubuntu-latest
