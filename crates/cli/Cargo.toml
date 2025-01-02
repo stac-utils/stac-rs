@@ -13,16 +13,13 @@ rust-version.workspace = true
 
 [features]
 default = ["pgstac"]
-duckdb = ["dep:stac-duckdb", "dep:duckdb"]
+duckdb = ["dep:stac-duckdb"]
 pgstac = ["stac-server/pgstac", "dep:tokio-postgres"]
 python = ["dep:pyo3", "pgstac"]
 
 [dependencies]
 axum.workspace = true
 clap = { workspace = true, features = ["derive"] }
-duckdb = { workspace = true, optional = true, features = [
-    "bundled",
-] } # We have this dependency only to allow us to bundle it
 object_store.workspace = true
 pyo3 = { workspace = true, optional = true }
 reqwest.workspace = true
