@@ -62,7 +62,9 @@ pgstac = { version = "0.2.2", path = "crates/pgstac" }
 pyo3 = "0.23.3"
 pythonize = "0.23.0"
 quote = "1.0"
-reqwest = "0.12.8"
+reqwest = { version = "0.12.8", default-features = false, features = [
+    "rustls-tls",
+] }
 rstest = "0.23.0"
 rustls = { version = "0.23.14", default-features = false }
 serde = "1.0"

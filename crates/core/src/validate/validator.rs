@@ -49,18 +49,7 @@ impl Validator {
         };
         let mut validation_options = JsonschemaValidator::options();
         let _ = validation_options.with_retriever(retriever);
-        let client_builder = {
-            #[cfg(feature = "reqwest-rustls")]
-            {
-                // Cloudflare can dislike when Github Actions requests stuff w/ the
-                // default tls provider :shrug: so this is a workaround.
-                Client::builder().use_rustls_tls()
-            }
-            #[cfg(not(feature = "reqwest-rustls"))]
-            {
-                Client::builder()
-            }
-        };
+        let client_builder = Client::builder().use_rustls_tls();
         let client_builder = client_builder.user_agent(concat!(
             env!("CARGO_PKG_NAME"),
             "/",

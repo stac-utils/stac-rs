@@ -43,7 +43,6 @@ object-store-all = [
     "object-store-http",
 ]
 reqwest = ["dep:reqwest"]
-reqwest-rustls = ["reqwest/rustls-tls"]
 validate = ["dep:jsonschema", "dep:reqwest", "dep:tokio", "dep:fluent-uri"]
 validate-blocking = ["validate", "tokio/rt"]
 
@@ -102,6 +101,5 @@ denylist = [
     "object-store-azure",
     "object-store-gcp",
     "object-store-http",
-    "reqwest-rustls",
     "validate-blocking",
 ]
