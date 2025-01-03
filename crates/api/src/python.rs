@@ -23,6 +23,7 @@ pub fn search<'py>(
     sortby: Option<StringOrList>,
     filter: Option<StringOrDict<'py>>,
     query: Option<Bound<'py, PyDict>>,
+    kwargs: Option<Bound<'py, PyDict>>,
 ) -> PyResult<Search> {
     let mut fields = Fields::default();
     if let Some(include) = include {
@@ -58,7 +59,7 @@ pub fn search<'py>(
         .map(|filter| filter.into_cql2_json())
         .transpose()
         .map_err(Error::from)?;
-    let items = Items {
+    let mut items = Items {
         limit,
         bbox,
         datetime,
@@ -68,6 +69,9 @@ pub fn search<'py>(
         filter,
         ..Default::default()
     };
+    if let Some(kwargs) = kwargs {
+        items.additional_fields = pythonize::depythonize(&kwargs)?;
+    }
 
     let intersects = intersects
         .map(|intersects| match intersects {
