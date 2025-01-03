@@ -128,16 +128,11 @@ pub trait Pgstac: GenericClient {
             .map(|value| value == "on")
     }
 
-    /// Sets the value of the `context` **pgstac** setting.
-    ///
-    /// This setting defaults to "off".  See [the **pgstac**
-    /// docs](https://github.com/stac-utils/pgstac/blob/main/docs/src/pgstac.md#pgstac-settings)
-    /// for more information on the settings and their meaning.
-    async fn set_context(&self, enable: bool) -> Result<()> {
-        let value = if enable { "on" } else { "off" };
+    /// Sets the value of a **pgstac** setting.
+    async fn set_pgstac_setting(&self, key: &str, value: &str) -> Result<()> {
         self.execute(
-            "INSERT INTO pgstac_settings (name, value) VALUES ('context', $1) ON CONFLICT ON CONSTRAINT pgstac_settings_pkey DO UPDATE SET value = excluded.value;",
-            &[&value],
+            "INSERT INTO pgstac_settings (name, value) VALUES ($1, $2) ON CONFLICT ON CONSTRAINT pgstac_settings_pkey DO UPDATE SET value = excluded.value;",
+            &[&key, &value],
         ).await.map(|_| ()).map_err(Error::from)
     }
 
@@ -335,7 +330,7 @@ pub(crate) mod tests {
     use geojson::{Geometry, Value};
     use rstest::{fixture, rstest};
     use serde_json::{json, Map};
-    use stac::{Collection, Item};
+    use stac::{Collection, Href, Item};
     use stac_api::{Fields, Filter, Search, Sortby};
     use std::{
         ops::Deref,
@@ -463,7 +458,7 @@ pub(crate) mod tests {
     #[rstest]
     #[tokio::test]
     async fn set_context(#[future(awt)] client: TestClient) {
-        client.set_context(true).await.unwrap();
+        client.set_pgstac_setting("context", "on").await.unwrap();
         assert!(client.context().await.unwrap());
     }
 
@@ -877,6 +872,32 @@ pub(crate) mod tests {
             .insert("token".to_string(), "prev:collection-id:another-id".into());
         let page = client.search(search).await.unwrap();
         assert_eq!(page.features[0]["id"], "an-id");
+    }
+
+    #[rstest]
+    #[tokio::test]
+    async fn base_url(#[future(awt)] client: TestClient) {
+        client
+            .set_pgstac_setting("base_url", "http://pgstac.test")
+            .await
+            .unwrap();
+        let collection = Collection::new("collection-id", "a description");
+        client.add_collection(collection).await.unwrap();
+        let mut item = Item::new("an-id");
+        item.collection = Some("collection-id".to_string());
+        item.properties.datetime = Some("2023-01-08T00:00:00Z".parse().unwrap());
+        item.geometry = Some(longmont());
+        client.add_item(item.clone()).await.unwrap();
+        item.id = "another-id".to_string();
+        item.properties.datetime = Some("2023-01-07T00:00:00Z".parse().unwrap());
+        client.add_item(item).await.unwrap();
+        let mut search = Search::default();
+        search.items.limit = Some(1);
+        let page = client.search(search.clone()).await.unwrap();
+        if client.pgstac_version().await.unwrap().starts_with("0.9") {
+            let next_link = page.links.iter().find(|link| link.rel == "next").unwrap();
+            assert!(matches!(next_link.href, Href::Url(_)));
+        }
     }
 
     #[rstest]
