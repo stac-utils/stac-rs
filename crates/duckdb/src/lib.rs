@@ -126,6 +126,11 @@ impl Client {
         let mut search: Search = search.into();
         // Get suffix information early so we can take ownership of other parts of search as we go along.
         let limit = search.items.limit.take();
+        let offset = search
+            .items
+            .additional_fields
+            .get("offset")
+            .and_then(|v| v.as_i64());
         let sortby = std::mem::take(&mut search.items.sortby);
         let fields = std::mem::take(&mut search.items.fields);
 
@@ -243,6 +248,9 @@ impl Client {
         }
         if let Some(limit) = limit {
             suffix.push_str(&format!(" LIMIT {}", limit));
+        }
+        if let Some(offset) = offset {
+            suffix.push_str(&format!(" OFFSET {}", offset));
         }
         Ok(Query {
             sql: format!(
@@ -399,6 +407,22 @@ mod tests {
             )
             .unwrap();
         assert_eq!(item_collection.items.len(), 42);
+    }
+
+    #[rstest]
+    fn search_offset(client: Client) {
+        let mut search = Search::default().limit(1);
+        search
+            .items
+            .additional_fields
+            .insert("offset".to_string(), 1.into());
+        let item_collection = client
+            .search("data/100-sentinel-2-items.parquet", search)
+            .unwrap();
+        assert_eq!(
+            item_collection.items[0].id,
+            "S2A_MSIL2A_20241201T175721_R141_T13TDE_20241201T213150"
+        );
     }
 
     #[rstest]
