@@ -15,6 +15,7 @@ rust-version.workspace = true
 arrow.workspace = true
 duckdb.workspace = true
 geoarrow = { workspace = true, features = ["parquet"] }
+log.workspace = true
 stac = { workspace = true, features = ["geoarrow"] }
 stac-api.workspace = true
 thiserror.workspace = true

@@ -116,6 +116,7 @@ impl Client {
     ) -> Result<Vec<RecordBatch>> {
         let query = self.query(search, href)?;
         let mut statement = self.connection.prepare(&query.sql)?;
+        log::debug!("DuckDB SQL: {}", query.sql);
         statement
             .query_arrow(duckdb::params_from_iter(query.params))?
             .map(to_geoarrow_record_batch)
