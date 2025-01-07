@@ -13,10 +13,14 @@ rust-version.workspace = true
 
 [dependencies]
 arrow.workspace = true
+chrono.workspace = true
 duckdb.workspace = true
+geo.workspace = true
 geoarrow = { workspace = true, features = ["parquet"] }
+geojson.workspace = true
 log.workspace = true
-stac = { workspace = true, features = ["geoarrow"] }
+serde_json.workspace = true
+stac = { workspace = true, features = ["geoarrow", "geo"] }
 stac-api.workspace = true
 thiserror.workspace = true
 

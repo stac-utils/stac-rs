@@ -6,15 +6,22 @@ use arrow::{
     array::{AsArray, GenericByteArray, RecordBatch},
     datatypes::{GenericBinaryType, SchemaBuilder},
 };
+use chrono::DateTime;
 use duckdb::{types::Value, Connection};
+use geo::BoundingRect;
 use geoarrow::{
     array::{CoordType, WKBArray},
     datatypes::NativeType,
     table::Table,
 };
+use geojson::Geometry;
+use stac::{Collection, SpatialExtent, TemporalExtent};
 use stac_api::{Direction, Search};
 use std::fmt::Debug;
 use thiserror::Error;
+
+const DEFAULT_COLLECTION_DESCRIPTION: &str =
+    "Auto-generated collection from stac-geoparquet extents";
 
 /// A crate-specific error enum.
 #[derive(Debug, Error)]
@@ -24,6 +31,10 @@ pub enum Error {
     #[error(transparent)]
     Arrow(#[from] arrow::error::ArrowError),
 
+    /// [chrono::format::ParseError]
+    #[error(transparent)]
+    ChronoParse(#[from] chrono::format::ParseError),
+
     /// [duckdb::Error]
     #[error(transparent)]
     DuckDB(#[from] duckdb::Error),
@@ -31,6 +42,14 @@ pub enum Error {
     /// [geoarrow::error::GeoArrowError]
     #[error(transparent)]
     GeoArrow(#[from] geoarrow::error::GeoArrowError),
+
+    /// [serde_json::Error]
+    #[error(transparent)]
+    SerdeJson(#[from] serde_json::Error),
+
+    /// [geojson::Error]
+    #[error(transparent)]
+    GeoJSON(#[from] geojson::Error),
 
     /// [stac::Error]
     #[error(transparent)]
@@ -76,6 +95,62 @@ impl Client {
         connection.execute("LOAD spatial", [])?;
         Ok(Client { connection })
     }
+
+    /// Returns one or more [stac::Collection] from the items in the stac-geoparquet file.
+    pub fn collections(&self, href: &str) -> Result<Vec<Collection>> {
+        let start_datetime= if self.connection.prepare(&format!(
+            "SELECT column_name FROM (DESCRIBE SELECT * from read_parquet('{}')) where column_name = 'start_datetime'",
+            href
+        ))?.query([])?.next()?.is_some() {
+            "strftime(min(coalesce(start_datetime, datetime)), '%xT%X%z')"
+        } else {
+            "strftime(min(datetime), '%xT%X%z')"
+        };
+        let end_datetime= if self.connection.prepare(&format!(
+            "SELECT column_name FROM (DESCRIBE SELECT * from read_parquet('{}')) where column_name = 'end_datetime'",
+            href
+        ))?.query([])?.next()?.is_some() {
+            "strftime(max(coalesce(end_datetime, datetime)), '%xT%X%z')"
+        } else {
+            "strftime(max(datetime), '%xT%X%z')"
+        };
+        let mut statement = self.connection.prepare(&format!(
+            "SELECT DISTINCT collection FROM read_parquet('{}')",
+            href
+        ))?;
+        let mut collections = Vec::new();
+        for row in statement.query_map([], |row| row.get::<_, String>(0))? {
+            let collection_id = row?;
+            let mut statement = self.connection.prepare(&
+                format!("SELECT ST_AsGeoJSON(ST_Extent_Agg(geometry)), {}, {} FROM read_parquet('{}') WHERE collection = $1", start_datetime, end_datetime,
+                href
+            ))?;
+            let row = statement.query_row([&collection_id], |row| {
+                Ok((
+                    row.get::<_, String>(0)?,
+                    row.get::<_, String>(1)?,
+                    row.get::<_, String>(2)?,
+                ))
+            })?;
+            let mut collection = Collection::new(collection_id, DEFAULT_COLLECTION_DESCRIPTION);
+            let geometry: geo::Geometry =
+                Geometry::from_json_value(serde_json::from_str(&row.0)?)?.try_into()?;
+            if let Some(bbox) = geometry.bounding_rect() {
+                collection.extent.spatial = SpatialExtent {
+                    bbox: vec![bbox.into()],
+                };
+            }
+            collection.extent.temporal = TemporalExtent {
+                interval: vec![[
+                    Some(DateTime::parse_from_str(&row.1, "%FT%T%#z")?.into()),
+                    Some(DateTime::parse_from_str(&row.2, "%FT%T%#z")?.into()),
+                ]],
+            };
+            collections.push(collection);
+        }
+        Ok(collections)
+    }
+
     /// Searches this client, returning a [stac::ItemCollection].
     pub fn search(&self, href: &str, search: impl Into<Search>) -> Result<stac::ItemCollection> {
         let record_batches = self.search_to_arrow(href, search)?;
@@ -464,5 +539,13 @@ mod tests {
             )
             .unwrap();
         assert_eq!(item_collection.items[0].len(), 1);
+    }
+
+    #[rstest]
+    fn collections(client: Client) {
+        let collections = client
+            .collections("data/100-sentinel-2-items.parquet")
+            .unwrap();
+        assert_eq!(collections.len(), 1);
     }
 }
