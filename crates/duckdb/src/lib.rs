@@ -93,6 +93,8 @@ impl Client {
         let connection = Connection::open_in_memory()?;
         connection.execute("INSTALL spatial", [])?;
         connection.execute("LOAD spatial", [])?;
+        connection.execute("INSTALL icu", [])?;
+        connection.execute("LOAD icu", [])?;
         Ok(Client { connection })
     }
 
