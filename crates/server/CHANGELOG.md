@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [0.3.3] - 2025-01-14
 
+### Removed
+
 - **stac-types** dependency ([#561](https://github.com/stac-utils/stac-rs/pull/561))
 
 ## [0.3.2] - 2024-11-12
@@ -61,7 +63,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 Initial release.
 
-[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-server-v0.3.2..main
+[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-server-v0.3.3..main
+[0.3.3]: https://github.com/stac-utils/stac-rs/compare/stac-server-v0.3.2..stac-server-v0.3.3
 [0.3.2]: https://github.com/stac-utils/stac-rs/compare/stac-server-v0.3.1..stac-server-v0.3.2
 [0.3.1]: https://github.com/stac-utils/stac-rs/compare/stac-server-v0.3.0..stac-server-v0.3.1
 [0.3.0]: https://github.com/stac-utils/stac-rs/compare/stac-server-v0.2.0..stac-server-v0.3.0
