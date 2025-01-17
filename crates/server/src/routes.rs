@@ -106,9 +106,9 @@ pub fn from_api<B: Backend>(api: Api<B>) -> Router {
         .route("/conformance", get(conformance))
         .route("/queryables", get(queryables))
         .route("/collections", get(collections))
-        .route("/collections/:collection_id", get(collection))
-        .route("/collections/:collection_id/items", get(items))
-        .route("/collections/:collection_id/items/:item_id", get(item))
+        .route("/collections/{collection_id}", get(collection))
+        .route("/collections/{collection_id}/items", get(items))
+        .route("/collections/{collection_id}/items/{item_id}", get(item))
         .route("/search", get(get_search))
         .route("/search", post(post_search))
         .layer(CorsLayer::permissive()) // TODO make this configurable
