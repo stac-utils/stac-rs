@@ -192,7 +192,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
-      - uses: DavidAnson/markdownlint-cli2-action@v18
+      - uses: DavidAnson/markdownlint-cli2-action@v19
       - name: Doc
         run: cargo doc --workspace --all-features
   validate-stac-geoparquet:
