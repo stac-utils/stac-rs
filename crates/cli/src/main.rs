@@ -1,17 +1,14 @@
 use clap::Parser;
-use stac_cli::Args;
+use stac_cli::Stacrs;
 
 #[tokio::main]
 async fn main() {
-    let args = Args::parse();
-    tracing_subscriber::fmt()
-        .with_max_level(args.log_level())
-        .init();
+    let args = Stacrs::parse();
     std::process::exit(match args.run().await {
         Ok(()) => 0,
         Err(err) => {
             eprintln!("ERROR: {}", err);
-            err.code()
+            1 // TODO make this more meaningful
         }
     })
 }

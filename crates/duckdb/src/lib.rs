@@ -23,6 +23,21 @@ use thiserror::Error;
 const DEFAULT_COLLECTION_DESCRIPTION: &str =
     "Auto-generated collection from stac-geoparquet extents";
 
+/// Searches a stac-geoparquet file.
+pub fn search(
+    href: &str,
+    mut search: Search,
+    max_items: Option<usize>,
+) -> Result<stac_api::ItemCollection> {
+    if let Some(max_items) = max_items {
+        search.limit = Some(max_items.try_into()?);
+    } else {
+        search.limit = None;
+    };
+    let client = Client::new()?;
+    client.search_to_json(href, search)
+}
+
 /// A crate-specific error enum.
 #[derive(Debug, Error)]
 #[non_exhaustive]
@@ -49,7 +64,7 @@ pub enum Error {
 
     /// [geojson::Error]
     #[error(transparent)]
-    GeoJSON(#[from] geojson::Error),
+    GeoJSON(#[from] Box<geojson::Error>),
 
     /// [stac::Error]
     #[error(transparent)]
@@ -58,6 +73,10 @@ pub enum Error {
     /// [stac_api::Error]
     #[error(transparent)]
     StacApi(#[from] stac_api::Error),
+
+    /// [std::num::TryFromIntError]
+    #[error(transparent)]
+    TryFromInt(#[from] std::num::TryFromIntError),
 }
 
 /// A crate-specific result type.
@@ -135,8 +154,10 @@ impl Client {
                 ))
             })?;
             let mut collection = Collection::new(collection_id, DEFAULT_COLLECTION_DESCRIPTION);
-            let geometry: geo::Geometry =
-                Geometry::from_json_value(serde_json::from_str(&row.0)?)?.try_into()?;
+            let geometry: geo::Geometry = Geometry::from_json_value(serde_json::from_str(&row.0)?)
+                .map_err(Box::new)?
+                .try_into()
+                .map_err(Box::new)?;
             if let Some(bbox) = geometry.bounding_rect() {
                 collection.extent.spatial = SpatialExtent {
                     bbox: vec![bbox.into()],

@@ -13,11 +13,11 @@ rust-version.workspace = true
 
 [features]
 default = ["pgstac"]
-duckdb = ["dep:stac-duckdb"]
 pgstac = ["stac-server/pgstac", "dep:tokio-postgres"]
 python = ["dep:pyo3", "pgstac"]
 
 [dependencies]
+anyhow.workspace = true
 axum.workspace = true
 clap = { workspace = true, features = ["derive"] }
 object_store.workspace = true
@@ -32,7 +32,7 @@ stac = { workspace = true, features = [
     "validate",
 ] }
 stac-api = { workspace = true, features = ["client"] }
-stac-duckdb = { workspace = true, optional = true }
+stac-duckdb.workspace = true
 stac-server = { workspace = true, features = ["axum"] }
 thiserror.workspace = true
 tokio = { workspace = true, features = [
@@ -49,7 +49,7 @@ url.workspace = true
 
 [dev-dependencies]
 assert_cmd.workspace = true
-tokio-test.workspace = true
+rstest.workspace = true
 
 [lib]
 crate-type = ["lib", "cdylib"]
