@@ -15,8 +15,8 @@ env:
   CARGO_TERM_VERBOSE: true
 
 jobs:
-  test-core-os-matrix:
-    name: Test stac w/ os matrix
+  test-core:
+    name: Test stac
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
