@@ -11,7 +11,6 @@ use stac_derive::{Links, SelfHref};
 /// not be. Defined by the [itemcollection
 /// fragment](https://github.com/radiantearth/stac-api-spec/blob/main/fragments/itemcollection/README.md).
 #[derive(Debug, Serialize, Deserialize, Default, Links, SelfHref)]
-#[serde(tag = "type", rename = "FeatureCollection")]
 pub struct ItemCollection {
     /// A possibly-empty array of Item objects.
     #[serde(rename = "features")]

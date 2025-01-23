@@ -20,6 +20,12 @@ const TOP_LEVEL_ATTRIBUTES: [&str; 8] = [
     "collection",
 ];
 
+const ITEM_TYPE: &str = "Feature";
+
+fn item_type() -> String {
+    ITEM_TYPE.to_string()
+}
+
 /// An `Item` is a GeoJSON Feature augmented with foreign members relevant to a
 /// STAC object.
 ///
@@ -28,8 +34,10 @@ const TOP_LEVEL_ATTRIBUTES: [&str; 8] = [
 /// enables any client to search or crawl online catalogs of spatial 'assets'
 /// (e.g., satellite imagery, derived data, DEMs).
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone, SelfHref, Links, Migrate)]
-#[serde(tag = "type", rename = "Feature")]
 pub struct Item {
+    #[serde(default = "item_type")]
+    r#type: String,
+
     /// The STAC version the `Item` implements.
     #[serde(rename = "stac_version", default)]
     pub version: Version,
@@ -101,7 +109,6 @@ pub struct Item {
 /// [stac-geoparquet](https://github.com/stac-utils/stac-geoparquet/blob/main/spec/stac-geoparquet-spec.md),
 /// use this "flat" representation.
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(tag = "type", rename = "Feature")]
 pub struct FlatItem {
     #[serde(rename = "stac_version", default = "default_stac_version")]
     version: Version,
@@ -326,6 +333,7 @@ impl Item {
     /// ```
     pub fn new(id: impl ToString) -> Item {
         Item {
+            r#type: ITEM_TYPE.to_string(),
             version: STAC_VERSION,
             extensions: Vec::new(),
             id: id.to_string(),
@@ -852,5 +860,11 @@ mod tests {
     #[test]
     fn permissive_deserialization() {
         let _: Item = serde_json::from_value(json!({})).unwrap();
+    }
+
+    #[test]
+    fn has_type() {
+        let value: serde_json::Value = serde_json::to_value(Item::new("an-id")).unwrap();
+        assert_eq!(value.as_object().unwrap()["type"], "Feature");
     }
 }

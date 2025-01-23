@@ -4,12 +4,20 @@ use serde_json::{Map, Value};
 use stac_derive::{Links, SelfHref};
 use std::{ops::Deref, vec::IntoIter};
 
+const ITEM_COLLECTION_TYPE: &str = "FeatureCollection";
+
+fn item_collection_type() -> String {
+    ITEM_COLLECTION_TYPE.to_string()
+}
+
 /// A [GeoJSON FeatureCollection](https://www.rfc-editor.org/rfc/rfc7946#page-12) of items.
 ///
 /// While not part of the STAC specification, ItemCollections are often used to store many items in a single file.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone, SelfHref, Links)]
-#[serde(tag = "type", rename = "FeatureCollection")]
 pub struct ItemCollection {
+    #[serde(default = "item_collection_type")]
+    r#type: String,
+
     /// The list of [Items](Item).
     ///
     /// The attribute is actually "features", but we rename to "items".
@@ -31,6 +39,7 @@ pub struct ItemCollection {
 impl From<Vec<Item>> for ItemCollection {
     fn from(items: Vec<Item>) -> Self {
         ItemCollection {
+            r#type: item_collection_type(),
             items,
             links: Vec::new(),
             additional_fields: Map::new(),
