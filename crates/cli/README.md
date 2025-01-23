@@ -23,36 +23,42 @@ cargo install stac-cli
 Then:
 
 ```shell
-stacrs --help
+# Search
+$ stacrs search https://landsatlook.usgs.gov/stac-server \
+    --collections landsat-c2l2-sr \
+    --intersects '{"type": "Point", "coordinates": [-105.119, 40.173]}' \
+    --sortby='-properties.datetime' \
+    --max-items 1000 \
+    items.parquet
+
+# Translate formats
+$ stacrs translate items.parquet items.ndjson
+$ stacrs translate items.ndjson items.json
+
+# Search stac-geoparquet (no API server required)
+$ stac search items.parquet
+
+# Server
+$ stacrs serve items.parquet  # Opens a STAC API server on http://localhost:7822
 ```
 
 ## Usage
 
 **stacrs** provides the following subcommands:
 
-- `stacrs item`: create STAC items and combine them into item collections
-- `stacrs migrate`: migrate a STAC object to another version
-- `stacrs search`: search STAC APIs (and geoparquet, with the experimental `duckdb` feature)
-- `stacrs serve`: serve a STAC API (optionally, with a [pgstac](https://github.com/stac-utils/pgstac) backend)
-- `stacrs translate`: convert STAC values from one format to another
-- `stacrs validate`: validate STAC items, catalogs, and collections using [json-schema](https://json-schema.org/)
+- `stacrs migrate`: migrates a STAC object to another version
+- `stacrs search`: searches STAC APIs and geoparquet files
+- `stacrs serve`: serves a STAC API
+- `stacrs translate`: converts STAC from one format to another
 
 Use the `--help` flag to see all available options for the CLI and the subcommands:
 
 ## Features
 
-This crate has features:
+This crate has two features:
 
-- `duckdb`: experimental support for querying [stac-geoparquet](https://github.com/stac-utils/stac-geoparquet) files using [DuckDB](https://duckdb.org/)
-- `geoparquet`: read and write [stac-geoparquet](https://github.com/stac-utils/stac-geoparquet) (enabled by default)
 - `pgstac`: enable a [pgstac](https://github.com/stac-utils/pgstac) backend for `stacrs serve` (enabled by default)
 - `python`: create an entrypoint that can be called from Python (used to enable `python -m pip install stacrs-cli`)
-
-If you don't want to use any of the default features:
-
-```shell
-cargo install stac-cli --no-default-features
-```
 
 ## Other info
 
