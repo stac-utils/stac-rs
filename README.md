@@ -8,13 +8,15 @@
 
 Command Line Interface (CLI) and Rust libraries for the [SpatioTemporal Asset Catalog (STAC)](https://stacspec.org/) specification.
 
-There's a couple Python projects based on **stac-rs** that might be of interest to you, as well:
+## Formats
 
-- [stacrs](https://github.com/gadomski/stacrs) provides a Python API to **stac-rs**, including
-  - Reading and writing [stac-geoparquet](https://github.com/stac-utils/stac-geoparquet)
-  - Migrating to [STAC v1.1](https://github.com/radiantearth/stac-spec/releases/tag/v1.1.0)
-  - [More...](https://www.gadom.ski/posts/stacrs-python-v0-1/)
-- [pgstacrs](https://github.com/stac-utils/pgstacrs) is a Python library for working with [pgstac](https://github.com/stac-utils/pgstac)
+**stac-rs** "speaks" three forms of STAC:
+
+- **JSON**: STAC is derived from [GeoJSON](https://geojson.org/)
+- **Newline-delimited JSON (ndjson)**: One JSON [item](https://github.com/radiantearth/stac-spec/blob/master/item-spec/item-spec.md) per line, often used for bulk item loading and storage
+- **stac-geoparquet**: A newer [specification](https://github.com/stac-utils/stac-geoparquet) for storing STAC items, and optionally collections
+
+We also have interfaces to other storage backends, e.g. Postgres via [pgstac](https://github.com/stac-utils/pgstac).
 
 ## Command line interface
 
@@ -30,14 +32,34 @@ cargo install stac-cli
 Then:
 
 ```shell
+# Search
 $ stacrs search https://landsatlook.usgs.gov/stac-server \
-    -c landsat-c2l2-sr --intersects \
-    '{"type": "Point", "coordinates": [-105.119, 40.173]}' \
+    --collections landsat-c2l2-sr \
+    --intersects '{"type": "Point", "coordinates": [-105.119, 40.173]}' \
     --sortby='-properties.datetime' \
     --max-items 1000 \
-    -f 'parquet[snappy]' \
     items.parquet
+
+# Translate formats
+$ stacrs translate items.parquet items.ndjson
+$ stacrs translate items.ndjson items.json
+
+# Search stac-geoparquet (no API server required)
+$ stac search items.parquet
+
+# Server
+$ stacrs serve items.parquet  # Opens a STAC API server on http://localhost:7822
 ```
+
+## Python
+
+We have Python packages based on **stac-rs** that live in their own repositories:
+
+- [stacrs](https://github.com/gadomski/stacrs) provides a Python API to **stac-rs**, including
+  - Reading and writing [stac-geoparquet](https://github.com/stac-utils/stac-geoparquet)
+  - Migrating to [STAC v1.1](https://github.com/radiantearth/stac-spec/releases/tag/v1.1.0)
+  - [More...](https://www.gadom.ski/posts/stacrs-python-v0-1/)
+- [pgstacrs](https://github.com/stac-utils/pgstacrs) is a Python library for working with [pgstac](https://github.com/stac-utils/pgstac)
 
 ## Crates
 
