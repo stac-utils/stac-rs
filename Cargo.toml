@@ -15,7 +15,9 @@ default-members = [
     "crates/cli",
     "crates/core",
     "crates/derive",
+    "crates/duckdb",
     "crates/extensions",
+    "crates/server",
 ]
 
 [workspace.package]
