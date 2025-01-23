@@ -48,7 +48,7 @@ $ stacrs translate items.ndjson items.json
 $ stacrs translate item-v1.0.json item-v1.1.json --migrate
 
 # Search stac-geoparquet (no API server required)
-$ stac search items.parquet
+$ stacrs search items.parquet
 
 # Server
 $ stacrs serve items.parquet  # Opens a STAC API server on http://localhost:7822
