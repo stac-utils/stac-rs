@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 
 - Offset ([#592](https://github.com/stac-utils/stac-rs/pull/592))
+- `search` function ([#607](https://github.com/stac-utils/stac-rs/pull/607))
 
 ## [0.1.0] - 2025-01-02
 

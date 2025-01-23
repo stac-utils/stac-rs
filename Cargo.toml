@@ -15,7 +15,9 @@ default-members = [
     "crates/cli",
     "crates/core",
     "crates/derive",
+    "crates/duckdb",
     "crates/extensions",
+    "crates/server",
 ]
 
 [workspace.package]
@@ -28,6 +30,7 @@ categories = ["science", "data-structures"]
 rust-version = "1.82"
 
 [workspace.dependencies]
+anyhow = "1.0"
 arrow = "53.1.0"
 arrow-array = "53.1.0"
 arrow-cast = "53.1.0"

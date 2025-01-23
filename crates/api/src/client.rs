@@ -17,6 +17,40 @@ use tokio::{
 
 const DEFAULT_CHANNEL_BUFFER: usize = 4;
 
+/// Searches a STAC API.
+pub async fn search(
+    href: &str,
+    mut search: Search,
+    max_items: Option<usize>,
+) -> Result<ItemCollection> {
+    let client = Client::new(href)?;
+    if search.limit.is_none() {
+        if let Some(max_items) = max_items {
+            search.limit = Some(max_items.try_into()?);
+        }
+    }
+    let stream = client.search(search).await.unwrap();
+    let mut items = if let Some(max_items) = max_items {
+        if max_items == 0 {
+            return Ok(ItemCollection::default());
+        }
+        Vec::with_capacity(max_items)
+    } else {
+        Vec::new()
+    };
+    pin_mut!(stream);
+    while let Some(item) = stream.next().await {
+        let item = item?;
+        items.push(item);
+        if let Some(max_items) = max_items {
+            if items.len() >= max_items {
+                break;
+            }
+        }
+    }
+    ItemCollection::new(items)
+}
+
 /// A client for interacting with STAC APIs.
 #[derive(Clone, Debug)]
 pub struct Client {

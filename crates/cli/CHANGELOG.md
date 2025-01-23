@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- Pretty big code refactor and a lot of options ([#607](https://github.com/stac-utils/stac-rs/pull/607))
+
 ## [0.4.1] - 2024-10-22
 
 ### Changed

@@ -43,68 +43,33 @@ jobs:
         run: cargo install cargo-all-features
       - name: Check
         run: cargo check-all-features
-  test-api:
-    name: Test stac-api
+  test:
+    name: Test
     runs-on: ubuntu-latest
+    env:
+      DUCKDB_LIB_DIR: /opt/duckdb
+      DUCKDB_INCLUDE_DIR: /opt/duckdb
+      LD_LIBRARY_PATH: /opt/duckdb
     steps:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
-      - name: Test
-        run: cargo test -p stac-api --all-features
-  test-cli:
-    name: Test stac-cli
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: crates/cli
-    steps:
-      - uses: actions/checkout@v4
-      - uses: Swatinem/rust-cache@v2
-      - name: Test
-        run: cargo test -p stac-cli
-  test-cli-python:
-    name: Test stacrs-cli (python)
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: crates/cli
-    steps:
-      - uses: actions/checkout@v4
-      - uses: Swatinem/rust-cache@v2
-      - uses: actions/setup-python@v5
-        with:
-          python-version: 3.x
       - uses: astral-sh/setup-uv@v5
-        with:
-          enable-cache: true
-      - name: Install
-        run: uv sync
-      - name: Smoke test
-        run: uv run stacrs --version
-  test-duckdb:
-    name: Test stac-duckdb
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: Swatinem/rust-cache@v2
       - name: Get DuckDB
         run: |
           wget https://github.com/duckdb/duckdb/releases/download/v1.1.3/libduckdb-linux-amd64.zip
           unzip libduckdb-linux-amd64.zip -d /opt/duckdb
+      - name: Fmt
+        run: cargo fmt
+      - name: Clippy
+        run: cargo clippy --workspace --all-features
+      - name: Build # need to build first to get the executable for CLI tests
+        run: cargo build --all-features
       - name: Test
-        run: cargo test -p stac-duckdb
-        env:
-          DUCKDB_LIB_DIR: /opt/duckdb
-          DUCKDB_INCLUDE_DIR: /opt/duckdb
-          LD_LIBRARY_PATH: /opt/duckdb
-  test-extensions:
-    name: Test stac-extensions
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: Swatinem/rust-cache@v2
-      - name: Test
-        run: cargo test -p stac-extensions
+        run: cargo test --all-features
+      - name: Validate stac-server
+        run: uv run --group stac-api-validator scripts/validate-stac-server
+      - name: Validate stac-geoparquet
+        run: uv run --group stac-geoparquet scripts/validate-stac-geoparquet
   test-pgstac:
     name: Test pgstac
     runs-on: ubuntu-latest
@@ -113,6 +78,10 @@ jobs:
         pgstac_version:
           - v0.8.6
           - v0.9.1
+    env:
+      DUCKDB_LIB_DIR: /opt/duckdb
+      DUCKDB_INCLUDE_DIR: /opt/duckdb
+      LD_LIBRARY_PATH: /opt/duckdb
     services:
       pgstac:
         image: ghcr.io/stac-utils/pgstac:${{ matrix.pgstac_version }}
@@ -128,46 +97,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
       - uses: astral-sh/setup-uv@v5
-        with:
-          enable-cache: true
+      - name: Get DuckDB
+        run: |
+          wget https://github.com/duckdb/duckdb/releases/download/v1.1.3/libduckdb-linux-amd64.zip
+          unzip libduckdb-linux-amd64.zip -d /opt/duckdb
       - name: Test
         run: cargo test -p pgstac --all-features
-      - name: Install Python dependencies
-        run: uv sync --group stac-api-validator
       - name: Validate
-        run: uv run scripts/validate-stac-server --pgstac
-  test-server:
-    name: Test stac-server
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: Swatinem/rust-cache@v2
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.x"
-      - uses: astral-sh/setup-uv@v5
-        with:
-          enable-cache: true
-      - name: Test
-        run: cargo test -p stac-server --all-features
-      - name: Install Python dependencies
-        run: uv sync --group stac-api-validator
-      - name: Validate
-        run: uv run scripts/validate-stac-server
-  lint:
-    name: Lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: Swatinem/rust-cache@v2
-      - name: Fmt
-        run: cargo fmt
-      - name: Clippy
-        run: cargo clippy --workspace --all-features
+        run: uv run --group stac-api-validator scripts/validate-stac-server --pgstac
   check-nightly:
     name: Check (nightly)
     runs-on: ubuntu-latest
@@ -195,19 +133,3 @@ jobs:
       - uses: DavidAnson/markdownlint-cli2-action@v19
       - name: Doc
         run: cargo doc --workspace --all-features
-  validate-stac-geoparquet:
-    name: Validate stac-geoparquet
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: Swatinem/rust-cache@v2
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.x"
-      - uses: astral-sh/setup-uv@v5
-        with:
-          enable-cache: true
-      - name: Install Python dependencies
-        run: uv sync --group stac-geoparquet
-      - name: Validate
-        run: uv run scripts/validate-stac-geoparquet
