@@ -36,10 +36,11 @@ mod error;
 #[cfg(feature = "axum")]
 pub mod routes;
 
-pub use backend::MemoryBackend;
+pub use api::Api;
 #[cfg(feature = "pgstac")]
 pub use backend::PgstacBackend;
-pub use {api::Api, backend::Backend, error::Error};
+pub use backend::{Backend, MemoryBackend};
+pub use error::Error;
 
 /// A crate-specific result type.
 pub type Result<T> = std::result::Result<T, Error>;

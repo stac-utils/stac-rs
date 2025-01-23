@@ -1,14 +1,10 @@
 use anyhow::{anyhow, Error, Result};
 use clap::{Parser, Subcommand};
-use stac::geoparquet::Compression;
-use stac::{Collection, Format, Item, Links};
+use stac::{geoparquet::Compression, Collection, Format, Item, Links, Migrate};
 use stac_api::{GetItems, GetSearch, Search};
 use stac_server::Backend;
-use std::collections::HashMap;
-use std::io::Write;
-use std::str::FromStr;
-use tokio::io::AsyncReadExt;
-use tokio::net::TcpListener;
+use std::{collections::HashMap, io::Write, str::FromStr};
+use tokio::{io::AsyncReadExt, net::TcpListener};
 
 /// stacrs: A command-line interface for the SpatioTemporal Asset Catalog (STAC)
 #[derive(Debug, Parser)]
@@ -94,6 +90,20 @@ pub enum Command {
         ///
         /// To write to standard output, pass `-` or don't provide an argument at all.
         outfile: Option<String>,
+
+        /// Migrate this STAC value to another version.
+        ///
+        /// By default, will migrate to the latest supported version. Use `--to`
+        /// to specify a different STAC version.
+        #[arg(long = "migrate", default_value_t = false)]
+        migrate: bool,
+
+        /// Migrate to this STAC version.
+        ///
+        /// If not provided, will migrate to the latest supported version. Will
+        /// only be used if `--migrate` is passed.
+        #[arg(long = "to")]
+        to: Option<String>,
     },
 
     /// Searches a STAC API or stac-geoparquet file.
@@ -202,9 +212,20 @@ impl Stacrs {
             Command::Translate {
                 ref infile,
                 ref outfile,
+                migrate,
+                ref to,
             } => {
-                let value = self.get(infile.as_deref()).await?;
-                self.put(outfile.as_deref(), value).await
+                let mut value = self.get(infile.as_deref()).await?;
+                if migrate {
+                    value = value.migrate(
+                        &to.as_deref()
+                            .map(|s| s.parse().unwrap())
+                            .unwrap_or_default(),
+                    )?;
+                } else if let Some(to) = to {
+                    eprintln!("WARNING: --to was passed ({to}) without --migrate, value will not be migrated");
+                }
+                self.put(outfile.as_deref(), value.into()).await
             }
             Command::Search {
                 ref href,
@@ -263,11 +284,11 @@ impl Stacrs {
                 for href in hrefs {
                     let value = self.get(Some(href.as_str())).await?;
                     match value {
-                        Value::Stac(stac::Value::Collection(collection)) => {
+                        stac::Value::Collection(collection) => {
                             if load_collection_items {
                                 for link in collection.iter_item_links() {
                                     let value = self.get(Some(link.href.as_str())).await?;
-                                    if let Value::Stac(stac::Value::Item(item)) = value {
+                                    if let stac::Value::Item(item) = value {
                                         items.entry(collection.id.clone()).or_default().push(item);
                                     } else {
                                         return Err(anyhow!(
@@ -278,7 +299,7 @@ impl Stacrs {
                             }
                             collections.push(collection);
                         }
-                        Value::Stac(stac::Value::ItemCollection(item_collection)) => {
+                        stac::Value::ItemCollection(item_collection) => {
                             for item in item_collection.items {
                                 if let Some(collection) = item.collection.clone() {
                                     items.entry(collection).or_default().push(item);
@@ -287,7 +308,7 @@ impl Stacrs {
                                 }
                             }
                         }
-                        Value::Stac(stac::Value::Item(item)) => {
+                        stac::Value::Item(item) => {
                             if let Some(collection) = item.collection.clone() {
                                 items.entry(collection).or_default().push(item);
                             } else {
@@ -318,17 +339,17 @@ impl Stacrs {
         }
     }
 
-    async fn get(&self, href: Option<&str>) -> Result<Value> {
+    async fn get(&self, href: Option<&str>) -> Result<stac::Value> {
         let href = href.and_then(|s| if s == "-" { None } else { Some(s) });
         let format = self.input_format(href);
         if let Some(href) = href {
             let value: stac::Value = format.get_opts(href, self.opts()).await?;
-            Ok(value.into())
+            Ok(value)
         } else {
             let mut buf = Vec::new();
             let _ = tokio::io::stdin().read_to_end(&mut buf).await?;
             let value: stac::Value = format.from_bytes(buf)?;
-            Ok(value.into())
+            Ok(value)
         }
     }
 
@@ -467,6 +488,16 @@ mod tests {
         command
             .arg("translate")
             .arg("examples/simple-item.json")
+            .assert()
+            .success();
+    }
+
+    #[rstest]
+    fn migrate(mut command: Command) {
+        command
+            .arg("translate")
+            .arg("../../spec-examples/v1.0.0/simple-item.json")
+            .arg("--migrate")
             .assert()
             .success();
     }

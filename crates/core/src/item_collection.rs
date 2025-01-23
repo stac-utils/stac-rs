@@ -1,15 +1,43 @@
 use crate::{Error, Href, Item, Link, Migrate, Result, Version};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::{Map, Value};
 use stac_derive::{Links, SelfHref};
 use std::{ops::Deref, vec::IntoIter};
+
+const ITEM_COLLECTION_TYPE: &str = "FeatureCollection";
+
+fn item_collection_type() -> String {
+    ITEM_COLLECTION_TYPE.to_string()
+}
+
+fn deserialize_item_collection_type<'de, D>(
+    deserializer: D,
+) -> std::result::Result<String, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let r#type = String::deserialize(deserializer)?;
+    if r#type != ITEM_COLLECTION_TYPE {
+        Err(serde::de::Error::invalid_value(
+            serde::de::Unexpected::Str(&r#type),
+            &ITEM_COLLECTION_TYPE,
+        ))
+    } else {
+        Ok(r#type)
+    }
+}
 
 /// A [GeoJSON FeatureCollection](https://www.rfc-editor.org/rfc/rfc7946#page-12) of items.
 ///
 /// While not part of the STAC specification, ItemCollections are often used to store many items in a single file.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone, SelfHref, Links)]
-#[serde(tag = "type", rename = "FeatureCollection")]
 pub struct ItemCollection {
+    #[serde(
+        default = "item_collection_type",
+        deserialize_with = "deserialize_item_collection_type"
+    )]
+    r#type: String,
+
     /// The list of [Items](Item).
     ///
     /// The attribute is actually "features", but we rename to "items".
@@ -31,6 +59,7 @@ pub struct ItemCollection {
 impl From<Vec<Item>> for ItemCollection {
     fn from(items: Vec<Item>) -> Self {
         ItemCollection {
+            r#type: item_collection_type(),
             items,
             links: Vec::new(),
             additional_fields: Map::new(),

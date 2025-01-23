@@ -3,12 +3,33 @@ use crate::{
     Version, STAC_VERSION,
 };
 use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::{Map, Value};
 use stac_derive::{Fields, Links, SelfHref};
 use std::collections::HashMap;
 
-const DEFAULT_LICENSE: &str = "proprietary";
+const DEFAULT_LICENSE: &str = "other";
+
+const COLLECTION_TYPE: &str = "Collection";
+
+fn collection_type() -> String {
+    COLLECTION_TYPE.to_string()
+}
+
+fn deserialize_collection_type<'de, D>(deserializer: D) -> std::result::Result<String, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let r#type = String::deserialize(deserializer)?;
+    if r#type != COLLECTION_TYPE {
+        Err(serde::de::Error::invalid_value(
+            serde::de::Unexpected::Str(&r#type),
+            &COLLECTION_TYPE,
+        ))
+    } else {
+        Ok(r#type)
+    }
+}
 
 /// The STAC `Collection` Specification defines a set of common fields to describe
 /// a group of [Items](crate::Item) that share properties and metadata.
@@ -23,8 +44,13 @@ const DEFAULT_LICENSE: &str = "proprietary";
 /// contains all the required fields is a valid STAC `Collection` and also a valid
 /// STAC `Catalog`.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone, SelfHref, Links, Fields)]
-#[serde(tag = "type")]
 pub struct Collection {
+    #[serde(
+        default = "collection_type",
+        deserialize_with = "deserialize_collection_type"
+    )]
+    r#type: String,
+
     /// The STAC version the `Collection` implements.
     #[serde(rename = "stac_version", default)]
     pub version: Version,
@@ -170,6 +196,7 @@ impl Collection {
     /// ```
     pub fn new(id: impl ToString, description: impl ToString) -> Collection {
         Collection {
+            r#type: collection_type(),
             version: STAC_VERSION,
             extensions: Vec::new(),
             id: id.to_string(),
@@ -396,7 +423,7 @@ mod tests {
             let collection = Collection::new("an-id", "a description");
             assert!(collection.title.is_none());
             assert_eq!(collection.description, "a description");
-            assert_eq!(collection.license, "proprietary");
+            assert_eq!(collection.license, "other");
             assert!(collection.providers.is_none());
             assert_eq!(collection.extent, Extent::default());
             assert!(collection.summaries.is_none());
@@ -513,5 +540,12 @@ mod tests {
     #[test]
     fn permissive_deserialization() {
         let _: Collection = serde_json::from_value(json!({})).unwrap();
+    }
+
+    #[test]
+    fn has_type() {
+        let value: serde_json::Value =
+            serde_json::to_value(Collection::new("an-id", "a description")).unwrap();
+        assert_eq!(value.as_object().unwrap()["type"], "Collection");
     }
 }

@@ -81,22 +81,20 @@ mod url_builder;
 
 #[cfg(feature = "client")]
 pub use client::{BlockingClient, Client};
-pub use {
-    collections::Collections,
-    conformance::{
-        Conformance, COLLECTIONS_URI, CORE_URI, FEATURES_URI, FILTER_URIS, GEOJSON_URI,
-        ITEM_SEARCH_URI, OGC_API_FEATURES_URI,
-    },
-    error::Error,
-    fields::Fields,
-    filter::Filter,
-    item_collection::{Context, ItemCollection},
-    items::{GetItems, Items},
-    root::Root,
-    search::{GetSearch, Search},
-    sort::{Direction, Sortby},
-    url_builder::UrlBuilder,
+pub use collections::Collections;
+pub use conformance::{
+    Conformance, COLLECTIONS_URI, CORE_URI, FEATURES_URI, FILTER_URIS, GEOJSON_URI,
+    ITEM_SEARCH_URI, OGC_API_FEATURES_URI,
 };
+pub use error::Error;
+pub use fields::Fields;
+pub use filter::Filter;
+pub use item_collection::{Context, ItemCollection};
+pub use items::{GetItems, Items};
+pub use root::Root;
+pub use search::{GetSearch, Search};
+pub use sort::{Direction, Sortby};
+pub use url_builder::UrlBuilder;
 
 /// Crate-specific result type.
 pub type Result<T> = std::result::Result<T, Error>;

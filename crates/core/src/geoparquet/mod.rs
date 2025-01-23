@@ -149,4 +149,5 @@ impl_from_geoparquet!(crate::Collection);
 impl_into_geoparquet!(crate::Catalog);
 impl_into_geoparquet!(crate::Collection);
 
-pub(crate) use {impl_from_geoparquet, impl_into_geoparquet};
+pub(crate) use impl_from_geoparquet;
+pub(crate) use impl_into_geoparquet;

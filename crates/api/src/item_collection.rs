@@ -1,8 +1,31 @@
 use crate::{Item, Result};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::{Map, Value};
 use stac::{Href, Link};
 use stac_derive::{Links, SelfHref};
+
+const ITEM_COLLECTION_TYPE: &str = "FeatureCollection";
+
+fn item_collection_type() -> String {
+    ITEM_COLLECTION_TYPE.to_string()
+}
+
+fn deserialize_item_collection_type<'de, D>(
+    deserializer: D,
+) -> std::result::Result<String, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let r#type = String::deserialize(deserializer)?;
+    if r#type != ITEM_COLLECTION_TYPE {
+        Err(serde::de::Error::invalid_value(
+            serde::de::Unexpected::Str(&r#type),
+            &ITEM_COLLECTION_TYPE,
+        ))
+    } else {
+        Ok(r#type)
+    }
+}
 
 /// The return value of the `/items` and `/search` endpoints.
 ///
@@ -11,8 +34,13 @@ use stac_derive::{Links, SelfHref};
 /// not be. Defined by the [itemcollection
 /// fragment](https://github.com/radiantearth/stac-api-spec/blob/main/fragments/itemcollection/README.md).
 #[derive(Debug, Serialize, Deserialize, Default, Links, SelfHref)]
-#[serde(tag = "type", rename = "FeatureCollection")]
 pub struct ItemCollection {
+    #[serde(
+        default = "item_collection_type",
+        deserialize_with = "deserialize_item_collection_type"
+    )]
+    r#type: String,
+
     /// A possibly-empty array of Item objects.
     #[serde(rename = "features")]
     pub items: Vec<Item>,
@@ -104,6 +132,7 @@ impl ItemCollection {
     pub fn new(items: Vec<Item>) -> Result<ItemCollection> {
         let number_returned = items.len();
         Ok(ItemCollection {
+            r#type: item_collection_type(),
             items,
             links: Vec::new(),
             number_matched: None,
