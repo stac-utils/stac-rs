@@ -35,6 +35,9 @@ $ stacrs search https://landsatlook.usgs.gov/stac-server \
 $ stacrs translate items.parquet items.ndjson
 $ stacrs translate items.ndjson items.json
 
+# Migrate STAC versions
+$ stacrs translate item-v1.0.json item-v1.1.json --migrate
+
 # Search stac-geoparquet (no API server required)
 $ stac search items.parquet
 
@@ -46,7 +49,6 @@ $ stacrs serve items.parquet  # Opens a STAC API server on http://localhost:7822
 
 **stacrs** provides the following subcommands:
 
-- `stacrs migrate`: migrates a STAC object to another version
 - `stacrs search`: searches STAC APIs and geoparquet files
 - `stacrs serve`: serves a STAC API
 - `stacrs translate`: converts STAC from one format to another

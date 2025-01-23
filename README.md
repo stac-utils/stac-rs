@@ -44,6 +44,9 @@ $ stacrs search https://landsatlook.usgs.gov/stac-server \
 $ stacrs translate items.parquet items.ndjson
 $ stacrs translate items.ndjson items.json
 
+# Migrate STAC versions
+$ stacrs translate item-v1.0.json item-v1.1.json --migrate
+
 # Search stac-geoparquet (no API server required)
 $ stac search items.parquet
 
