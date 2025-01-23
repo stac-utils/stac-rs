@@ -62,6 +62,8 @@ jobs:
         run: cargo fmt
       - name: Clippy
         run: cargo clippy --workspace --all-features
+      - name: Build # need to build first to get the executable for CLI tests
+        run: cargo build --all-features
       - name: Test
         run: cargo test --all-features
       - name: Validate stac-server
