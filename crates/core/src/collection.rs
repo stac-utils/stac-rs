@@ -3,7 +3,7 @@ use crate::{
     Version, STAC_VERSION,
 };
 use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::{Map, Value};
 use stac_derive::{Fields, Links, SelfHref};
 use std::collections::HashMap;
@@ -14,6 +14,21 @@ const COLLECTION_TYPE: &str = "Collection";
 
 fn collection_type() -> String {
     COLLECTION_TYPE.to_string()
+}
+
+fn deserialize_collection_type<'de, D>(deserializer: D) -> std::result::Result<String, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let r#type = String::deserialize(deserializer)?;
+    if r#type != COLLECTION_TYPE {
+        Err(serde::de::Error::invalid_value(
+            serde::de::Unexpected::Str(&r#type),
+            &COLLECTION_TYPE,
+        ))
+    } else {
+        Ok(r#type)
+    }
 }
 
 /// The STAC `Collection` Specification defines a set of common fields to describe
@@ -30,7 +45,10 @@ fn collection_type() -> String {
 /// STAC `Catalog`.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone, SelfHref, Links, Fields)]
 pub struct Collection {
-    #[serde(default = "collection_type")]
+    #[serde(
+        default = "collection_type",
+        deserialize_with = "deserialize_collection_type"
+    )]
     r#type: String,
 
     /// The STAC version the `Collection` implements.

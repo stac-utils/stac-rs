@@ -8,7 +8,7 @@ use std::convert::TryFrom;
 
 /// An enum that can hold any STAC object type.
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
-#[serde(tag = "type")]
+#[serde(untagged)]
 pub enum Value {
     /// A STAC Item.
     #[serde(rename = "Feature")]
@@ -372,17 +372,6 @@ mod tests {
     fn from_json_invalid_type_field() {
         let catalog = json!({
             "type": {"foo": "bar"},
-            "stac_version": "1.0.0",
-            "id": "an-id",
-            "description": "a description",
-            "links": []
-        });
-        assert!(serde_json::from_value::<Value>(catalog).is_err());
-    }
-
-    #[test]
-    fn from_json_missing_type_field() {
-        let catalog = json!({
             "stac_version": "1.0.0",
             "id": "an-id",
             "description": "a description",

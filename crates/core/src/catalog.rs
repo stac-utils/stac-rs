@@ -1,5 +1,5 @@
 use crate::{Error, Href, Link, Result, Version, STAC_VERSION};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::{Map, Value};
 use stac_derive::{Fields, Links, Migrate, SelfHref};
 
@@ -7,6 +7,21 @@ const CATALOG_TYPE: &str = "Catalog";
 
 fn catalog_type() -> String {
     CATALOG_TYPE.to_string()
+}
+
+fn deserialize_catalog_type<'de, D>(deserializer: D) -> std::result::Result<String, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let r#type = String::deserialize(deserializer)?;
+    if r#type != CATALOG_TYPE {
+        Err(serde::de::Error::invalid_value(
+            serde::de::Unexpected::Str(&r#type),
+            &CATALOG_TYPE,
+        ))
+    } else {
+        Ok(r#type)
+    }
 }
 
 /// A STAC Catalog object represents a logical group of other `Catalog`,
@@ -23,7 +38,10 @@ fn catalog_type() -> String {
 /// to build a searchable index.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone, SelfHref, Migrate, Links, Fields)]
 pub struct Catalog {
-    #[serde(default = "catalog_type")]
+    #[serde(
+        default = "catalog_type",
+        deserialize_with = "deserialize_catalog_type"
+    )]
     r#type: String,
 
     /// The STAC version the `Catalog` implements.

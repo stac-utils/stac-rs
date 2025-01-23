@@ -3,7 +3,7 @@
 use crate::{Asset, Assets, Bbox, Error, Fields, Href, Link, Result, Version, STAC_VERSION};
 use chrono::{DateTime, FixedOffset, Utc};
 use geojson::{feature::Id, Feature, Geometry};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::{Map, Value};
 use stac_derive::{Links, Migrate, SelfHref};
 use std::{collections::HashMap, path::Path};
@@ -26,6 +26,21 @@ fn item_type() -> String {
     ITEM_TYPE.to_string()
 }
 
+fn deserialize_item_type<'de, D>(deserializer: D) -> std::result::Result<String, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let r#type = String::deserialize(deserializer)?;
+    if r#type != ITEM_TYPE {
+        Err(serde::de::Error::invalid_value(
+            serde::de::Unexpected::Str(&r#type),
+            &ITEM_TYPE,
+        ))
+    } else {
+        Ok(r#type)
+    }
+}
+
 /// An `Item` is a GeoJSON Feature augmented with foreign members relevant to a
 /// STAC object.
 ///
@@ -35,7 +50,7 @@ fn item_type() -> String {
 /// (e.g., satellite imagery, derived data, DEMs).
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone, SelfHref, Links, Migrate)]
 pub struct Item {
-    #[serde(default = "item_type")]
+    #[serde(default = "item_type", deserialize_with = "deserialize_item_type")]
     r#type: String,
 
     /// The STAC version the `Item` implements.
