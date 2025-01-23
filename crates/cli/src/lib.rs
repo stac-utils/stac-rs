@@ -66,13 +66,13 @@ pub struct Stacrs {
     /// Possible values (default: snappy):
     ///
     /// - uncompressed: No compression
-    /// - snappy:       Snappy compression (https://en.wikipedia.org/wiki/Snappy_(compression))
-    /// - gzip(n):      Gzip compression (https://www.ietf.org/rfc/rfc1952.txt)
-    /// - lzo:          LZO compression (https://en.wikipedia.org/wiki/Lempel%E2%80%93Ziv%E2%80%93Oberhumer)
-    /// - brotli(n):    Brotli compression (https://datatracker.ietf.org/doc/html/rfc7932)
-    /// - lz4:          LZ4 compression (https://lz4.org/), [(deprecated)](https://issues.apache.org/jira/browse/PARQUET-2032)
-    /// - zstd(n):      ZSTD compression (https://datatracker.ietf.org/doc/html/rfc8878)
-    /// - lz4-raw:      LZ4 compression (https://lz4.org/)
+    /// - snappy:       Snappy compression (<https://en.wikipedia.org/wiki/Snappy_(compression)>)
+    /// - gzip(n):      Gzip compression (<https://www.ietf.org/rfc/rfc1952.txt>)
+    /// - lzo:          LZO compression (<https://en.wikipedia.org/wiki/Lempel%E2%80%93Ziv%E2%80%93Oberhumer>)
+    /// - brotli(n):    Brotli compression (<https://datatracker.ietf.org/doc/html/rfc7932>)
+    /// - lz4:          LZ4 compression (<https://lz4.org/>), [(deprecated)](https://issues.apache.org/jira/browse/PARQUET-2032)
+    /// - zstd(n):      ZSTD compression (<https://datatracker.ietf.org/doc/html/rfc8878>)
+    /// - lz4-raw:      LZ4 compression (<https://lz4.org/>)
     ///
     /// Some of the compression values have a level, specified as `(n)`. This level should be an integer.
     #[arg(long = "parquet-compression", global = true, verbatim_doc_comment)]
