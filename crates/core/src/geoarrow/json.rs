@@ -38,16 +38,12 @@ const TOP_LEVEL_KEYS: [&str; 10] = [
     "collection",
 ];
 
-use arrow_array::cast::*;
-use arrow_array::types::*;
-use arrow_array::*;
+use arrow_array::{cast::*, types::*, *};
 use arrow_cast::display::{ArrayFormatter, FormatOptions};
 use arrow_json::JsonSerializable;
 use arrow_schema::*;
 use geoarrow::table::Table;
-use serde_json::json;
-use serde_json::map::Map as JsonMap;
-use serde_json::Value;
+use serde_json::{json, map::Map as JsonMap, Value};
 use std::iter;
 
 fn primitive_array_to_json<T>(array: &dyn Array) -> Result<Vec<Value>, ArrowError>

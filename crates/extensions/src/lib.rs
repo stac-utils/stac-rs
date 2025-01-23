@@ -48,9 +48,10 @@ pub mod electro_optical;
 pub mod projection;
 pub mod raster;
 
+pub use projection::Projection;
+pub use raster::Raster;
 use serde::{de::DeserializeOwned, Serialize};
 use stac::{Catalog, Collection, Error, Fields, Item, Result};
-pub use {projection::Projection, raster::Raster};
 
 /// A trait implemented by extensions.
 ///

@@ -1,15 +1,10 @@
 use anyhow::{anyhow, Error, Result};
 use clap::{Parser, Subcommand};
-use stac::geoparquet::Compression;
-use stac::Migrate;
-use stac::{Collection, Format, Item, Links};
+use stac::{geoparquet::Compression, Collection, Format, Item, Links, Migrate};
 use stac_api::{GetItems, GetSearch, Search};
 use stac_server::Backend;
-use std::collections::HashMap;
-use std::io::Write;
-use std::str::FromStr;
-use tokio::io::AsyncReadExt;
-use tokio::net::TcpListener;
+use std::{collections::HashMap, io::Write, str::FromStr};
+use tokio::{io::AsyncReadExt, net::TcpListener};
 
 /// stacrs: A command-line interface for the SpatioTemporal Asset Catalog (STAC)
 #[derive(Debug, Parser)]

@@ -186,37 +186,35 @@ mod version;
 
 use std::fmt::Display;
 
+pub use asset::{Asset, Assets};
+pub use band::Band;
+pub use bbox::Bbox;
+pub use catalog::Catalog;
+pub use collection::{Collection, Extent, Provider, SpatialExtent, TemporalExtent};
+pub use data_type::DataType;
+pub use error::Error;
+pub use fields::Fields;
+pub use format::Format;
+pub use geoparquet::{FromGeoparquet, IntoGeoparquet};
+pub use href::{Href, RealizedHref, SelfHref};
+pub use io::{read, write};
+pub use item::{FlatItem, Item, Properties};
+pub use item_asset::ItemAsset;
+pub use item_collection::ItemCollection;
+pub use json::{FromJson, ToJson};
+pub use link::{Link, Links};
+pub use migrate::Migrate;
+pub use ndjson::{FromNdjson, ToNdjson};
+pub use node::{Container, Node};
 #[cfg(feature = "object-store")]
 pub use resolver::Resolver;
+pub use statistics::Statistics;
 #[cfg(feature = "validate-blocking")]
 pub use validate::ValidateBlocking;
 #[cfg(feature = "validate")]
 pub use validate::{Validate, Validator};
-pub use {
-    asset::{Asset, Assets},
-    band::Band,
-    bbox::Bbox,
-    catalog::Catalog,
-    collection::{Collection, Extent, Provider, SpatialExtent, TemporalExtent},
-    data_type::DataType,
-    error::Error,
-    fields::Fields,
-    format::Format,
-    geoparquet::{FromGeoparquet, IntoGeoparquet},
-    href::{Href, RealizedHref, SelfHref},
-    io::{read, write},
-    item::{FlatItem, Item, Properties},
-    item_asset::ItemAsset,
-    item_collection::ItemCollection,
-    json::{FromJson, ToJson},
-    link::{Link, Links},
-    migrate::Migrate,
-    ndjson::{FromNdjson, ToNdjson},
-    node::{Container, Node},
-    statistics::Statistics,
-    value::Value,
-    version::Version,
-};
+pub use value::Value;
+pub use version::Version;
 
 /// The default STAC version of this library.
 pub const STAC_VERSION: Version = Version::v1_1_0;
