@@ -31,7 +31,7 @@ rust-version = "1.82"
 
 [workspace.dependencies]
 anyhow = "1.0"
-arrow = "53.1.0"
+arrow = "54.0.0"
 arrow-array = "53.1.0"
 arrow-cast = "53.1.0"
 arrow-json = "53.1.0"
