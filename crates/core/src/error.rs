@@ -21,7 +21,7 @@ pub enum Error {
     /// [fluent_uri::error::ParseError]
     #[error(transparent)]
     #[cfg(feature = "validate")]
-    FluentUriParse(#[from] fluent_uri::error::ParseError),
+    FluentUriParse(#[from] fluent_uri::error::ParseError<String>),
 
     /// Returned when unable to read a STAC value from a path.
     #[error("{io}: {path}")]
@@ -102,7 +102,7 @@ pub enum Error {
     Parquet(#[from] parquet::errors::ParquetError),
 
     /// [reqwest::Error]
-    #[cfg(any(feature = "reqwest", feature = "validate"))]
+    #[cfg(any(feature = "reqwest"))]
     #[error(transparent)]
     Reqwest(#[from] reqwest::Error),
 

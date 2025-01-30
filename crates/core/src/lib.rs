@@ -209,8 +209,6 @@ pub use node::{Container, Node};
 #[cfg(feature = "object-store")]
 pub use resolver::Resolver;
 pub use statistics::Statistics;
-#[cfg(feature = "validate-blocking")]
-pub use validate::ValidateBlocking;
 #[cfg(feature = "validate")]
 pub use validate::{Validate, Validator};
 pub use value::Value;

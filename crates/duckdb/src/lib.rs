@@ -400,7 +400,7 @@ mod tests {
     use super::Client;
     use geo::Geometry;
     use rstest::{fixture, rstest};
-    use stac::{Bbox, ValidateBlocking};
+    use stac::{Bbox, Validate};
     use stac_api::{Search, Sortby};
     use std::sync::Mutex;
 
@@ -418,7 +418,7 @@ mod tests {
             .search("data/100-sentinel-2-items.parquet", Search::default())
             .unwrap();
         assert_eq!(item_collection.items.len(), 100);
-        item_collection.items[0].validate_blocking().unwrap();
+        item_collection.items[0].validate().unwrap();
     }
 
     #[rstest]

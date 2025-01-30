@@ -43,8 +43,7 @@ object-store-all = [
     "object-store-http",
 ]
 reqwest = ["dep:reqwest"]
-validate = ["dep:jsonschema", "dep:reqwest", "dep:tokio", "dep:fluent-uri"]
-validate-blocking = ["validate", "tokio/rt"]
+validate = ["dep:jsonschema", "dep:fluent-uri", "reqwest"]
 
 [dependencies]
 arrow-array = { workspace = true, optional = true }
@@ -58,7 +57,7 @@ geo = { workspace = true, optional = true }
 geo-types = { workspace = true, optional = true }
 geoarrow = { workspace = true, optional = true }
 geojson.workspace = true
-jsonschema = { workspace = true, optional = true }
+jsonschema = { workspace = true, optional = true, features = ["resolve-http"] }
 log.workspace = true
 mime.workspace = true
 object_store = { workspace = true, optional = true }
@@ -82,11 +81,11 @@ tokio-test.workspace = true
 
 [[test]]
 name = "examples"
-required-features = ["validate-blocking"]
+required-features = ["validate"]
 
 [[test]]
 name = "migrate"
-required-features = ["validate-blocking"]
+required-features = ["validate"]
 
 [package.metadata.docs.rs]
 all-features = true
@@ -101,5 +100,4 @@ denylist = [
     "object-store-azure",
     "object-store-gcp",
     "object-store-http",
-    "validate-blocking",
 ]
