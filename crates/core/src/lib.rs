@@ -209,8 +209,6 @@ pub use node::{Container, Node};
 #[cfg(feature = "object-store")]
 pub use resolver::Resolver;
 pub use statistics::Statistics;
-#[cfg(feature = "validate-blocking")]
-pub use validate::ValidateBlocking;
 #[cfg(feature = "validate")]
 pub use validate::{Validate, Validator};
 pub use value::Value;
@@ -330,6 +328,11 @@ impl Display for Type {
 /// ```
 pub fn version() -> &'static str {
     env!("CARGO_PKG_VERSION")
+}
+
+/// Returns a string suitable for use as a HTTP user agent.
+pub fn user_agent() -> &'static str {
+    concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"))
 }
 
 #[cfg(test)]

@@ -27,4 +27,4 @@ thiserror.workspace = true
 [dev-dependencies]
 geo.workspace = true
 rstest.workspace = true
-stac = { workspace = true, features = ["validate-blocking"] }
+stac = { workspace = true, features = ["validate"] }

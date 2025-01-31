@@ -1,32 +1,22 @@
 use crate::{Error, Result, Type, Version};
-use jsonschema::{Retrieve, Uri, ValidationOptions, Validator as JsonschemaValidator};
-use reqwest::Client;
+use fluent_uri::Uri;
+use jsonschema::{Resource, Retrieve, ValidationOptions, Validator as JsonschemaValidator};
+use reqwest::blocking::Client;
 use serde::Serialize;
 use serde_json::{Map, Value};
-use std::{
-    collections::{HashMap, HashSet},
-    future::Future,
-    pin::Pin,
-    sync::{Arc, Mutex},
-};
-use tokio::{sync::RwLock, task::JoinSet};
+use std::collections::HashMap;
 
 const SCHEMA_BASE: &str = "https://schemas.stacspec.org";
 
-/// A cloneable structure for validating STAC.
-#[derive(Clone, Debug)]
+/// A structure for validating STAC.
+#[derive(Debug)]
 pub struct Validator {
+    validators: HashMap<Uri<String>, JsonschemaValidator>,
     validation_options: ValidationOptions,
-    cache: Arc<std::sync::RwLock<HashMap<Uri<String>, Value>>>,
-    schemas: Arc<RwLock<HashMap<Uri<String>, Arc<JsonschemaValidator>>>>,
-    uris: Arc<Mutex<HashSet<Uri<String>>>>,
-    client: Client,
 }
 
-struct Retriever {
-    cache: Arc<std::sync::RwLock<HashMap<Uri<String>, Value>>>,
-    uris: Arc<Mutex<HashSet<Uri<String>>>>,
-}
+#[derive(Debug)]
+struct Retriever(Client);
 
 impl Validator {
     /// Creates a new validator.
@@ -36,31 +26,18 @@ impl Validator {
     /// ```
     /// use stac::Validator;
     ///
-    /// # tokio_test::block_on(async {
-    /// let validator = Validator::new().await.unwrap();
-    /// });
+    /// let validator = Validator::new().unwrap();
     /// ```
-    pub async fn new() -> Result<Validator> {
-        let cache = Arc::new(std::sync::RwLock::new(cache()));
-        let uris = Arc::new(Mutex::new(HashSet::new()));
-        let retriever = Retriever {
-            cache: cache.clone(),
-            uris: uris.clone(),
-        };
-        let mut validation_options = JsonschemaValidator::options();
-        let _ = validation_options.with_retriever(retriever);
-        let client_builder = Client::builder().use_rustls_tls();
-        let client_builder = client_builder.user_agent(concat!(
-            env!("CARGO_PKG_NAME"),
-            "/",
-            env!("CARGO_PKG_VERSION"),
-        ));
+    pub fn new() -> Result<Validator> {
+        let mut validation_options = jsonschema::options();
+        let _ = validation_options
+            .with_resources(prebuild_resources().into_iter())
+            .with_retriever(Retriever(
+                Client::builder().user_agent(crate::user_agent()).build()?,
+            ));
         Ok(Validator {
-            schemas: Arc::new(RwLock::new(schemas(&validation_options))),
+            validators: prebuild_validators(&validation_options),
             validation_options,
-            cache,
-            uris,
-            client: client_builder.build()?,
         })
     }
 
@@ -72,32 +49,36 @@ impl Validator {
     /// use stac::{Item, Validator};
     ///
     /// let item = Item::new("an-id");
-    /// # tokio_test::block_on(async {
-    /// let validator = Validator::new().await.unwrap();
-    /// validator.validate(&item).await.unwrap();
-    /// });
+    /// let mut validator = Validator::new().unwrap();
+    /// validator.validate(&item).unwrap();
     /// ```
-    pub async fn validate<T>(&self, value: &T) -> Result<()>
+    pub fn validate<T>(&mut self, value: &T) -> Result<()>
     where
         T: Serialize,
     {
         let value = serde_json::to_value(value)?;
+        let _ = self.validate_value(value)?;
+        Ok(())
+    }
+
+    /// If you have a [serde_json::Value], you can skip a deserialization step by using this method.
+    pub fn validate_value(&mut self, value: Value) -> Result<Value> {
         if let Value::Object(object) = value {
-            self.validate_object(object).await
+            self.validate_object(object).map(Value::Object)
         } else if let Value::Array(array) = value {
-            self.validate_array(array).await
+            self.validate_array(array).map(Value::Array)
         } else {
             Err(Error::ScalarJson(value))
         }
     }
 
-    fn validate_array(&self, array: Vec<Value>) -> Pin<Box<impl Future<Output = Result<()>>>> {
-        // We have to pinbox because recursive async aren't allowed.
-        let validator = self.clone();
-        Box::pin(async move {
-            let mut errors = Vec::new();
-            for value in array {
-                if let Err(error) = validator.validate(&value).await {
+    fn validate_array(&mut self, array: Vec<Value>) -> Result<Vec<Value>> {
+        let mut errors = Vec::new();
+        let mut new_array = Vec::with_capacity(array.len());
+        for value in array {
+            match self.validate_value(value) {
+                Ok(value) => new_array.push(value),
+                Err(error) => {
                     if let Error::Validation(e) = error {
                         errors.extend(e);
                     } else {
@@ -105,158 +86,127 @@ impl Validator {
                     }
                 }
             }
-            if errors.is_empty() {
-                Ok(())
-            } else {
-                Err(Error::Validation(errors))
-            }
-        })
-    }
-
-    fn validate_object(
-        &self,
-        object: Map<String, Value>,
-    ) -> Pin<Box<impl Future<Output = Result<()>>>> {
-        // We have to pinbox because recursive async aren't allowed.
-        let validator = self.clone();
-        Box::pin(async move {
-            let r#type = if let Some(r#type) = object.get("type").and_then(|v| v.as_str()) {
-                let r#type: Type = r#type.parse()?;
-                if r#type == Type::ItemCollection {
-                    if let Some(features) = object.get("features") {
-                        return validator.validate(features).await;
-                    } else {
-                        return Ok(());
-                    }
-                }
-                r#type
-            } else if let Some(collections) = object.get("collections").and_then(|v| v.as_array()) {
-                return validator.validate(collections).await;
-            } else {
-                return Err(Error::MissingField("type"));
-            };
-            let version: Version = object
-                .get("stac_version")
-                .and_then(|v| v.as_str())
-                .map(|v| v.parse::<Version>())
-                .transpose()
-                .unwrap()
-                .ok_or(Error::MissingField("stac_version"))?;
-
-            let url = build_schema_url(r#type, &version);
-            let schema = validator.schema(url).await?;
-            let value = Arc::new(Value::Object(object));
-            let mut result = schema
-                .validate(&value)
-                .map_err(|e| Error::from_validation_errors(e, Some(&value)));
-            if result.is_ok() {
-                result = validator.validate_extensions(value.clone()).await
-            }
-            if let Err(err) = result {
-                let mut join_set = JoinSet::new();
-                {
-                    let mut uris = validator.uris.lock().unwrap();
-                    if uris.is_empty() {
-                        return Err(err);
-                    } else {
-                        for url in uris.drain() {
-                            let validator = validator.clone();
-                            let _ = join_set.spawn(async move { validator.resolve(url).await });
-                        }
-                    }
-                }
-                while let Some(result) = join_set.join_next().await {
-                    result??;
-                }
-                let object = if let Value::Object(o) = Arc::into_inner(value).unwrap() {
-                    o
-                } else {
-                    unreachable!()
-                };
-                validator.validate_object(object).await
-            } else {
-                Ok(())
-            }
-        })
-    }
-
-    async fn validate_extensions(&self, value: Arc<Value>) -> Result<()> {
-        let mut join_set = JoinSet::new();
-        if let Some(extensions) = value
-            .as_object()
-            .and_then(|o| o.get("stac_extensions"))
-            .and_then(|v| v.as_array())
-        {
-            for extension in extensions.iter().filter_map(|v| v.as_str()) {
-                let extension = Uri::parse(extension)?.to_owned();
-                let validator = self.clone();
-                let value = value.clone();
-                let _ = join_set.spawn(async move {
-                    let extension_schema = validator.schema(extension).await?;
-                    extension_schema
-                        .validate(&value)
-                        .map_err(|errors| Error::from_validation_errors(errors, Some(&value)))
-                });
-            }
-        }
-        let mut errors = Vec::new();
-        while let Some(result) = join_set.join_next().await {
-            let result = result?;
-            if let Err(Error::Validation(e)) = result {
-                errors.extend(e);
-            } else if result.is_err() {
-                return result;
-            }
         }
         if errors.is_empty() {
-            Ok(())
+            Ok(new_array)
         } else {
             Err(Error::Validation(errors))
         }
     }
 
-    async fn schema(&self, uri: Uri<String>) -> Result<Arc<JsonschemaValidator>> {
-        {
-            let schemas = self.schemas.read().await;
-            if let Some(schema) = schemas.get(&uri) {
-                return Ok(schema.clone());
+    fn validate_object(&mut self, mut object: Map<String, Value>) -> Result<Map<String, Value>> {
+        let r#type = if let Some(r#type) = object.get("type").and_then(|v| v.as_str()) {
+            let r#type: Type = r#type.parse()?;
+            if r#type == Type::ItemCollection {
+                if let Some(features) = object.remove("features") {
+                    let features = self.validate_value(features)?;
+                    let _ = object.insert("features".to_string(), features);
+                }
+                return Ok(object);
             }
-        }
-        self.resolve(uri.clone()).await?;
-        let schema = {
-            let cache = self.cache.read().unwrap();
-            let value = cache.get(&uri).expect("we just resolved it");
-            let schema = self.validation_options.build(value)?;
-            Arc::new(schema)
+            r#type
+        } else if let Some(collections) = object.remove("collections") {
+            let collections = self.validate_value(collections)?;
+            let _ = object.insert("collections".to_string(), collections);
+            return Ok(object);
+        } else {
+            return Err(Error::MissingField("type"));
         };
-        {
-            let mut schemas = self.schemas.write().await;
-            let _ = schemas.insert(uri, schema.clone());
-        }
-        Ok(schema)
+
+        let version: Version = object
+            .get("stac_version")
+            .and_then(|v| v.as_str())
+            .map(|v| v.parse::<Version>())
+            .transpose()
+            .unwrap()
+            .ok_or(Error::MissingField("stac_version"))?;
+
+        let uri = build_uri(r#type, &version);
+        let validator = self.validator(uri)?;
+        let value = Value::Object(object);
+        let errors: Vec<_> = validator.iter_errors(&value).collect();
+        let object = if errors.is_empty() {
+            if let Value::Object(object) = value {
+                object
+            } else {
+                unreachable!()
+            }
+        } else {
+            return Err(Error::from_validation_errors(
+                errors.into_iter(),
+                Some(&value),
+            ));
+        };
+
+        self.validate_extensions(object)
     }
 
-    async fn resolve(&self, uri: Uri<String>) -> Result<()> {
+    fn validate_extensions(&mut self, object: Map<String, Value>) -> Result<Map<String, Value>> {
+        if let Some(stac_extensions) = object
+            .get("stac_extensions")
+            .and_then(|value| value.as_array())
+            .cloned()
         {
-            let cache = self.cache.read().unwrap();
-            if cache.contains_key(&uri) {
-                return Ok(());
+            let uris = stac_extensions
+                .into_iter()
+                .filter_map(|value| {
+                    if let Value::String(s) = value {
+                        Some(Uri::parse(s))
+                    } else {
+                        None
+                    }
+                })
+                .collect::<std::result::Result<Vec<_>, _>>()?;
+            self.ensure_validators(&uris)?;
+
+            let mut errors = Vec::new();
+            let value = Value::Object(object);
+            for uri in uris {
+                let validator = self
+                    .validator_opt(&uri)
+                    .expect("We already ensured they're present");
+                errors.extend(validator.iter_errors(&value));
             }
+            if errors.is_empty() {
+                if let Value::Object(object) = value {
+                    Ok(object)
+                } else {
+                    unreachable!()
+                }
+            } else {
+                Err(Error::from_validation_errors(
+                    errors.into_iter(),
+                    Some(&value),
+                ))
+            }
+        } else {
+            Ok(object)
         }
-        tracing::debug!("resolving {}", uri);
-        let value: Value = self
-            .client
-            .get(uri.as_str())
-            .send()
-            .await?
-            .error_for_status()?
-            .json()
-            .await?;
-        {
-            let mut cache = self.cache.write().unwrap();
-            let _ = cache.insert(uri, value);
+    }
+
+    fn validator(&mut self, uri: Uri<String>) -> Result<&JsonschemaValidator> {
+        self.ensure_validator(&uri)?;
+        Ok(self.validator_opt(&uri).unwrap())
+    }
+
+    fn ensure_validators(&mut self, uris: &[Uri<String>]) -> Result<()> {
+        for uri in uris {
+            self.ensure_validator(uri)?;
         }
         Ok(())
+    }
+
+    fn ensure_validator(&mut self, uri: &Uri<String>) -> Result<()> {
+        if !self.validators.contains_key(uri) {
+            let response = reqwest::blocking::get(uri.as_str())?.error_for_status()?;
+            let validator = self.validation_options.build(&response.json()?)?;
+            let _ = self.validators.insert(uri.clone(), validator);
+        }
+        Ok(())
+    }
+
+    fn validator_opt(&self, uri: &Uri<String>) -> Option<&JsonschemaValidator> {
+        self.validators.get(uri)
     }
 }
 
@@ -265,22 +215,13 @@ impl Retrieve for Retriever {
         &self,
         uri: &Uri<&str>,
     ) -> std::result::Result<Value, Box<dyn std::error::Error + Send + Sync>> {
-        let uri = uri.to_owned();
-        {
-            let cache = self.cache.read().unwrap();
-            if let Some(schema) = cache.get(&uri) {
-                return Ok(schema.clone());
-            }
-        }
-        {
-            let mut uris = self.uris.lock().unwrap();
-            let _ = uris.insert(uri.clone());
-        }
-        Err(format!("{uri}").into())
+        let response = self.0.get(uri.as_str()).send()?.error_for_status()?;
+        let value = response.json()?;
+        Ok(value)
     }
 }
 
-fn build_schema_url(r#type: Type, version: &Version) -> Uri<String> {
+fn build_uri(r#type: Type, version: &Version) -> Uri<String> {
     Uri::parse(format!(
         "{}{}",
         SCHEMA_BASE,
@@ -291,9 +232,9 @@ fn build_schema_url(r#type: Type, version: &Version) -> Uri<String> {
     .unwrap()
 }
 
-fn schemas(
+fn prebuild_validators(
     validation_options: &ValidationOptions,
-) -> HashMap<Uri<String>, Arc<JsonschemaValidator>> {
+) -> HashMap<Uri<String>, JsonschemaValidator> {
     use Type::*;
     use Version::*;
 
@@ -301,10 +242,10 @@ fn schemas(
 
     macro_rules! schema {
         ($t:expr, $v:expr, $path:expr, $schemas:expr) => {
-            let url = build_schema_url($t, &$v);
-            let schema = serde_json::from_str(include_str!($path)).unwrap();
-            let schema = validation_options.build(&schema).unwrap();
-            let _ = schemas.insert(url, Arc::new(schema));
+            let url = build_uri($t, &$v);
+            let value = serde_json::from_str(include_str!($path)).unwrap();
+            let validator = validation_options.build(&value).unwrap();
+            let _ = schemas.insert(url, validator);
         };
     }
 
@@ -328,15 +269,16 @@ fn schemas(
     schemas
 }
 
-fn cache() -> HashMap<Uri<String>, Value> {
-    let mut cache = HashMap::new();
+fn prebuild_resources() -> Vec<(String, Resource)> {
+    let mut resources = Vec::new();
 
     macro_rules! resolve {
         ($url:expr, $path:expr) => {
-            let _ = cache.insert(
-                Uri::parse($url.to_string()).unwrap(),
-                serde_json::from_str(include_str!($path)).unwrap(),
-            );
+            let _ = resources.push((
+                $url.to_string(),
+                Resource::from_contents(serde_json::from_str(include_str!($path)).unwrap())
+                    .unwrap(),
+            ));
         };
     }
 
@@ -418,32 +360,44 @@ fn cache() -> HashMap<Uri<String>, Value> {
         "schemas/v1.1.0/provider.json"
     );
 
-    cache
+    resources
 }
 
 #[cfg(test)]
 mod tests {
-    use serde_json::json;
-
     use super::Validator;
     use crate::{Collection, Item, Validate};
+    use serde_json::json;
+
+    #[test]
+    fn validate_simple_item() {
+        let item: Item = crate::read("examples/simple-item.json").unwrap();
+        item.validate().unwrap();
+    }
 
     #[tokio::test]
-    async fn validate_array() {
+    #[ignore = "can't validate in a tokio runtime yet: https://github.com/Stranger6667/jsonschema/issues/385"]
+    async fn validate_inside_tokio_runtime() {
+        let item: Item = crate::read("examples/extended-item.json").unwrap();
+        item.validate().unwrap();
+    }
+
+    #[test]
+    fn validate_array() {
         let items: Vec<_> = (0..100)
             .map(|i| Item::new(format!("item-{}", i)))
             .map(|i| serde_json::to_value(i).unwrap())
             .collect();
-        let validator = Validator::new().await.unwrap();
-        validator.validate(&items).await.unwrap();
+        let mut validator = Validator::new().unwrap();
+        validator.validate(&items).unwrap();
     }
 
-    #[tokio::test]
-    async fn validate_collections() {
+    #[test]
+    fn validate_collections() {
         let collection: Collection = crate::read("examples/collection.json").unwrap();
         let collections = json!({
             "collections": [collection]
         });
-        collections.validate().await.unwrap();
+        collections.validate().unwrap();
     }
 }
