@@ -334,12 +334,13 @@ pub(crate) mod tests {
     use stac_api::{Fields, Filter, Search, Sortby};
     use std::{
         ops::Deref,
-        sync::{atomic::AtomicU16, Mutex},
+        sync::{atomic::AtomicU16, LazyLock},
     };
+    use tokio::sync::Mutex;
     use tokio_postgres::{Client, Config, NoTls};
     use tokio_test as _;
 
-    static MUTEX: Mutex<()> = Mutex::new(());
+    static MUTEX: LazyLock<Mutex<()>> = LazyLock::new(|| Mutex::new(()));
 
     struct TestClient {
         client: Client,
@@ -359,7 +360,7 @@ pub(crate) mod tests {
             let dbname = format!("pgstac_test_{}", id);
             let config = config();
             {
-                let _mutex = MUTEX.lock().unwrap();
+                let _mutex = MUTEX.lock().await;
                 let (client, connection) = config.connect(NoTls).await.unwrap();
                 let _handle = tokio::spawn(async move { connection.await.unwrap() });
                 let _ = client
