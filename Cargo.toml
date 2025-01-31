@@ -47,41 +47,42 @@ chrono = "0.4.38"
 clap = "4.5"
 cql2 = "0.3.0"
 duckdb = "1.1.1"
-fluent-uri = "0.3.1"
+fluent-uri = "0.3.2"
 futures = "0.3.31"
 geo = "0.29.3"
-geo-types = "0.7.13"
+geo-types = "0.7.15"
 geoarrow = "0.4.0-beta.3"
 geojson = "0.24.1"
 http = "1.1"
 jsonschema = { version = "0.28.3", default-features = false }
 libduckdb-sys = "1.1.1"
-log = "0.4.22"
+log = "0.4.25"
 mime = "0.3.17"
 mockito = "1.5"
 object_store = "0.11.0"
 parquet = { version = "53.1.0", default-features = false }
 pgstac = { version = "0.3.0", path = "crates/pgstac" }
-pyo3 = "0.23.3"
+pyo3 = "0.23.4"
 pythonize = "0.23.0"
 quote = "1.0"
 reqwest = { version = "0.12.8", default-features = false, features = [
     "rustls-tls",
 ] }
 rstest = "0.24.0"
-rustls = { version = "0.23.14", default-features = false }
+rustls = { version = "0.23.22", default-features = false }
 serde = "1.0"
 serde_json = "1.0"
 serde_urlencoded = "0.7.1"
-stac = { version = "0.11.1", path = "crates/core" }
+stac = { version = "0.12.0", path = "crates/core" }
 stac-api = { version = "0.7.0", path = "crates/api" }
 stac-derive = { version = "0.2.0", path = "crates/derive" }
 stac-duckdb = { version = "0.1.0", path = "crates/duckdb" }
+stac-extensions = { version = "0.1.0", path = "crates/extensions" }
 stac-server = { version = "0.3.2", path = "crates/server" }
 syn = "2.0"
-tempfile = "3.13"
+tempfile = "3.16"
 thiserror = "2.0"
-tokio = "1.37"
+tokio = "1.43"
 tokio-postgres = "0.7.12"
 tokio-postgres-rustls = "0.13.0"
 tokio-stream = "0.1.16"
@@ -94,4 +95,4 @@ tracing-subscriber = { version = "0.3.18", features = [
     "tracing-log",
 ] }
 url = "2.3"
-webpki-roots = "0.26.6"
+webpki-roots = "0.26.8"
