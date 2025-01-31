@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.12.0] - 2025-01-31
+
 ### Added
 
 - `error::Validation::into_json` ([#613](https://github.com/stac-utils/stac-rs/pull/613))
@@ -427,7 +429,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 Initial release.
 
-[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-v0.11.1...main
+[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-v0.12.0...main
+[0.12.0]: https://github.com/stac-utils/stac-rs/compare/stac-v0.11.1...stac-v0.12.0
 [0.11.1]: https://github.com/stac-utils/stac-rs/compare/stac-v0.11.0...stac-v0.11.1
 [0.11.0]: https://github.com/stac-utils/stac-rs/compare/stac-v0.10.2...stac-v0.11.0
 [0.10.2]: https://github.com/stac-utils/stac-rs/compare/stac-v0.10.1...stac-v0.10.2
