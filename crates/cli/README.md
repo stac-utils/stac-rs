@@ -43,6 +43,9 @@ $ stac search items.parquet
 
 # Server
 $ stacrs serve items.parquet  # Opens a STAC API server on http://localhost:7822
+
+# Validate
+$ stacrs validate item.json
 ```
 
 ## Usage
@@ -52,6 +55,7 @@ $ stacrs serve items.parquet  # Opens a STAC API server on http://localhost:7822
 - `stacrs search`: searches STAC APIs and geoparquet files
 - `stacrs serve`: serves a STAC API
 - `stacrs translate`: converts STAC from one format to another
+- `stacrs validate`: validates a STAC value
 
 Use the `--help` flag to see all available options for the CLI and the subcommands:
 

@@ -174,15 +174,6 @@ impl Validation {
         error: jsonschema::ValidationError<'_>,
         value: Option<&serde_json::Value>,
     ) -> Validation {
-        use std::borrow::Cow;
-
-        // Cribbed from https://docs.rs/jsonschema/latest/src/jsonschema/error.rs.html#21-30
-        let error = jsonschema::ValidationError {
-            instance_path: error.instance_path.clone(),
-            instance: Cow::Owned(error.instance.into_owned()),
-            kind: error.kind,
-            schema_path: error.schema_path,
-        };
         let mut id = None;
         let mut r#type = None;
         if let Some(value) = value.and_then(|v| v.as_object()) {
@@ -192,7 +183,21 @@ impl Validation {
                 .and_then(|v| v.as_str())
                 .and_then(|s| s.parse::<crate::Type>().ok());
         }
-        Validation { id, r#type, error }
+        Validation {
+            id,
+            r#type,
+            error: error.to_owned(),
+        }
+    }
+
+    /// Converts this validation error into a [serde_json::Value].
+    pub fn into_json(self) -> serde_json::Value {
+        let error_description = jsonschema::output::ErrorDescription::from(self.error);
+        serde_json::json!({
+            "id": self.id,
+            "type": self.r#type,
+            "error": error_description,
+        })
     }
 }
 
