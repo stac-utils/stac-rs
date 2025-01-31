@@ -221,7 +221,7 @@ pub const STAC_VERSION: Version = Version::v1_1_0;
 pub type Result<T> = std::result::Result<T, Error>;
 
 /// Enum for the four "types" of STAC values.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, serde::Serialize)]
 pub enum Type {
     /// An item.
     Item,

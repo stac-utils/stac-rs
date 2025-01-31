@@ -1,10 +1,10 @@
 use anyhow::{anyhow, Error, Result};
 use clap::{Parser, Subcommand};
-use stac::{geoparquet::Compression, Collection, Format, Item, Links, Migrate};
+use stac::{geoparquet::Compression, Collection, Format, Item, Links, Migrate, Validate};
 use stac_api::{GetItems, GetSearch, Search};
 use stac_server::Backend;
 use std::{collections::HashMap, io::Write, str::FromStr};
-use tokio::{io::AsyncReadExt, net::TcpListener};
+use tokio::{io::AsyncReadExt, net::TcpListener, runtime::Handle};
 
 /// stacrs: A command-line interface for the SpatioTemporal Asset Catalog (STAC)
 #[derive(Debug, Parser)]
@@ -193,6 +193,17 @@ pub enum Command {
         #[arg(long, default_value_t = true)]
         create_collections: bool,
     },
+
+    /// Validates a STAC value.
+    ///
+    /// The default output format is plain text — use `--output-format=json` to
+    /// get structured output.
+    Validate {
+        /// The input file.
+        ///
+        /// To read from standard input, pass `-` or don't provide an argument at all.
+        infile: Option<String>,
+    },
 }
 
 #[derive(Debug)]
@@ -334,6 +345,40 @@ impl Stacrs {
                 } else {
                     let backend = stac_server::MemoryBackend::new();
                     load_and_serve(addr, backend, collections, items, create_collections).await
+                }
+            }
+            Command::Validate { ref infile } => {
+                let value = self.get(infile.as_deref()).await?;
+                let result = Handle::current()
+                    .spawn_blocking(move || value.validate())
+                    .await?;
+                if let Err(error) = result {
+                    if let stac::Error::Validation(errors) = error {
+                        if let Some(format) = self.output_format {
+                            if let Format::Json(_) = format {
+                                let value = errors
+                                    .into_iter()
+                                    .map(|error| error.into_json())
+                                    .collect::<Vec<_>>();
+                                if self.compact_json.unwrap_or_default() {
+                                    serde_json::to_writer(std::io::stdout(), &value)?;
+                                } else {
+                                    serde_json::to_writer_pretty(std::io::stdout(), &value)?;
+                                }
+                                println!("");
+                            } else {
+                                return Err(anyhow!("invalid output format: {}", format));
+                            }
+                        } else {
+                            for error in errors {
+                                println!("{}", error);
+                            }
+                        }
+                    }
+                    std::io::stdout().flush()?;
+                    Err(anyhow!("one or more validation errors"))
+                } else {
+                    Ok(())
                 }
             }
         }
@@ -590,5 +635,19 @@ mod tests {
             stacrs.output_format(None),
             Format::Geoparquet(Some(Compression::LZO))
         );
+    }
+
+    #[rstest]
+    fn validate(mut command: Command) {
+        command
+            .arg("validate")
+            .arg("examples/simple-item.json")
+            .assert()
+            .success();
+        command
+            .arg("validate")
+            .arg("data/invalid-item.json")
+            .assert()
+            .failure();
     }
 }
