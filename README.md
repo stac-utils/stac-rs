@@ -52,6 +52,9 @@ $ stacrs search items.parquet
 
 # Server
 $ stacrs serve items.parquet  # Opens a STAC API server on http://localhost:7822
+
+# Validate
+$ stacrs validate item.json
 ```
 
 ## Python
