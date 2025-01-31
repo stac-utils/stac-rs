@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+
+set -e
+
+cargo fmt --check
+cargo clippy --workspace --all-features -- -D warnings

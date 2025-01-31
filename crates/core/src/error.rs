@@ -102,7 +102,7 @@ pub enum Error {
     Parquet(#[from] parquet::errors::ParquetError),
 
     /// [reqwest::Error]
-    #[cfg(any(feature = "reqwest"))]
+    #[cfg(feature = "reqwest")]
     #[error(transparent)]
     Reqwest(#[from] reqwest::Error),
 

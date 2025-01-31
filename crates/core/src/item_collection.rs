@@ -136,7 +136,7 @@ mod tests {
     #[test]
     fn item_collection_from_iter() {
         let items = vec![Item::new("a"), Item::new("b")];
-        let _ = ItemCollection::from_iter(items.into_iter());
+        let _ = ItemCollection::from_iter(items);
     }
 
     #[test]

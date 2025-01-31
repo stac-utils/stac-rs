@@ -738,7 +738,7 @@ mod tests {
         ]))))
         .unwrap();
         assert!(item
-            .intersects(&crate::geo::bbox(&vec![-106.0, 41.0, -105.0, 42.0]).unwrap())
+            .intersects(&crate::geo::bbox(&[-106.0, 41.0, -105.0, 42.0]).unwrap())
             .unwrap());
     }
 

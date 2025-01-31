@@ -13,6 +13,7 @@ Draft pull requests with a failing test to demonstrate a bug are much appreciate
 
 Please open a [pull request](https://docs.github.com/en/pull-requests) with your changes -- make sure to include unit tests.
 Please follow standard git commit formatting (subject line 50 characters max, wrap the body at 72 characters).
+Run `scripts/lint` to make sure your changes are nice, and use `scripts/format` to fix things that can be fixed.
 
 We use [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/).
 Your commits do not have to but if you'd like to format them this way, we would be grateful.
