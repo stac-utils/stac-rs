@@ -1,6 +1,7 @@
 use crate::{Error, Result, Type, Version};
 use fluent_uri::Uri;
-use jsonschema::{Resource, ValidationOptions, Validator as JsonschemaValidator};
+use jsonschema::{Resource, Retrieve, ValidationOptions, Validator as JsonschemaValidator};
+use reqwest::blocking::Client;
 use serde::Serialize;
 use serde_json::{Map, Value};
 use std::collections::HashMap;
@@ -14,6 +15,9 @@ pub struct Validator {
     validation_options: ValidationOptions,
 }
 
+#[derive(Debug)]
+struct Retriever(Client);
+
 impl Validator {
     /// Creates a new validator.
     ///
@@ -26,7 +30,11 @@ impl Validator {
     /// ```
     pub fn new() -> Result<Validator> {
         let mut validation_options = jsonschema::options();
-        let _ = validation_options.with_resources(prebuild_resources().into_iter());
+        let _ = validation_options
+            .with_resources(prebuild_resources().into_iter())
+            .with_retriever(Retriever(
+                Client::builder().user_agent(crate::user_agent()).build()?,
+            ));
         Ok(Validator {
             validators: prebuild_validators(&validation_options),
             validation_options,
@@ -199,6 +207,17 @@ impl Validator {
 
     fn validator_opt(&self, uri: &Uri<String>) -> Option<&JsonschemaValidator> {
         self.validators.get(uri)
+    }
+}
+
+impl Retrieve for Retriever {
+    fn retrieve(
+        &self,
+        uri: &Uri<&str>,
+    ) -> std::result::Result<Value, Box<dyn std::error::Error + Send + Sync>> {
+        let response = self.0.get(uri.as_str()).send()?.error_for_status()?;
+        let value = response.json()?;
+        Ok(value)
     }
 }
 

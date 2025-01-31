@@ -330,6 +330,11 @@ pub fn version() -> &'static str {
     env!("CARGO_PKG_VERSION")
 }
 
+/// Returns a string suitable for use as a HTTP user agent.
+pub fn user_agent() -> &'static str {
+    concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"))
+}
+
 #[cfg(test)]
 mod tests {
     use rstest as _;
