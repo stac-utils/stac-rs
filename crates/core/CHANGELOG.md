@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 
 - `error::Validation::into_json` ([#613](https://github.com/stac-utils/stac-rs/pull/613))
+- Re-export `geojson::Geometry` ([#614](https://github.com/stac-utils/stac-rs/pull/614))
 
 ### Removed
 

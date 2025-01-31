@@ -195,6 +195,7 @@ pub use data_type::DataType;
 pub use error::Error;
 pub use fields::Fields;
 pub use format::Format;
+pub use geojson::Geometry;
 pub use geoparquet::{FromGeoparquet, IntoGeoparquet};
 pub use href::{Href, RealizedHref, SelfHref};
 pub use io::{read, write};
