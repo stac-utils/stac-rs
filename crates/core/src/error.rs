@@ -116,7 +116,7 @@ pub enum Error {
 
     /// [tokio::task::JoinError]
     #[error(transparent)]
-    #[cfg(any(feature = "validate", feature = "object-store"))]
+    #[cfg(feature = "object-store")]
     TokioJoin(#[from] tokio::task::JoinError),
 
     /// [std::num::TryFromIntError]
