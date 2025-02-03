@@ -135,7 +135,7 @@ impl Format {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```no_run
     /// use stac::{Item, Format};
     ///
     /// #[cfg(feature = "object-store-aws")]
