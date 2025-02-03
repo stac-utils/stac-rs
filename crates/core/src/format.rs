@@ -136,12 +136,14 @@ impl Format {
     /// # Examples
     ///
     /// ```no_run
-    /// use stac::{Item, Format};
+    /// use stac::{Catalog, Format};
     ///
     /// #[cfg(feature = "object-store-aws")]
     /// {
     /// # tokio_test::block_on(async {
-    ///     let item: Item = stac::io::get_opts("s3://bucket/item.json", [("aws_access_key_id", "...")]).await.unwrap();
+    ///     let catalog: Catalog = stac::io::get_opts("s3://nz-elevation/catalog.json",
+    ///         [("skip_signature", "true"), ("region", "ap-southeast-2")],
+    ///     ).await.unwrap();
     /// # })
     /// }
     /// ```
