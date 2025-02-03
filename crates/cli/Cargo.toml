@@ -20,6 +20,7 @@ python = ["dep:pyo3", "pgstac"]
 anyhow.workspace = true
 axum.workspace = true
 clap = { workspace = true, features = ["derive"] }
+duckdb.workspace = true  # we depend on it directly so that we can bundle it for the Python wheels
 object_store.workspace = true
 pyo3 = { workspace = true, optional = true }
 reqwest.workspace = true
