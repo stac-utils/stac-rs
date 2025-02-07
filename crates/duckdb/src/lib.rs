@@ -114,6 +114,7 @@ impl Client {
         connection.execute("LOAD spatial", [])?;
         connection.execute("INSTALL icu", [])?;
         connection.execute("LOAD icu", [])?;
+        connection.execute("CREATE SECRET (TYPE S3, PROVIDER CREDENTIAL_CHAIN)", [])?;
         Ok(Client { connection })
     }
 
