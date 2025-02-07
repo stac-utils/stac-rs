@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Configure s3 credential chain ([#621](https://github.com/stac-utils/stac-rs/pull/621))
+
 ## [0.1.1] - 2025-01-31
 
 ### Added
