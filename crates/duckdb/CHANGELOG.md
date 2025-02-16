@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 
 - Configure s3 credential chain ([#621](https://github.com/stac-utils/stac-rs/pull/621))
+- Read hive partitioned datasets, `Config` structure ([#624](https://github.com/stac-utils/stac-rs/pull/624))
 
 ## [0.1.1] - 2025-01-31
 
