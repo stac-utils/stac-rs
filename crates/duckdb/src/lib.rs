@@ -86,6 +86,21 @@ pub type Result<T> = std::result::Result<T, Error>;
 #[derive(Debug)]
 pub struct Client {
     connection: Connection,
+    config: Config,
+}
+
+/// Configuration for a client.
+#[derive(Debug)]
+pub struct Config {
+    /// Whether to enable the s3 credential chain, which allows s3:// url access.
+    ///
+    /// True by default.
+    pub use_s3_credential_chain: bool,
+
+    /// Whether to enable hive partitioning.
+    ///
+    /// False by default.
+    pub use_hive_partitioning: bool,
 }
 
 /// A SQL query.
@@ -109,43 +124,68 @@ impl Client {
     /// let client = Client::new().unwrap();
     /// ```
     pub fn new() -> Result<Client> {
+        Client::with_config(Config::default())
+    }
+
+    /// Creates a new client with the provided configuration.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac_duckdb::{Client, Config};
+    ///
+    /// let config = Config {
+    ///     use_s3_credential_chain: true,
+    ///     use_hive_partitioning: true,
+    /// };
+    /// let client = Client::with_config(config);
+    /// ```
+    pub fn with_config(config: Config) -> Result<Client> {
         let connection = Connection::open_in_memory()?;
         connection.execute("INSTALL spatial", [])?;
         connection.execute("LOAD spatial", [])?;
         connection.execute("INSTALL icu", [])?;
         connection.execute("LOAD icu", [])?;
-        connection.execute("CREATE SECRET (TYPE S3, PROVIDER CREDENTIAL_CHAIN)", [])?;
-        Ok(Client { connection })
+        if config.use_s3_credential_chain {
+            connection.execute("CREATE SECRET (TYPE S3, PROVIDER CREDENTIAL_CHAIN)", [])?;
+        }
+        Ok(Client { connection, config })
     }
 
     /// Returns one or more [stac::Collection] from the items in the stac-geoparquet file.
     pub fn collections(&self, href: &str) -> Result<Vec<Collection>> {
         let start_datetime= if self.connection.prepare(&format!(
-            "SELECT column_name FROM (DESCRIBE SELECT * from read_parquet('{}')) where column_name = 'start_datetime'",
-            href
+            "SELECT column_name FROM (DESCRIBE SELECT * from {}) where column_name = 'start_datetime'",
+            self.read_parquet_str(href)
         ))?.query([])?.next()?.is_some() {
             "strftime(min(coalesce(start_datetime, datetime)), '%xT%X%z')"
         } else {
             "strftime(min(datetime), '%xT%X%z')"
         };
-        let end_datetime= if self.connection.prepare(&format!(
-            "SELECT column_name FROM (DESCRIBE SELECT * from read_parquet('{}')) where column_name = 'end_datetime'",
-            href
-        ))?.query([])?.next()?.is_some() {
+        let end_datetime = if self
+            .connection
+            .prepare(&format!(
+            "SELECT column_name FROM (DESCRIBE SELECT * from {}) where column_name = 'end_datetime'",
+            self.read_parquet_str(href)
+        ))?
+            .query([])?
+            .next()?
+            .is_some()
+        {
             "strftime(max(coalesce(end_datetime, datetime)), '%xT%X%z')"
         } else {
             "strftime(max(datetime), '%xT%X%z')"
         };
         let mut statement = self.connection.prepare(&format!(
-            "SELECT DISTINCT collection FROM read_parquet('{}')",
-            href
+            "SELECT DISTINCT collection FROM {}",
+            self.read_parquet_str(href)
         ))?;
         let mut collections = Vec::new();
         for row in statement.query_map([], |row| row.get::<_, String>(0))? {
             let collection_id = row?;
             let mut statement = self.connection.prepare(&
-                format!("SELECT ST_AsGeoJSON(ST_Extent_Agg(geometry)), {}, {} FROM read_parquet('{}') WHERE collection = $1", start_datetime, end_datetime,
-                href
+                format!("SELECT ST_AsGeoJSON(ST_Extent_Agg(geometry)), {}, {} FROM {} WHERE collection = $1", start_datetime, end_datetime,
+                self.read_parquet_str(href)
             ))?;
             let row = statement.query_row([&collection_id], |row| {
                 Ok((
@@ -235,8 +275,8 @@ impl Client {
         let fields = std::mem::take(&mut search.items.fields);
 
         let mut statement = self.connection.prepare(&format!(
-            "SELECT column_name FROM (DESCRIBE SELECT * from read_parquet('{}'))",
-            href
+            "SELECT column_name FROM (DESCRIBE SELECT * from {})",
+            self.read_parquet_str(href)
         ))?;
         let mut columns = Vec::new();
         // Can we use SQL magic to make our query not depend on which columns are present?
@@ -354,13 +394,24 @@ impl Client {
         }
         Ok(Query {
             sql: format!(
-                "SELECT {} FROM read_parquet('{}'){}",
+                "SELECT {} FROM {}{}",
                 columns.join(","),
-                href,
+                self.read_parquet_str(href),
                 suffix,
             ),
             params,
         })
+    }
+
+    fn read_parquet_str(&self, href: &str) -> String {
+        if self.config.use_hive_partitioning {
+            format!(
+                "read_parquet('{}', filename=true, hive_partitioning=1)",
+                href
+            )
+        } else {
+            format!("read_parquet('{}', filename=true)", href)
+        }
     }
 }
 
@@ -394,6 +445,15 @@ fn to_geoarrow_record_batch(mut record_batch: RecordBatch) -> Result<RecordBatch
         record_batch = RecordBatch::try_new(schema.into(), columns)?;
     }
     Ok(record_batch)
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Config {
+            use_hive_partitioning: false,
+            use_s3_credential_chain: true,
+        }
+    }
 }
 
 #[cfg(test)]
