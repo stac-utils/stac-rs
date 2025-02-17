@@ -29,8 +29,8 @@ impl Validator {
     /// let validator = Validator::new().unwrap();
     /// ```
     pub fn new() -> Result<Validator> {
-        let mut validation_options = jsonschema::options();
-        let _ = validation_options
+        let validation_options = jsonschema::options();
+        let validation_options = validation_options
             .with_resources(prebuild_resources().into_iter())
             .with_retriever(Retriever(
                 Client::builder().user_agent(crate::user_agent()).build()?,
@@ -213,7 +213,7 @@ impl Validator {
 impl Retrieve for Retriever {
     fn retrieve(
         &self,
-        uri: &Uri<&str>,
+        uri: &Uri<String>,
     ) -> std::result::Result<Value, Box<dyn std::error::Error + Send + Sync>> {
         let response = self.0.get(uri.as_str()).send()?.error_for_status()?;
         let value = response.json()?;
