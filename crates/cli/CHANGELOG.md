@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.5.1] - 2025-01-31
+
+### Changed
+
+- Always bundle DuckDB (again)
+
 ## [0.5.0] - 2025-01-31
 
 ### Changed
@@ -110,7 +116,8 @@ Moved over from [stac-incubator-rs](https://github.com/gadomski/stac-incubator-r
 - Downloading ([#142](https://github.com/stac-utils/stac-rs/pull/142), [#152](https://github.com/stac-utils/stac-rs/pull/152))
 - Validation ([#155](https://github.com/stac-utils/stac-rs/pull/155))
 
-[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-cli-v0.5.0..main
+[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-cli-v0.5.1..main
+[0.5.1]: https://github.com/stac-utils/stac-rs/compare/stac-cli-v0.5.0..stac-cli-v0.5.1
 [0.5.0]: https://github.com/stac-utils/stac-rs/compare/stac-cli-v0.4.1..stac-cli-v0.5.0
 [0.4.1]: https://github.com/stac-utils/stac-rs/compare/stac-cli-v0.4.0..stac-cli-v0.4.1
 [0.4.0]: https://github.com/stac-utils/stac-rs/compare/stac-cli-v0.3.1..stac-cli-v0.4.0

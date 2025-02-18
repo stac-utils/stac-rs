@@ -19,26 +19,36 @@ jobs:
     strategy:
       matrix:
         platform:
-          - runner: ubuntu-latest
+          - runner: ubuntu-22.04
             target: x86_64
-          - runner: ubuntu-latest
+            manylinux: auto
+          - runner: ubuntu-22.04
             target: x86
-          - runner: ubuntu-latest
+            manylinux: auto
+          - runner: ubuntu-22.04
+            target: aarch64
+            manylinux: "2_28"
+          - runner: ubuntu-22.04
             target: armv7
-          - runner: ubuntu-latest
+            manylinux: auto
+          - runner: ubuntu-22.04
+            target: s390x
+            manylinux: auto
+          - runner: ubuntu-22.04
             target: ppc64le
+            manylinux: auto
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: 3.x
+      - uses: astral-sh/setup-uv@v5
+      - name: Install Pythons
+        run: uv python install 3.9
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist --find-interpreter --manifest-path crates/cli/Cargo.toml -F duckdb/bundled
-          sccache: "true"
-          manylinux: auto
+          args: --release --out dist -i 3.9 --manifest-path crates/cli/Cargo.toml -F duckdb/bundled
+          sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
+          manylinux: ${{ matrix.platform.manylinux }}
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
@@ -60,15 +70,15 @@ jobs:
             target: armv7
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: 3.x
+      - uses: astral-sh/setup-uv@v5
+      - name: Install Pythons
+        run: uv python install 3.9
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist --find-interpreter --manifest-path crates/cli/Cargo.toml -F duckdb/bundled
-          sccache: "true"
+          args: --release --out dist -i 3.9 --manifest-path crates/cli/Cargo.toml -F duckdb/bundled
+          sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
           manylinux: musllinux_1_2
       - name: Upload wheels
         uses: actions/upload-artifact@v4
@@ -87,16 +97,15 @@ jobs:
             target: x86
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: 3.x
-          architecture: ${{ matrix.platform.target }}
+      - uses: astral-sh/setup-uv@v5
+      - name: Install Pythons
+        run: uv python install 3.9
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist --find-interpreter --manifest-path crates/cli/Cargo.toml -F duckdb/bundled
-          sccache: "true"
+          args: --release --out dist -i 3.9 --manifest-path crates/cli/Cargo.toml -F duckdb/bundled
+          sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
@@ -114,15 +123,15 @@ jobs:
             target: aarch64
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: 3.x
+      - uses: astral-sh/setup-uv@v5
+      - name: Install Pythons
+        run: uv python install 3.9
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist --find-interpreter --manifest-path crates/cli/Cargo.toml -F duckdb/bundled
-          sccache: "true"
+          args: --release --out dist -i 3.9 --manifest-path crates/cli/Cargo.toml -F duckdb/bundled
+          sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
