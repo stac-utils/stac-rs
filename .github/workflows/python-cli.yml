@@ -26,7 +26,7 @@ jobs:
             manylinux: auto
           - runner: ubuntu-22.04
             target: x86
-            manylinux: auto
+            manylinux: "2_28"
           - runner: ubuntu-22.04
             target: aarch64
             manylinux: "2_28"
