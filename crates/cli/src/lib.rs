@@ -1,3 +1,5 @@
+// The verbosity stuff is cribbed from https://github.com/clap-rs/clap-verbosity-flag/blob/c621a6a8a7c0b6df8f1464a985a5d076b4915693/src/lib.rs and updated for tracing
+
 use anyhow::{anyhow, Error, Result};
 use clap::{Parser, Subcommand};
 use duckdb as _;
@@ -7,6 +9,10 @@ use stac_api::{GetItems, GetSearch, Search};
 use stac_server::Backend;
 use std::{collections::HashMap, io::Write, str::FromStr};
 use tokio::{io::AsyncReadExt, net::TcpListener, runtime::Handle};
+use tracing::metadata::Level;
+
+#[cfg(feature = "python")]
+mod python;
 
 /// stacrs: A command-line interface for the SpatioTemporal Asset Catalog (STAC)
 #[derive(Debug, Parser)]
@@ -75,6 +81,27 @@ pub struct Stacrs {
     /// Some of the compression values have a level, specified as `(n)`. This level should be an integer.
     #[arg(long = "parquet-compression", global = true, verbatim_doc_comment)]
     parquet_compression: Option<Compression>,
+
+    #[arg(
+        long,
+        short = 'v',
+        action = clap::ArgAction::Count,
+        global = true,
+        help = ErrorLevel::verbose_help(),
+        long_help = ErrorLevel::verbose_long_help(),
+    )]
+    verbose: u8,
+
+    #[arg(
+        long,
+        short = 'q',
+        action = clap::ArgAction::Count,
+        global = true,
+        help = ErrorLevel::quiet_help(),
+        long_help = ErrorLevel::quiet_long_help(),
+        conflicts_with = "verbose",
+    )]
+    quiet: u8,
 }
 
 /// A stacrs subcommand.
@@ -217,6 +244,9 @@ enum Value {
 
 #[derive(Debug, Clone)]
 struct KeyValue(String, String);
+
+#[derive(Copy, Clone, Debug, Default)]
+struct ErrorLevel;
 
 impl Stacrs {
     /// Runs this command.
@@ -422,6 +452,14 @@ impl Stacrs {
         }
     }
 
+    pub fn log_level(&self) -> Option<Level> {
+        level_enum(self.verbosity())
+    }
+
+    fn verbosity(&self) -> i8 {
+        level_value(ErrorLevel::default()) - (self.quiet as i8) + (self.verbose as i8)
+    }
+
     /// Returns the set or inferred input format.
     pub fn input_format(&self, href: Option<&str>) -> Format {
         if let Some(input_format) = self.input_format {
@@ -457,6 +495,28 @@ impl Stacrs {
             .cloned()
             .map(|kv| (kv.0, kv.1))
             .collect()
+    }
+}
+
+impl ErrorLevel {
+    fn default() -> Option<Level> {
+        Some(Level::ERROR)
+    }
+
+    fn verbose_help() -> Option<&'static str> {
+        Some("Increase verbosity")
+    }
+
+    fn verbose_long_help() -> Option<&'static str> {
+        None
+    }
+
+    fn quiet_help() -> Option<&'static str> {
+        Some("Decrease verbosity")
+    }
+
+    fn quiet_long_help() -> Option<&'static str> {
+        None
     }
 }
 
@@ -515,6 +575,28 @@ async fn load_and_serve(
     let listener = TcpListener::bind(&addr).await?;
     eprintln!("Serving a STAC API at {}", root);
     axum::serve(listener, router).await.map_err(Error::from)
+}
+
+fn level_enum(verbosity: i8) -> Option<Level> {
+    match verbosity {
+        i8::MIN..=-1 => None,
+        0 => Some(Level::ERROR),
+        1 => Some(Level::WARN),
+        2 => Some(Level::INFO),
+        3 => Some(Level::DEBUG),
+        4..=i8::MAX => Some(Level::TRACE),
+    }
+}
+
+fn level_value(level: Option<Level>) -> i8 {
+    match level {
+        None => -1,
+        Some(Level::ERROR) => 0,
+        Some(Level::WARN) => 1,
+        Some(Level::INFO) => 2,
+        Some(Level::DEBUG) => 3,
+        Some(Level::TRACE) => 4,
+    }
 }
 
 #[cfg(test)]
