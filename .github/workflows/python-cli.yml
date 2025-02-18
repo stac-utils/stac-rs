@@ -2,6 +2,8 @@ name: PyPI
 
 on:
   push:
+    branches:
+      - main
     tags:
       - "stac-cli-*"
   workflow_dispatch:
