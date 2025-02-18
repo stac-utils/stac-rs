@@ -20,7 +20,7 @@ python = ["dep:pyo3", "pgstac"]
 anyhow.workspace = true
 axum.workspace = true
 clap = { workspace = true, features = ["derive"] }
-duckdb = { workspace = true }
+duckdb = { workspace = true, features = ["bundled"] }
 libduckdb-sys = { workspace = true }
 object_store.workspace = true
 pyo3 = { workspace = true, optional = true, features = ["abi3-py39"] }
