@@ -7,7 +7,7 @@ theme:
   logo: img/stac-ferris.png
   icon:
     repo: fontawesome/brands/github
-  favicon: img/stac-ferris-2.png
+  favicon: img/stac-ferris.png
   features:
     - navigation.indexes
     - navigation.footer
