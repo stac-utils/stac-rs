@@ -20,6 +20,7 @@ classifiers = [
 ]
 keywords = ["stac", "geospatial"]
 dynamic = ["version"]
+dependencies = ["cffi>=1.17.1"]
 
 [project.urls]
 Repository = "https://github.com/stac-utils/stac-rs"
