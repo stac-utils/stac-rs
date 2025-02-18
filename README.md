@@ -7,6 +7,8 @@
 ![Ferris the crab holding the STAC logo](./img/ferris-holding-stac-small.png)
 
 Command Line Interface (CLI) and Rust libraries for the [SpatioTemporal Asset Catalog (STAC)](https://stacspec.org/) specification.
+We have a Python package based on **stac-rs** that lives in its own repository, [stacrs](https://github.com/gadomski/stacrs).
+For more on the difference between **stac-rs** and **stacrs**, see [our docs](https://stac-utils.github.io/stac-rs/).
 
 ## Formats
 
@@ -56,16 +58,6 @@ $ stacrs serve items.parquet  # Opens a STAC API server on http://localhost:7822
 # Validate
 $ stacrs validate item.json
 ```
-
-## Python
-
-We have Python packages based on **stac-rs** that live in their own repositories:
-
-- [stacrs](https://github.com/gadomski/stacrs) provides a Python API to **stac-rs**, including
-  - Reading and writing [stac-geoparquet](https://github.com/stac-utils/stac-geoparquet)
-  - Migrating to [STAC v1.1](https://github.com/radiantearth/stac-spec/releases/tag/v1.1.0)
-  - [More...](https://www.gadom.ski/posts/stacrs-python-v0-1/)
-- [pgstacrs](https://github.com/stac-utils/pgstacrs) is a Python library for working with [pgstac](https://github.com/stac-utils/pgstac)
 
 ## Crates
 
