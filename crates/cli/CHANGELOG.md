@@ -10,7 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Changed
 
-- Always bundle DuckDB (again)
+- Always bundle DuckDB (again) ([#631](https://github.com/stac-utils/stac-rs/pull/631))
 
 ## [0.5.0] - 2025-01-31
 
