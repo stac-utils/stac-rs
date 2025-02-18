@@ -42,11 +42,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist -i python3.9 --manifest-path crates/cli/Cargo.toml -F duckdb/bundled
+          args: --release --out dist -i python3.10 --manifest-path crates/cli/Cargo.toml -F duckdb/bundled
           sccache: "true"
           manylinux: ${{ matrix.platform.manylinux }}
       - name: Upload wheels
@@ -72,12 +74,12 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.9"
+          python-version: "3.10"
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist -i python3.9 --manifest-path crates/cli/Cargo.toml -F duckdb/bundled
+          args: --release --out dist -i python3.10 --manifest-path crates/cli/Cargo.toml -F duckdb/bundled
           sccache: "true"
           manylinux: musllinux_1_2
       - name: Upload wheels
@@ -99,12 +101,12 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.9"
+          python-version: "3.10"
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist -i python3.9 --manifest-path crates/cli/Cargo.toml -F duckdb/bundled
+          args: --release --out dist -i python3.10 --manifest-path crates/cli/Cargo.toml -F duckdb/bundled
           sccache: "true"
       - name: Upload wheels
         uses: actions/upload-artifact@v4
@@ -125,12 +127,12 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.9"
+          python-version: "3.10"
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist -i python3.9 --manifest-path crates/cli/Cargo.toml -F duckdb/bundled
+          args: --release --out dist -i python3.10 --manifest-path crates/cli/Cargo.toml -F duckdb/bundled
           sccache: "true"
       - name: Upload wheels
         uses: actions/upload-artifact@v4
