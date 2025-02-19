@@ -12,14 +12,15 @@ categories.workspace = true
 rust-version.workspace = true
 
 [features]
-default = ["pgstac"]
+default = ["duckdb-bundled", "pgstac"]
 pgstac = ["stac-server/pgstac", "dep:tokio-postgres"]
+duckdb-bundled = ["duckdb/bundled"]
 
 [dependencies]
 anyhow.workspace = true
 axum.workspace = true
 clap = { workspace = true, features = ["derive"] }
-duckdb = { workspace = true, features = ["bundled"] }
+duckdb = { workspace = true }
 libduckdb-sys = { workspace = true }
 object_store.workspace = true
 reqwest.workspace = true
