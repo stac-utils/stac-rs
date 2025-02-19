@@ -11,9 +11,6 @@ use std::{collections::HashMap, io::Write, str::FromStr};
 use tokio::{io::AsyncReadExt, net::TcpListener, runtime::Handle};
 use tracing::metadata::Level;
 
-#[cfg(feature = "python")]
-mod python;
-
 /// stacrs: A command-line interface for the SpatioTemporal Asset Catalog (STAC)
 #[derive(Debug, Parser)]
 pub struct Stacrs {

@@ -14,7 +14,7 @@ cargo install stac-cli
 If you have Python, use `pip`:
 
 ```shell
-python -m pip install stacrs-cli
+python -m pip install stacrs
 ```
 
 The CLI is called **stacrs**:
