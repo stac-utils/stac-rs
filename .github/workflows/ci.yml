@@ -63,9 +63,9 @@ jobs:
       - name: Clippy
         run: cargo clippy --workspace --no-default-features -- -D warnings
       - name: Build # need to build first to get the executable for CLI tests
-        run: cargo build --workspace --no-default-features
+        run: cargo build --no-default-features
       - name: Test
-        run: cargo test --workspace --no-default-features
+        run: cargo test --no-default-features
       - name: Validate stac-server
         run: uv run --group stac-api-validator scripts/validate-stac-server
       - name: Validate stac-geoparquet
