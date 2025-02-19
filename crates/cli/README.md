@@ -10,12 +10,6 @@ Command Line Interface (CLI) for [STAC](https://stacspec.org/), named `stacrs`.
 
 ## Installation
 
-```shell
-python -m pip install stacrs-cli
-```
-
-Or:
-
 ```sh
 cargo install stac-cli
 ```
@@ -64,7 +58,6 @@ Use the `--help` flag to see all available options for the CLI and the subcomman
 This crate has two features:
 
 - `pgstac`: enable a [pgstac](https://github.com/stac-utils/pgstac) backend for `stacrs serve` (enabled by default)
-- `python`: create an entrypoint that can be called from Python (used to enable `python -m pip install stacrs-cli`)
 
 ## Other info
 

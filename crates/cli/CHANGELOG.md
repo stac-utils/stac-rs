@@ -12,6 +12,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Always bundle DuckDB (again) ([#631](https://github.com/stac-utils/stac-rs/pull/631))
 
+### Removed
+
+- **stacrs-cli** (moved to <https://github.com/stac-utils/stacrs>) ([#633](https://github.com/stac-utils/stac-rs/pull/633))
+
 ## [0.5.0] - 2025-01-31
 
 ### Changed
