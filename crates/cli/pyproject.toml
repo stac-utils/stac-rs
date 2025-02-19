@@ -20,7 +20,6 @@ classifiers = [
 ]
 keywords = ["stac", "geospatial"]
 dynamic = ["version"]
-dependencies = ["cffi"]
 
 [project.urls]
 Repository = "https://github.com/stac-utils/stac-rs"
@@ -31,5 +30,5 @@ stacrs = "stacrs_cli:main"
 
 [tool.maturin]
 no-default-features = true
-features = ["python"]
+features = ["python", "pyo3/extension-module"]
 module-name = "stacrs_cli"
