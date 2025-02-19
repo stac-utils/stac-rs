@@ -369,7 +369,7 @@ impl Stacrs {
                     }
                     #[cfg(not(feature = "pgstac"))]
                     {
-                        return Err(anyhow!("stacrs is not compiled with pgstac support"));
+                        Err(anyhow!("stacrs is not compiled with pgstac support"))
                     }
                 } else {
                     let backend = stac_server::MemoryBackend::new();
