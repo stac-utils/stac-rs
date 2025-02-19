@@ -94,7 +94,7 @@ pub struct Client {
 }
 
 /// Configuration for a client.
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Config {
     /// Whether to enable the s3 credential chain, which allows s3:// url access.
     ///
@@ -105,6 +105,11 @@ pub struct Config {
     ///
     /// False by default.
     pub use_hive_partitioning: bool,
+
+    /// Convert wkb columns to geometries?
+    ///
+    /// Disable this to enable geopandas reading, for example.
+    pub convert_wkb: bool,
 }
 
 /// A SQL query.
@@ -141,6 +146,7 @@ impl Client {
     /// let config = Config {
     ///     use_s3_credential_chain: true,
     ///     use_hive_partitioning: true,
+    ///     convert_wkb: true,
     /// };
     /// let client = Client::with_config(config);
     /// ```
@@ -274,7 +280,7 @@ impl Client {
         log::debug!("DuckDB SQL: {}", query.sql);
         statement
             .query_arrow(duckdb::params_from_iter(query.params))?
-            .map(to_geoarrow_record_batch)
+            .map(|record_batch| to_geoarrow_record_batch(record_batch, self.config))
             .collect::<Result<_>>()
     }
 
@@ -442,8 +448,20 @@ pub fn version() -> &'static str {
     env!("CARGO_PKG_VERSION")
 }
 
-fn to_geoarrow_record_batch(mut record_batch: RecordBatch) -> Result<RecordBatch> {
-    if let Some((index, _)) = record_batch.schema().column_with_name("geometry") {
+impl Default for Config {
+    fn default() -> Self {
+        Config {
+            use_hive_partitioning: false,
+            use_s3_credential_chain: true,
+            convert_wkb: true,
+        }
+    }
+}
+
+fn to_geoarrow_record_batch(mut record_batch: RecordBatch, config: Config) -> Result<RecordBatch> {
+    if !config.convert_wkb {
+        Ok(record_batch)
+    } else if let Some((index, _)) = record_batch.schema().column_with_name("geometry") {
         let geometry_column = record_batch.remove_column(index);
         let binary_array: GenericByteArray<GenericBinaryType<i32>> =
             geometry_column.as_binary::<i32>().clone();
@@ -458,17 +476,10 @@ fn to_geoarrow_record_batch(mut record_batch: RecordBatch) -> Result<RecordBatch
         schema_builder.push(geometry_array.extension_field());
         let schema = schema_builder.finish();
         columns.push(geometry_array.to_array_ref());
-        record_batch = RecordBatch::try_new(schema.into(), columns)?;
-    }
-    Ok(record_batch)
-}
-
-impl Default for Config {
-    fn default() -> Self {
-        Config {
-            use_hive_partitioning: false,
-            use_s3_credential_chain: true,
-        }
+        let record_batch = RecordBatch::try_new(schema.into(), columns)?;
+        Ok(record_batch)
+    } else {
+        Ok(record_batch)
     }
 }
 
