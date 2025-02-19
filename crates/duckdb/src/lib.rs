@@ -54,6 +54,10 @@ pub enum Error {
     #[error(transparent)]
     DuckDB(#[from] duckdb::Error),
 
+    /// An empty table when a table was asked for.
+    #[error("this would be an empty table, which is not allowed")]
+    EmptyTable,
+
     /// [geoarrow::error::GeoArrowError]
     #[error(transparent)]
     GeoArrow(#[from] geoarrow::error::GeoArrowError),
@@ -245,6 +249,18 @@ impl Client {
         let items = stac::geoarrow::json::from_table(table)?;
         let item_collection = stac_api::ItemCollection::new(items)?;
         Ok(item_collection)
+    }
+
+    /// Searches this client, returning a vector of all matched record batches.
+    pub fn search_to_arrow_table(&self, href: &str, search: impl Into<Search>) -> Result<Table> {
+        let record_batches = self.search_to_arrow(href, search)?;
+        if record_batches.is_empty() {
+            Err(Error::EmptyTable)
+        } else {
+            let schema = record_batches[0].schema();
+            let table = Table::try_new(record_batches, schema)?;
+            Ok(table)
+        }
     }
 
     /// Searches this client, returning a vector of all matched record batches.
@@ -631,5 +647,13 @@ mod tests {
             .collections("data/100-sentinel-2-items.parquet")
             .unwrap();
         assert_eq!(collections.len(), 1);
+    }
+
+    #[rstest]
+    fn to_arrow_table(client: Client) {
+        let table = client
+            .search_to_arrow_table("data/100-sentinel-2-items.parquet", Search::default())
+            .unwrap();
+        assert_eq!(table.len(), 100);
     }
 }
