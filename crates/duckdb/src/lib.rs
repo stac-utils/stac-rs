@@ -667,4 +667,13 @@ mod tests {
             .unwrap();
         assert_eq!(table.len(), 100);
     }
+
+    #[rstest]
+    fn to_arrow_table_wkb(mut client: Client) {
+        client.config.convert_wkb = false;
+        let table = client
+            .search_to_arrow_table("data/100-sentinel-2-items.parquet", Search::default())
+            .unwrap();
+        assert_eq!(table.len(), 100);
+    }
 }
