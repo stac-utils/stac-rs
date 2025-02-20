@@ -250,6 +250,9 @@ struct ErrorLevel;
 impl Stacrs {
     /// Runs this command.
     pub async fn run(self) -> Result<()> {
+        tracing_subscriber::fmt()
+            .with_max_level(self.log_level())
+            .init();
         match self.command {
             Command::Translate {
                 ref infile,

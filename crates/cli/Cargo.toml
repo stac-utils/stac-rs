@@ -39,6 +39,7 @@ tokio = { workspace = true, features = [
     "fs",
 ] }
 tracing.workspace = true
+tracing-subscriber = { workspace = true, features = ["env-filter"] }
 
 [dev-dependencies]
 assert_cmd.workspace = true

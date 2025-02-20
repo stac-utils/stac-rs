@@ -6,9 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.5.3] - 2025-02-20
+
+### Added
+
+- Tracing subscriber to get verbosity
+
 ## [0.5.2] - 2025-02-20
 
-## Removed
+### Removed
 
 - A lot of unused dependencies
 
@@ -126,7 +132,9 @@ Moved over from [stac-incubator-rs](https://github.com/gadomski/stac-incubator-r
 - Downloading ([#142](https://github.com/stac-utils/stac-rs/pull/142), [#152](https://github.com/stac-utils/stac-rs/pull/152))
 - Validation ([#155](https://github.com/stac-utils/stac-rs/pull/155))
 
-[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-cli-v0.5.1..main
+[Unreleased]: https://github.com/stac-utils/stac-rs/compare/stac-cli-v0.5.3..main
+[0.5.3]: https://github.com/stac-utils/stac-rs/compare/stac-cli-v0.5.2..stac-cli-v0.5.3
+[0.5.2]: https://github.com/stac-utils/stac-rs/compare/stac-cli-v0.5.1..stac-cli-v0.5.2
 [0.5.1]: https://github.com/stac-utils/stac-rs/compare/stac-cli-v0.5.0..stac-cli-v0.5.1
 [0.5.0]: https://github.com/stac-utils/stac-rs/compare/stac-cli-v0.4.1..stac-cli-v0.5.0
 [0.4.1]: https://github.com/stac-utils/stac-rs/compare/stac-cli-v0.4.0..stac-cli-v0.4.1
