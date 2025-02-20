@@ -90,7 +90,8 @@ pub type Result<T> = std::result::Result<T, Error>;
 #[derive(Debug)]
 pub struct Client {
     connection: Connection,
-    config: Config,
+    /// The client's configuration.
+    pub config: Config,
 }
 
 /// Configuration for a client.
