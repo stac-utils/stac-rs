@@ -1,5 +1,7 @@
 // The verbosity stuff is cribbed from https://github.com/clap-rs/clap-verbosity-flag/blob/c621a6a8a7c0b6df8f1464a985a5d076b4915693/src/lib.rs and updated for tracing
 
+#![deny(unused_crate_dependencies)]
+
 use anyhow::{anyhow, Error, Result};
 use clap::{Parser, Subcommand};
 use duckdb as _;
