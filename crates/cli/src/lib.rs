@@ -13,6 +13,8 @@ use std::{collections::HashMap, io::Write, str::FromStr};
 use tokio::{io::AsyncReadExt, net::TcpListener, runtime::Handle};
 use tracing::metadata::Level;
 
+const DEFAULT_COLLECTION_ID: &str = "default-collection-id";
+
 /// stacrs: A command-line interface for the SpatioTemporal Asset Catalog (STAC)
 #[derive(Debug, Parser)]
 pub struct Stacrs {
@@ -349,7 +351,7 @@ impl Stacrs {
                                 if let Some(collection) = item.collection.clone() {
                                     items.entry(collection).or_default().push(item);
                                 } else {
-                                    return Err(anyhow!("item without a collection: {item:?}"));
+                                    items.entry(String::new()).or_default().push(item);
                                 }
                             }
                         }
@@ -561,7 +563,17 @@ async fn load_and_serve(
         }
     }
     if create_collections {
-        for (collection_id, items) in items {
+        for (mut collection_id, mut items) in items {
+            if collection_id.is_empty() {
+                if backend.collection(DEFAULT_COLLECTION_ID).await?.is_some() {
+                    return Err(anyhow!("cannot auto-create collections, a collection already exists with id={DEFAULT_COLLECTION_ID}"));
+                } else {
+                    collection_id = DEFAULT_COLLECTION_ID.to_string();
+                }
+            }
+            for item in &mut items {
+                item.collection = Some(collection_id.to_string());
+            }
             let collection = Collection::from_id_and_items(collection_id, &items);
             backend.add_collection(collection).await?;
             backend.add_items(items).await?;
