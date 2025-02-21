@@ -160,7 +160,7 @@ impl Format {
             RealizedHref::Url(url) => {
                 use object_store::ObjectStore;
 
-                let (object_store, path) = object_store::parse_url_opts(&url, options)?;
+                let (object_store, path) = parse_url_opts(&url, options)?;
                 let get_result = object_store.get(&path).await?;
                 let mut value: T = self.from_bytes(get_result.bytes().await?)?;
                 *value.self_href_mut() = Some(Href::Url(url));
@@ -241,7 +241,7 @@ impl Format {
         if let Ok(url) = url::Url::parse(&href) {
             use object_store::ObjectStore;
 
-            let (object_store, path) = object_store::parse_url_opts(&url, options)?;
+            let (object_store, path) = parse_url_opts(&url, options)?;
             let bytes = self.into_vec(value)?;
             let put_result = object_store.put(&path, bytes.into()).await?;
             Ok(Some(put_result))
@@ -265,6 +265,33 @@ impl Format {
     pub fn geoparquet() -> Format {
         Format::Geoparquet(None)
     }
+}
+
+#[cfg(feature = "object-store")]
+fn parse_url_opts<I, K, V>(
+    url: &url::Url,
+    options: I,
+) -> Result<(Box<dyn object_store::ObjectStore>, object_store::path::Path)>
+where
+    I: IntoIterator<Item = (K, V)>,
+    K: AsRef<str>,
+    V: Into<String>,
+{
+    use object_store::ObjectStoreScheme;
+
+    // It's technically inefficient to parse it twice, but we're doing this to
+    // then do IO so who cares.
+    #[cfg(feature = "object-store-aws")]
+    if let Ok((ObjectStoreScheme::AmazonS3, path)) = ObjectStoreScheme::parse(url) {
+        let mut builder = object_store::aws::AmazonS3Builder::from_env();
+        for (key, value) in options {
+            builder = builder.with_config(key.as_ref().parse()?, value);
+        }
+        return Ok((Box::new(builder.with_url(url.to_string()).build()?), path));
+    }
+
+    let result = object_store::parse_url_opts(url, options)?;
+    Ok(result)
 }
 
 impl Default for Format {

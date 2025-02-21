@@ -87,6 +87,10 @@ required-features = ["validate"]
 name = "migrate"
 required-features = ["validate"]
 
+[[test]]
+name = "aws"
+required-features = ["object-store-aws"]
+
 [package.metadata.docs.rs]
 all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
