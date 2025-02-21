@@ -3,7 +3,6 @@ use crate::{
     Error, FromJson, FromNdjson, Href, RealizedHref, Result, SelfHref, ToJson, ToNdjson,
 };
 use bytes::Bytes;
-use object_store::ObjectStore;
 use std::{fmt::Display, path::Path, str::FromStr};
 
 /// The format of STAC data.
@@ -272,7 +271,7 @@ impl Format {
 fn parse_url_opts<I, K, V>(
     url: &url::Url,
     options: I,
-) -> Result<(Box<dyn ObjectStore>, object_store::path::Path)>
+) -> Result<(Box<dyn object_store::ObjectStore>, object_store::path::Path)>
 where
     I: IntoIterator<Item = (K, V)>,
     K: AsRef<str>,
