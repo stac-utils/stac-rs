@@ -288,7 +288,7 @@ where
         for (key, value) in options {
             builder = builder.with_config(key.as_ref().parse()?, value);
         }
-        return Ok((Box::new(builder.build()?), path));
+        return Ok((Box::new(builder.with_url(url.to_string()).build()?), path));
     }
 
     let result = object_store::parse_url_opts(url, options)?;
