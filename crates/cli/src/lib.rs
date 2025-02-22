@@ -4,8 +4,6 @@
 
 use anyhow::{anyhow, Error, Result};
 use clap::{Parser, Subcommand};
-use duckdb as _;
-use libduckdb_sys as _;
 use stac::{geoparquet::Compression, Collection, Format, Item, Links, Migrate, Validate};
 use stac_api::{GetItems, GetSearch, Search};
 use stac_server::Backend;
