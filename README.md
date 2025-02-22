@@ -26,7 +26,7 @@ Our command line interface (CLI) can query STAC APIs, validate STAC, and more.
 Install:
 
 ```shell
-pip install stacrs
+python -m pip install stacrs
 # or
 cargo install stac-cli
 ```
