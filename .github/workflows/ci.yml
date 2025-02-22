@@ -32,7 +32,7 @@ jobs:
       - name: Test
         run: cargo test -p stac --all-features
   check-features-core:
-    name: Check stac features
+    name: Check all features
     runs-on: ubuntu-latest
     defaults:
       run:
