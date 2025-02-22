@@ -54,10 +54,6 @@ pub enum Error {
     #[error(transparent)]
     DuckDB(#[from] duckdb::Error),
 
-    /// An empty table when a table was asked for.
-    #[error("this would be an empty table, which is not allowed")]
-    EmptyTable,
-
     /// [geoarrow::error::GeoArrowError]
     #[error(transparent)]
     GeoArrow(#[from] geoarrow::error::GeoArrowError),
