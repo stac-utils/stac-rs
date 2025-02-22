@@ -689,8 +689,10 @@ mod tests {
             .search_to_arrow_table("data/100-sentinel-2-items.parquet", Search::default())
             .unwrap();
         assert_eq!(table.len(), 100);
-        let geometry = table.geometry_column(None).unwrap();
-        dbg!(geometry.extension_field().metadata());
-        assert!(false);
+        let schema = table.into_inner().1;
+        assert_eq!(
+            schema.field_with_name("geometry").unwrap().metadata()["ARROW:extension:name"],
+            "geoarrow.wkb"
+        );
     }
 }
