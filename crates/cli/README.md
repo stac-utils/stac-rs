@@ -58,6 +58,17 @@ Use the `--help` flag to see all available options for the CLI and the subcomman
 This crate has two features:
 
 - `pgstac`: enable a [pgstac](https://github.com/stac-utils/pgstac) backend for `stacrs serve` (enabled by default)
+- `duckdb-bundled`: bundle DuckDB by building it from source, instead of using a local installation (enabled by default)
+
+### DuckDB
+
+If you have DuckDB installed locally and want to use that shared library (instead of building it when you install), disable the `duckdb-bundled` feature:
+
+```shell
+cargo install stac-cli --no-default-features -F pgstac
+```
+
+This can dramatically speed up install time.
 
 ## Other info
 

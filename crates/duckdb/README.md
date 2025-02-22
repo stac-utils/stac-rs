@@ -15,6 +15,19 @@ cargo add stac-duckdb
 
 See the [documentation](https://docs.rs/stac-duckdb) for more.
 
+## Bundling
+
+By default, DuckDB looks for its shared library on your system.
+Use `DUCKDB_LIB_DIR` and `DUCKDB_INCLUDE_DIR` to help it find those resources.
+If you want to build the DuckDB library as a part of this (or a downstream's) crate's build process, use the `bundled` feature.
+E.g. to test this crate if you don't have DuckDB locally:
+
+```shell
+cargo test -p stac-duckdb -F duckdb/bundled
+```
+
+See [the duckdb-rs docs](https://github.com/duckdb/duckdb-rs?tab=readme-ov-file#notes-on-building-duckdb-and-libduckdb-sys) for more.
+
 ## Other info
 
 This crate is part of the [stac-rs](https://github.com/stac-utils/stac-rs) monorepo, see its README for contributing and license information.
