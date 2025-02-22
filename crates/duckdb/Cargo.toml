@@ -11,6 +11,10 @@ license.workspace = true
 categories.workspace = true
 rust-version.workspace = true
 
+[features]
+default = []
+bundled = ["duckdb/bundled"]
+
 [dependencies]
 arrow.workspace = true
 chrono.workspace = true

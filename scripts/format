@@ -3,4 +3,4 @@
 set -e
 
 cargo fmt
-cargo clippy --workspace --all-features --fix
+cargo clippy --workspace --fix

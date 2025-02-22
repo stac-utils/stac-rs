@@ -4,8 +4,6 @@
 
 use anyhow::{anyhow, Error, Result};
 use clap::{Parser, Subcommand};
-use duckdb as _;
-use libduckdb_sys as _;
 use stac::{geoparquet::Compression, Collection, Format, Item, Links, Migrate, Validate};
 use stac_api::{GetItems, GetSearch, Search};
 use stac_server::Backend;
@@ -309,7 +307,14 @@ impl Stacrs {
                 };
                 let search: Search = get_search.try_into()?;
                 let item_collection = if use_duckdb {
-                    stac_duckdb::search(href, search, *max_items)?
+                    #[cfg(feature = "duckdb")]
+                    {
+                        stac_duckdb::search(href, search, *max_items)?
+                    }
+                    #[cfg(not(feature = "duckdb"))]
+                    return Err(anyhow!(
+                        "the `duckdb` feature is not enabled, cannot search stac-geoparquet"
+                    ));
                 } else {
                     stac_api::client::search(href, search, *max_items).await?
                 };
