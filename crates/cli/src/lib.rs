@@ -307,7 +307,14 @@ impl Stacrs {
                 };
                 let search: Search = get_search.try_into()?;
                 let item_collection = if use_duckdb {
-                    stac_duckdb::search(href, search, *max_items)?
+                    #[cfg(feature = "duckdb")]
+                    {
+                        stac_duckdb::search(href, search, *max_items)?
+                    }
+                    #[cfg(not(feature = "duckdb"))]
+                    return Err(anyhow!(
+                        "the `duckdb` feature is not enabled, cannot search stac-geoparquet"
+                    ));
                 } else {
                     stac_api::client::search(href, search, *max_items).await?
                 };

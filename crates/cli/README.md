@@ -11,7 +11,9 @@ Command Line Interface (CLI) for [STAC](https://stacspec.org/), named `stacrs`.
 ## Installation
 
 ```sh
-cargo install stac-cli
+cargo install stac-cli -F duckdb  # to use libduckdb on your system
+# or
+cargo install stac-cli -F duckdb-bundled  # to build libduckdb on install (slow)
 ```
 
 Then:
@@ -46,7 +48,7 @@ $ stacrs validate item.json
 
 **stacrs** provides the following subcommands:
 
-- `stacrs search`: searches STAC APIs and geoparquet files
+- `stacrs search`: searches STAC APIs and, if the `duckdb` feature is enabled, geoparquet files
 - `stacrs serve`: serves a STAC API
 - `stacrs translate`: converts STAC from one format to another
 - `stacrs validate`: validates a STAC value
@@ -55,20 +57,14 @@ Use the `--help` flag to see all available options for the CLI and the subcomman
 
 ## Features
 
-This crate has two features:
+This crate has three features:
 
-- `pgstac`: enable a [pgstac](https://github.com/stac-utils/pgstac) backend for `stacrs serve` (enabled by default)
-- `duckdb-bundled`: bundle DuckDB by building it from source, instead of using a local installation (enabled by default)
+- `pgstac`: enable a [pgstac](https://github.com/stac-utils/pgstac) backend for `stacrs serve`
+- `duckdb`: build with DuckDB support, which enables searching [stac-geoparquet](https://github.com/stac-utils/stac-geoparquet) (requires DuckDB to be present on your system)
+- `duckdb-bundled`: bundle DuckDB by building it from source, instead of using a local installation (does _not_ require DuckDB to be present on your system)
 
-### DuckDB
-
-If you have DuckDB installed locally and want to use that shared library (instead of building it when you install), disable the `duckdb-bundled` feature:
-
-```shell
-cargo install stac-cli --no-default-features -F pgstac
-```
-
-This can dramatically speed up install time.
+> [!TIP]
+> If you're using the `duckdb` feature, set `DUCKDB_LIB_DIR` to the directory containing your **libduckdb**. If you're on macos and using [Homebrew](https://brew.sh/), this might be `export DUCKDB_LIB_DIR=/opt/homebrew/lib`
 
 ## Other info
 

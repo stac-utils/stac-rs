@@ -12,10 +12,10 @@ categories.workspace = true
 rust-version.workspace = true
 
 [features]
-default = ["duckdb", "pgstac"]
+default = []
 pgstac = ["stac-server/pgstac"]
 duckdb = ["dep:stac-duckdb"]
-duckdb-bundled = ["stac-duckdb/bundled"]
+duckdb-bundled = ["duckdb", "stac-duckdb/bundled"]
 
 [dependencies]
 anyhow.workspace = true
