@@ -54,10 +54,6 @@ pub enum Error {
     #[error(transparent)]
     DuckDB(#[from] duckdb::Error),
 
-    /// An empty table when a table was asked for.
-    #[error("this would be an empty table, which is not allowed")]
-    EmptyTable,
-
     /// [geoarrow::error::GeoArrowError]
     #[error(transparent)]
     GeoArrow(#[from] geoarrow::error::GeoArrowError),
@@ -259,14 +255,18 @@ impl Client {
     }
 
     /// Searches this client, returning a vector of all matched record batches.
-    pub fn search_to_arrow_table(&self, href: &str, search: impl Into<Search>) -> Result<Table> {
+    pub fn search_to_arrow_table(
+        &self,
+        href: &str,
+        search: impl Into<Search>,
+    ) -> Result<Option<Table>> {
         let record_batches = self.search_to_arrow(href, search)?;
         if record_batches.is_empty() {
-            Err(Error::EmptyTable)
+            Ok(None)
         } else {
             let schema = record_batches[0].schema();
             let table = Table::try_new(record_batches, schema)?;
-            Ok(table)
+            Ok(Some(table))
         }
     }
 
@@ -678,8 +678,20 @@ mod tests {
     fn to_arrow_table(client: Client) {
         let table = client
             .search_to_arrow_table("data/100-sentinel-2-items.parquet", Search::default())
+            .unwrap()
             .unwrap();
         assert_eq!(table.len(), 100);
+
+        assert!(client
+            .search_to_arrow_table(
+                "data/100-sentinel-2-items.parquet",
+                serde_json::from_value::<Search>(serde_json::json!({
+                    "collections": ["not-a-collection"]
+                }))
+                .unwrap()
+            )
+            .unwrap()
+            .is_none());
     }
 
     #[rstest]
@@ -687,6 +699,7 @@ mod tests {
         client.config.convert_wkb = false;
         let table = client
             .search_to_arrow_table("data/100-sentinel-2-items.parquet", Search::default())
+            .unwrap()
             .unwrap();
         assert_eq!(table.len(), 100);
         let schema = table.into_inner().1;
