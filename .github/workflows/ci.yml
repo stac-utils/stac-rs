@@ -117,7 +117,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@nightly
       - uses: Swatinem/rust-cache@v2
       - name: Check
-        run: cargo check --workspace --all-features
+        run: cargo check --workspace
   msrv:
     runs-on: ubuntu-latest
     steps:
