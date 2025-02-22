@@ -460,25 +460,38 @@ impl Default for Config {
 }
 
 fn to_geoarrow_record_batch(mut record_batch: RecordBatch, config: Config) -> Result<RecordBatch> {
-    if !config.convert_wkb {
-        Ok(record_batch)
-    } else if let Some((index, _)) = record_batch.schema().column_with_name("geometry") {
-        let geometry_column = record_batch.remove_column(index);
-        let binary_array: GenericByteArray<GenericBinaryType<i32>> =
-            geometry_column.as_binary::<i32>().clone();
-        let wkb_array = WKBArray::new(binary_array, Default::default());
-        let geometry_array = geoarrow::io::wkb::from_wkb(
-            &wkb_array,
-            NativeType::Geometry(CoordType::Interleaved),
-            false,
-        )?;
-        let mut columns = record_batch.columns().to_vec();
-        let mut schema_builder = SchemaBuilder::from(&*record_batch.schema());
-        schema_builder.push(geometry_array.extension_field());
-        let schema = schema_builder.finish();
-        columns.push(geometry_array.to_array_ref());
-        let record_batch = RecordBatch::try_new(schema.into(), columns)?;
-        Ok(record_batch)
+    if let Some((index, field)) = record_batch.schema().column_with_name("geometry") {
+        if config.convert_wkb {
+            let geometry_column = record_batch.remove_column(index);
+            let binary_array: GenericByteArray<GenericBinaryType<i32>> =
+                geometry_column.as_binary::<i32>().clone();
+            let wkb_array = WKBArray::new(binary_array, Default::default());
+            let geometry_array = geoarrow::io::wkb::from_wkb(
+                &wkb_array,
+                NativeType::Geometry(CoordType::Interleaved),
+                false,
+            )?;
+            let mut columns = record_batch.columns().to_vec();
+            let mut schema_builder = SchemaBuilder::from(&*record_batch.schema());
+            schema_builder.push(geometry_array.extension_field());
+            let schema = schema_builder.finish();
+            columns.push(geometry_array.to_array_ref());
+            let record_batch = RecordBatch::try_new(schema.into(), columns)?;
+            Ok(record_batch)
+        } else {
+            let mut metadata = field.metadata().clone();
+            metadata.insert(
+                "ARROW:extension:name".to_string(),
+                "geoarrow.wkb".to_string(),
+            );
+            let field = field.clone().with_metadata(metadata);
+            let mut schema_builder = SchemaBuilder::from(&*record_batch.schema());
+            let field_ref = schema_builder.field_mut(index);
+            *field_ref = field.into();
+            let schema = schema_builder.finish();
+            let record_batch = record_batch.with_schema(schema.into())?;
+            Ok(record_batch)
+        }
     } else {
         Ok(record_batch)
     }
@@ -676,5 +689,10 @@ mod tests {
             .search_to_arrow_table("data/100-sentinel-2-items.parquet", Search::default())
             .unwrap();
         assert_eq!(table.len(), 100);
+        let schema = table.into_inner().1;
+        assert_eq!(
+            schema.field_with_name("geometry").unwrap().metadata()["ARROW:extension:name"],
+            "geoarrow.wkb"
+        );
     }
 }
