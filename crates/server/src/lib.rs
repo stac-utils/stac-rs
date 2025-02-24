@@ -37,6 +37,8 @@ mod error;
 pub mod routes;
 
 pub use api::Api;
+#[cfg(feature = "duckdb")]
+pub use backend::DuckdbBackend;
 #[cfg(feature = "pgstac")]
 pub use backend::PgstacBackend;
 pub use backend::{Backend, MemoryBackend};

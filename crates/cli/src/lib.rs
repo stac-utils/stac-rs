@@ -213,6 +213,14 @@ pub enum Command {
         #[arg(long = "pgstac")]
         pgstac: Option<String>,
 
+        /// Use DuckDB to serve items from a stac-geoparquet file.
+        ///
+        /// The server will automatically use DuckDB if the feature is enabled,
+        /// `use_duckdb` is `None`, and there is only one `href` that ends in
+        /// `parquet`.
+        #[arg(long = "use-duckdb")]
+        use_duckdb: Option<bool>,
+
         /// After loading a collection, load all of its item links.
         #[arg(long = "load-collection-items", default_value_t = true)]
         load_collection_items: bool,
@@ -328,9 +336,35 @@ impl Stacrs {
                 ref hrefs,
                 ref addr,
                 ref pgstac,
+                use_duckdb,
                 load_collection_items,
                 create_collections,
             } => {
+                if matches!(use_duckdb, Some(true))
+                    || (use_duckdb.is_none() && hrefs.len() == 1 && hrefs[0].ends_with("parquet"))
+                {
+                    #[cfg(feature = "duckdb")]
+                    {
+                        let backend = stac_server::DuckdbBackend::new(&hrefs[0]).await?;
+                        eprintln!("Backend: duckdb");
+                        return load_and_serve(
+                            addr,
+                            backend,
+                            Vec::new(),
+                            HashMap::new(),
+                            create_collections,
+                        )
+                        .await;
+                    }
+                    #[cfg(not(feature = "duckdb"))]
+                    {
+                        if matches!(use_duckdb, Some(true)) {
+                            return Err(anyhow!("cannot use DuckDB for the server because the CLI was not built with the `duckdb` feature"));
+                        } else {
+                            tracing::warn!("cannot use DuckDB for the server because the CLI was not built with the `duckdb` feature, falling back to non-duckdb behavior")
+                        }
+                    }
+                }
                 let mut collections = Vec::new();
                 let mut items: HashMap<String, Vec<stac::Item>> = HashMap::new();
                 for href in hrefs {
@@ -377,6 +411,7 @@ impl Stacrs {
                     {
                         let backend =
                             stac_server::PgstacBackend::new_from_stringlike(pgstac).await?;
+                        eprintln!("Backend: pgstac");
                         load_and_serve(addr, backend, collections, items, create_collections).await
                     }
                     #[cfg(not(feature = "pgstac"))]
@@ -385,6 +420,7 @@ impl Stacrs {
                     }
                 } else {
                     let backend = stac_server::MemoryBackend::new();
+                    eprintln!("Backend: memory");
                     load_and_serve(addr, backend, collections, items, create_collections).await
                 }
             }

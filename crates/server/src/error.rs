@@ -8,9 +8,19 @@ pub enum Error {
     #[error(transparent)]
     Bb8TokioPostgresRun(#[from] bb8::RunError<tokio_postgres::Error>),
 
+    /// [bb8::RunError]
+    #[cfg(feature = "duckdb")]
+    #[error(transparent)]
+    Bb8DuckdbRun(#[from] Box<bb8::RunError<Error>>),
+
     /// A generic backend error.
     #[error("backend error: {0}")]
     Backend(String),
+
+    /// [stac_duckdb::Error]
+    #[cfg(feature = "duckdb")]
+    #[error(transparent)]
+    StacDuckdb(#[from] stac_duckdb::Error),
 
     /// A memory backend error.
     #[error("memory backend error: {0}")]
@@ -36,6 +46,10 @@ pub enum Error {
     /// [stac_api::Error]
     #[error(transparent)]
     StacApi(#[from] stac_api::Error),
+
+    /// The backend is read-only.
+    #[error("this backend is read-only")]
+    ReadOnly,
 
     /// [tokio_postgres::Error]
     #[cfg(feature = "pgstac")]
