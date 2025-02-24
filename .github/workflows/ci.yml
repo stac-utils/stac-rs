@@ -55,7 +55,7 @@ jobs:
       - name: Clippy
         run: cargo clippy --workspace -- -D warnings
       - name: Test
-        run: cargo test --all-features
+        run: cargo test
   test-with-duckdb:
     name: Test w/ DuckDB
     runs-on: ubuntu-latest
