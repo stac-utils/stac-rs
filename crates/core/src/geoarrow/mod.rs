@@ -5,10 +5,15 @@
 pub mod json;
 
 use crate::{Error, ItemCollection, Result};
+use arrow_array::{cast::AsArray, types::GenericBinaryType, GenericByteArray, RecordBatch};
 use arrow_json::ReaderBuilder;
 use arrow_schema::{DataType, Field, SchemaBuilder, TimeUnit};
 use geo_types::Geometry;
-use geoarrow::{array::GeometryBuilder, table::Table};
+use geoarrow::{
+    array::{CoordType, GeometryBuilder, WKBArray},
+    datatypes::NativeType,
+    table::Table,
+};
 use serde_json::{json, Value};
 use std::sync::Arc;
 
@@ -137,6 +142,49 @@ pub fn from_table(table: Table) -> Result<ItemCollection> {
         .map(|item| serde_json::from_value(Value::Object(item)).map_err(Error::from))
         .collect::<Result<Vec<_>>>()
         .map(ItemCollection::from)
+}
+
+/// Converts a geometry column to geoarrow native type.
+pub fn with_native_geometry(
+    mut record_batch: RecordBatch,
+    column_name: &str,
+) -> Result<RecordBatch> {
+    if let Some((index, _)) = record_batch.schema().column_with_name(column_name) {
+        let geometry_column = record_batch.remove_column(index);
+        let binary_array: GenericByteArray<GenericBinaryType<i32>> =
+            geometry_column.as_binary::<i32>().clone();
+        let wkb_array = WKBArray::new(binary_array, Default::default());
+        let geometry_array = geoarrow::io::wkb::from_wkb(
+            &wkb_array,
+            NativeType::Geometry(CoordType::Interleaved),
+            false,
+        )?;
+        let mut columns = record_batch.columns().to_vec();
+        let mut schema_builder = SchemaBuilder::from(&*record_batch.schema());
+        schema_builder.push(geometry_array.extension_field());
+        let schema = schema_builder.finish();
+        columns.push(geometry_array.to_array_ref());
+        record_batch = RecordBatch::try_new(schema.into(), columns)?;
+    }
+    Ok(record_batch)
+}
+
+/// Adds geoarrow wkb metadata to a geometry column.
+pub fn add_wkb_metadata(mut record_batch: RecordBatch, column_name: &str) -> Result<RecordBatch> {
+    if let Some((index, field)) = record_batch.schema().column_with_name(column_name) {
+        let mut metadata = field.metadata().clone();
+        let _ = metadata.insert(
+            "ARROW:extension:name".to_string(),
+            "geoarrow.wkb".to_string(),
+        );
+        let field = field.clone().with_metadata(metadata);
+        let mut schema_builder = SchemaBuilder::from(&*record_batch.schema());
+        let field_ref = schema_builder.field_mut(index);
+        *field_ref = field.into();
+        let schema = schema_builder.finish();
+        record_batch = record_batch.with_schema(schema.into())?;
+    }
+    Ok(record_batch)
 }
 
 // We only run tests when the geoparquet feature is enabled so that we don't

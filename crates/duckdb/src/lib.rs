@@ -2,18 +2,11 @@
 
 #![warn(unused_crate_dependencies)]
 
-use arrow::{
-    array::{AsArray, GenericByteArray, RecordBatch},
-    datatypes::{GenericBinaryType, SchemaBuilder},
-};
+use arrow::array::RecordBatch;
 use chrono::DateTime;
 use duckdb::{types::Value, Connection};
 use geo::BoundingRect;
-use geoarrow::{
-    array::{CoordType, WKBArray},
-    datatypes::NativeType,
-    table::Table,
-};
+use geoarrow::table::Table;
 use geojson::Geometry;
 use stac::{Collection, SpatialExtent, TemporalExtent};
 use stac_api::{Direction, Search};
@@ -281,7 +274,14 @@ impl Client {
         log::debug!("DuckDB SQL: {}", query.sql);
         statement
             .query_arrow(duckdb::params_from_iter(query.params))?
-            .map(|record_batch| to_geoarrow_record_batch(record_batch, self.config))
+            .map(|record_batch| {
+                let record_batch = if self.config.convert_wkb {
+                    stac::geoarrow::with_native_geometry(record_batch, "geometry")?
+                } else {
+                    stac::geoarrow::add_wkb_metadata(record_batch, "geometry")?
+                };
+                Ok(record_batch)
+            })
             .collect::<Result<_>>()
     }
 
@@ -456,44 +456,6 @@ impl Default for Config {
             use_s3_credential_chain: true,
             convert_wkb: true,
         }
-    }
-}
-
-fn to_geoarrow_record_batch(mut record_batch: RecordBatch, config: Config) -> Result<RecordBatch> {
-    if let Some((index, field)) = record_batch.schema().column_with_name("geometry") {
-        if config.convert_wkb {
-            let geometry_column = record_batch.remove_column(index);
-            let binary_array: GenericByteArray<GenericBinaryType<i32>> =
-                geometry_column.as_binary::<i32>().clone();
-            let wkb_array = WKBArray::new(binary_array, Default::default());
-            let geometry_array = geoarrow::io::wkb::from_wkb(
-                &wkb_array,
-                NativeType::Geometry(CoordType::Interleaved),
-                false,
-            )?;
-            let mut columns = record_batch.columns().to_vec();
-            let mut schema_builder = SchemaBuilder::from(&*record_batch.schema());
-            schema_builder.push(geometry_array.extension_field());
-            let schema = schema_builder.finish();
-            columns.push(geometry_array.to_array_ref());
-            let record_batch = RecordBatch::try_new(schema.into(), columns)?;
-            Ok(record_batch)
-        } else {
-            let mut metadata = field.metadata().clone();
-            metadata.insert(
-                "ARROW:extension:name".to_string(),
-                "geoarrow.wkb".to_string(),
-            );
-            let field = field.clone().with_metadata(metadata);
-            let mut schema_builder = SchemaBuilder::from(&*record_batch.schema());
-            let field_ref = schema_builder.field_mut(index);
-            *field_ref = field.into();
-            let schema = schema_builder.finish();
-            let record_batch = record_batch.with_schema(schema.into())?;
-            Ok(record_batch)
-        }
-    } else {
-        Ok(record_batch)
     }
 }
 
