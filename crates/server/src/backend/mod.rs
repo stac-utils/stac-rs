@@ -1,8 +1,12 @@
+#[cfg(feature = "duckdb")]
+mod duckdb;
 mod memory;
 #[cfg(feature = "pgstac")]
 mod pgstac;
 
 use crate::Result;
+#[cfg(feature = "duckdb")]
+pub use duckdb::DuckdbBackend;
 pub use memory::MemoryBackend;
 #[cfg(feature = "pgstac")]
 pub use pgstac::PgstacBackend;

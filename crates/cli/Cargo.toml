@@ -14,7 +14,7 @@ rust-version.workspace = true
 [features]
 default = []
 pgstac = ["stac-server/pgstac"]
-duckdb = ["dep:stac-duckdb"]
+duckdb = ["dep:stac-duckdb", "stac-server/duckdb"]
 duckdb-bundled = ["duckdb", "stac-duckdb/bundled"]
 
 [dependencies]
