@@ -25,7 +25,7 @@ where
 {
     let reader = GeoParquetRecordBatchReaderBuilder::try_new(reader)?.build()?;
     let table = reader.read_table()?;
-    crate::geoarrow::from_table(table).map_err(Error::from)
+    crate::geoarrow::from_table(table)
 }
 
 /// Writes a [ItemCollection] to a [std::io::Write] as

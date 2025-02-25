@@ -10,9 +10,10 @@ use arrow_json::ReaderBuilder;
 use arrow_schema::{DataType, Field, SchemaBuilder, TimeUnit};
 use geo_types::Geometry;
 use geoarrow::{
-    array::{CoordType, GeometryBuilder, WKBArray},
+    array::{CoordType, GeometryBuilder, NativeArrayDyn, WKBArray},
     datatypes::NativeType,
     table::Table,
+    ArrayBase,
 };
 use serde_json::{json, Value};
 use std::sync::Arc;
@@ -43,7 +44,7 @@ const DATETIME_COLUMNS: [&str; 8] = [
 /// let table = stac::geoarrow::to_table(item_collection).unwrap();
 /// ```
 pub fn to_table(item_collection: impl Into<ItemCollection>) -> Result<Table> {
-    let item_collection = item_collection.into();
+    let item_collection: ItemCollection = item_collection.into();
     let mut values = Vec::with_capacity(item_collection.items.len());
     let mut builder = GeometryBuilder::new();
     for mut item in item_collection.items {
@@ -169,6 +170,24 @@ pub fn with_native_geometry(
     Ok(record_batch)
 }
 
+/// Converts a geometry column to geoarrow.wkb.
+pub fn with_wkb_geometry(mut record_batch: RecordBatch, column_name: &str) -> Result<RecordBatch> {
+    if let Some((index, field)) = record_batch.schema().column_with_name(column_name) {
+        let geometry_column = record_batch.remove_column(index);
+        let wkb_array = geoarrow::io::wkb::to_wkb::<i32>(&NativeArrayDyn::from_arrow_array(
+            &geometry_column,
+            field,
+        )?);
+        let mut columns = record_batch.columns().to_vec();
+        let mut schema_builder = SchemaBuilder::from(&*record_batch.schema());
+        schema_builder.push(wkb_array.extension_field());
+        let schema = schema_builder.finish();
+        columns.push(wkb_array.to_array_ref());
+        record_batch = RecordBatch::try_new(schema.into(), columns)?;
+    }
+    Ok(record_batch)
+}
+
 /// Adds geoarrow wkb metadata to a geometry column.
 pub fn add_wkb_metadata(mut record_batch: RecordBatch, column_name: &str) -> Result<RecordBatch> {
     if let Some((index, field)) = record_batch.schema().column_with_name(column_name) {
@@ -225,5 +244,15 @@ mod tests {
         let items: ItemCollection = crate::read("data/two-sentinel-2-items.json").unwrap();
         let table = super::to_table(items).unwrap();
         let _ = super::from_table(table).unwrap();
+    }
+
+    #[test]
+    fn with_wkb_geometry() {
+        let item: Item = crate::read("examples/simple-item.json").unwrap();
+        let table = super::to_table(vec![item]).unwrap();
+        let (mut record_batches, _) = table.into_inner();
+        assert_eq!(record_batches.len(), 1);
+        let record_batch = record_batches.pop().unwrap();
+        let _ = super::with_wkb_geometry(record_batch, "geometry").unwrap();
     }
 }
