@@ -78,6 +78,16 @@ jobs:
         run: uv run --group stac-api-validator scripts/validate-stac-server
       - name: Validate stac-geoparquet
         run: uv run --group stac-geoparquet scripts/validate-stac-geoparquet
+  test-with-duckdb-bundled:
+    name: Test w/ DuckDB bundled
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
+      - name: Build # need to build first to get the executable for CLI tests
+        run: cargo build -p stac-cli -F duckdb-bundled
+      - name: Test
+        run: cargo test -p stac-cli -F duckdb-bundled
   test-pgstac:
     name: Test pgstac
     runs-on: ubuntu-latest
