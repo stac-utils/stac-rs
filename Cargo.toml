@@ -94,3 +94,7 @@ tracing-subscriber = { version = "0.3.18", features = [
 ] }
 url = "2.3"
 webpki-roots = "0.26.8"
+
+[patch.crates-io]
+duckdb = { git = "https://github.com/duckdb/duckdb-rs", rev = "5eeb1f01c278790ce1e2d24045f0096e9e2528e4"}
+libduckdb-sys = { git = "https://github.com/duckdb/duckdb-rs", rev = "5eeb1f01c278790ce1e2d24045f0096e9e2528e4"}
