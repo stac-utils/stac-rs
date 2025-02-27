@@ -1,0 +1,19 @@
+name: DuckDB
+
+on: workflow_dispatch
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-bundled:
+    name: Build bundled
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
+      - name: Build
+        run: cargo build -p stac-cli -F duckdb-bundled
+      - name: Test
+        run: cargo test -p stac-cli -F duckdb-bundled
