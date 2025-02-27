@@ -1,14 +1,18 @@
-name: DuckDB
+name: Labels
 
-on: workflow_dispatch
+on:
+  pull_request:
+    types:
+      - labeled
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build-bundled:
-    name: Build bundled
+  build-bundled-duckdb:
+    name: Build w/ bundled DuckDB
+    if: ${{ github.event.label.name == '[build] bundled-duckdb' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
