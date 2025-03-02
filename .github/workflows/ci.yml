@@ -38,7 +38,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
       - name: Install tarpaulin
-        run: cargo install tarpaulin
+        run: cargo install cargo-tarpaulin
       - name: Test
         run: cargo tarpaulin -p stac -p stac-api --all-features --out xml
       - uses: codecov/codecov-action@v5
