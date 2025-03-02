@@ -73,6 +73,29 @@ This monorepo contains several crates:
 | [pgstac](./crates/pgstac/README.md)              | Bindings for [pgstac](https://github.com/stac-utils/pgstac)                                     | [![docs.rs](https://img.shields.io/docsrs/pgstac?style=flat-square)](https://docs.rs/pgstac/latest/pgstac/) <br> [![Crates.io](https://img.shields.io/crates/v/pgstac?style=flat-square)](https://crates.io/crates/pgstac)                                              |
 | [stac-duckdb](./crates/duckdb/README.md)         | Experimental client for [duckdb](https://duckdb.org/)                                           | [![docs.rs](https://img.shields.io/docsrs/stac-duckdb?style=flat-square)](https://docs.rs/stac-duckdb/latest/stac_duckdb/) <br> [![Crates.io](https://img.shields.io/crates/v/stac-duckdb?style=flat-square)](https://crates.io/crates/stac-duckdb)                     |
 
+### Dependency relationships
+
+```mermaid
+graph TD
+    stac --> stac-api
+    stac --> stac-extensions
+    stac --> stac-cli
+    stac --> pgstac
+    stac --> stac-duckdb
+    stac --> stac-server
+    stac-api --> pgstac
+    stac-api --> stac-duckdb
+    stac-api --> stac-server
+    stac-api --> stac-cli
+    pgstac --> stac-server
+    stac-duckdb --> stac-server
+    stac-server --> stac-cli
+```
+
+> [!NOTE]
+> There's one additional crate in [crates](./crates/), [stac-derive](./crates/derive/).
+> This is not published and is for internal use only.
+
 ## Development
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for information about contributing to this project.
