@@ -1,4 +1,4 @@
-use crate::Version;
+use crate::{Href, Version};
 use thiserror::Error;
 
 /// Error enum for crate-specific errors.
@@ -42,6 +42,16 @@ pub enum Error {
     /// [geojson::Error]
     #[error(transparent)]
     Geojson(#[from] Box<geojson::Error>),
+
+    /// An error occurred when getting an href.
+    #[error("error when getting href={href}: {message}")]
+    Get {
+        /// The href that we were trying to get.
+        href: Href,
+
+        /// The underling error message.
+        message: String,
+    },
 
     /// [std::io::Error]
     #[error(transparent)]
