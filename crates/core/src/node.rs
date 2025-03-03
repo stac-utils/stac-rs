@@ -1,4 +1,5 @@
 use crate::{Catalog, Collection, Error, Href, Item, Link, Links, Result, SelfHref, Value};
+use serde::Serialize;
 use std::collections::VecDeque;
 
 /// A node in a STAC tree.
@@ -15,7 +16,8 @@ pub struct Node {
 }
 
 /// A STAC container, i.e. a [Catalog] or a [Collection].
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
+#[serde(untagged)]
 pub enum Container {
     /// A [Collection].
     Collection(Box<Collection>), // To avoid large enum variant
@@ -188,7 +190,7 @@ impl SelfHref for Container {
 
 #[cfg(test)]
 mod tests {
-    use super::Node;
+    use super::{Container, Node};
     use crate::{Catalog, Collection};
 
     #[test]
@@ -220,5 +222,13 @@ mod tests {
         let _root = iter.next().unwrap().unwrap();
         let _child = iter.next().unwrap().unwrap();
         assert!(iter.next().is_none());
+    }
+
+    #[test]
+    fn serialize_container() {
+        let catalog: Catalog = crate::read("examples/catalog.json").unwrap();
+        let container = Container::from(catalog.clone());
+        let serialized_catalog = serde_json::to_value(container).unwrap();
+        assert_eq!(serde_json::to_value(catalog).unwrap(), serialized_catalog);
     }
 }

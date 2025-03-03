@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - geoarrow record batch converters (moved from **stac-duckdb**) ([#652](https://github.com/stac-utils/stac-rs/pull/652))
 - `Clone` for `Container` ([#666](https://github.com/stac-utils/stac-rs/pull/666))
+- `Serialize` for `Container` ([#667](https://github.com/stac-utils/stac-rs/pull/667))
 
 ## [0.12.0] - 2025-01-31
 

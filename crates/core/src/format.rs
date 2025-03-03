@@ -277,12 +277,12 @@ where
     K: AsRef<str>,
     V: Into<String>,
 {
-    use object_store::ObjectStoreScheme;
-
     // It's technically inefficient to parse it twice, but we're doing this to
     // then do IO so who cares.
     #[cfg(feature = "object-store-aws")]
-    if let Ok((ObjectStoreScheme::AmazonS3, path)) = ObjectStoreScheme::parse(url) {
+    if let Ok((object_store::ObjectStoreScheme::AmazonS3, path)) =
+        object_store::ObjectStoreScheme::parse(url)
+    {
         let mut builder = object_store::aws::AmazonS3Builder::from_env();
         for (key, value) in options {
             builder = builder.with_config(key.as_ref().parse()?, value);
