@@ -596,6 +596,7 @@ mod tests {
     #[fixture]
     fn client() -> Client {
         let _mutex = MUTEX.lock().unwrap();
+        Client::fetch_extensions(true, true, true, None).unwrap();
         Client::new().unwrap()
     }
 
