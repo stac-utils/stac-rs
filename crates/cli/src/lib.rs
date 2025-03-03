@@ -257,10 +257,15 @@ struct ErrorLevel;
 
 impl Stacrs {
     /// Runs this command.
-    pub async fn run(self) -> Result<()> {
-        tracing_subscriber::fmt()
-            .with_max_level(self.log_level())
-            .init();
+    ///
+    /// If `init_tracing_subscriber` is `false`, it is expected that the caller
+    /// is setting up the appropriate logging (e.g. Python).
+    pub async fn run(self, init_tracing_subscriber: bool) -> Result<()> {
+        if init_tracing_subscriber {
+            tracing_subscriber::fmt()
+                .with_max_level(self.log_level())
+                .init();
+        }
         match self.command {
             Command::Translate {
                 ref infile,
