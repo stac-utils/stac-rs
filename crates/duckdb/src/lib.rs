@@ -112,6 +112,43 @@ pub struct Query {
     pub params: Vec<Value>,
 }
 
+/// A DuckDB extension
+#[derive(Debug)]
+pub struct Extension {
+    /// The extension name.
+    pub name: String,
+
+    /// Is the extension loaded?
+    pub loaded: bool,
+
+    /// Is the extension installed?
+    pub installed: bool,
+
+    /// The path to the extension.
+    ///
+    /// This might be `(BUILT-IN)` for the core extensions.
+    pub install_path: Option<String>,
+
+    /// The extension description.
+    pub description: String,
+
+    /// The extension aliases.
+    ///
+    /// TODO implement ... I don't know how vectors work yet 😢
+    // pub aliases: Vec<String>,
+
+    /// The extension version.
+    pub version: Option<String>,
+
+    /// The install mode.
+    ///
+    /// We don't bother making this an enum, yet.
+    pub install_mode: Option<String>,
+
+    /// Where the extension was installed from.
+    pub installed_from: Option<String>,
+}
+
 impl Client {
     /// Creates a new client with no data sources.
     ///
@@ -150,6 +187,39 @@ impl Client {
             connection.execute("CREATE SECRET (TYPE S3, PROVIDER CREDENTIAL_CHAIN)", [])?;
         }
         Ok(Client { connection, config })
+    }
+
+    /// Returns a vector of all extensions.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac_duckdb::Client;
+    ///
+    /// let client = Client::new().unwrap();
+    /// let extensions = client.extensions().unwrap();
+    /// let spatial = extensions.into_iter().find(|extension| extension.name == "spatial").unwrap();
+    /// assert!(spatial.loaded);
+    /// ```
+    pub fn extensions(&self) -> Result<Vec<Extension>> {
+        let mut statement = self.connection.prepare(&format!(
+            "SELECT extension_name, loaded, installed, install_path, description, extension_version, install_mode, installed_from FROM duckdb_extensions();",
+        ))?;
+        let extensions = statement
+            .query_map([], |row| {
+                Ok(Extension {
+                    name: row.get("extension_name")?,
+                    loaded: row.get("loaded")?,
+                    installed: row.get("installed")?,
+                    install_path: row.get("install_path")?,
+                    description: row.get("description")?,
+                    version: row.get("extension_version")?,
+                    install_mode: row.get("install_mode")?,
+                    installed_from: row.get("installed_from")?,
+                })
+            })?
+            .collect::<std::result::Result<Vec<_>, duckdb::Error>>()?;
+        Ok(extensions)
     }
 
     /// Returns one or more [stac::Collection] from the items in the stac-geoparquet file.
