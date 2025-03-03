@@ -29,11 +29,11 @@ rust-version = "1.82"
 
 [workspace.dependencies]
 anyhow = "1.0"
-arrow = "54.2.0"
-arrow-array = "54.2.0"
-arrow-cast = "54.2.0"
-arrow-json = "54.2.0"
-arrow-schema = "54.2.0"
+arrow = "54.2.1"
+arrow-array = "54.2.1"
+arrow-cast = "54.2.1"
+arrow-json = "54.2.1"
+arrow-schema = "54.2.1"
 assert-json-diff = "2.0"
 assert_cmd = "2.0"
 async-stream = "0.3.6"
@@ -41,7 +41,7 @@ axum = "0.8.1"
 bb8 = "0.9.0"
 bb8-postgres = "0.9.0"
 bytes = "1.7"
-chrono = "=0.4.39" # Until https://github.com/apache/arrow-rs/issues/7107 because https://github.com/apache/arrow-rs/pull/7198
+chrono = "0.4.39"
 clap = "4.5"
 cql2 = "0.3.0"
 duckdb = "=1.2.0"
@@ -58,7 +58,7 @@ log = "0.4.25"
 mime = "0.3.17"
 mockito = "1.5"
 object_store = "0.11.0"
-parquet = { version = "54.2.0", default-features = false }
+parquet = { version = "54.2.1", default-features = false }
 pgstac = { version = "0.3.0", path = "crates/pgstac" }
 pyo3 = "0.23.0"
 pythonize = "0.23.0"
@@ -96,5 +96,5 @@ url = "2.3"
 webpki-roots = "0.26.8"
 
 [patch.crates-io]
-duckdb = { git = "https://github.com/duckdb/duckdb-rs", rev = "5eeb1f01c278790ce1e2d24045f0096e9e2528e4"}
-libduckdb-sys = { git = "https://github.com/duckdb/duckdb-rs", rev = "5eeb1f01c278790ce1e2d24045f0096e9e2528e4"}
+duckdb = { git = "https://github.com/duckdb/duckdb-rs", rev = "5eeb1f01c278790ce1e2d24045f0096e9e2528e4" }
+libduckdb-sys = { git = "https://github.com/duckdb/duckdb-rs", rev = "5eeb1f01c278790ce1e2d24045f0096e9e2528e4" }
