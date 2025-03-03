@@ -113,6 +113,7 @@ pub struct Query {
 }
 
 /// A DuckDB extension
+// TODO implement aliases ... I don't know how vectors work yet 😢
 #[derive(Debug)]
 pub struct Extension {
     /// The extension name.
@@ -131,11 +132,6 @@ pub struct Extension {
 
     /// The extension description.
     pub description: String,
-
-    /// The extension aliases.
-    ///
-    /// TODO implement ... I don't know how vectors work yet 😢
-    // pub aliases: Vec<String>,
 
     /// The extension version.
     pub version: Option<String>,
