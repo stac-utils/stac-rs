@@ -15,7 +15,7 @@ pub struct Node {
 }
 
 /// A STAC container, i.e. a [Catalog] or a [Collection].
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Container {
     /// A [Collection].
     Collection(Box<Collection>), // To avoid large enum variant
