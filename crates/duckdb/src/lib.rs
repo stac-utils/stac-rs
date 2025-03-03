@@ -175,9 +175,7 @@ impl Client {
     /// ```
     pub fn with_config(config: Config) -> Result<Client> {
         let connection = Connection::open_in_memory()?;
-        connection.execute("INSTALL spatial", [])?;
         connection.execute("LOAD spatial", [])?;
-        connection.execute("INSTALL icu", [])?;
         connection.execute("LOAD icu", [])?;
         if config.use_s3_credential_chain {
             connection.execute("CREATE SECRET (TYPE S3, PROVIDER CREDENTIAL_CHAIN)", [])?;
@@ -216,6 +214,65 @@ impl Client {
             })?
             .collect::<std::result::Result<Vec<_>, duckdb::Error>>()?;
         Ok(extensions)
+    }
+
+    /// Install DuckDB extensions used by Client
+    ///
+    /// This is helpful when packaging stac-rs for deployment by enabling you
+    /// to install required DuckDB extensions during a build process, avoiding
+    /// downloads at runtime.
+    ///
+    /// We always require "icu" and "spatial" extensions, but require extra extensions
+    /// to read STAC GeoParquet stored on remote servers,
+    /// * "httpfs" is required for connecting to remote servers, including Google Cloud Storage
+    /// * "aws" is required for authenticating to AWS S3, and also requires "httpfs" for
+    ///   read/write/glob support
+    /// * "azure" is required for connecting to Microsoft Azure Blob storage
+    ///
+    /// Additionally a "custom_extension_repository" may be defined to change the source of
+    /// extensions from DuckDB's default repository location.
+    ///
+    /// # Examples
+    ///
+    /// To support AWS with extended functionality (e.g., authentication) on top of httpfs,
+    /// ```
+    /// use stac_duckdb::{Client};
+    ///
+    /// Client::fetch_extensions(true, true, false, None);
+    /// ```
+    ///
+    /// To support access to Azure but not AWS,
+    /// ```
+    /// use stac_duckdb::{Client};
+    ///
+    /// Client::fetch_extensions(false, false, true, None);
+    /// ```
+    ///
+    pub fn fetch_extensions(
+        support_https: bool,
+        support_aws: bool,
+        support_azure: bool,
+        custom_extension_repository: Option<&str>,
+    ) -> Result<()> {
+        let connection = Connection::open_in_memory()?;
+        if let Some(custom_extension_repository) = custom_extension_repository {
+            connection.execute(
+                "SET custom_extension_repository = '?'",
+                [custom_extension_repository],
+            )?;
+        }
+        connection.execute("INSTALL spatial", [])?;
+        connection.execute("INSTALL icu", [])?;
+        if support_aws {
+            connection.execute("INSTALL aws", [])?;
+        }
+        if support_aws || support_https {
+            connection.execute("INSTALL httpfs", [])?;
+        }
+        if support_azure {
+            connection.execute("INSTALL azure", [])?;
+        }
+        Ok(())
     }
 
     /// Returns one or more [stac::Collection] from the items in the stac-geoparquet file.
@@ -535,6 +592,12 @@ mod tests {
     use std::sync::Mutex;
 
     static MUTEX: Mutex<()> = Mutex::new(());
+
+    #[fixture]
+    #[once]
+    fn install_extensions() {
+        Client::fetch_extensions(true, true, true, None).unwrap();
+    }
 
     #[fixture]
     fn client() -> Client {
