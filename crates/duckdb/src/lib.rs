@@ -594,9 +594,14 @@ mod tests {
     static MUTEX: Mutex<()> = Mutex::new(());
 
     #[fixture]
+    #[once]
+    fn install_extensions() {
+        Client::fetch_extensions(true, true, true, None).unwrap();
+    }
+
+    #[fixture]
     fn client() -> Client {
         let _mutex = MUTEX.lock().unwrap();
-        Client::fetch_extensions(true, true, true, None).unwrap();
         Client::new().unwrap()
     }
 
