@@ -175,9 +175,7 @@ impl Client {
     /// ```
     pub fn with_config(config: Config) -> Result<Client> {
         let connection = Connection::open_in_memory()?;
-        connection.execute("INSTALL spatial", [])?;
         connection.execute("LOAD spatial", [])?;
-        connection.execute("INSTALL icu", [])?;
         connection.execute("LOAD icu", [])?;
         if config.use_s3_credential_chain {
             connection.execute("CREATE SECRET (TYPE S3, PROVIDER CREDENTIAL_CHAIN)", [])?;
@@ -216,6 +214,47 @@ impl Client {
             })?
             .collect::<std::result::Result<Vec<_>, duckdb::Error>>()?;
         Ok(extensions)
+    }
+
+    /// Install DuckDB extensions used by Client
+    ///
+    /// This is helpful when packaging stac-rs for deployment by enabling you
+    /// to install required DuckDB extensions during a build process, avoiding
+    /// downloads at runtime.
+    ///
+    /// # Examples
+    ///
+    /// We always require "icu" and "spatial" extensions, but also require httpfs"
+    /// and "aws" extensions to support STAC GeoParquet stored on remote servers
+    /// or AWS S3, respectively. The "aws" extension requires "httpfs", so both
+    /// will be installed if when `support_s3` is true.
+    ///
+    /// ```
+    /// use stac_duckdb::{Client};
+    ///
+    /// Client::fetch_extensions(true, true, None);
+    /// ```
+    pub fn fetch_extensions(
+        support_s3: bool,
+        support_https: bool,
+        custom_extension_repository: Option<&str>,
+    ) -> Result<()> {
+        let connection = Connection::open_in_memory()?;
+        if let Some(custom_extension_repository) = custom_extension_repository {
+            connection.execute(
+                "SET custom_extension_repository = '?'",
+                [custom_extension_repository],
+            )?;
+        }
+        connection.execute("INSTALL spatial", [])?;
+        connection.execute("INSTALL icu", [])?;
+        if support_s3 {
+            connection.execute("INSTALL aws", [])?;
+        }
+        if support_s3 || support_https {
+            connection.execute("INSTALL httpfs", [])?;
+        }
+        Ok(())
     }
 
     /// Returns one or more [stac::Collection] from the items in the stac-geoparquet file.
