@@ -222,21 +222,36 @@ impl Client {
     /// to install required DuckDB extensions during a build process, avoiding
     /// downloads at runtime.
     ///
+    /// We always require "icu" and "spatial" extensions, but require extra extensions
+    /// to read STAC GeoParquet stored on remote servers,
+    /// * "httpfs" is required for connecting to remote servers, including Google Cloud Storage
+    /// * "aws" is required for authenticating to AWS S3, and also requires "httpfs" for
+    ///   read/write/glob support
+    /// * "azure" is required for connecting to Microsoft Azure Blob storage
+    ///
+    /// Additionally a "custom_extension_repository" may be defined to change the source of
+    /// extensions from DuckDB's default repository location.
+    ///
     /// # Examples
     ///
-    /// We always require "icu" and "spatial" extensions, but also require httpfs"
-    /// and "aws" extensions to support STAC GeoParquet stored on remote servers
-    /// or AWS S3, respectively. The "aws" extension requires "httpfs", so both
-    /// will be installed if when `support_s3` is true.
-    ///
+    /// To support AWS with extended functionality (e.g., authentication) on top of httpfs,
     /// ```
     /// use stac_duckdb::{Client};
     ///
-    /// Client::fetch_extensions(true, true, None);
+    /// Client::fetch_extensions(true, true, false, None);
     /// ```
+    ///
+    /// To support access to Azure but not AWS,
+    /// ```
+    /// use stac_duckdb::{Client};
+    ///
+    /// Client::fetch_extensions(false, false, true, None);
+    /// ```
+    ///
     pub fn fetch_extensions(
-        support_s3: bool,
         support_https: bool,
+        support_aws: bool,
+        support_azure: bool,
         custom_extension_repository: Option<&str>,
     ) -> Result<()> {
         let connection = Connection::open_in_memory()?;
@@ -248,11 +263,14 @@ impl Client {
         }
         connection.execute("INSTALL spatial", [])?;
         connection.execute("INSTALL icu", [])?;
-        if support_s3 {
+        if support_aws {
             connection.execute("INSTALL aws", [])?;
         }
-        if support_s3 || support_https {
+        if support_aws || support_https {
             connection.execute("INSTALL httpfs", [])?;
+        }
+        if support_azure {
+            connection.execute("INSTALL azure", [])?;
         }
         Ok(())
     }
