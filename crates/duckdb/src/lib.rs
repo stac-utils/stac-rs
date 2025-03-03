@@ -202,9 +202,9 @@ impl Client {
     /// assert!(spatial.loaded);
     /// ```
     pub fn extensions(&self) -> Result<Vec<Extension>> {
-        let mut statement = self.connection.prepare(&format!(
+        let mut statement = self.connection.prepare(
             "SELECT extension_name, loaded, installed, install_path, description, extension_version, install_mode, installed_from FROM duckdb_extensions();",
-        ))?;
+        )?;
         let extensions = statement
             .query_map([], |row| {
                 Ok(Extension {
