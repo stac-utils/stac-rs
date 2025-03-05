@@ -279,7 +279,6 @@ impl Format {
     }
 
     /// Returns the default geoparquet format (snappy compression).
-    #[cfg(feature = "geoparquet")]
     pub fn geoparquet() -> Format {
         Format::Geoparquet(Some(Compression::SNAPPY))
     }
