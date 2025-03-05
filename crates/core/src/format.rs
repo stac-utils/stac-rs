@@ -278,9 +278,16 @@ impl Format {
         Format::NdJson
     }
 
-    /// Returns the default geoparquet format (snappy compression).
+    /// Returns the default geoparquet format (snappy compression if compression is enabled).
     pub fn geoparquet() -> Format {
-        Format::Geoparquet(Some(Compression::SNAPPY))
+        #[cfg(feature = "geoparquet-compression")]
+        {
+            Format::Geoparquet(Some(Compression::SNAPPY))
+        }
+        #[cfg(not(feature = "geoparquet-compression"))]
+        {
+            Format::Geoparquet(None)
+        }
     }
 }
 
@@ -402,9 +409,19 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "geoparquet-compression")]
     fn infer_from_href() {
         assert_eq!(
             Format::Geoparquet(Some(Compression::SNAPPY)),
+            Format::infer_from_href("out.parquet").unwrap()
+        );
+    }
+
+    #[test]
+    #[cfg(not(feature = "geoparquet-compression"))]
+    fn infer_from_href() {
+        assert_eq!(
+            Format::Geoparquet(None),
             Format::infer_from_href("out.parquet").unwrap()
         );
     }
