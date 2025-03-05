@@ -83,52 +83,42 @@ pub struct Client {
     pub config: Config,
 }
 
-/// Configuration for AWS S3 storage
-#[derive(Debug, Clone, Copy)]
-pub struct AwsConfig {
-    /// Whether to install this extension
+/// Configuration for installing extensions
+#[derive(Debug, Clone)]
+pub struct ExtensionInstallConfig {
+    /// Whether to install HTTPFS extension
     ///
-    /// True by default
-    pub install_extension: bool,
+    /// This is required for remote servers and Google Cloud
+    pub support_https: bool,
 
-    /// Whether to enable the s3 credential chain, which allows s3:// url access.
+    /// Whether to install the AWS extension
     ///
-    /// True by default
-    pub use_credential_chain: bool,
+    /// This is required to support AWS S3 storage (e.g., s3://bucket/key.parquet)
+    pub support_aws: bool,
+
+    /// Whether to install the Azure extension
+    ///
+    /// This is required to support Azure Blob storage (e.g., az://bucket/key.parquet)
+    pub support_azure: bool,
+
+    /// Fetch extensions from a custom extension repository
+    ///
+    /// This may be useful if you're self-hosting DuckDB extensions.
+    pub custom_extension_repository: Option<String>,
 }
-impl Default for AwsConfig {
+impl Default for ExtensionInstallConfig {
     fn default() -> Self {
-        AwsConfig {
-            install_extension: true,
-            use_credential_chain: true,
-        }
-    }
-}
-
-/// Configuration for Azure Blob storage
-#[derive(Debug, Clone, Copy)]
-pub struct AzureConfig {
-    /// Whether to install this extension
-    ///
-    /// True by default
-    pub install_extension: bool,
-
-    /// Whether to enable the Azure credential chain, which allows az:// url access.
-    ///
-    /// True by default
-    pub use_credential_chain: bool,
-}
-impl Default for AzureConfig {
-    fn default() -> Self {
-        AzureConfig {
-            install_extension: true,
-            use_credential_chain: true,
+        ExtensionInstallConfig {
+            support_https: true,
+            support_aws: true,
+            support_azure: true,
+            custom_extension_repository: None,
         }
     }
 }
 
 /// Configuration for a client.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct Config {
     /// Whether to enable hive partitioning.
     ///
@@ -140,15 +130,21 @@ pub struct Config {
     /// Disable this to enable geopandas reading, for example.
     pub convert_wkb: bool,
 
-    /// AWS cloud provider configuration
+    /// Whether to enable the S3 credential chain, which allows s3:// url access.
     ///
-    /// Customize to install extension and manage AWS credentials.
-    pub aws_config: Option<AwsConfig>,
+    /// True by default.
+    pub use_s3_credential_chain: bool,
 
-    /// Azure cloud provider configuration
+    /// Whether to enable the Azure credential chain, which allows az:// url access.
     ///
-    /// Customize to install extension and manage Azure credentials.
-    pub azure_config: Option<AzureConfig>,
+    /// True by default.
+    pub use_azure_credential_chain: bool,
+
+    /// Extension installation settings.
+    ///
+    /// If None, do not fetch extensions when creating a Client. Otherwise
+    /// fetch extensions as defined in the provided ExtensionConfig
+    pub extension_install_config: Option<ExtensionInstallConfig>,
 }
 
 /// A SQL query.
@@ -213,13 +209,14 @@ impl Client {
     /// # Examples
     ///
     /// ```
-    /// use stac_duckdb::{AwsConfig, Client, Config};
+    /// use stac_duckdb::{Client, Config};
     ///
     /// let config = Config {
     ///     use_hive_partitioning: true,
     ///     convert_wkb: true,
-    ///     aws_config: Some(AwsConfig::default()),
-    ///     azure_config: None,
+    ///     use_s3_credential_chain: true,
+    ///     use_azure_credential_chain: true,
+    ///     extension_install_config: None,
     /// };
     /// let client = Client::with_config(config);
     /// ```
@@ -227,16 +224,15 @@ impl Client {
         let connection = Connection::open_in_memory()?;
         connection.execute("LOAD spatial", [])?;
         connection.execute("LOAD icu", [])?;
-        Client::fetch_extensions(
-            true,
-            config.aws_config.is_some_and(|cfg| cfg.install_extension),
-            config.azure_config.is_some_and(|cfg| cfg.install_extension),
-            None,
-        )?;
-        if config.aws_config.is_some_and(|cfg| cfg.use_credential_chain) {
+
+        if let Some(ref extension_install_config) = config.extension_install_config {
+            Client::fetch_extensions(extension_install_config.clone())?;
+        }
+
+        if config.use_s3_credential_chain {
             connection.execute("CREATE SECRET (TYPE S3, PROVIDER CREDENTIAL_CHAIN)", [])?;
         }
-        if config.azure_config.is_some_and(|cfg| cfg.use_credential_chain) {
+        if config.use_azure_credential_chain {
             connection.execute("CREATE SECRET (TYPE azure, PROVIDER CREDENTIAL_CHAIN)", [])?;
         }
         Ok(Client { connection, config })
@@ -295,26 +291,35 @@ impl Client {
     ///
     /// To support AWS with extended functionality (e.g., authentication) on top of httpfs,
     /// ```
-    /// use stac_duckdb::{Client};
+    /// use stac_duckdb::{Client, ExtensionInstallConfig};
     ///
-    /// Client::fetch_extensions(true, true, false, None);
+    /// Client::fetch_extensions(
+    ///     ExtensionInstallConfig {
+    ///         support_https: true,
+    ///         support_aws: true,
+    ///         support_azure: false,
+    ///         custom_extension_repository: None
+    ///     }
+    /// );
     /// ```
     ///
     /// To support access to Azure but not AWS,
     /// ```
-    /// use stac_duckdb::{Client};
+    /// use stac_duckdb::{Client, ExtensionInstallConfig};
     ///
-    /// Client::fetch_extensions(false, false, true, None);
+    /// Client::fetch_extensions(
+    ///     ExtensionInstallConfig {
+    ///         support_https: false,
+    ///         support_aws: false,
+    ///         support_azure: true,
+    ///         custom_extension_repository: None
+    ///     }
+    /// );
     /// ```
     ///
-    pub fn fetch_extensions(
-        support_https: bool,
-        support_aws: bool,
-        support_azure: bool,
-        custom_extension_repository: Option<&str>,
-    ) -> Result<()> {
+    pub fn fetch_extensions(config: ExtensionInstallConfig) -> Result<()> {
         let connection = Connection::open_in_memory()?;
-        if let Some(custom_extension_repository) = custom_extension_repository {
+        if let Some(custom_extension_repository) = config.custom_extension_repository {
             connection.execute(
                 "SET custom_extension_repository = '?'",
                 [custom_extension_repository],
@@ -322,13 +327,13 @@ impl Client {
         }
         connection.execute("INSTALL spatial", [])?;
         connection.execute("INSTALL icu", [])?;
-        if support_aws {
+        if config.support_aws {
             connection.execute("INSTALL aws", [])?;
         }
-        if support_aws || support_https {
+        if config.support_aws || config.support_https {
             connection.execute("INSTALL httpfs", [])?;
         }
-        if support_azure {
+        if config.support_azure {
             connection.execute("INSTALL azure", [])?;
         }
         Ok(())
@@ -636,15 +641,16 @@ impl Default for Config {
         Config {
             use_hive_partitioning: false,
             convert_wkb: true,
-            aws_config: Some(AwsConfig::default()),
-            azure_config: Some(AzureConfig::default()),
+            use_s3_credential_chain: true,
+            use_azure_credential_chain: true,
+            extension_install_config: Some(ExtensionInstallConfig::default()),
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{Client, Result};
+    use super::{Client, ExtensionInstallConfig, Result};
     use geo::Geometry;
     use rstest::{fixture, rstest};
     use stac::{Bbox, Validate};
@@ -656,13 +662,15 @@ mod tests {
     #[fixture]
     #[once]
     fn install_extensions() -> Result<()> {
-        Client::fetch_extensions(true, true, true, None)?;
+        Client::fetch_extensions(ExtensionInstallConfig::default())?;
         Ok(())
     }
 
     #[fixture]
     fn client(install_extensions: &Result<()>) -> Client {
-        install_extensions.as_ref().expect("Could not install DuckDB extensions!");
+        install_extensions
+            .as_ref()
+            .expect("Could not install DuckDB extensions!");
         let _mutex = MUTEX.lock().unwrap();
         Client::new().unwrap()
     }
