@@ -31,7 +31,12 @@ impl Format {
     /// assert_eq!(Format::Json(false), Format::infer_from_href("item.json").unwrap());
     /// ```
     pub fn infer_from_href(href: &str) -> Option<Format> {
-        href.rsplit_once('.').and_then(|(_, ext)| ext.parse().ok())
+        let format = href.rsplit_once('.').and_then(|(_, ext)| ext.parse().ok());
+        if let Some(Format::Geoparquet(_)) = format {
+            Some(Format::geoparquet()) // to pick up the default compression
+        } else {
+            format
+        }
     }
 
     /// Returns true if this is a geoparquet href.
@@ -273,10 +278,16 @@ impl Format {
         Format::NdJson
     }
 
-    /// Returns the default geoparquet format (no compression specified).
-    #[cfg(feature = "geoparquet")]
+    /// Returns the default geoparquet format (snappy compression if compression is enabled).
     pub fn geoparquet() -> Format {
-        Format::Geoparquet(None)
+        #[cfg(feature = "geoparquet-compression")]
+        {
+            Format::Geoparquet(Some(Compression::SNAPPY))
+        }
+        #[cfg(not(feature = "geoparquet-compression"))]
+        {
+            Format::Geoparquet(None)
+        }
     }
 }
 
@@ -398,6 +409,16 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "geoparquet-compression")]
+    fn infer_from_href() {
+        assert_eq!(
+            Format::Geoparquet(Some(Compression::SNAPPY)),
+            Format::infer_from_href("out.parquet").unwrap()
+        );
+    }
+
+    #[test]
+    #[cfg(not(feature = "geoparquet-compression"))]
     fn infer_from_href() {
         assert_eq!(
             Format::Geoparquet(None),
