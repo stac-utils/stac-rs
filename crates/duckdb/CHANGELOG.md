@@ -13,10 +13,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - `Client.search_to_arrow_table` ([#634](https://github.com/stac-utils/stac-rs/pull/634))
 - Conditionally disable parsing the WKB ([#635](https://github.com/stac-utils/stac-rs/pull/635))
 - `Client.extensions` ([#665](https://github.com/stac-utils/stac-rs/pull/665))
+- `Client::fetch_extensions` to install extensions ([#666](https://github.com/stac-utils/stac-rs/pull/666))
 
 ### Removed
 
 - geoarrow record batch converters (moved to **stac**) ([#652](https://github.com/stac-utils/stac-rs/pull/652))
+- `Client::new` no longer installs extensions ([#666](https://github.com/stac-utils/stac-rs/pull/666))
 
 ## [0.1.1] - 2025-01-31
 
