@@ -584,7 +584,7 @@ impl Default for Config {
 
 #[cfg(test)]
 mod tests {
-    use super::Client;
+    use super::{Client, Result};
     use geo::Geometry;
     use rstest::{fixture, rstest};
     use stac::{Bbox, Validate};
@@ -595,12 +595,14 @@ mod tests {
 
     #[fixture]
     #[once]
-    fn install_extensions() {
-        Client::fetch_extensions(true, true, true, None).unwrap();
+    fn install_extensions() -> Result<()> {
+        Client::fetch_extensions(true, true, true, None)?;
+        Ok(())
     }
 
     #[fixture]
-    fn client() -> Client {
+    fn client(install_extensions: &Result<()>) -> Client {
+        install_extensions.as_ref().expect("Could not install DuckDB extensions!");
         let _mutex = MUTEX.lock().unwrap();
         Client::new().unwrap()
     }
