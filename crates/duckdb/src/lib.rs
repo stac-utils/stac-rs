@@ -83,14 +83,53 @@ pub struct Client {
     pub config: Config,
 }
 
+/// Configuration for AWS S3 storage
+#[derive(Debug, Clone, Copy)]
+pub struct AwsConfig {
+    /// Whether to install this extension
+    ///
+    /// True by default
+    pub install_extension: bool,
+
+    /// Whether to enable the s3 credential chain, which allows s3:// url access.
+    ///
+    /// True by default
+    pub use_credential_chain: bool,
+}
+impl Default for AwsConfig {
+    fn default() -> Self {
+        AwsConfig {
+            install_extension: true,
+            use_credential_chain: true,
+        }
+    }
+}
+
+/// Configuration for Azure Blob storage
+#[derive(Debug, Clone, Copy)]
+pub struct AzureConfig {
+    /// Whether to install this extension
+    ///
+    /// True by default
+    pub install_extension: bool,
+
+    /// Whether to enable the Azure credential chain, which allows az:// url access.
+    ///
+    /// True by default
+    pub use_credential_chain: bool,
+}
+impl Default for AzureConfig {
+    fn default() -> Self {
+        AzureConfig {
+            install_extension: true,
+            use_credential_chain: true,
+        }
+    }
+}
+
 /// Configuration for a client.
 #[derive(Debug, Clone, Copy)]
 pub struct Config {
-    /// Whether to enable the s3 credential chain, which allows s3:// url access.
-    ///
-    /// True by default.
-    pub use_s3_credential_chain: bool,
-
     /// Whether to enable hive partitioning.
     ///
     /// False by default.
@@ -100,6 +139,16 @@ pub struct Config {
     ///
     /// Disable this to enable geopandas reading, for example.
     pub convert_wkb: bool,
+
+    /// AWS cloud provider configuration
+    ///
+    /// Customize to install extension and manage AWS credentials.
+    pub aws_config: Option<AwsConfig>,
+
+    /// Azure cloud provider configuration
+    ///
+    /// Customize to install extension and manage Azure credentials.
+    pub azure_config: Option<AzureConfig>,
 }
 
 /// A SQL query.
@@ -164,12 +213,13 @@ impl Client {
     /// # Examples
     ///
     /// ```
-    /// use stac_duckdb::{Client, Config};
+    /// use stac_duckdb::{AwsConfig, Client, Config};
     ///
     /// let config = Config {
-    ///     use_s3_credential_chain: true,
     ///     use_hive_partitioning: true,
     ///     convert_wkb: true,
+    ///     aws_config: Some(AwsConfig::default()),
+    ///     azure_config: None,
     /// };
     /// let client = Client::with_config(config);
     /// ```
@@ -177,8 +227,17 @@ impl Client {
         let connection = Connection::open_in_memory()?;
         connection.execute("LOAD spatial", [])?;
         connection.execute("LOAD icu", [])?;
-        if config.use_s3_credential_chain {
+        Client::fetch_extensions(
+            true,
+            config.aws_config.is_some_and(|cfg| cfg.install_extension),
+            config.azure_config.is_some_and(|cfg| cfg.install_extension),
+            None,
+        )?;
+        if config.aws_config.is_some_and(|cfg| cfg.use_credential_chain) {
             connection.execute("CREATE SECRET (TYPE S3, PROVIDER CREDENTIAL_CHAIN)", [])?;
+        }
+        if config.azure_config.is_some_and(|cfg| cfg.use_credential_chain) {
+            connection.execute("CREATE SECRET (TYPE azure, PROVIDER CREDENTIAL_CHAIN)", [])?;
         }
         Ok(Client { connection, config })
     }
@@ -576,8 +635,9 @@ impl Default for Config {
     fn default() -> Self {
         Config {
             use_hive_partitioning: false,
-            use_s3_credential_chain: true,
             convert_wkb: true,
+            aws_config: Some(AwsConfig::default()),
+            azure_config: Some(AzureConfig::default()),
         }
     }
 }
