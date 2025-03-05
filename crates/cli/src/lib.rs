@@ -705,7 +705,7 @@ mod tests {
         let stacrs = Stacrs::parse_from(["stacrs", "translate"]);
         assert_eq!(
             stacrs.input_format(Some("file.parquet")),
-            Format::Geoparquet(None)
+            Format::Geoparquet(Some(Compression::SNAPPY))
         );
 
         let stacrs = Stacrs::parse_from(["stacrs", "--input-format", "json", "translate"]);
