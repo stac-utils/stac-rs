@@ -20,7 +20,6 @@ client = [
     "dep:tokio",
 ]
 geo = ["dep:geo", "stac/geo"]
-python = ["dep:pyo3", "dep:pythonize"]
 
 [dependencies]
 async-stream = { workspace = true, optional = true }
@@ -36,8 +35,6 @@ serde_json.workspace = true
 serde_urlencoded.workspace = true
 stac.workspace = true
 stac-derive.workspace = true
-pyo3 = { workspace = true, optional = true }
-pythonize = { workspace = true, optional = true }
 thiserror.workspace = true
 tracing.workspace = true
 tokio = { workspace = true, optional = true }
