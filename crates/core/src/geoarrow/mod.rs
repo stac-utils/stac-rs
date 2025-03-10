@@ -29,6 +29,8 @@ const DATETIME_COLUMNS: [&str; 8] = [
     "unpublished",
 ];
 
+const GEOMETRY_COLUMNS: [&str; 2] = ["geometry", "proj:geometry"];
+
 /// Converts an [ItemCollection] to a [Table].
 ///
 /// Any invalid attributes in the items (e.g. top-level attributes that conflict
@@ -146,62 +148,65 @@ pub fn from_table(table: Table) -> Result<ItemCollection> {
 }
 
 /// Converts a geometry column to geoarrow native type.
-pub fn with_native_geometry(
-    mut record_batch: RecordBatch,
-    column_name: &str,
-) -> Result<RecordBatch> {
-    if let Some((index, _)) = record_batch.schema().column_with_name(column_name) {
-        let geometry_column = record_batch.remove_column(index);
-        let binary_array: GenericByteArray<GenericBinaryType<i32>> =
-            geometry_column.as_binary::<i32>().clone();
-        let wkb_array = WKBArray::new(binary_array, Default::default());
-        let geometry_array = geoarrow::io::wkb::from_wkb(
-            &wkb_array,
-            NativeType::Geometry(CoordType::Interleaved),
-            false,
-        )?;
-        let mut columns = record_batch.columns().to_vec();
-        let mut schema_builder = SchemaBuilder::from(&*record_batch.schema());
-        schema_builder.push(geometry_array.extension_field());
-        let schema = schema_builder.finish();
-        columns.push(geometry_array.to_array_ref());
-        record_batch = RecordBatch::try_new(schema.into(), columns)?;
+pub fn with_native_geometries(mut record_batch: RecordBatch) -> Result<RecordBatch> {
+    for column_name in GEOMETRY_COLUMNS {
+        if let Some((index, _)) = record_batch.schema().column_with_name(column_name) {
+            let geometry_column = record_batch.remove_column(index);
+            let binary_array: GenericByteArray<GenericBinaryType<i32>> =
+                geometry_column.as_binary::<i32>().clone();
+            let wkb_array = WKBArray::new(binary_array, Default::default());
+            let geometry_array = geoarrow::io::wkb::from_wkb(
+                &wkb_array,
+                NativeType::Geometry(CoordType::Interleaved),
+                false,
+            )?;
+            let mut columns = record_batch.columns().to_vec();
+            let mut schema_builder = SchemaBuilder::from(&*record_batch.schema());
+            schema_builder.push(geometry_array.extension_field());
+            let schema = schema_builder.finish();
+            columns.push(geometry_array.to_array_ref());
+            record_batch = RecordBatch::try_new(schema.into(), columns)?;
+        }
     }
     Ok(record_batch)
 }
 
 /// Converts a geometry column to geoarrow.wkb.
-pub fn with_wkb_geometry(mut record_batch: RecordBatch, column_name: &str) -> Result<RecordBatch> {
-    if let Some((index, field)) = record_batch.schema().column_with_name(column_name) {
-        let geometry_column = record_batch.remove_column(index);
-        let wkb_array = geoarrow::io::wkb::to_wkb::<i32>(&NativeArrayDyn::from_arrow_array(
-            &geometry_column,
-            field,
-        )?);
-        let mut columns = record_batch.columns().to_vec();
-        let mut schema_builder = SchemaBuilder::from(&*record_batch.schema());
-        schema_builder.push(wkb_array.extension_field());
-        let schema = schema_builder.finish();
-        columns.push(wkb_array.to_array_ref());
-        record_batch = RecordBatch::try_new(schema.into(), columns)?;
+pub fn with_wkb_geometries(mut record_batch: RecordBatch) -> Result<RecordBatch> {
+    for column_name in GEOMETRY_COLUMNS {
+        if let Some((index, field)) = record_batch.schema().column_with_name(column_name) {
+            let geometry_column = record_batch.remove_column(index);
+            let wkb_array = geoarrow::io::wkb::to_wkb::<i32>(&NativeArrayDyn::from_arrow_array(
+                &geometry_column,
+                field,
+            )?);
+            let mut columns = record_batch.columns().to_vec();
+            let mut schema_builder = SchemaBuilder::from(&*record_batch.schema());
+            schema_builder.push(wkb_array.extension_field());
+            let schema = schema_builder.finish();
+            columns.push(wkb_array.to_array_ref());
+            record_batch = RecordBatch::try_new(schema.into(), columns)?;
+        }
     }
     Ok(record_batch)
 }
 
 /// Adds geoarrow wkb metadata to a geometry column.
-pub fn add_wkb_metadata(mut record_batch: RecordBatch, column_name: &str) -> Result<RecordBatch> {
-    if let Some((index, field)) = record_batch.schema().column_with_name(column_name) {
-        let mut metadata = field.metadata().clone();
-        let _ = metadata.insert(
-            "ARROW:extension:name".to_string(),
-            "geoarrow.wkb".to_string(),
-        );
-        let field = field.clone().with_metadata(metadata);
-        let mut schema_builder = SchemaBuilder::from(&*record_batch.schema());
-        let field_ref = schema_builder.field_mut(index);
-        *field_ref = field.into();
-        let schema = schema_builder.finish();
-        record_batch = record_batch.with_schema(schema.into())?;
+pub fn add_wkb_metadata(mut record_batch: RecordBatch) -> Result<RecordBatch> {
+    for column_name in GEOMETRY_COLUMNS {
+        if let Some((index, field)) = record_batch.schema().column_with_name(column_name) {
+            let mut metadata = field.metadata().clone();
+            let _ = metadata.insert(
+                "ARROW:extension:name".to_string(),
+                "geoarrow.wkb".to_string(),
+            );
+            let field = field.clone().with_metadata(metadata);
+            let mut schema_builder = SchemaBuilder::from(&*record_batch.schema());
+            let field_ref = schema_builder.field_mut(index);
+            *field_ref = field.into();
+            let schema = schema_builder.finish();
+            record_batch = record_batch.with_schema(schema.into())?;
+        }
     }
     Ok(record_batch)
 }
@@ -253,6 +258,16 @@ mod tests {
         let (mut record_batches, _) = table.into_inner();
         assert_eq!(record_batches.len(), 1);
         let record_batch = record_batches.pop().unwrap();
-        let _ = super::with_wkb_geometry(record_batch, "geometry").unwrap();
+        let _ = super::with_wkb_geometries(record_batch).unwrap();
+    }
+
+    #[test]
+    fn with_wkb_geometries() {
+        let item: Item = crate::read("examples/proj-geometry.json").unwrap();
+        let table = super::to_table(vec![item]).unwrap();
+        let (mut record_batches, _) = table.into_inner();
+        assert_eq!(record_batches.len(), 1);
+        let record_batch = record_batches.pop().unwrap();
+        let _ = super::with_wkb_geometries(record_batch).unwrap();
     }
 }
