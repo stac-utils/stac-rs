@@ -1,0 +1,219 @@
+{
+    "id": "13_031131113310_10200100BCB1A500",
+    "bbox": [
+        -105.11886301297739,
+        39.921164,
+        -105.08955732614571,
+        39.93148147273625
+    ],
+    "type": "Feature",
+    "links": [
+        {
+            "rel": "collection",
+            "type": "application/json",
+            "href": "https://stac.eoapi.dev/collections/MAXAR_Marshall_Fire_21_Update"
+        },
+        {
+            "rel": "parent",
+            "type": "application/json",
+            "href": "https://stac.eoapi.dev/collections/MAXAR_Marshall_Fire_21_Update"
+        },
+        {
+            "rel": "root",
+            "type": "application/json",
+            "href": "https://stac.eoapi.dev/"
+        },
+        {
+            "rel": "self",
+            "type": "application/geo+json",
+            "href": "https://stac.eoapi.dev/collections/MAXAR_Marshall_Fire_21_Update/items/13_031131113310_10200100BCB1A500"
+        }
+    ],
+    "assets": {
+        "visual": {
+            "href": "s3://maxar-opendata/events/Marshall-Fire-21-Update/ard/13/031131113310/2021-12-30/10200100BCB1A500-visual.tif",
+            "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            "roles": [
+                "visual"
+            ],
+            "title": "Visual Image",
+            "eo:bands": [
+                {
+                    "name": "BAND_P_V",
+                    "description": "Pan Visual"
+                }
+            ],
+            "alternate": {
+                "public": {
+                    "href": "https://maxar-opendata.s3.amazonaws.com/events/Marshall-Fire-21-Update/ard/13/031131113310/2021-12-30/10200100BCB1A500-visual.tif",
+                    "title": "Public Access"
+                }
+            },
+            "proj:bbox": [
+                489843.75,
+                4414843.75,
+                495156.25,
+                4420156.25
+            ],
+            "proj:shape": [
+                17408,
+                17408
+            ],
+            "proj:transform": [
+                0.30517578125,
+                0.0,
+                489843.75,
+                0.0,
+                -0.30517578125,
+                4420156.25,
+                0.0,
+                0.0,
+                1.0
+            ]
+        },
+        "data-mask": {
+            "href": "s3://maxar-opendata/events/Marshall-Fire-21-Update/ard/13/031131113310/2021-12-30/10200100BCB1A500-data-mask.gpkg",
+            "type": "application/geopackage+sqlite3",
+            "roles": [
+                "data-mask"
+            ],
+            "title": "Data Mask",
+            "alternate": {
+                "public": {
+                    "href": "https://maxar-opendata.s3.amazonaws.com/events/Marshall-Fire-21-Update/ard/13/031131113310/2021-12-30/10200100BCB1A500-data-mask.gpkg",
+                    "title": "Public Access"
+                }
+            }
+        },
+        "pan_analytic": {
+            "href": "s3://maxar-opendata/events/Marshall-Fire-21-Update/ard/13/031131113310/2021-12-30/10200100BCB1A500-pan.tif",
+            "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            "roles": [
+                "data"
+            ],
+            "title": "Panchromatic Image",
+            "eo:bands": [
+                {
+                    "name": "BAND_P",
+                    "description": "Pan"
+                }
+            ],
+            "alternate": {
+                "public": {
+                    "href": "https://maxar-opendata.s3.amazonaws.com/events/Marshall-Fire-21-Update/ard/13/031131113310/2021-12-30/10200100BCB1A500-pan.tif",
+                    "title": "Public Access"
+                }
+            },
+            "proj:bbox": [
+                489843.75,
+                4414843.75,
+                495156.25,
+                4420156.25
+            ],
+            "proj:shape": [
+                9963,
+                9963
+            ],
+            "proj:transform": [
+                0.5332229248218409,
+                0.0,
+                489843.75,
+                0.0,
+                -0.5332229248218409,
+                4420156.25,
+                0.0,
+                0.0,
+                1.0
+            ]
+        }
+    },
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    -105.11886301297739,
+                    39.931455438601695
+                ],
+                [
+                    -105.08955732614571,
+                    39.93148147273625
+                ],
+                [
+                    -105.089584,
+                    39.921164
+                ],
+                [
+                    -105.1188435853324,
+                    39.922036287398555
+                ],
+                [
+                    -105.11886301297739,
+                    39.931455438601695
+                ]
+            ]
+        ]
+    },
+    "collection": "MAXAR_Marshall_Fire_21_Update",
+    "properties": {
+        "gsd": 0.54,
+        "quadkey": "031131113310",
+        "datetime": "2021-12-30T21:00:35Z",
+        "platform": "WV01",
+        "utm_zone": 13,
+        "grid:code": "MXRA-Z13-031131113310",
+        "proj:bbox": [
+            489843.75,
+            4419011.094275919,
+            492347.77631417435,
+            4420156.25
+        ],
+        "proj:epsg": 32613,
+        "catalog_id": "10200100BCB1A500",
+        "view:azimuth": 307.1,
+        "proj:geometry": {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [
+                        489843.75,
+                        4420156.25
+                    ],
+                    [
+                        492347.77631417435,
+                        4420156.25
+                    ],
+                    [
+                        492344.3494406195,
+                        4419011.094275919
+                    ],
+                    [
+                        489844.01777441875,
+                        4419113.00086445
+                    ],
+                    [
+                        489843.75,
+                        4420156.25
+                    ]
+                ]
+            ]
+        },
+        "tile:data_area": 2.7,
+        "view:off_nadir": 17.7,
+        "tile:clouds_area": 0.0,
+        "view:sun_azimuth": 208.9,
+        "view:sun_elevation": 21.5,
+        "tile:clouds_percent": 0,
+        "ard_metadata_version": "0.0.1",
+        "view:incidence_angle": 70.9
+    },
+    "stac_version": "1.0.0",
+    "stac_extensions": [
+        "https://stac-extensions.github.io/view/v1.0.0/schema.json",
+        "https://stac-extensions.github.io/projection/v1.0.0/schema.json",
+        "https://stac-extensions.github.io/eo/v1.0.0/schema.json",
+        "https://stac-extensions.github.io/raster/v1.1.0/schema.json",
+        "https://stac-extensions.github.io/grid/v1.0.0/schema.json",
+        "https://stac-extensions.github.io/alternate-assets/v1.1.0/schema.json"
+    ]
+}

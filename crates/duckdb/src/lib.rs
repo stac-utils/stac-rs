@@ -342,9 +342,9 @@ impl Client {
             .query_arrow(duckdb::params_from_iter(query.params))?
             .map(|record_batch| {
                 let record_batch = if self.config.convert_wkb {
-                    stac::geoarrow::with_native_geometry(record_batch, "geometry")?
+                    stac::geoarrow::with_native_geometries(record_batch)?
                 } else {
-                    stac::geoarrow::add_wkb_metadata(record_batch, "geometry")?
+                    stac::geoarrow::add_wkb_metadata(record_batch)?
                 };
                 Ok(record_batch)
             })
