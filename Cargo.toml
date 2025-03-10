@@ -98,3 +98,4 @@ webpki-roots = "0.26.8"
 [patch.crates-io]
 duckdb = { git = "https://github.com/duckdb/duckdb-rs", rev = "5eeb1f01c278790ce1e2d24045f0096e9e2528e4" }
 libduckdb-sys = { git = "https://github.com/duckdb/duckdb-rs", rev = "5eeb1f01c278790ce1e2d24045f0096e9e2528e4" }
+geoarrow = { git = "https://github.com/geoarrow/geoarrow-rs/", rev = "2cd0d623e4b9f1ac3bc5ff6563ccce689a47c641" }
