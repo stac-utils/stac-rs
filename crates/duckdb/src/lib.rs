@@ -107,6 +107,9 @@ pub struct Config {
     /// True by default.
     pub use_azure_credential_chain: bool,
 
+    /// Whether to directly install the httpfs extension.
+    pub use_httpfs: bool,
+
     /// Whether to install extensions when creating a new connection.
     pub install_extensions: bool,
 
@@ -202,14 +205,19 @@ impl Client {
         }
         connection.execute("LOAD spatial", [])?;
         connection.execute("LOAD icu", [])?;
-
-        if config.use_s3_credential_chain {
+        if config.use_httpfs && config.install_extensions {
             connection.execute("INSTALL httpfs", [])?;
-            connection.execute("INSTALL aws", [])?;
+        }
+        if config.use_s3_credential_chain {
+            if config.install_extensions {
+                connection.execute("INSTALL aws", [])?;
+            }
             connection.execute("CREATE SECRET (TYPE S3, PROVIDER CREDENTIAL_CHAIN)", [])?;
         }
         if config.use_azure_credential_chain {
-            connection.execute("INSTALL azure", [])?;
+            if config.install_extensions {
+                connection.execute("INSTALL azure", [])?;
+            }
             connection.execute("CREATE SECRET (TYPE azure, PROVIDER CREDENTIAL_CHAIN)", [])?;
         }
         Ok(Client { connection, config })
@@ -552,6 +560,7 @@ impl Default for Config {
             convert_wkb: true,
             use_s3_credential_chain: true,
             use_azure_credential_chain: true,
+            use_httpfs: true,
             install_extensions: true,
             custom_extension_repository: None,
         }
