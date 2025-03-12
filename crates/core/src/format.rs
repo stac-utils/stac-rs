@@ -31,7 +31,12 @@ impl Format {
     /// assert_eq!(Format::Json(false), Format::infer_from_href("item.json").unwrap());
     /// ```
     pub fn infer_from_href(href: &str) -> Option<Format> {
-        href.rsplit_once('.').and_then(|(_, ext)| ext.parse().ok())
+        let format = href.rsplit_once('.').and_then(|(_, ext)| ext.parse().ok());
+        if let Some(Format::Geoparquet(_)) = format {
+            Some(Format::geoparquet()) // to pick up the default compression
+        } else {
+            format
+        }
     }
 
     /// Returns true if this is a geoparquet href.
@@ -156,17 +161,30 @@ impl Format {
         V: Into<String>,
     {
         let href = href.into();
-        match href.realize() {
+        match href.clone().realize() {
             RealizedHref::Url(url) => {
                 use object_store::ObjectStore;
 
                 let (object_store, path) = parse_url_opts(&url, options)?;
-                let get_result = object_store.get(&path).await?;
+                tracing::debug!("getting {self} from {url} with object store");
+                let get_result = object_store.get(&path).await.map_err(|err| Error::Get {
+                    href,
+                    message: err.to_string(),
+                })?;
                 let mut value: T = self.from_bytes(get_result.bytes().await?)?;
                 *value.self_href_mut() = Some(Href::Url(url));
                 Ok(value)
             }
-            RealizedHref::PathBuf(path) => self.from_path(path),
+            RealizedHref::PathBuf(path) => {
+                tracing::debug!(
+                    "getting {self} from {} with the standard library",
+                    path.display()
+                );
+                self.from_path(path).map_err(|err| Error::Get {
+                    href,
+                    message: err.to_string(),
+                })
+            }
         }
     }
 
@@ -260,10 +278,16 @@ impl Format {
         Format::NdJson
     }
 
-    /// Returns the default geoparquet format (no compression specified).
-    #[cfg(feature = "geoparquet")]
+    /// Returns the default geoparquet format (snappy compression if compression is enabled).
     pub fn geoparquet() -> Format {
-        Format::Geoparquet(None)
+        #[cfg(feature = "geoparquet-compression")]
+        {
+            Format::Geoparquet(Some(Compression::SNAPPY))
+        }
+        #[cfg(not(feature = "geoparquet-compression"))]
+        {
+            Format::Geoparquet(None)
+        }
     }
 }
 
@@ -385,6 +409,16 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "geoparquet-compression")]
+    fn infer_from_href() {
+        assert_eq!(
+            Format::Geoparquet(Some(Compression::SNAPPY)),
+            Format::infer_from_href("out.parquet").unwrap()
+        );
+    }
+
+    #[test]
+    #[cfg(not(feature = "geoparquet-compression"))]
     fn infer_from_href() {
         assert_eq!(
             Format::Geoparquet(None),

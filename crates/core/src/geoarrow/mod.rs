@@ -29,6 +29,12 @@ const DATETIME_COLUMNS: [&str; 8] = [
     "unpublished",
 ];
 
+/// The stac-geoparquet version metadata key.
+pub const VERSION_KEY: &str = "stac:geoparquet_version";
+
+/// The stac-geoparquet version.
+pub const VERSION: &str = "1.0.0";
+
 /// Converts an [ItemCollection] to a [Table].
 ///
 /// Any invalid attributes in the items (e.g. top-level attributes that conflict
@@ -103,7 +109,8 @@ pub fn to_table(item_collection: impl Into<ItemCollection>) -> Result<Table> {
             schema_builder.push(field.clone());
         }
     }
-    let metadata = schema.metadata;
+    let mut metadata = schema.metadata;
+    let _ = metadata.insert(VERSION_KEY.to_string(), VERSION.into());
     let schema = Arc::new(schema_builder.finish().with_metadata(metadata));
     let mut decoder = ReaderBuilder::new(schema.clone()).build_decoder()?;
     decoder.serialize(&values)?;
@@ -138,11 +145,18 @@ pub fn to_table(item_collection: impl Into<ItemCollection>) -> Result<Table> {
 /// # }
 /// ```
 pub fn from_table(table: Table) -> Result<ItemCollection> {
-    json::from_table(table)?
+    let version = table.schema().metadata.get(VERSION_KEY).cloned();
+    let mut item_collection = json::from_table(table)?
         .into_iter()
         .map(|item| serde_json::from_value(Value::Object(item)).map_err(Error::from))
         .collect::<Result<Vec<_>>>()
-        .map(ItemCollection::from)
+        .map(ItemCollection::from)?;
+    if let Some(version) = version {
+        let _ = item_collection
+            .additional_fields
+            .insert(VERSION_KEY.to_string(), version.into());
+    }
+    Ok(item_collection)
 }
 
 /// Converts a geometry column to geoarrow native type.
@@ -217,7 +231,8 @@ mod tests {
     #[test]
     fn to_table() {
         let item: Item = crate::read("examples/simple-item.json").unwrap();
-        let _ = super::to_table(vec![item]).unwrap();
+        let table = super::to_table(vec![item]).unwrap();
+        assert_eq!(table.schema().metadata["stac:geoparquet_version"], "1.0.0");
     }
 
     #[test]

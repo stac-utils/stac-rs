@@ -1,10 +1,12 @@
 use super::{FromGeoparquet, IntoGeoparquet};
+use crate::geoarrow::{VERSION, VERSION_KEY};
 use crate::{Error, Item, ItemCollection, Result, Value};
 use bytes::Bytes;
 use geoarrow::io::parquet::{GeoParquetRecordBatchReaderBuilder, GeoParquetWriterOptions};
 use parquet::{
     basic::Compression,
     file::{properties::WriterProperties, reader::ChunkReader},
+    format::KeyValue,
 };
 use std::{fs::File, io::Write, path::Path};
 
@@ -61,9 +63,12 @@ where
 /// use stac::Item;
 /// use parquet::basic::Compression;
 ///
+/// # #[cfg(feature = "geoparquet-compression")]
+/// # {
 /// let item: Item = stac::read("examples/simple-item.json").unwrap();
 /// let mut cursor = Cursor::new(Vec::new());
 /// stac::geoparquet::into_writer_with_compression(&mut cursor, vec![item], Compression::SNAPPY).unwrap();
+/// # }
 /// ```
 pub fn into_writer_with_compression<W>(
     writer: W,
@@ -76,6 +81,10 @@ where
     let mut options = GeoParquetWriterOptions::default();
     let writer_properties = WriterProperties::builder()
         .set_compression(compression)
+        .set_key_value_metadata(Some(vec![KeyValue {
+            key: VERSION_KEY.to_string(),
+            value: Some(VERSION.to_string()),
+        }]))
         .build();
     options.writer_properties = Some(writer_properties);
     into_writer_with_options(writer, item_collection, &options)
@@ -213,6 +222,10 @@ mod tests {
         let bytes = Bytes::from(cursor.into_inner());
         let item_collection = super::from_reader(bytes).unwrap();
         assert_eq!(item_collection.items[0], item);
+        assert_eq!(
+            item_collection.additional_fields["stac:geoparquet_version"],
+            "1.0.0"
+        )
     }
 
     #[test]

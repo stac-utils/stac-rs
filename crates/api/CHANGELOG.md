@@ -6,12 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Removed
+
+- Python ([#679](https://github.com/stac-utils/stac-rs/pull/679))
+
 ## [0.7.1] - 2025-01-31
 
 ### Added
 
 - kwargs to Python search build ([#591](https://github.com/stac-utils/stac-rs/pull/591))
 - `client::search` function ([#607](https://github.com/stac-utils/stac-rs/pull/607))
+- Better error reporting from `get` ([#670](https://github.com/stac-utils/stac-rs/pull/670))
 
 ## [0.7.0] - 2025-01-02
 
