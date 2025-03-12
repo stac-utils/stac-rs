@@ -79,42 +79,9 @@ pub type Result<T> = std::result::Result<T, Error>;
 #[derive(Debug)]
 pub struct Client {
     connection: Connection,
+
     /// The client's configuration.
     pub config: Config,
-}
-
-/// Configuration for installing extensions
-#[derive(Debug, Clone)]
-pub struct ExtensionInstallConfig {
-    /// Whether to install HTTPFS extension
-    ///
-    /// This is required for remote servers and Google Cloud
-    pub support_https: bool,
-
-    /// Whether to install the AWS extension
-    ///
-    /// This is required to support AWS S3 storage (e.g., s3://bucket/key.parquet)
-    pub support_aws: bool,
-
-    /// Whether to install the Azure extension
-    ///
-    /// This is required to support Azure Blob storage (e.g., az://bucket/key.parquet)
-    pub support_azure: bool,
-
-    /// Fetch extensions from a custom extension repository
-    ///
-    /// This may be useful if you're self-hosting DuckDB extensions.
-    pub custom_extension_repository: Option<String>,
-}
-impl Default for ExtensionInstallConfig {
-    fn default() -> Self {
-        ExtensionInstallConfig {
-            support_https: true,
-            support_aws: true,
-            support_azure: true,
-            custom_extension_repository: None,
-        }
-    }
 }
 
 /// Configuration for a client.
@@ -140,11 +107,11 @@ pub struct Config {
     /// True by default.
     pub use_azure_credential_chain: bool,
 
-    /// Extension installation settings.
-    ///
-    /// If None, do not fetch extensions when creating a Client. Otherwise
-    /// fetch extensions as defined in the provided ExtensionConfig
-    pub extension_install_config: Option<ExtensionInstallConfig>,
+    /// Whether to install extensions when creating a new connection.
+    pub install_extensions: bool,
+
+    /// Use a custom extension repository.
+    pub custom_extension_repository: Option<String>,
 }
 
 /// A SQL query.
@@ -216,23 +183,33 @@ impl Client {
     ///     convert_wkb: true,
     ///     use_s3_credential_chain: true,
     ///     use_azure_credential_chain: true,
-    ///     extension_install_config: None,
+    ///     install_extensions: true,
+    ///     custom_extension_repository: None,
     /// };
     /// let client = Client::with_config(config);
     /// ```
     pub fn with_config(config: Config) -> Result<Client> {
         let connection = Connection::open_in_memory()?;
+        if let Some(ref custom_extension_repository) = config.custom_extension_repository {
+            connection.execute(
+                "SET custom_extension_repository = '?'",
+                [custom_extension_repository],
+            )?;
+        }
+        if config.install_extensions {
+            connection.execute("INSTALL spatial", [])?;
+            connection.execute("INSTALL icu", [])?;
+        }
         connection.execute("LOAD spatial", [])?;
         connection.execute("LOAD icu", [])?;
 
-        if let Some(ref extension_install_config) = config.extension_install_config {
-            Client::fetch_extensions(extension_install_config.clone())?;
-        }
-
         if config.use_s3_credential_chain {
+            connection.execute("INSTALL httpfs", [])?;
+            connection.execute("INSTALL aws", [])?;
             connection.execute("CREATE SECRET (TYPE S3, PROVIDER CREDENTIAL_CHAIN)", [])?;
         }
         if config.use_azure_credential_chain {
+            connection.execute("INSTALL azure", [])?;
             connection.execute("CREATE SECRET (TYPE azure, PROVIDER CREDENTIAL_CHAIN)", [])?;
         }
         Ok(Client { connection, config })
@@ -269,74 +246,6 @@ impl Client {
             })?
             .collect::<std::result::Result<Vec<_>, duckdb::Error>>()?;
         Ok(extensions)
-    }
-
-    /// Install DuckDB extensions used by Client
-    ///
-    /// This is helpful when packaging stac-rs for deployment by enabling you
-    /// to install required DuckDB extensions during a build process, avoiding
-    /// downloads at runtime.
-    ///
-    /// We always require "icu" and "spatial" extensions, but require extra extensions
-    /// to read STAC GeoParquet stored on remote servers,
-    /// * "httpfs" is required for connecting to remote servers, including Google Cloud Storage
-    /// * "aws" is required for authenticating to AWS S3, and also requires "httpfs" for
-    ///   read/write/glob support
-    /// * "azure" is required for connecting to Microsoft Azure Blob storage
-    ///
-    /// Additionally a "custom_extension_repository" may be defined to change the source of
-    /// extensions from DuckDB's default repository location.
-    ///
-    /// # Examples
-    ///
-    /// To support AWS with extended functionality (e.g., authentication) on top of httpfs,
-    /// ```
-    /// use stac_duckdb::{Client, ExtensionInstallConfig};
-    ///
-    /// Client::fetch_extensions(
-    ///     ExtensionInstallConfig {
-    ///         support_https: true,
-    ///         support_aws: true,
-    ///         support_azure: false,
-    ///         custom_extension_repository: None
-    ///     }
-    /// );
-    /// ```
-    ///
-    /// To support access to Azure but not AWS,
-    /// ```
-    /// use stac_duckdb::{Client, ExtensionInstallConfig};
-    ///
-    /// Client::fetch_extensions(
-    ///     ExtensionInstallConfig {
-    ///         support_https: false,
-    ///         support_aws: false,
-    ///         support_azure: true,
-    ///         custom_extension_repository: None
-    ///     }
-    /// );
-    /// ```
-    ///
-    pub fn fetch_extensions(config: ExtensionInstallConfig) -> Result<()> {
-        let connection = Connection::open_in_memory()?;
-        if let Some(custom_extension_repository) = config.custom_extension_repository {
-            connection.execute(
-                "SET custom_extension_repository = '?'",
-                [custom_extension_repository],
-            )?;
-        }
-        connection.execute("INSTALL spatial", [])?;
-        connection.execute("INSTALL icu", [])?;
-        if config.support_aws {
-            connection.execute("INSTALL aws", [])?;
-        }
-        if config.support_aws || config.support_https {
-            connection.execute("INSTALL httpfs", [])?;
-        }
-        if config.support_azure {
-            connection.execute("INSTALL azure", [])?;
-        }
-        Ok(())
     }
 
     /// Returns one or more [stac::Collection] from the items in the stac-geoparquet file.
@@ -643,14 +552,15 @@ impl Default for Config {
             convert_wkb: true,
             use_s3_credential_chain: true,
             use_azure_credential_chain: true,
-            extension_install_config: Some(ExtensionInstallConfig::default()),
+            install_extensions: true,
+            custom_extension_repository: None,
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{Client, ExtensionInstallConfig, Result};
+    use super::{Client, Config};
     use geo::Geometry;
     use rstest::{fixture, rstest};
     use stac::{Bbox, Validate};
@@ -660,19 +570,22 @@ mod tests {
     static MUTEX: Mutex<()> = Mutex::new(());
 
     #[fixture]
-    #[once]
-    fn install_extensions() -> Result<()> {
-        Client::fetch_extensions(ExtensionInstallConfig::default())?;
-        Ok(())
-    }
-
-    #[fixture]
-    fn client(install_extensions: &Result<()>) -> Client {
-        install_extensions
-            .as_ref()
-            .expect("Could not install DuckDB extensions!");
+    fn client() -> Client {
         let _mutex = MUTEX.lock().unwrap();
         Client::new().unwrap()
+    }
+
+    #[test]
+    fn no_install() {
+        let _mutex = MUTEX.lock().unwrap();
+        let config = Config {
+            install_extensions: false,
+            ..Default::default()
+        };
+        let client = Client::with_config(config).unwrap();
+        client
+            .search("data/100-sentinel-2-items.parquet", Search::default())
+            .unwrap();
     }
 
     #[rstest]
