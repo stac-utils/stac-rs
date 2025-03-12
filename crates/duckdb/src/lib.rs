@@ -200,12 +200,12 @@ impl Client {
         let connection = Connection::open_in_memory()?;
         if let Some(ref custom_extension_repository) = config.custom_extension_repository {
             connection.execute(
-                "SET custom_extension_repository = '?'",
+                "SET custom_extension_repository = ?",
                 [custom_extension_repository],
             )?;
         }
         if let Some(ref extension_directory) = config.extension_directory {
-            connection.execute("SET extension_directory = '?'", [extension_directory])?;
+            connection.execute("SET extension_directory = ?", [extension_directory])?;
         }
         if config.install_extensions {
             connection.execute("INSTALL spatial", [])?;
@@ -604,6 +604,27 @@ mod tests {
         client
             .search("data/100-sentinel-2-items.parquet", Search::default())
             .unwrap();
+    }
+
+    #[test]
+    fn extension_directory() {
+        let _mutex = MUTEX.lock().unwrap();
+        let temp_dir = std::env::temp_dir();
+        let config = Config {
+            extension_directory: Some(temp_dir.to_string_lossy().to_string()),
+            ..Default::default()
+        };
+        let _ = Client::with_config(config).unwrap();
+    }
+
+    #[test]
+    fn custom_extension_repository() {
+        let _mutex = MUTEX.lock().unwrap();
+        let config = Config {
+            custom_extension_repository: Some(".".to_string()),
+            ..Default::default()
+        };
+        let _ = Client::with_config(config).unwrap();
     }
 
     #[rstest]
