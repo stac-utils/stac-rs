@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - `Client.search_to_arrow_table` ([#634](https://github.com/stac-utils/stac-rs/pull/634))
 - Conditionally disable parsing the WKB ([#635](https://github.com/stac-utils/stac-rs/pull/635))
 - `Client.extensions` ([#665](https://github.com/stac-utils/stac-rs/pull/665))
+- `Config.install_extensions` ([#681](https://github.com/stac-utils/stac-rs/pull/681))
 
 ### Removed
 
