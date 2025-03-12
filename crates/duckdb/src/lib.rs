@@ -186,6 +186,7 @@ impl Client {
     ///     convert_wkb: true,
     ///     use_s3_credential_chain: true,
     ///     use_azure_credential_chain: true,
+    ///     use_httpfs: true,
     ///     install_extensions: true,
     ///     custom_extension_repository: None,
     /// };
