@@ -115,6 +115,9 @@ pub struct Config {
 
     /// Use a custom extension repository.
     pub custom_extension_repository: Option<String>,
+
+    /// Set the extension directory.
+    pub extension_directory: Option<String>,
 }
 
 /// A SQL query.
@@ -189,6 +192,7 @@ impl Client {
     ///     use_httpfs: true,
     ///     install_extensions: true,
     ///     custom_extension_repository: None,
+    ///     extension_directory: None,
     /// };
     /// let client = Client::with_config(config);
     /// ```
@@ -199,6 +203,9 @@ impl Client {
                 "SET custom_extension_repository = '?'",
                 [custom_extension_repository],
             )?;
+        }
+        if let Some(ref extension_directory) = config.extension_directory {
+            connection.execute("SET extension_directory = '?'", [extension_directory])?;
         }
         if config.install_extensions {
             connection.execute("INSTALL spatial", [])?;
@@ -564,6 +571,7 @@ impl Default for Config {
             use_httpfs: true,
             install_extensions: true,
             custom_extension_repository: None,
+            extension_directory: None,
         }
     }
 }
