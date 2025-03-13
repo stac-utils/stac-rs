@@ -10,6 +10,7 @@ use stac_server::Backend;
 use std::{collections::HashMap, io::Write, str::FromStr};
 use tokio::{io::AsyncReadExt, net::TcpListener, runtime::Handle};
 use tracing::metadata::Level;
+use tracing_subscriber::EnvFilter;
 
 const DEFAULT_COLLECTION_ID: &str = "default-collection-id";
 
@@ -263,7 +264,10 @@ impl Stacrs {
     pub async fn run(self, init_tracing_subscriber: bool) -> Result<()> {
         if init_tracing_subscriber {
             tracing_subscriber::fmt()
+                .with_env_filter(EnvFilter::from_default_env())
                 .with_max_level(self.log_level())
+                .with_writer(std::io::stderr)
+                .pretty()
                 .init();
         }
         match self.command {
