@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Conditionally disable parsing the WKB ([#635](https://github.com/stac-utils/stac-rs/pull/635))
 - `Client.extensions` ([#665](https://github.com/stac-utils/stac-rs/pull/665))
 - `Config.install_extensions` ([#681](https://github.com/stac-utils/stac-rs/pull/681))
+- `Config.from_href` ([#684](https://github.com/stac-utils/stac-rs/pull/684))
 
 ### Removed
 

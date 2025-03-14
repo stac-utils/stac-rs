@@ -27,7 +27,8 @@ pub fn search(
     } else {
         search.limit = None;
     };
-    let client = Client::new()?;
+    let config = Config::from_href(href);
+    let client = Client::with_config(config)?;
     client.search_to_json(href, search)
 }
 
@@ -163,6 +164,26 @@ pub struct Extension {
     pub installed_from: Option<String>,
 }
 
+impl Config {
+    /// Creates a configuration from an href.
+    ///
+    /// Use this to, e.g., autodetect s3 urls.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac_duckdb::Config;
+    /// let config = Config::from_href("s3://bucket/item.json");
+    /// assert!(config.use_s3_credential_chain);
+    /// ```
+    pub fn from_href(s: &str) -> Config {
+        Config {
+            use_s3_credential_chain: s.starts_with("s3://"),
+            ..Default::default()
+        }
+    }
+}
+
 impl Client {
     /// Creates a new client with no data sources.
     ///
@@ -199,33 +220,42 @@ impl Client {
     pub fn with_config(config: Config) -> Result<Client> {
         let connection = Connection::open_in_memory()?;
         if let Some(ref custom_extension_repository) = config.custom_extension_repository {
+            log::debug!("setting custom extension repository: {custom_extension_repository}");
             connection.execute(
                 "SET custom_extension_repository = ?",
                 [custom_extension_repository],
             )?;
         }
         if let Some(ref extension_directory) = config.extension_directory {
+            log::debug!("setting extension directory: {extension_directory}");
             connection.execute("SET extension_directory = ?", [extension_directory])?;
         }
         if config.install_extensions {
+            log::debug!("installing spatial");
             connection.execute("INSTALL spatial", [])?;
+            log::debug!("installing icu");
             connection.execute("INSTALL icu", [])?;
         }
         connection.execute("LOAD spatial", [])?;
         connection.execute("LOAD icu", [])?;
         if config.use_httpfs && config.install_extensions {
+            log::debug!("installing httpfs");
             connection.execute("INSTALL httpfs", [])?;
         }
         if config.use_s3_credential_chain {
             if config.install_extensions {
+                log::debug!("installing aws");
                 connection.execute("INSTALL aws", [])?;
             }
+            log::debug!("creating s3 secret");
             connection.execute("CREATE SECRET (TYPE S3, PROVIDER CREDENTIAL_CHAIN)", [])?;
         }
         if config.use_azure_credential_chain {
             if config.install_extensions {
+                log::debug!("installing azure");
                 connection.execute("INSTALL azure", [])?;
             }
+            log::debug!("creating azure secret");
             connection.execute("CREATE SECRET (TYPE azure, PROVIDER CREDENTIAL_CHAIN)", [])?;
         }
         Ok(Client { connection, config })
@@ -566,9 +596,9 @@ impl Default for Config {
         Config {
             use_hive_partitioning: false,
             convert_wkb: true,
-            use_s3_credential_chain: true,
-            use_azure_credential_chain: true,
-            use_httpfs: true,
+            use_s3_credential_chain: false,
+            use_azure_credential_chain: false,
+            use_httpfs: false,
             install_extensions: true,
             custom_extension_repository: None,
             extension_directory: None,
