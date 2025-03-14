@@ -29,7 +29,7 @@ pub async fn search(
             search.limit = Some(max_items.try_into()?);
         }
     }
-    let stream = client.search(search).await.unwrap();
+    let stream = client.search(search).await?;
     let mut items = if let Some(max_items) = max_items {
         if max_items == 0 {
             return Ok(ItemCollection::default());
