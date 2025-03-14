@@ -27,7 +27,8 @@ pub fn search(
     } else {
         search.limit = None;
     };
-    let client = Client::new()?;
+    let config = Config::from_href(href);
+    let client = Client::with_config(config)?;
     client.search_to_json(href, search)
 }
 
@@ -163,6 +164,26 @@ pub struct Extension {
     pub installed_from: Option<String>,
 }
 
+impl Config {
+    /// Creates a configuration from an href.
+    ///
+    /// Use this to, e.g., autodetect s3 urls.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stac_duckdb::Config;
+    /// let config = Config::from_href("s3://bucket/item.json");
+    /// assert!(config.use_s3_credential_chain);
+    /// ```
+    pub fn from_href(s: &str) -> Config {
+        Config {
+            use_s3_credential_chain: s.starts_with("s3://"),
+            ..Default::default()
+        }
+    }
+}
+
 impl Client {
     /// Creates a new client with no data sources.
     ///
@@ -226,6 +247,7 @@ impl Client {
                 log::debug!("installing aws");
                 connection.execute("INSTALL aws", [])?;
             }
+            log::debug!("creating s3 secret");
             connection.execute("CREATE SECRET (TYPE S3, PROVIDER CREDENTIAL_CHAIN)", [])?;
         }
         if config.use_azure_credential_chain {
@@ -233,6 +255,7 @@ impl Client {
                 log::debug!("installing azure");
                 connection.execute("INSTALL azure", [])?;
             }
+            log::debug!("creating azure secret");
             connection.execute("CREATE SECRET (TYPE azure, PROVIDER CREDENTIAL_CHAIN)", [])?;
         }
         Ok(Client { connection, config })
