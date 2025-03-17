@@ -154,7 +154,7 @@ pub fn from_table(table: Table) -> Result<ItemCollection> {
     if let Some(version) = version {
         let _ = item_collection
             .additional_fields
-            .insert(VERSION_KEY.to_string(), version.into());
+            .insert("stac_geoparquet:version".to_string(), version.into());
     }
     Ok(item_collection)
 }

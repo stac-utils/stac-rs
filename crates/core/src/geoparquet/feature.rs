@@ -223,7 +223,7 @@ mod tests {
         let item_collection = super::from_reader(bytes).unwrap();
         assert_eq!(item_collection.items[0], item);
         assert_eq!(
-            item_collection.additional_fields["stac:geoparquet_version"],
+            item_collection.additional_fields["stac_geoparquet:version"],
             "1.0.0"
         )
     }
