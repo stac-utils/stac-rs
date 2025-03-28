@@ -1,0 +1,307 @@
+{
+    "id": "BSG-119-20230614-110844-101538021-areaortho",
+    "bbox": [
+        90.62667872189895,
+        22.61197177967216,
+        90.71574911238403,
+        22.686487448639664
+    ],
+    "type": "Feature",
+    "links": [
+        {
+            "rel": "related",
+            "href": "https://csdap-staging.ds.io/stac/collections/blacksky/items/BSG-119-20230614-110830-101538020-areaortho",
+            "type": "application/json"
+        },
+        {
+            "rel": "related",
+            "href": "https://csdap-staging.ds.io/stac/collections/blacksky/items/BSG-AREA-119-20230614-110830-101653347-areaortho",
+            "type": "application/json"
+        }
+    ],
+    "assets": {
+        "thumbnail": {
+            "href": "https://ss-ingest-staging-thumbnails115905a6-9vy5k01ha955.s3.amazonaws.com/blacksky/2023/06/14/area/BSG-AREA-119-20230614-110830-101653347-area-ortho/BSG-119-20230614-110844-101538021_browse.png",
+            "role": "thumbnail",
+            "size": 185262,
+            "type": "image/png",
+            "title": "thumbnail",
+            "md5_digest": "\"78f3d58ec992d891fab9efdb0fe774cd-1\""
+        },
+        "BSG-119-20230614-110844-101538021_ortho.tif": {
+            "href": "s3://ss-ingest-staging-ingesteddatac45dd6b6-3xhhk78ir4sw/storage/blacksky/2023/06/14/area/BSG-AREA-119-20230614-110830-101653347-area-ortho/BSG-119-20230614-110844-101538021_ortho.tif",
+            "role": "data",
+            "size": 129565321,
+            "type": "image/tiff",
+            "title": "BSG-119-20230614-110844-101538021_ortho.tif",
+            "md5_digest": "\"d561b1a8685347d4fd2f8e622dab9598-3\""
+        },
+        "BSG-119-20230614-110844-101538021_metadata.json": {
+            "href": "s3://ss-ingest-staging-ingesteddatac45dd6b6-3xhhk78ir4sw/storage/blacksky/2023/06/14/area/BSG-AREA-119-20230614-110830-101653347-area-ortho/BSG-119-20230614-110844-101538021_metadata.json",
+            "role": "metadata",
+            "size": 5046,
+            "type": "application/json",
+            "title": "metadata",
+            "md5_digest": "\"0f8e06ea7062ded72c78fb2d91d81c64-1\""
+        },
+        "BSG-119-20230614-110844-101538021_ortho-pan.tif": {
+            "href": "s3://ss-ingest-staging-ingesteddatac45dd6b6-3xhhk78ir4sw/storage/blacksky/2023/06/14/area/BSG-AREA-119-20230614-110830-101653347-area-ortho/BSG-119-20230614-110844-101538021_ortho-pan.tif",
+            "role": "data",
+            "size": 44632699,
+            "type": "image/tiff",
+            "title": "BSG-119-20230614-110844-101538021_ortho-pan.tif",
+            "md5_digest": "\"bf8bb210f8632f30a4688a81bcab64d7-1\""
+        },
+        "BSG-119-20230614-110844-101538021_ortho-mask.tif": {
+            "href": "s3://ss-ingest-staging-ingesteddatac45dd6b6-3xhhk78ir4sw/storage/blacksky/2023/06/14/area/BSG-AREA-119-20230614-110830-101653347-area-ortho/BSG-119-20230614-110844-101538021_ortho-mask.tif",
+            "role": "data",
+            "size": 760971,
+            "type": "image/tiff",
+            "title": "BSG-119-20230614-110844-101538021_ortho-mask.tif",
+            "md5_digest": "\"e25da13ec9d3313759b7c3924c69d6fb-1\""
+        }
+    },
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    90.6279597126017,
+                    22.61197177967216
+                ],
+                [
+                    90.62667872189895,
+                    22.686487448639664
+                ],
+                [
+                    90.71451542871648,
+                    22.687766237214227
+                ],
+                [
+                    90.71574911238403,
+                    22.613245912836398
+                ],
+                [
+                    90.6279597126017,
+                    22.61197177967216
+                ]
+            ]
+        ]
+    },
+    "collection": "blacksky",
+    "properties": {
+        "datetime": "2023-06-14T11:08:44.039000",
+        "prod_type": "area_component",
+        "blacksky_gsd": 1.1203165,
+        "blacksky_width": 8061,
+        "eo:cloud_cover": 22.3700008392334,
+        "blacksky_gemini": {
+            "imageId": "101538021",
+            "catalogImageId": "1750656"
+        },
+        "blacksky_height": 7370,
+        "processing_level": "ortho",
+        "blacksky_multiImage": true,
+        "blacksky_sensorName": "Global-19",
+        "blacksky_sunAzimuth": 287.88,
+        "blacksky_targetType": "platform_orders",
+        "blacksky_bitsPerPixel": 12,
+        "blacksky_sunElevation": 19.35,
+        "blacksky_waterPercent": 79.37999725341797,
+        "blacksky_estimatedCE90": 11.642771,
+        "blacksky_georeferenced": true,
+        "blacksky_offNadirAngle": 27.003319,
+        "blacksky_orthorectified": true,
+        "blacksky_integrationTime": 4.7080216,
+        "blacksky_imageSpecVersion": "1.0.0",
+        "blacksky_satelliteAzimuth": 87.512,
+        "blacksky_cloudCoverPercent": 22.3700008392334,
+        "blacksky_fractionSaturated": 0.0,
+        "blacksky_processingVersion": "hotfix-IMG-4176-20230606-bda7c7a8a1",
+        "blacksky_registrationPoints": [
+            [
+                [
+                    2228.0,
+                    4060.0
+                ],
+                [
+                    22.653611388888887,
+                    90.69583305555555,
+                    -49.0
+                ]
+            ],
+            [
+                [
+                    4872.0,
+                    3888.0
+                ],
+                [
+                    22.67152638416055,
+                    90.67463218286596,
+                    -45.0
+                ]
+            ],
+            [
+                [
+                    4568.0,
+                    3712.0
+                ],
+                [
+                    22.66823923764674,
+                    90.67532727296472,
+                    -44.821815490722656
+                ]
+            ],
+            [
+                [
+                    2940.0,
+                    3676.0
+                ],
+                [
+                    22.656384940106133,
+                    90.68713579352884,
+                    -45.0
+                ]
+            ],
+            [
+                [
+                    6220.0,
+                    3428.0
+                ],
+                [
+                    22.678423764036,
+                    90.66041934073831,
+                    -46.0
+                ]
+            ],
+            [
+                [
+                    5132.0,
+                    3264.0
+                ],
+                [
+                    22.669585282545125,
+                    90.66712480149022,
+                    -47.0
+                ]
+            ],
+            [
+                [
+                    4008.0,
+                    3092.0
+                ],
+                [
+                    22.66041638888889,
+                    90.67402694444444,
+                    -46.50299835205078
+                ]
+            ],
+            [
+                [
+                    5732.0,
+                    3076.0
+                ],
+                [
+                    22.672728763386587,
+                    90.66102346890956,
+                    -46.0
+                ]
+            ],
+            [
+                [
+                    1620.0,
+                    2772.0
+                ],
+                [
+                    22.64138916666666,
+                    90.68902694444444,
+                    -46.99949645996094
+                ]
+            ],
+            [
+                [
+                    6028.0,
+                    2668.0
+                ],
+                [
+                    22.672314646591243,
+                    90.65518654369328,
+                    -44.55188751220703
+                ]
+            ],
+            [
+                [
+                    6400.0,
+                    2328.0
+                ],
+                [
+                    22.67291971651583,
+                    90.6493470194276,
+                    -46.3175048828125
+                ]
+            ],
+            [
+                [
+                    4544.0,
+                    2252.0
+                ],
+                [
+                    22.659122979613432,
+                    90.6625882897697,
+                    -44.42512893676758
+                ]
+            ],
+            [
+                [
+                    3852.0,
+                    1592.0
+                ],
+                [
+                    22.65009353456727,
+                    90.66194296968136,
+                    -47.65796661376953
+                ]
+            ],
+            [
+                [
+                    2240.0,
+                    1268.0
+                ],
+                [
+                    22.636527497950286,
+                    90.67115939296656,
+                    -44.0
+                ]
+            ],
+            [
+                [
+                    812.0,
+                    1040.0
+                ],
+                [
+                    22.624904789758137,
+                    90.67982025590014,
+                    -46.768043518066406
+                ]
+            ],
+            [
+                [
+                    3204.0,
+                    1008.0
+                ],
+                [
+                    22.64185257602644,
+                    90.66161902327478,
+                    -46.0
+                ]
+            ]
+        ],
+        "blacksky_satelliteElevation": 60.949,
+        "blacksky_coregistrationSuccess": true,
+        "blacksky_numberRegistrationPoints": 16
+    },
+    "stac_version": "1.0.0",
+    "stac_extensions": [
+        "https://stac-extensions.github.io/eo/v1.1.0/schema.json"
+    ]
+}
