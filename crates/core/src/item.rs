@@ -1,7 +1,7 @@
 //! STAC Items.
 
 use crate::{Asset, Assets, Bbox, Error, Fields, Href, Link, Result, Version, STAC_VERSION};
-use chrono::{DateTime, FixedOffset, Utc};
+use chrono::{DateTime, FixedOffset, NaiveDateTime, Utc};
 use geojson::{feature::Id, Feature, Geometry};
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::{Map, Value};
@@ -175,6 +175,7 @@ pub struct Properties {
     ///
     /// It is formatted according to RFC 3339, section 5.6. null is allowed, but
     /// requires `start_datetime` and `end_datetime` from common metadata to be set.
+    #[serde(default, deserialize_with = "deserialize_datetime_permissively")]
     pub datetime: Option<DateTime<Utc>>,
 
     /// The first or start date and time for the Item, in UTC.
@@ -671,6 +672,35 @@ fn default_stac_version() -> Version {
     STAC_VERSION
 }
 
+fn deserialize_datetime_permissively<'de, D>(
+    deserializer: D,
+) -> std::result::Result<Option<DateTime<Utc>>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    use serde::de::Error;
+
+    if let Some(s) = Option::<String>::deserialize(deserializer)? {
+        match DateTime::parse_from_rfc3339(&s) {
+            Ok(datetime) => Ok(Some(datetime.to_utc())),
+            Err(err) => {
+                log::warn!("error when parsing item datetime as rfc3339 ({err}), trying to parse as naive datetime");
+                let (mut datetime, remainder) =
+                    NaiveDateTime::parse_and_remainder(&s, "%Y-%m-%dT%H:%M:%S")
+                        .map_err(D::Error::custom)?;
+                // This isn't super efficient but we're in a read-invalid-data path, so I think it's fine.
+                if !remainder.is_empty() && remainder.starts_with(".") {
+                    datetime = NaiveDateTime::parse_from_str(&s, "%Y-%m-%dT%H:%M:%S%.f")
+                        .map_err(D::Error::custom)?;
+                }
+                Ok(Some(datetime.and_utc()))
+            }
+        }
+    } else {
+        Ok(None)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::{Builder, FlatItem, Item};
@@ -881,5 +911,10 @@ mod tests {
     fn has_type() {
         let value: serde_json::Value = serde_json::to_value(Item::new("an-id")).unwrap();
         assert_eq!(value.as_object().unwrap()["type"], "Feature");
+    }
+
+    #[test]
+    fn read_invalid_item_datetime() {
+        let _: Item = crate::read("data/invalid-item-datetime.json").unwrap();
     }
 }
