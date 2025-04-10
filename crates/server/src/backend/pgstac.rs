@@ -7,8 +7,8 @@ use serde_json::Map;
 use stac::{Collection, Item};
 use stac_api::{ItemCollection, Items, Search};
 use tokio_postgres::{
-    tls::{MakeTlsConnect, TlsConnect},
     Socket,
+    tls::{MakeTlsConnect, TlsConnect},
 };
 use tokio_postgres_rustls::MakeRustlsConnect;
 

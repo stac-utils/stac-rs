@@ -1,8 +1,8 @@
 //! STAC Items.
 
-use crate::{Asset, Assets, Bbox, Error, Fields, Href, Link, Result, Version, STAC_VERSION};
+use crate::{Asset, Assets, Bbox, Error, Fields, Href, Link, Result, STAC_VERSION, Version};
 use chrono::{DateTime, FixedOffset, NaiveDateTime, Utc};
-use geojson::{feature::Id, Feature, Geometry};
+use geojson::{Feature, Geometry, feature::Id};
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::{Map, Value};
 use stac_derive::{Links, Migrate, SelfHref};
@@ -442,11 +442,12 @@ impl Item {
     where
         T: geo::Intersects<geo::Geometry>,
     {
-        if let Some(geometry) = self.geometry.clone() {
-            let geometry: geo::Geometry = geometry.try_into().map_err(Box::new)?;
-            Ok(intersects.intersects(&geometry))
-        } else {
-            Ok(false)
+        match self.geometry.clone() {
+            Some(geometry) => {
+                let geometry: geo::Geometry = geometry.try_into().map_err(Box::new)?;
+                Ok(intersects.intersects(&geometry))
+            }
+            _ => Ok(false),
         }
     }
 
@@ -470,11 +471,12 @@ impl Item {
     pub fn intersects_bbox(&self, bbox: geo::Rect) -> Result<bool> {
         use geo::Intersects;
 
-        if let Some(geometry) = self.geometry.clone() {
-            let geometry: geo::Geometry = geometry.try_into().map_err(Box::new)?;
-            Ok(geometry.intersects(&bbox))
-        } else {
-            Ok(false)
+        match self.geometry.clone() {
+            Some(geometry) => {
+                let geometry: geo::Geometry = geometry.try_into().map_err(Box::new)?;
+                Ok(geometry.intersects(&bbox))
+            }
+            _ => Ok(false),
         }
     }
 
@@ -553,10 +555,11 @@ impl Item {
     /// let flat_item = item.into_flat_item(true).unwrap();
     /// ```
     pub fn into_flat_item(self, drop_invalid_attributes: bool) -> Result<FlatItem> {
-        let properties = if let Value::Object(object) = serde_json::to_value(self.properties)? {
-            object
-        } else {
-            panic!("properties should always serialize to an object")
+        let properties = match serde_json::to_value(self.properties)? {
+            Value::Object(object) => object,
+            _ => {
+                panic!("properties should always serialize to an object")
+            }
         };
         for (key, _) in properties.iter() {
             if TOP_LEVEL_ATTRIBUTES.contains(&key.as_str()) {
@@ -609,10 +612,11 @@ impl Fields for Item {
 impl TryFrom<Item> for Map<String, Value> {
     type Error = Error;
     fn try_from(item: Item) -> Result<Self> {
-        if let Value::Object(object) = serde_json::to_value(item)? {
-            Ok(object)
-        } else {
-            panic!("all STAC items should serialize to a serde_json::Value::Object")
+        match serde_json::to_value(item)? {
+            Value::Object(object) => Ok(object),
+            _ => {
+                panic!("all STAC items should serialize to a serde_json::Value::Object")
+            }
         }
     }
 }
@@ -684,7 +688,9 @@ where
         match DateTime::parse_from_rfc3339(&s) {
             Ok(datetime) => Ok(Some(datetime.to_utc())),
             Err(err) => {
-                log::warn!("error when parsing item datetime as rfc3339 ({err}), trying to parse as naive datetime");
+                log::warn!(
+                    "error when parsing item datetime as rfc3339 ({err}), trying to parse as naive datetime"
+                );
                 let (mut datetime, remainder) =
                     NaiveDateTime::parse_and_remainder(&s, "%Y-%m-%dT%H:%M:%S")
                         .map_err(D::Error::custom)?;
@@ -705,7 +711,7 @@ where
 mod tests {
     use super::{Builder, FlatItem, Item};
     use crate::{Asset, STAC_VERSION};
-    use geojson::{feature::Id, Feature};
+    use geojson::{Feature, feature::Id};
     use serde_json::json;
 
     #[test]
@@ -767,9 +773,10 @@ mod tests {
             -105.1, 41.1,
         ]))))
         .unwrap();
-        assert!(item
-            .intersects(&crate::geo::bbox(&[-106.0, 41.0, -105.0, 42.0]).unwrap())
-            .unwrap());
+        assert!(
+            item.intersects(&crate::geo::bbox(&[-106.0, 41.0, -105.0, 42.0]).unwrap())
+                .unwrap()
+        );
     }
 
     #[test]
@@ -826,9 +833,11 @@ mod tests {
         let item = builder.build().unwrap();
         assert_eq!(item.assets.len(), 1);
         let asset = item.assets.get("data").unwrap();
-        assert!(asset
-            .href
-            .ends_with(&format!("assets{}dataset.tif", std::path::MAIN_SEPARATOR)));
+        assert!(
+            asset
+                .href
+                .ends_with(&format!("assets{}dataset.tif", std::path::MAIN_SEPARATOR))
+        );
     }
 
     #[test]

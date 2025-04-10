@@ -2,9 +2,9 @@
 
 #![deny(unused_crate_dependencies)]
 
-use anyhow::{anyhow, Error, Result};
+use anyhow::{Error, Result, anyhow};
 use clap::{Parser, Subcommand};
-use stac::{geoparquet::Compression, Collection, Format, Item, Links, Migrate, Validate};
+use stac::{Collection, Format, Item, Links, Migrate, Validate, geoparquet::Compression};
 use stac_api::{GetItems, GetSearch, Search};
 use stac_server::Backend;
 use std::{collections::HashMap, io::Write, str::FromStr};
@@ -285,7 +285,9 @@ impl Stacrs {
                             .unwrap_or_default(),
                     )?;
                 } else if let Some(to) = to {
-                    eprintln!("WARNING: --to was passed ({to}) without --migrate, value will not be migrated");
+                    eprintln!(
+                        "WARNING: --to was passed ({to}) without --migrate, value will not be migrated"
+                    );
                 }
                 self.put(outfile.as_deref(), value.into()).await
             }
@@ -368,9 +370,13 @@ impl Stacrs {
                     #[cfg(not(feature = "duckdb"))]
                     {
                         if matches!(use_duckdb, Some(true)) {
-                            return Err(anyhow!("cannot use DuckDB for the server because the CLI was not built with the `duckdb` feature"));
+                            return Err(anyhow!(
+                                "cannot use DuckDB for the server because the CLI was not built with the `duckdb` feature"
+                            ));
                         } else {
-                            tracing::warn!("cannot use DuckDB for the server because the CLI was not built with the `duckdb` feature, falling back to non-duckdb behavior")
+                            tracing::warn!(
+                                "cannot use DuckDB for the server because the CLI was not built with the `duckdb` feature, falling back to non-duckdb behavior"
+                            )
                         }
                     }
                 }
@@ -616,7 +622,9 @@ async fn load_and_serve(
         for (mut collection_id, mut items) in items {
             if collection_id.is_empty() {
                 if backend.collection(DEFAULT_COLLECTION_ID).await?.is_some() {
-                    return Err(anyhow!("cannot auto-create collections, a collection already exists with id={DEFAULT_COLLECTION_ID}"));
+                    return Err(anyhow!(
+                        "cannot auto-create collections, a collection already exists with id={DEFAULT_COLLECTION_ID}"
+                    ));
                 } else {
                     collection_id = DEFAULT_COLLECTION_ID.to_string();
                 }
@@ -669,7 +677,7 @@ mod tests {
     use assert_cmd::Command;
     use clap::Parser;
     use rstest::{fixture, rstest};
-    use stac::{geoparquet::Compression, Format};
+    use stac::{Format, geoparquet::Compression};
 
     #[fixture]
     fn command() -> Command {

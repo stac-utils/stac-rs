@@ -232,18 +232,19 @@ impl Search {
     /// ```
     #[allow(unused_variables)]
     pub fn intersects_matches(&self, item: &Item) -> Result<bool> {
-        if let Some(intersects) = self.intersects.clone() {
-            #[cfg(feature = "geo")]
-            {
-                let intersects: geo::Geometry = intersects.try_into().map_err(Box::new)?;
-                item.intersects(&intersects).map_err(Error::from)
+        match self.intersects.clone() {
+            Some(intersects) => {
+                #[cfg(feature = "geo")]
+                {
+                    let intersects: geo::Geometry = intersects.try_into().map_err(Box::new)?;
+                    item.intersects(&intersects).map_err(Error::from)
+                }
+                #[cfg(not(feature = "geo"))]
+                {
+                    Err(Error::FeatureNotEnabled("geo"))
+                }
             }
-            #[cfg(not(feature = "geo"))]
-            {
-                Err(Error::FeatureNotEnabled("geo"))
-            }
-        } else {
-            Ok(true)
+            _ => Ok(true),
         }
     }
 

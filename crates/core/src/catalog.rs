@@ -1,4 +1,4 @@
-use crate::{Error, Href, Link, Result, Version, STAC_VERSION};
+use crate::{Error, Href, Link, Result, STAC_VERSION, Version};
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::{Map, Value};
 use stac_derive::{Fields, Links, Migrate, SelfHref};
@@ -109,10 +109,11 @@ impl Catalog {
 impl TryFrom<Catalog> for Map<String, Value> {
     type Error = Error;
     fn try_from(catalog: Catalog) -> Result<Self> {
-        if let Value::Object(object) = serde_json::to_value(catalog)? {
-            Ok(object)
-        } else {
-            panic!("all STAC catalogs should serialize to a serde_json::Value::Object")
+        match serde_json::to_value(catalog)? {
+            Value::Object(object) => Ok(object),
+            _ => {
+                panic!("all STAC catalogs should serialize to a serde_json::Value::Object")
+            }
         }
     }
 }

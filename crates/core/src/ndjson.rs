@@ -256,11 +256,13 @@ mod tests {
     fn item_collection_read() {
         let item_collection = ItemCollection::from_ndjson_path("data/items.ndjson").unwrap();
         assert_eq!(item_collection.items.len(), 2);
-        assert!(item_collection
-            .self_href()
-            .unwrap()
-            .as_str()
-            .ends_with("data/items.ndjson"));
+        assert!(
+            item_collection
+                .self_href()
+                .unwrap()
+                .as_str()
+                .ends_with("data/items.ndjson")
+        );
     }
 
     #[test]

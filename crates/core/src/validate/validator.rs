@@ -105,12 +105,17 @@ impl Validator {
                 return Ok(object);
             }
             r#type
-        } else if let Some(collections) = object.remove("collections") {
-            let collections = self.validate_value(collections)?;
-            let _ = object.insert("collections".to_string(), collections);
-            return Ok(object);
         } else {
-            return Err(Error::MissingField("type"));
+            match object.remove("collections") {
+                Some(collections) => {
+                    let collections = self.validate_value(collections)?;
+                    let _ = object.insert("collections".to_string(), collections);
+                    return Ok(object);
+                }
+                _ => {
+                    return Err(Error::MissingField("type"));
+                }
+            }
         };
 
         let version: Version = object
@@ -142,45 +147,46 @@ impl Validator {
     }
 
     fn validate_extensions(&mut self, object: Map<String, Value>) -> Result<Map<String, Value>> {
-        if let Some(stac_extensions) = object
+        match object
             .get("stac_extensions")
             .and_then(|value| value.as_array())
             .cloned()
         {
-            let uris = stac_extensions
-                .into_iter()
-                .filter_map(|value| {
-                    if let Value::String(s) = value {
-                        Some(Uri::parse(s))
-                    } else {
-                        None
-                    }
-                })
-                .collect::<std::result::Result<Vec<_>, _>>()?;
-            self.ensure_validators(&uris)?;
+            Some(stac_extensions) => {
+                let uris = stac_extensions
+                    .into_iter()
+                    .filter_map(|value| {
+                        if let Value::String(s) = value {
+                            Some(Uri::parse(s))
+                        } else {
+                            None
+                        }
+                    })
+                    .collect::<std::result::Result<Vec<_>, _>>()?;
+                self.ensure_validators(&uris)?;
 
-            let mut errors = Vec::new();
-            let value = Value::Object(object);
-            for uri in uris {
-                let validator = self
-                    .validator_opt(&uri)
-                    .expect("We already ensured they're present");
-                errors.extend(validator.iter_errors(&value));
-            }
-            if errors.is_empty() {
-                if let Value::Object(object) = value {
-                    Ok(object)
-                } else {
-                    unreachable!()
+                let mut errors = Vec::new();
+                let value = Value::Object(object);
+                for uri in uris {
+                    let validator = self
+                        .validator_opt(&uri)
+                        .expect("We already ensured they're present");
+                    errors.extend(validator.iter_errors(&value));
                 }
-            } else {
-                Err(Error::from_validation_errors(
-                    errors.into_iter(),
-                    Some(&value),
-                ))
+                if errors.is_empty() {
+                    if let Value::Object(object) = value {
+                        Ok(object)
+                    } else {
+                        unreachable!()
+                    }
+                } else {
+                    Err(Error::from_validation_errors(
+                        errors.into_iter(),
+                        Some(&value),
+                    ))
+                }
             }
-        } else {
-            Ok(object)
+            _ => Ok(object),
         }
     }
 
@@ -241,7 +247,7 @@ fn prebuild_validators(
     let mut schemas = HashMap::new();
 
     macro_rules! schema {
-        ($t:expr, $v:expr, $path:expr, $schemas:expr) => {
+        ($t:expr_2021, $v:expr_2021, $path:expr_2021, $schemas:expr_2021) => {
             let url = build_uri($t, &$v);
             let value = serde_json::from_str(include_str!($path)).unwrap();
             let validator = validation_options.build(&value).unwrap();
@@ -273,7 +279,7 @@ fn prebuild_resources() -> Vec<(String, Resource)> {
     let mut resources = Vec::new();
 
     macro_rules! resolve {
-        ($url:expr, $path:expr) => {
+        ($url:expr_2021, $path:expr_2021) => {
             let _ = resources.push((
                 $url.to_string(),
                 Resource::from_contents(serde_json::from_str(include_str!($path)).unwrap())

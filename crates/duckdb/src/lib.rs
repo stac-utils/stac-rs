@@ -4,7 +4,7 @@
 
 use arrow::array::RecordBatch;
 use chrono::DateTime;
-use duckdb::{types::Value, Connection};
+use duckdb::{Connection, types::Value};
 use geo::BoundingRect;
 use geoarrow::table::Table;
 use geojson::Geometry;
@@ -825,16 +825,18 @@ mod tests {
             .unwrap();
         assert_eq!(table.len(), 100);
 
-        assert!(client
-            .search_to_arrow_table(
-                "data/100-sentinel-2-items.parquet",
-                serde_json::from_value::<Search>(serde_json::json!({
-                    "collections": ["not-a-collection"]
-                }))
+        assert!(
+            client
+                .search_to_arrow_table(
+                    "data/100-sentinel-2-items.parquet",
+                    serde_json::from_value::<Search>(serde_json::json!({
+                        "collections": ["not-a-collection"]
+                    }))
+                    .unwrap()
+                )
                 .unwrap()
-            )
-            .unwrap()
-            .is_none());
+                .is_none()
+        );
     }
 
     #[rstest]

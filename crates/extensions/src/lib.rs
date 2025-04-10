@@ -50,7 +50,7 @@ pub mod raster;
 
 pub use projection::Projection;
 pub use raster::Raster;
-use serde::{de::DeserializeOwned, Serialize};
+use serde::{Serialize, de::DeserializeOwned};
 use stac::{Catalog, Collection, Fields, Item, Result};
 
 /// A trait implemented by extensions.
@@ -221,7 +221,7 @@ impl_extensions!(Collection);
 
 #[cfg(test)]
 mod tests {
-    use crate::{raster::Raster, Extension, Extensions, Projection};
+    use crate::{Extension, Extensions, Projection, raster::Raster};
     use serde_json::json;
     use stac::Item;
 

@@ -1,5 +1,5 @@
 use crate::{Error, Result, Version};
-use serde::{de::DeserializeOwned, Serialize};
+use serde::{Serialize, de::DeserializeOwned};
 use serde_json::{Map, Value};
 use std::collections::HashMap;
 
@@ -166,7 +166,7 @@ fn migrate_bands(asset: &mut Map<String, Value>) -> Result<()> {
         }
     }
     for (key, count) in counts {
-        if let Some((value_as_string, &count)) = count.iter().max_by_key(|(_, &count)| count) {
+        if let Some((value_as_string, &count)) = count.iter().max_by_key(|&(_, &count)| count) {
             if count > 1 {
                 let value = values
                     .get(value_as_string)

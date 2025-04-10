@@ -165,10 +165,12 @@ mod tests {
         let backend = super::DuckdbBackend::new("data/100-sentinel-2-items.parquet")
             .await
             .unwrap();
-        assert!(backend
-            .collection("sentinel-2-l2a")
-            .await
-            .unwrap()
-            .is_some());
+        assert!(
+            backend
+                .collection("sentinel-2-l2a")
+                .await
+                .unwrap()
+                .is_some()
+        );
     }
 }

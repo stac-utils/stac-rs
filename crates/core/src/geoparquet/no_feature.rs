@@ -1,5 +1,5 @@
 use crate::geoparquet::{
-    impl_from_geoparquet, impl_into_geoparquet, FromGeoparquet, IntoGeoparquet,
+    FromGeoparquet, IntoGeoparquet, impl_from_geoparquet, impl_into_geoparquet,
 };
 use bytes::Bytes;
 use std::{

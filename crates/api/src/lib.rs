@@ -81,7 +81,7 @@ mod url_builder;
 pub use client::{BlockingClient, Client};
 pub use collections::Collections;
 pub use conformance::{
-    Conformance, COLLECTIONS_URI, CORE_URI, FEATURES_URI, FILTER_URIS, GEOJSON_URI,
+    COLLECTIONS_URI, CORE_URI, Conformance, FEATURES_URI, FILTER_URIS, GEOJSON_URI,
     ITEM_SEARCH_URI, OGC_API_FEATURES_URI,
 };
 pub use error::Error;
@@ -132,7 +132,7 @@ mod readme {
     macro_rules! external_doc_test {
         ($x:expr) => {
             #[doc = $x]
-            extern "C" {}
+            unsafe extern "C" {}
         };
     }
 

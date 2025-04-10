@@ -422,8 +422,8 @@ fn maybe_parse_from_rfc3339(s: &str) -> Result<Option<DateTime<FixedOffset>>> {
 #[cfg(test)]
 mod tests {
     use super::{GetItems, Items};
-    use crate::{sort::Direction, Fields, Filter, Sortby};
-    use serde_json::{json, Map, Value};
+    use crate::{Fields, Filter, Sortby, sort::Direction};
+    use serde_json::{Map, Value, json};
     use std::collections::HashMap;
 
     #[test]

@@ -1,6 +1,6 @@
 use crate::{Error, Result};
-use serde::{de::DeserializeOwned, Serialize};
-use serde_json::{json, Map, Value};
+use serde::{Serialize, de::DeserializeOwned};
+use serde_json::{Map, Value, json};
 
 /// Trait for structures that have gettable and settable fields.
 ///

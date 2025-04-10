@@ -2,18 +2,18 @@
 
 use crate::{Api, Backend};
 use axum::{
-    extract::{rejection::JsonRejection, Path, Query, State},
-    http::{header::CONTENT_TYPE, HeaderValue, StatusCode},
+    Json, Router,
+    extract::{Path, Query, State, rejection::JsonRejection},
+    http::{HeaderValue, StatusCode, header::CONTENT_TYPE},
     response::{Html, IntoResponse, Response},
     routing::{get, post},
-    Json, Router,
 };
 use bytes::{BufMut, BytesMut};
 use http::Method;
 use serde::Serialize;
 use stac::{
-    mime::{APPLICATION_GEOJSON, APPLICATION_OPENAPI_3_0},
     Collection, Item,
+    mime::{APPLICATION_GEOJSON, APPLICATION_OPENAPI_3_0},
 };
 use stac_api::{Collections, GetItems, GetSearch, ItemCollection, Items, Root, Search};
 use tower_http::{cors::CorsLayer, trace::TraceLayer};
@@ -253,7 +253,7 @@ mod tests {
     use crate::{Api, Backend, MemoryBackend};
     use axum::{
         body::Body,
-        http::{header::CONTENT_TYPE, Request, Response, StatusCode},
+        http::{Request, Response, StatusCode, header::CONTENT_TYPE},
     };
     use stac::{Collection, Item};
     use tower::util::ServiceExt;

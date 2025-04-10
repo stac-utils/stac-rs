@@ -85,15 +85,19 @@ impl Iterator for IntoValues {
     type Item = Result<Value>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if let Some(mut node) = self.node.take() {
-            self.children.append(&mut node.children);
-            self.items.append(&mut node.items);
-            Some(Ok(node.value.into()))
-        } else if let Some(child) = self.children.pop_front() {
-            self.node = Some(child);
-            self.next()
-        } else {
-            self.items.pop_front().map(|item| Ok(item.into()))
+        match self.node.take() {
+            Some(mut node) => {
+                self.children.append(&mut node.children);
+                self.items.append(&mut node.items);
+                Some(Ok(node.value.into()))
+            }
+            _ => match self.children.pop_front() {
+                Some(child) => {
+                    self.node = Some(child);
+                    self.next()
+                }
+                _ => self.items.pop_front().map(|item| Ok(item.into())),
+            },
         }
     }
 }
