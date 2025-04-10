@@ -89,7 +89,7 @@ fn array_to_json_array_internal(
     explicit_nulls: bool,
 ) -> Result<Vec<Value>, ArrowError> {
     match array.data_type() {
-        DataType::Null => Ok(iter::repeat(Value::Null).take(array.len()).collect()),
+        DataType::Null => Ok(iter::repeat_n(Value::Null, array.len()).collect()),
         DataType::Boolean => Ok(array
             .as_boolean()
             .iter()
@@ -505,9 +505,11 @@ fn record_batches_to_json_rows_internal(
     explicit_nulls: bool,
     geometry_index: Option<usize>,
 ) -> Result<impl Iterator<Item = JsonMap<String, Value>> + use<>, ArrowError> {
-    let mut rows: Vec<Option<JsonMap<String, Value>>> = iter::repeat(Some(JsonMap::new()))
-        .take(batches.iter().map(|b| b.num_rows()).sum())
-        .collect();
+    let mut rows: Vec<Option<JsonMap<String, Value>>> = iter::repeat_n(
+        Some(JsonMap::new()),
+        batches.iter().map(|b| b.num_rows()).sum(),
+    )
+    .collect();
 
     if !rows.is_empty() {
         let schema = batches[0].schema();
