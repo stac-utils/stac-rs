@@ -241,7 +241,7 @@ mod tests {
     use crate::{Catalog, Collection, Item, ItemCollection};
 
     macro_rules! read {
-        ($function:ident, $filename:expr, $value:ty $(, $meta:meta)?) => {
+        ($function:ident, $filename:expr_2021, $value:ty $(, $meta:meta)?) => {
             #[test]
             $(#[$meta])?
             fn $function() {

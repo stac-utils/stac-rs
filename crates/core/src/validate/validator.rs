@@ -105,13 +105,13 @@ impl Validator {
                 return Ok(object);
             }
             r#type
-        } else if let Some(collections) = object.remove("collections") {
+        } else { match object.remove("collections") { Some(collections) => {
             let collections = self.validate_value(collections)?;
             let _ = object.insert("collections".to_string(), collections);
             return Ok(object);
-        } else {
+        } _ => {
             return Err(Error::MissingField("type"));
-        };
+        }}};
 
         let version: Version = object
             .get("stac_version")
@@ -142,11 +142,11 @@ impl Validator {
     }
 
     fn validate_extensions(&mut self, object: Map<String, Value>) -> Result<Map<String, Value>> {
-        if let Some(stac_extensions) = object
+        match object
             .get("stac_extensions")
             .and_then(|value| value.as_array())
             .cloned()
-        {
+        { Some(stac_extensions) => {
             let uris = stac_extensions
                 .into_iter()
                 .filter_map(|value| {
@@ -179,9 +179,9 @@ impl Validator {
                     Some(&value),
                 ))
             }
-        } else {
+        } _ => {
             Ok(object)
-        }
+        }}
     }
 
     fn validator(&mut self, uri: Uri<String>) -> Result<&JsonschemaValidator> {
@@ -241,7 +241,7 @@ fn prebuild_validators(
     let mut schemas = HashMap::new();
 
     macro_rules! schema {
-        ($t:expr, $v:expr, $path:expr, $schemas:expr) => {
+        ($t:expr_2021, $v:expr_2021, $path:expr_2021, $schemas:expr_2021) => {
             let url = build_uri($t, &$v);
             let value = serde_json::from_str(include_str!($path)).unwrap();
             let validator = validation_options.build(&value).unwrap();
@@ -273,7 +273,7 @@ fn prebuild_resources() -> Vec<(String, Resource)> {
     let mut resources = Vec::new();
 
     macro_rules! resolve {
-        ($url:expr, $path:expr) => {
+        ($url:expr_2021, $path:expr_2021) => {
             let _ = resources.push((
                 $url.to_string(),
                 Resource::from_contents(serde_json::from_str(include_str!($path)).unwrap())

@@ -204,12 +204,12 @@ impl<B: Backend> Api<B> {
     /// # })
     /// ```
     pub async fn collection(&self, id: &str) -> Result<Option<Collection>> {
-        if let Some(mut collection) = self.backend.collection(id).await? {
+        match self.backend.collection(id).await? { Some(mut collection) => {
             self.set_collection_links(&mut collection)?;
             Ok(Some(collection))
-        } else {
+        } _ => {
             Ok(None)
-        }
+        }}
     }
 
     /// Returns all items for a given collection.
@@ -231,7 +231,7 @@ impl<B: Backend> Api<B> {
     /// # })
     /// ```
     pub async fn items(&self, collection_id: &str, items: Items) -> Result<Option<ItemCollection>> {
-        if let Some(mut item_collection) = self.backend.items(collection_id, items.clone()).await? {
+        match self.backend.items(collection_id, items.clone()).await? { Some(mut item_collection) => {
             let collection_url = self.url(&format!("/collections/{}", collection_id))?;
             let items_url = self.url(&format!("/collections/{}/items", collection_id))?;
             item_collection.set_link(Link::root(self.root.clone()).json());
@@ -259,9 +259,9 @@ impl<B: Backend> Api<B> {
                 self.set_item_links(item)?;
             }
             Ok(Some(item_collection))
-        } else {
+        } _ => {
             Ok(None)
-        }
+        }}
     }
 
     /// Returns an item.
@@ -282,7 +282,7 @@ impl<B: Backend> Api<B> {
     /// # })
     /// ```
     pub async fn item(&self, collection_id: &str, item_id: &str) -> Result<Option<Item>> {
-        if let Some(mut item) = self.backend.item(collection_id, item_id).await? {
+        match self.backend.item(collection_id, item_id).await? { Some(mut item) => {
             item.set_link(Link::root(self.root.clone()).json());
             item.set_link(
                 Link::self_(
@@ -294,9 +294,9 @@ impl<B: Backend> Api<B> {
             item.set_link(Link::collection(collection_url.clone()).json());
             item.set_link(Link::parent(collection_url).json());
             Ok(Some(item))
-        } else {
+        } _ => {
             Ok(None)
-        }
+        }}
     }
 
     /// Searches the API.
@@ -428,7 +428,7 @@ mod tests {
     use std::collections::HashSet;
 
     macro_rules! assert_link {
-        ($link:expr, $href:expr, $media_type:expr) => {
+        ($link:expr_2021, $href:expr_2021, $media_type:expr_2021) => {
             let link = $link.unwrap();
             assert_eq!(link.href, $href);
             assert_eq!(link.r#type.as_ref().unwrap(), $media_type);

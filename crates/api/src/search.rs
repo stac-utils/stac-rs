@@ -232,7 +232,7 @@ impl Search {
     /// ```
     #[allow(unused_variables)]
     pub fn intersects_matches(&self, item: &Item) -> Result<bool> {
-        if let Some(intersects) = self.intersects.clone() {
+        match self.intersects.clone() { Some(intersects) => {
             #[cfg(feature = "geo")]
             {
                 let intersects: geo::Geometry = intersects.try_into().map_err(Box::new)?;
@@ -242,9 +242,9 @@ impl Search {
             {
                 Err(Error::FeatureNotEnabled("geo"))
             }
-        } else {
+        } _ => {
             Ok(true)
-        }
+        }}
     }
 
     /// Converts this search's filter to cql2-json, if set.

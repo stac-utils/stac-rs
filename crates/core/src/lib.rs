@@ -343,10 +343,10 @@ mod tests {
     use tokio_test as _;
 
     macro_rules! roundtrip {
-        ($function:ident, $filename:expr, $object:ident) => {
+        ($function:ident, $filename:expr_2021, $object:ident) => {
             #[test]
             fn $function() {
-                use assert_json_diff::{assert_json_matches, CompareMode, Config, NumericMode};
+                use assert_json_diff::{CompareMode, Config, NumericMode, assert_json_matches};
                 use chrono::{DateTime, Utc};
                 use serde_json::Value;
                 use std::{fs::File, io::BufReader};
@@ -418,7 +418,7 @@ mod readme {
     macro_rules! external_doc_test {
         ($x:expr) => {
             #[doc = $x]
-            extern "C" {}
+            unsafe extern "C" {}
         };
     }
 

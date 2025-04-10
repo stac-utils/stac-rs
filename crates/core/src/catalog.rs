@@ -109,11 +109,11 @@ impl Catalog {
 impl TryFrom<Catalog> for Map<String, Value> {
     type Error = Error;
     fn try_from(catalog: Catalog) -> Result<Self> {
-        if let Value::Object(object) = serde_json::to_value(catalog)? {
+        match serde_json::to_value(catalog)? { Value::Object(object) => {
             Ok(object)
-        } else {
+        } _ => {
             panic!("all STAC catalogs should serialize to a serde_json::Value::Object")
-        }
+        }}
     }
 }
 

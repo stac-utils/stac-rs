@@ -391,11 +391,11 @@ impl Assets for Collection {
 impl TryFrom<Collection> for Map<String, Value> {
     type Error = Error;
     fn try_from(collection: Collection) -> Result<Self> {
-        if let Value::Object(object) = serde_json::to_value(collection)? {
+        match serde_json::to_value(collection)? { Value::Object(object) => {
             Ok(object)
-        } else {
+        } _ => {
             panic!("all STAC collections should serialize to a serde_json::Value::Object")
-        }
+        }}
     }
 }
 

@@ -20,12 +20,12 @@ default-members = [
 
 [workspace.package]
 authors = ["Pete Gadomski <pete.gadomski@gmail.com>"]
-edition = "2021"
+edition = "2024"
 homepage = "https://stac-utils.github.io/stac-rs"
 repository = "https://github.com/stac-utils/stac-rs"
 license = "MIT OR Apache-2.0"
 categories = ["science", "data-structures"]
-rust-version = "1.83"
+rust-version = "1.85"
 
 [workspace.dependencies]
 anyhow = "1.0"

@@ -212,11 +212,11 @@ fn set_column_by_primitive_type<T>(
         .zip(primitive_arr.iter())
         .filter_map(|(maybe_row, maybe_value)| maybe_row.as_mut().map(|row| (row, maybe_value)))
         .for_each(|(row, maybe_value)| {
-            if let Some(j) = maybe_value.and_then(|v| v.into_json_value()) {
+            match maybe_value.and_then(|v| v.into_json_value()) { Some(j) => {
                 row.insert(col_name.to_string(), j);
-            } else if explicit_nulls {
+            } _ => if explicit_nulls {
                 row.insert(col_name.to_string(), Value::Null);
-            }
+            }}
         });
 }
 
@@ -489,7 +489,7 @@ fn unflatten(mut item: serde_json::Map<String, Value>) -> serde_json::Map<String
 fn record_batches_to_json_rows(
     batches: &[RecordBatch],
     geometry_index: Option<usize>,
-) -> Result<impl Iterator<Item = JsonMap<String, Value>>, ArrowError> {
+) -> Result<impl Iterator<Item = JsonMap<String, Value>> + use<>, ArrowError> {
     // For backwards compatibility, default to skip nulls
     // Skip converting the geometry index, we'll do that later.
     record_batches_to_json_rows_internal(batches, false, geometry_index)
@@ -499,7 +499,7 @@ fn record_batches_to_json_rows_internal(
     batches: &[RecordBatch],
     explicit_nulls: bool,
     geometry_index: Option<usize>,
-) -> Result<impl Iterator<Item = JsonMap<String, Value>>, ArrowError> {
+) -> Result<impl Iterator<Item = JsonMap<String, Value>> + use<>, ArrowError> {
     let mut rows: Vec<Option<JsonMap<String, Value>>> = iter::repeat(Some(JsonMap::new()))
         .take(batches.iter().map(|b| b.num_rows()).sum())
         .collect();

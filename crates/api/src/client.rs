@@ -161,11 +161,11 @@ impl Client {
         items: impl Into<Option<Items>>,
     ) -> Result<impl Stream<Item = Result<Item>>> {
         let url = self.url_builder.items(id)?; // TODO HATEOS
-        let items = if let Some(items) = items.into() {
+        let items = match items.into() { Some(items) => {
             Some(GetItems::try_from(items)?)
-        } else {
+        } _ => {
             None
-        };
+        }};
         let page = self
             .request(Method::GET, url.clone(), items.as_ref(), None)
             .await?;
@@ -194,7 +194,7 @@ impl Client {
     /// assert_eq!(items.len(), 1);
     /// # })
     /// ```
-    pub async fn search(&self, search: Search) -> Result<impl Stream<Item = Result<Item>>> {
+    pub async fn search(&self, search: Search) -> Result<impl Stream<Item = Result<Item>> + use<>> {
         let url = self.url_builder.search().clone();
         tracing::debug!("searching {url}");
         // TODO support GET

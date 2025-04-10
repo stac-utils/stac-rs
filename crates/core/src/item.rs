@@ -442,12 +442,12 @@ impl Item {
     where
         T: geo::Intersects<geo::Geometry>,
     {
-        if let Some(geometry) = self.geometry.clone() {
+        match self.geometry.clone() { Some(geometry) => {
             let geometry: geo::Geometry = geometry.try_into().map_err(Box::new)?;
             Ok(intersects.intersects(&geometry))
-        } else {
+        } _ => {
             Ok(false)
-        }
+        }}
     }
 
     /// Returns true if this item's geometry intersects the provided bounding box.
@@ -470,12 +470,12 @@ impl Item {
     pub fn intersects_bbox(&self, bbox: geo::Rect) -> Result<bool> {
         use geo::Intersects;
 
-        if let Some(geometry) = self.geometry.clone() {
+        match self.geometry.clone() { Some(geometry) => {
             let geometry: geo::Geometry = geometry.try_into().map_err(Box::new)?;
             Ok(geometry.intersects(&bbox))
-        } else {
+        } _ => {
             Ok(false)
-        }
+        }}
     }
 
     /// Returns true if this item's datetime (or start and end datetime)
@@ -553,11 +553,11 @@ impl Item {
     /// let flat_item = item.into_flat_item(true).unwrap();
     /// ```
     pub fn into_flat_item(self, drop_invalid_attributes: bool) -> Result<FlatItem> {
-        let properties = if let Value::Object(object) = serde_json::to_value(self.properties)? {
+        let properties = match serde_json::to_value(self.properties)? { Value::Object(object) => {
             object
-        } else {
+        } _ => {
             panic!("properties should always serialize to an object")
-        };
+        }};
         for (key, _) in properties.iter() {
             if TOP_LEVEL_ATTRIBUTES.contains(&key.as_str()) {
                 if drop_invalid_attributes {
@@ -609,11 +609,11 @@ impl Fields for Item {
 impl TryFrom<Item> for Map<String, Value> {
     type Error = Error;
     fn try_from(item: Item) -> Result<Self> {
-        if let Value::Object(object) = serde_json::to_value(item)? {
+        match serde_json::to_value(item)? { Value::Object(object) => {
             Ok(object)
-        } else {
+        } _ => {
             panic!("all STAC items should serialize to a serde_json::Value::Object")
-        }
+        }}
     }
 }
 
