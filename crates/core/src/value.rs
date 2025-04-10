@@ -234,11 +234,12 @@ impl Links for Value {
 impl TryFrom<Value> for Map<String, serde_json::Value> {
     type Error = Error;
     fn try_from(value: Value) -> Result<Self> {
-        match serde_json::to_value(value)? { serde_json::Value::Object(object) => {
-            Ok(object)
-        } _ => {
-            panic!("all STAC values should serialize to a serde_json::Value::Object")
-        }}
+        match serde_json::to_value(value)? {
+            serde_json::Value::Object(object) => Ok(object),
+            _ => {
+                panic!("all STAC values should serialize to a serde_json::Value::Object")
+            }
+        }
     }
 }
 

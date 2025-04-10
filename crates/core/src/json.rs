@@ -1,5 +1,5 @@
 use crate::{Error, Result, SelfHref};
-use serde::{de::DeserializeOwned, Serialize};
+use serde::{Serialize, de::DeserializeOwned};
 use std::{
     fs::File,
     io::{Read, Write},
@@ -106,10 +106,11 @@ mod tests {
     #[test]
     fn set_href() {
         let item = Item::from_json_path("examples/simple-item.json").unwrap();
-        assert!(item
-            .self_href()
-            .unwrap()
-            .as_str()
-            .ends_with("examples/simple-item.json"));
+        assert!(
+            item.self_href()
+                .unwrap()
+                .as_str()
+                .ends_with("examples/simple-item.json")
+        );
     }
 }

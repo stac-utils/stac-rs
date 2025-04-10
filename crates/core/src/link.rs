@@ -1,6 +1,6 @@
 //! Links.
 
-use crate::{mime::APPLICATION_GEOJSON, Error, Href, Result, SelfHref};
+use crate::{Error, Href, Result, SelfHref, mime::APPLICATION_GEOJSON};
 use mime::APPLICATION_JSON;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};

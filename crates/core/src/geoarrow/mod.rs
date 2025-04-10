@@ -5,17 +5,17 @@
 pub mod json;
 
 use crate::{Error, ItemCollection, Result};
-use arrow_array::{cast::AsArray, types::GenericBinaryType, GenericByteArray, RecordBatch};
+use arrow_array::{GenericByteArray, RecordBatch, cast::AsArray, types::GenericBinaryType};
 use arrow_json::ReaderBuilder;
 use arrow_schema::{DataType, Field, SchemaBuilder, TimeUnit};
 use geo_types::Geometry;
 use geoarrow::{
+    ArrayBase,
     array::{CoordType, GeometryBuilder, NativeArrayDyn, WKBArray},
     datatypes::NativeType,
     table::Table,
-    ArrayBase,
 };
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::sync::Arc;
 
 const DATETIME_COLUMNS: [&str; 8] = [

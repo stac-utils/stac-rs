@@ -1,5 +1,5 @@
 use crate::{Error, Result, Version};
-use serde::{de::DeserializeOwned, Serialize};
+use serde::{Serialize, de::DeserializeOwned};
 use serde_json::{Map, Value};
 use std::collections::HashMap;
 

@@ -1,4 +1,4 @@
-use crate::{Backend, Error, Result, DEFAULT_LIMIT};
+use crate::{Backend, DEFAULT_LIMIT, Error, Result};
 use serde_json::Map;
 use stac::{Collection, Item};
 use stac_api::{ItemCollection, Items, Search};

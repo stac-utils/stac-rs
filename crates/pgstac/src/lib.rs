@@ -78,9 +78,9 @@
 mod page;
 
 pub use page::Page;
-use serde::{de::DeserializeOwned, Serialize};
+use serde::{Serialize, de::DeserializeOwned};
 use stac_api::Search;
-use tokio_postgres::{types::ToSql, GenericClient, Row};
+use tokio_postgres::{GenericClient, Row, types::ToSql};
 
 /// Crate-specific error enum.
 #[derive(Debug, thiserror::Error)]
@@ -329,12 +329,12 @@ pub(crate) mod tests {
     use super::Pgstac;
     use geojson::{Geometry, Value};
     use rstest::{fixture, rstest};
-    use serde_json::{json, Map};
+    use serde_json::{Map, json};
     use stac::{Collection, Href, Item};
     use stac_api::{Fields, Filter, Search, Sortby};
     use std::{
         ops::Deref,
-        sync::{atomic::AtomicU16, LazyLock},
+        sync::{LazyLock, atomic::AtomicU16},
     };
     use tokio::sync::Mutex;
     use tokio_postgres::{Client, Config, NoTls};
@@ -502,13 +502,15 @@ pub(crate) mod tests {
     async fn update_collection(#[future(awt)] client: TestClient) {
         let mut collection = Collection::new("an-id", "a description");
         client.add_collection(collection.clone()).await.unwrap();
-        assert!(client
-            .collection("an-id")
-            .await
-            .unwrap()
-            .unwrap()
-            .get("title")
-            .is_none());
+        assert!(
+            client
+                .collection("an-id")
+                .await
+                .unwrap()
+                .unwrap()
+                .get("title")
+                .is_none()
+        );
         collection.title = Some("a title".to_string());
         client.update_collection(collection).await.unwrap();
         assert_eq!(client.collections().await.unwrap().len(), 1);
@@ -550,11 +552,13 @@ pub(crate) mod tests {
     #[rstest]
     #[tokio::test]
     async fn item(#[future(awt)] client: TestClient) {
-        assert!(client
-            .item("an-id", Some("collection-id"))
-            .await
-            .unwrap()
-            .is_none());
+        assert!(
+            client
+                .item("an-id", Some("collection-id"))
+                .await
+                .unwrap()
+                .is_none()
+        );
         let collection = Collection::new("collection-id", "a description");
         client.add_collection(collection).await.unwrap();
         let mut item = Item::new("an-id");
@@ -648,16 +652,20 @@ pub(crate) mod tests {
         let mut other_item = item.clone();
         other_item.id = "other-id".to_string();
         client.add_items(&[item, other_item]).await.unwrap();
-        assert!(client
-            .item("an-id", Some("collection-id"))
-            .await
-            .unwrap()
-            .is_some());
-        assert!(client
-            .item("other-id", Some("collection-id"))
-            .await
-            .unwrap()
-            .is_some());
+        assert!(
+            client
+                .item("an-id", Some("collection-id"))
+                .await
+                .unwrap()
+                .is_some()
+        );
+        assert!(
+            client
+                .item("other-id", Some("collection-id"))
+                .await
+                .unwrap()
+                .is_some()
+        );
     }
 
     #[rstest]
@@ -678,12 +686,14 @@ pub(crate) mod tests {
     #[rstest]
     #[tokio::test]
     async fn search_everything(#[future(awt)] client: TestClient) {
-        assert!(client
-            .search(Search::default())
-            .await
-            .unwrap()
-            .features
-            .is_empty());
+        assert!(
+            client
+                .search(Search::default())
+                .await
+                .unwrap()
+                .features
+                .is_empty()
+        );
         let collection = Collection::new("collection-id", "a description");
         client.add_collection(collection).await.unwrap();
         let mut item = Item::new("an-id");

@@ -1,7 +1,7 @@
 //! Geometry utilities, enabled by the `geo` feature.
 
 use crate::{Error, Result};
-use geo::{coord, Rect};
+use geo::{Rect, coord};
 
 /// Creates a two-dimensional rectangle from four coordinates.
 ///

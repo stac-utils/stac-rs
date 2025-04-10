@@ -1,8 +1,8 @@
-use crate::{Backend, Error, Result, DEFAULT_DESCRIPTION, DEFAULT_ID};
+use crate::{Backend, DEFAULT_DESCRIPTION, DEFAULT_ID, Error, Result};
 use http::Method;
 use serde::Serialize;
-use serde_json::{json, Map, Value};
-use stac::{mime::APPLICATION_OPENAPI_3_0, Catalog, Collection, Fields, Item, Link, Links};
+use serde_json::{Map, Value, json};
+use stac::{Catalog, Collection, Fields, Item, Link, Links, mime::APPLICATION_OPENAPI_3_0};
 use stac_api::{Collections, Conformance, ItemCollection, Items, Root, Search};
 use url::Url;
 
@@ -204,12 +204,13 @@ impl<B: Backend> Api<B> {
     /// # })
     /// ```
     pub async fn collection(&self, id: &str) -> Result<Option<Collection>> {
-        match self.backend.collection(id).await? { Some(mut collection) => {
-            self.set_collection_links(&mut collection)?;
-            Ok(Some(collection))
-        } _ => {
-            Ok(None)
-        }}
+        match self.backend.collection(id).await? {
+            Some(mut collection) => {
+                self.set_collection_links(&mut collection)?;
+                Ok(Some(collection))
+            }
+            _ => Ok(None),
+        }
     }
 
     /// Returns all items for a given collection.
@@ -231,37 +232,38 @@ impl<B: Backend> Api<B> {
     /// # })
     /// ```
     pub async fn items(&self, collection_id: &str, items: Items) -> Result<Option<ItemCollection>> {
-        match self.backend.items(collection_id, items.clone()).await? { Some(mut item_collection) => {
-            let collection_url = self.url(&format!("/collections/{}", collection_id))?;
-            let items_url = self.url(&format!("/collections/{}/items", collection_id))?;
-            item_collection.set_link(Link::root(self.root.clone()).json());
-            item_collection.set_link(Link::self_(items_url.clone()).geojson());
-            item_collection.set_link(Link::collection(collection_url).json());
-            if let Some(next) = item_collection.next.take() {
-                item_collection.set_link(self.pagination_link(
-                    items_url.clone(),
-                    items.clone(),
-                    next,
-                    "next",
-                    &Method::GET,
-                )?);
+        match self.backend.items(collection_id, items.clone()).await? {
+            Some(mut item_collection) => {
+                let collection_url = self.url(&format!("/collections/{}", collection_id))?;
+                let items_url = self.url(&format!("/collections/{}/items", collection_id))?;
+                item_collection.set_link(Link::root(self.root.clone()).json());
+                item_collection.set_link(Link::self_(items_url.clone()).geojson());
+                item_collection.set_link(Link::collection(collection_url).json());
+                if let Some(next) = item_collection.next.take() {
+                    item_collection.set_link(self.pagination_link(
+                        items_url.clone(),
+                        items.clone(),
+                        next,
+                        "next",
+                        &Method::GET,
+                    )?);
+                }
+                if let Some(prev) = item_collection.prev.take() {
+                    item_collection.set_link(self.pagination_link(
+                        items_url,
+                        items,
+                        prev,
+                        "prev",
+                        &Method::GET,
+                    )?);
+                }
+                for item in item_collection.items.iter_mut() {
+                    self.set_item_links(item)?;
+                }
+                Ok(Some(item_collection))
             }
-            if let Some(prev) = item_collection.prev.take() {
-                item_collection.set_link(self.pagination_link(
-                    items_url,
-                    items,
-                    prev,
-                    "prev",
-                    &Method::GET,
-                )?);
-            }
-            for item in item_collection.items.iter_mut() {
-                self.set_item_links(item)?;
-            }
-            Ok(Some(item_collection))
-        } _ => {
-            Ok(None)
-        }}
+            _ => Ok(None),
+        }
     }
 
     /// Returns an item.
@@ -282,21 +284,22 @@ impl<B: Backend> Api<B> {
     /// # })
     /// ```
     pub async fn item(&self, collection_id: &str, item_id: &str) -> Result<Option<Item>> {
-        match self.backend.item(collection_id, item_id).await? { Some(mut item) => {
-            item.set_link(Link::root(self.root.clone()).json());
-            item.set_link(
-                Link::self_(
-                    self.url(&format!("/collections/{}/items/{}", collection_id, item_id))?,
-                )
-                .geojson(),
-            );
-            let collection_url = self.url(&format!("/collections/{}", collection_id))?;
-            item.set_link(Link::collection(collection_url.clone()).json());
-            item.set_link(Link::parent(collection_url).json());
-            Ok(Some(item))
-        } _ => {
-            Ok(None)
-        }}
+        match self.backend.item(collection_id, item_id).await? {
+            Some(mut item) => {
+                item.set_link(Link::root(self.root.clone()).json());
+                item.set_link(
+                    Link::self_(
+                        self.url(&format!("/collections/{}/items/{}", collection_id, item_id))?,
+                    )
+                    .geojson(),
+                );
+                let collection_url = self.url(&format!("/collections/{}", collection_id))?;
+                item.set_link(Link::collection(collection_url.clone()).json());
+                item.set_link(Link::parent(collection_url).json());
+                Ok(Some(item))
+            }
+            _ => Ok(None),
+        }
     }
 
     /// Searches the API.
@@ -424,7 +427,7 @@ mod tests {
     use crate::{Backend, MemoryBackend};
     use http::Method;
     use stac::{Catalog, Collection, Item, Links};
-    use stac_api::{Items, Search, ITEM_SEARCH_URI};
+    use stac_api::{ITEM_SEARCH_URI, Items, Search};
     use std::collections::HashSet;
 
     macro_rules! assert_link {
@@ -605,11 +608,12 @@ mod tests {
     async fn items() {
         let mut backend = MemoryBackend::new();
         let api = test_api(backend.clone());
-        assert!(api
-            .items("collection-id", Items::default())
-            .await
-            .unwrap()
-            .is_none());
+        assert!(
+            api.items("collection-id", Items::default())
+                .await
+                .unwrap()
+                .is_none()
+        );
 
         backend
             .add_collection(Collection::new("collection-id", "a description"))
@@ -703,11 +707,12 @@ mod tests {
     async fn item() {
         let mut backend = MemoryBackend::new();
         let api = test_api(backend.clone());
-        assert!(api
-            .item("collection-id", "item-id")
-            .await
-            .unwrap()
-            .is_none());
+        assert!(
+            api.item("collection-id", "item-id")
+                .await
+                .unwrap()
+                .is_none()
+        );
 
         backend
             .add_collection(Collection::new("collection-id", "a description"))
@@ -752,8 +757,10 @@ mod tests {
     fn memory_item_search_conformance() {
         let api = test_api(MemoryBackend::new());
         let conformance = api.conformance();
-        assert!(conformance
-            .conforms_to
-            .contains(&ITEM_SEARCH_URI.to_string()));
+        assert!(
+            conformance
+                .conforms_to
+                .contains(&ITEM_SEARCH_URI.to_string())
+        );
     }
 }

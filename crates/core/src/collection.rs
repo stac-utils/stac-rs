@@ -1,6 +1,6 @@
 use crate::{
-    Asset, Assets, Bbox, Error, Href, Item, ItemAsset, Link, Links, Migrate, Result, SelfHref,
-    Version, STAC_VERSION,
+    Asset, Assets, Bbox, Error, Href, Item, ItemAsset, Link, Links, Migrate, Result, STAC_VERSION,
+    SelfHref, Version,
 };
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Deserializer, Serialize};
@@ -391,11 +391,12 @@ impl Assets for Collection {
 impl TryFrom<Collection> for Map<String, Value> {
     type Error = Error;
     fn try_from(collection: Collection) -> Result<Self> {
-        match serde_json::to_value(collection)? { Value::Object(object) => {
-            Ok(object)
-        } _ => {
-            panic!("all STAC collections should serialize to a serde_json::Value::Object")
-        }}
+        match serde_json::to_value(collection)? {
+            Value::Object(object) => Ok(object),
+            _ => {
+                panic!("all STAC collections should serialize to a serde_json::Value::Object")
+            }
+        }
     }
 }
 

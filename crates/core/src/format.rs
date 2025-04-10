@@ -1,6 +1,6 @@
 use crate::{
-    geoparquet::{Compression, FromGeoparquet, IntoGeoparquet},
     Error, FromJson, FromNdjson, Href, RealizedHref, Result, SelfHref, ToJson, ToNdjson,
+    geoparquet::{Compression, FromGeoparquet, IntoGeoparquet},
 };
 use bytes::Bytes;
 use std::{fmt::Display, path::Path, str::FromStr};

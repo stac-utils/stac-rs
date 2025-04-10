@@ -80,7 +80,7 @@ pub trait Backend: Clone + Sync + Send + 'static {
     /// # })
     /// ```
     fn add_collection(&mut self, collection: Collection)
-        -> impl Future<Output = Result<()>> + Send;
+    -> impl Future<Output = Result<()>> + Send;
 
     /// Adds an item.
     ///

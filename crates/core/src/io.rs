@@ -77,10 +77,10 @@
 //! ```
 
 use crate::{
+    Format, Href, Result, SelfHref,
     geoparquet::{FromGeoparquet, IntoGeoparquet},
     json::{FromJson, ToJson},
     ndjson::{FromNdjson, ToNdjson},
-    Format, Href, Result, SelfHref,
 };
 use std::path::Path;
 

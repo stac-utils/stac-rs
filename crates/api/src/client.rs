@@ -2,10 +2,10 @@
 
 use crate::{Error, GetItems, Item, ItemCollection, Items, Result, Search, UrlBuilder};
 use async_stream::try_stream;
-use futures::{pin_mut, Stream, StreamExt};
+use futures::{Stream, StreamExt, pin_mut};
 use http::header::{HeaderName, USER_AGENT};
-use reqwest::{header::HeaderMap, ClientBuilder, IntoUrl, Method, StatusCode};
-use serde::{de::DeserializeOwned, Serialize};
+use reqwest::{ClientBuilder, IntoUrl, Method, StatusCode, header::HeaderMap};
+use serde::{Serialize, de::DeserializeOwned};
 use serde_json::{Map, Value};
 use stac::{Collection, Link, Links, SelfHref};
 use std::pin::Pin;
@@ -161,11 +161,10 @@ impl Client {
         items: impl Into<Option<Items>>,
     ) -> Result<impl Stream<Item = Result<Item>>> {
         let url = self.url_builder.items(id)?; // TODO HATEOS
-        let items = match items.into() { Some(items) => {
-            Some(GetItems::try_from(items)?)
-        } _ => {
-            None
-        }};
+        let items = match items.into() {
+            Some(items) => Some(GetItems::try_from(items)?),
+            _ => None,
+        };
         let page = self
             .request(Method::GET, url.clone(), items.as_ref(), None)
             .await?;
@@ -424,11 +423,13 @@ mod tests {
             .await;
 
         let client = Client::new(&server.url()).unwrap();
-        assert!(client
-            .collection("not-a-collection")
-            .await
-            .unwrap()
-            .is_none());
+        assert!(
+            client
+                .collection("not-a-collection")
+                .await
+                .unwrap()
+                .is_none()
+        );
         collection.assert_async().await;
     }
 
