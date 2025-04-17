@@ -19,11 +19,13 @@ We're happy you're here.
 **rustac-py** is a Python [package](https://pypi.org/project/rustac/) that provides a simple API for interacting with STAC.
 **rustac-py** uses the Rust code in **rustac** under the hood.
 
+<!-- markdownlint-disable MD046 -->
 ```python
 import rustac
 
 items = rustac.search("s3://bucket/items.parquet", ...)
 ```
+<!-- markdownlint-enable MD046 -->
 
 Check out the [rustac-py docs](https://stac-utils.github.io/rustac-py) for more.
 
