@@ -9,9 +9,10 @@ We're happy you're here.
 
 **rustac** is a [Github repository](https://github.com/stac-utils/rustac) that holds the code for several Rust [crates](https://doc.rust-lang.org/book/ch07-01-packages-and-crates.html) that can be used to create, search for, and otherwise work with [STAC](https://stacspec.org).
 
-> [!NOTE]
-> Until 2025-04-17, this repository was named **stac-rs**.
-> See [this RFC](https://github.com/stac-utils/rustac/issues/641) for context on the name change.
+!!! note
+
+    Until 2025-04-17, this repository was named **stac-rs**.
+    See [this RFC](https://github.com/stac-utils/rustac/issues/641) for context on the name change.
 
 ## What is rustac-py?
 
