@@ -1,6 +1,4 @@
-//! Convert between [ItemCollection] and [Table]. (experimental)
-//!
-//!  ⚠️ geoarrow support is currently experimental, and may break on any release.
+//! Convert between [ItemCollection] and [Table].
 
 pub mod json;
 
@@ -30,7 +28,7 @@ const DATETIME_COLUMNS: [&str; 8] = [
 ];
 
 /// The stac-geoparquet version metadata key.
-pub const VERSION_KEY: &str = "stac:geoparquet_version";
+pub const VERSION_KEY: &str = "geoparquet:version";
 
 /// The stac-geoparquet version.
 pub const VERSION: &str = "1.0.0";
@@ -39,6 +37,8 @@ pub const VERSION: &str = "1.0.0";
 ///
 /// Any invalid attributes in the items (e.g. top-level attributes that conflict
 /// with STAC spec attributes) will be dropped with a warning.
+///
+/// For more control over the conversion, use a [TableBuilder].
 ///
 /// # Examples
 ///
@@ -50,36 +50,71 @@ pub const VERSION: &str = "1.0.0";
 /// let table = stac::geoarrow::to_table(item_collection).unwrap();
 /// ```
 pub fn to_table(item_collection: impl Into<ItemCollection>) -> Result<Table> {
-    let item_collection: ItemCollection = item_collection.into();
-    let mut values = Vec::with_capacity(item_collection.items.len());
-    let mut builder = GeometryBuilder::new();
-    for mut item in item_collection.items {
-        builder.push_geometry(
-            item.geometry
-                .take()
-                .and_then(|geometry| Geometry::try_from(geometry).ok())
-                .as_ref(),
-        )?;
-        let flat_item = item.into_flat_item(true)?;
-        let mut value = serde_json::to_value(flat_item)?;
-        {
-            let value = value
-                .as_object_mut()
-                .expect("a flat item should serialize to an object");
-            let _ = value.remove("geometry");
-            if let Some(bbox) = value.remove("bbox") {
-                let bbox = bbox
-                    .as_array()
-                    .expect("STAC items should always have a list as their bbox");
-                if bbox.len() == 4 {
-                    let _ = value.insert("bbox".into(), json!({
+    TableBuilder {
+        item_collection: item_collection.into(),
+        drop_invalid_attributes: true,
+    }
+    .build()
+}
+
+/// A builder for converting an [ItemCollection] to a [Table]
+///
+/// # Examples
+///
+/// ```
+/// use stac::geoarrow::TableBuilder;
+///
+/// let item = stac::read("examples/simple-item.json").unwrap();
+/// let builder = TableBuilder {
+///     item_collection: vec![item].into(),
+///     drop_invalid_attributes: false,
+/// };
+/// let table = builder.build().unwrap();
+/// ```
+#[derive(Debug)]
+pub struct TableBuilder {
+    /// The item collection.
+    pub item_collection: ItemCollection,
+
+    /// Whether to drop invalid attributes.
+    ///
+    /// If false, an invalid attribute will cause an error. If true, an invalid
+    /// attribute will trigger a warning.
+    pub drop_invalid_attributes: bool,
+}
+
+impl TableBuilder {
+    /// Builds a [Table]
+    pub fn build(self) -> Result<Table> {
+        let mut values = Vec::with_capacity(self.item_collection.items.len());
+        let mut builder = GeometryBuilder::new();
+        for mut item in self.item_collection.items {
+            builder.push_geometry(
+                item.geometry
+                    .take()
+                    .and_then(|geometry| Geometry::try_from(geometry).ok())
+                    .as_ref(),
+            )?;
+            let flat_item = item.into_flat_item(self.drop_invalid_attributes)?;
+            let mut value = serde_json::to_value(flat_item)?;
+            {
+                let value = value
+                    .as_object_mut()
+                    .expect("a flat item should serialize to an object");
+                let _ = value.remove("geometry");
+                if let Some(bbox) = value.remove("bbox") {
+                    let bbox = bbox
+                        .as_array()
+                        .expect("STAC items should always have a list as their bbox");
+                    if bbox.len() == 4 {
+                        let _ = value.insert("bbox".into(), json!({
                         "xmin": bbox[0].as_number().expect("all bbox values should be a number"),
                         "ymin": bbox[1].as_number().expect("all bbox values should be a number"),
                         "xmax": bbox[2].as_number().expect("all bbox values should be a number"),
                         "ymax": bbox[3].as_number().expect("all bbox values should be a number"),
                     }));
-                } else if bbox.len() == 6 {
-                    let _ = value.insert("bbox".into(), json!({
+                    } else if bbox.len() == 6 {
+                        let _ = value.insert("bbox".into(), json!({
                         "xmin": bbox[0].as_number().expect("all bbox values should be a number"),
                         "ymin": bbox[1].as_number().expect("all bbox values should be a number"),
                         "zmin": bbox[2].as_number().expect("all bbox values should be a number"),
@@ -87,42 +122,43 @@ pub fn to_table(item_collection: impl Into<ItemCollection>) -> Result<Table> {
                         "ymax": bbox[4].as_number().expect("all bbox values should be a number"),
                         "zmax": bbox[5].as_number().expect("all bbox values should be a number"),
                     }));
-                } else {
-                    return Err(Error::InvalidBbox(
-                        bbox.iter().filter_map(|v| v.as_f64()).collect(),
-                    ));
+                    } else {
+                        return Err(Error::InvalidBbox(
+                            bbox.iter().filter_map(|v| v.as_f64()).collect(),
+                        ));
+                    }
                 }
             }
+            values.push(value);
         }
-        values.push(value);
-    }
-    let schema = arrow_json::reader::infer_json_schema_from_iterator(values.iter().map(Ok))?;
-    let mut schema_builder = SchemaBuilder::new();
-    for field in schema.fields().iter() {
-        if DATETIME_COLUMNS.contains(&field.name().as_str()) {
-            schema_builder.push(Field::new(
-                field.name(),
-                DataType::Timestamp(TimeUnit::Millisecond, Some("UTC".into())),
-                field.is_nullable(),
-            ));
-        } else {
-            schema_builder.push(field.clone());
+        let schema = arrow_json::reader::infer_json_schema_from_iterator(values.iter().map(Ok))?;
+        let mut schema_builder = SchemaBuilder::new();
+        for field in schema.fields().iter() {
+            if DATETIME_COLUMNS.contains(&field.name().as_str()) {
+                schema_builder.push(Field::new(
+                    field.name(),
+                    DataType::Timestamp(TimeUnit::Millisecond, Some("UTC".into())),
+                    field.is_nullable(),
+                ));
+            } else {
+                schema_builder.push(field.clone());
+            }
         }
+        let mut metadata = schema.metadata;
+        let _ = metadata.insert(VERSION_KEY.to_string(), VERSION.into());
+        let schema = Arc::new(schema_builder.finish().with_metadata(metadata));
+        let mut decoder = ReaderBuilder::new(schema.clone()).build_decoder()?;
+        decoder.serialize(&values)?;
+        let batch = decoder.flush()?.ok_or(Error::NoItems)?;
+        let array = builder.finish();
+        Table::from_arrow_and_geometry(
+            vec![batch],
+            schema,
+            geoarrow::chunked_array::ChunkedNativeArrayDyn::from_geoarrow_chunks(&[&array])?
+                .into_inner(),
+        )
+        .map_err(Error::from)
     }
-    let mut metadata = schema.metadata;
-    let _ = metadata.insert(VERSION_KEY.to_string(), VERSION.into());
-    let schema = Arc::new(schema_builder.finish().with_metadata(metadata));
-    let mut decoder = ReaderBuilder::new(schema.clone()).build_decoder()?;
-    decoder.serialize(&values)?;
-    let batch = decoder.flush()?.ok_or(Error::NoItems)?;
-    let array = builder.finish();
-    Table::from_arrow_and_geometry(
-        vec![batch],
-        schema,
-        geoarrow::chunked_array::ChunkedNativeArrayDyn::from_geoarrow_chunks(&[&array])?
-            .into_inner(),
-    )
-    .map_err(Error::from)
 }
 
 /// Converts a [Table] to an [ItemCollection].
@@ -232,7 +268,7 @@ mod tests {
     fn to_table() {
         let item: Item = crate::read("examples/simple-item.json").unwrap();
         let table = super::to_table(vec![item]).unwrap();
-        assert_eq!(table.schema().metadata["stac:geoparquet_version"], "1.0.0");
+        assert_eq!(table.schema().metadata["geoparquet:version"], "1.0.0");
     }
 
     #[test]
