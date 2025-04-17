@@ -28,14 +28,14 @@ plugins:
         background_color: rgb(228, 246, 251)
   - redirects:
       redirect_maps:
-        python/index.md: https://www.gadom.ski/stacrs/latest/
-        python/example.md: https://www.gadom.ski/stacrs/latest/example/
-        python/api/index.md: https://www.gadom.ski/stacrs/latest/api/
-        python/api/migrate.md: https://www.gadom.ski/stacrs/latest/api/migrate/
-        python/api/read.md: https://www.gadom.ski/stacrs/latest/api/read/
-        python/api/search.md: https://www.gadom.ski/stacrs/latest/api/search/
-        python/api/version.md: https://www.gadom.ski/stacrs/latest/api/version/
-        python/api/write.md: https://www.gadom.ski/stacrs/latest/api/write/
+        python/index.md: https://www.gadom.ski/rustac-py/latest/
+        python/example.md: https://www.gadom.ski/rustac-py/latest/example/
+        python/api/index.md: https://www.gadom.ski/rustac-py/latest/api/
+        python/api/migrate.md: https://www.gadom.ski/rustac-py/latest/api/migrate/
+        python/api/read.md: https://www.gadom.ski/rustac-py/latest/api/read/
+        python/api/search.md: https://www.gadom.ski/rustac-py/latest/api/search/
+        python/api/version.md: https://www.gadom.ski/rustac-py/latest/api/version/
+        python/api/write.md: https://www.gadom.ski/rustac-py/latest/api/write/
 
 markdown_extensions:
   - admonition

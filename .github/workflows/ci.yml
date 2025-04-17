@@ -86,9 +86,9 @@ jobs:
           wget https://github.com/duckdb/duckdb/releases/download/v${{ env.duckdb-version }}/libduckdb-linux-amd64.zip
           unzip libduckdb-linux-amd64.zip -d /opt/duckdb
       - name: Build # need to build first to get the executable for CLI tests
-        run: cargo build -p stac-duckdb -p stac-cli -p stac-server -F duckdb
+        run: cargo build -p stac-duckdb -p rustac -p stac-server -F duckdb
       - name: Test
-        run: cargo test -p stac-duckdb -p stac-cli -p stac-server -F duckdb
+        run: cargo test -p stac-duckdb -p rustac -p stac-server -F duckdb
       - name: Validate stac-server
         run: uv run --group stac-api-validator scripts/validate-stac-server
       - name: Validate stac-geoparquet

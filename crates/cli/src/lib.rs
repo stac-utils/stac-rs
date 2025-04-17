@@ -14,9 +14,9 @@ use tracing_subscriber::EnvFilter;
 
 const DEFAULT_COLLECTION_ID: &str = "default-collection-id";
 
-/// stacrs: A command-line interface for the SpatioTemporal Asset Catalog (STAC)
+/// rustac: A command-line interface for the SpatioTemporal Asset Catalog (STAC)
 #[derive(Debug, Parser)]
-pub struct Stacrs {
+pub struct Rustac {
     #[command(subcommand)]
     command: Command,
 
@@ -38,7 +38,7 @@ pub struct Stacrs {
 
     /// Options for getting and putting files from object storage.
     ///
-    /// Options should be provided in `key=value` pairs, e.g.: `stacrs --opt aws_access_key_id=redacted --opt other_value=very_important`
+    /// Options should be provided in `key=value` pairs, e.g.: `rustac --opt aws_access_key_id=redacted --opt other_value=very_important`
     #[arg(long = "opt", global = true, verbatim_doc_comment)]
     options: Vec<KeyValue>,
 
@@ -104,7 +104,7 @@ pub struct Stacrs {
     quiet: u8,
 }
 
-/// A stacrs subcommand.
+/// A rustac subcommand.
 #[derive(Debug, Subcommand)]
 #[allow(clippy::large_enum_variant)]
 pub enum Command {
@@ -256,7 +256,7 @@ struct KeyValue(String, String);
 #[derive(Copy, Clone, Debug, Default)]
 struct ErrorLevel;
 
-impl Stacrs {
+impl Rustac {
     /// Runs this command.
     ///
     /// If `init_tracing_subscriber` is `false`, it is expected that the caller
@@ -431,7 +431,7 @@ impl Stacrs {
                     }
                     #[cfg(not(feature = "pgstac"))]
                     {
-                        Err(anyhow!("stacrs is not compiled with pgstac support"))
+                        Err(anyhow!("rustac is not compiled with pgstac support"))
                     }
                 } else {
                     let backend = stac_server::MemoryBackend::new();
@@ -673,7 +673,7 @@ fn level_value(level: Option<Level>) -> i8 {
 
 #[cfg(test)]
 mod tests {
-    use super::Stacrs;
+    use super::Rustac;
     use assert_cmd::Command;
     use clap::Parser;
     use rstest::{fixture, rstest};
@@ -681,7 +681,7 @@ mod tests {
 
     #[fixture]
     fn command() -> Command {
-        Command::cargo_bin("stacrs").unwrap()
+        Command::cargo_bin("rustac").unwrap()
     }
 
     #[rstest]
@@ -705,82 +705,82 @@ mod tests {
 
     #[test]
     fn input_format() {
-        let stacrs = Stacrs::parse_from(["stacrs", "translate"]);
-        assert_eq!(stacrs.input_format(None), Format::Json(false));
+        let rustac = Rustac::parse_from(["rustac", "translate"]);
+        assert_eq!(rustac.input_format(None), Format::Json(false));
 
-        let stacrs = Stacrs::parse_from(["stacrs", "translate"]);
-        assert_eq!(stacrs.input_format(Some("file.json")), Format::Json(false));
+        let rustac = Rustac::parse_from(["rustac", "translate"]);
+        assert_eq!(rustac.input_format(Some("file.json")), Format::Json(false));
 
-        let stacrs = Stacrs::parse_from(["stacrs", "translate"]);
-        assert_eq!(stacrs.input_format(Some("file.ndjson")), Format::NdJson);
+        let rustac = Rustac::parse_from(["rutsac", "translate"]);
+        assert_eq!(rustac.input_format(Some("file.ndjson")), Format::NdJson);
 
-        let stacrs = Stacrs::parse_from(["stacrs", "translate"]);
+        let rustac = Rustac::parse_from(["Rustac", "translate"]);
         assert_eq!(
-            stacrs.input_format(Some("file.parquet")),
+            rustac.input_format(Some("file.parquet")),
             Format::Geoparquet(Some(Compression::SNAPPY))
         );
 
-        let stacrs = Stacrs::parse_from(["stacrs", "--input-format", "json", "translate"]);
-        assert_eq!(stacrs.input_format(None), Format::Json(false));
+        let rustac = Rustac::parse_from(["rutsac", "--input-format", "json", "translate"]);
+        assert_eq!(rustac.input_format(None), Format::Json(false));
 
-        let stacrs = Stacrs::parse_from(["stacrs", "--input-format", "ndjson", "translate"]);
-        assert_eq!(stacrs.input_format(None), Format::NdJson);
+        let rustac = Rustac::parse_from(["rustac", "--input-format", "ndjson", "translate"]);
+        assert_eq!(rustac.input_format(None), Format::NdJson);
 
-        let stacrs = Stacrs::parse_from(["stacrs", "--input-format", "parquet", "translate"]);
-        assert_eq!(stacrs.input_format(None), Format::Geoparquet(None));
+        let rustac = Rustac::parse_from(["rustac", "--input-format", "parquet", "translate"]);
+        assert_eq!(rustac.input_format(None), Format::Geoparquet(None));
 
-        let stacrs = Stacrs::parse_from([
-            "stacrs",
+        let rustac = Rustac::parse_from([
+            "rustac",
             "--input-format",
             "json",
             "--compact-json",
             "false",
             "translate",
         ]);
-        assert_eq!(stacrs.input_format(None), Format::Json(false));
+        assert_eq!(rustac.input_format(None), Format::Json(false));
     }
 
     #[test]
     fn output_format() {
-        let stacrs = Stacrs::parse_from(["stacrs", "translate"]);
-        assert_eq!(stacrs.output_format(None), Format::Json(true));
+        let rustac = Rustac::parse_from(["rustac", "translate"]);
+        assert_eq!(rustac.output_format(None), Format::Json(true));
 
-        let stacrs = Stacrs::parse_from(["stacrs", "translate"]);
-        assert_eq!(stacrs.output_format(Some("file.json")), Format::Json(false));
+        let rustac = Rustac::parse_from(["rustac", "translate"]);
+        assert_eq!(rustac.output_format(Some("file.json")), Format::Json(false));
 
-        let stacrs = Stacrs::parse_from(["stacrs", "translate"]);
-        assert_eq!(stacrs.output_format(Some("file.ndjson")), Format::NdJson);
+        let rustac = Rustac::parse_from(["rustac", "translate"]);
+        assert_eq!(rustac.output_format(Some("file.ndjson")), Format::NdJson);
 
-        let stacrs = Stacrs::parse_from(["stacrs", "translate"]);
+        let rustac = Rustac::parse_from(["rustac", "translate"]);
         assert_eq!(
-            stacrs.output_format(Some("file.parquet")),
+            rustac.output_format(Some("file.parquet")),
             Format::Geoparquet(Some(Compression::SNAPPY))
         );
 
-        let stacrs = Stacrs::parse_from(["stacrs", "--output-format", "json", "translate"]);
-        assert_eq!(stacrs.output_format(None), Format::Json(false));
+        let rustac = Rustac::parse_from(["rustac", "--output-format", "json", "translate"]);
+        assert_eq!(rustac.output_format(None), Format::Json(false));
 
-        let stacrs = Stacrs::parse_from(["stacrs", "--output-format", "ndjson", "translate"]);
-        assert_eq!(stacrs.output_format(None), Format::NdJson);
+        let rustac = Rustac::parse_from(["rustac", "--output-format", "ndjson", "translate"]);
+        assert_eq!(rustac.output_format(None), Format::NdJson);
 
-        let stacrs = Stacrs::parse_from(["stacrs", "--output-format", "parquet", "translate"]);
+        let rustac = Rustac::parse_from(["rustac", "--output-format", "parquet", "translate"]);
         assert_eq!(
-            stacrs.output_format(None),
+            rustac.output_format(None),
             Format::Geoparquet(Some(Compression::SNAPPY))
         );
 
-        let stacrs = Stacrs::parse_from([
-            "stacrs",
+        let rustac = Rustac::parse_from([
+            "rustac",
             "--output-format",
             "json",
             "--compact-json",
             "false",
             "translate",
         ]);
-        assert_eq!(stacrs.output_format(None), Format::Json(true));
+        assert_eq!(rustac.output_format(None), Format::Json(true));
 
-        let stacrs = Stacrs::parse_from([
-            "stacrs",
+        let rustac = Rustac::parse_from([
+            "rustac",
             "--output-format",
             "parquet",
             "--parquet-compression",
@@ -788,7 +788,7 @@ mod tests {
             "translate",
         ]);
         assert_eq!(
-            stacrs.output_format(None),
+            rustac.output_format(None),
             Format::Geoparquet(Some(Compression::LZO))
         );
     }

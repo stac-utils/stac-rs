@@ -10,17 +10,17 @@ A [STAC API](https://github.com/radiantearth/stac-api-spec) server with multiple
 
 ## Usage
 
-To run a server from the command-line, use [stac-cli](../cli/README.md).
+To run a server from the command-line, use [rustac](../cli/README.md).
 Any arguments will be interpreted as hrefs to STAC collections, items, and item collections, and will be loaded into the server on startup.
 
 ```shell
-stacrs serve collection.json items.json
+rustac serve collection.json items.json
 ```
 
 To use the [pgstac](https://github.com/stac-utils/pgstac) backend:
 
 ```shell
-stacrs serve --pgstac postgresql://username:password@localhost:5432/postgis
+rustac serve --pgstac postgresql://username:password@localhost:5432/postgis
 ```
 
 If you'd like to serve your own **pgstac** backend with some sample items:
