@@ -43,7 +43,7 @@
 //! # [Value]
 //!
 //! A [Value] can represent any of the three core data structures or an [ItemCollection].
-//! It's the [serde_json::Value] for **stac-rs**:
+//! It's the [serde_json::Value] for **rustac**:
 //!
 //! ```
 //! use stac::{Value, Item};

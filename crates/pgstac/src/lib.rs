@@ -44,7 +44,7 @@
 //!
 //! # Features
 //!
-//! - `tls`: provide a function to create an unverified tls provider, which can be useful in some circumstances (see <https://github.com/stac-utils/stac-rs/issues/375>)
+//! - `tls`: provide a function to create an unverified tls provider, which can be useful in some circumstances (see <https://github.com/stac-utils/rustac/issues/375>)
 
 #![deny(
     elided_lifetimes_in_paths,

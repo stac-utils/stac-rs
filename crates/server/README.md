@@ -1,6 +1,6 @@
 # stac-server
 
-[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/stac-utils/stac-rs/ci.yml?branch=main&style=for-the-badge)](https://github.com/stac-utils/stac-rs/actions/workflows/ci.yml)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/stac-utils/rustac/ci.yml?branch=main&style=for-the-badge)](https://github.com/stac-utils/rustac/actions/workflows/ci.yml)
 [![docs.rs](https://img.shields.io/docsrs/stac-server?style=for-the-badge)](https://docs.rs/stac-server/latest/stac_server/)
 [![Crates.io](https://img.shields.io/crates/v/stac-server?style=for-the-badge)](https://crates.io/crates/stac-server)
 ![Crates.io](https://img.shields.io/crates/l/stac-server?style=for-the-badge)
@@ -80,4 +80,4 @@ This table lists the provided backends and their supported conformance classes a
 
 ## Other info
 
-This crate is part of the [stac-rs](https://github.com/stac-utils/stac-rs) monorepo, see its README for contributing and license information.
+This crate is part of the [rustac](https://github.com/stac-utils/rustac) monorepo, see its README for contributing and license information.

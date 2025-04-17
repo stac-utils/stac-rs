@@ -24,6 +24,6 @@ Follow the above workflow, with the following changes:
 
 ## Semantic versioning and deprecation
 
-All packages in **stac-rs** follow semantic versioning as best they can.
+All packages in **rustac** follow semantic versioning as best they can.
 We do not currently require deprecation before removal, so features may disappear between breaking releases.
 This may change in the future as the packages mature.

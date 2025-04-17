@@ -84,7 +84,7 @@ impl Client {
         let mut headers = HeaderMap::new();
         let _ = headers.insert(
             USER_AGENT,
-            format!("stac-rs/{}", env!("CARGO_PKG_VERSION")).parse()?,
+            format!("rustac/{}", env!("CARGO_PKG_VERSION")).parse()?,
         );
         let client = ClientBuilder::new().default_headers(headers).build()?;
         Client::with_client(client, url)
@@ -577,7 +577,7 @@ mod tests {
             .with_body_from_file("mocks/items-page-1.json")
             .match_header(
                 "user-agent",
-                format!("stac-rs/{}", env!("CARGO_PKG_VERSION")).as_str(),
+                format!("rustac/{}", env!("CARGO_PKG_VERSION")).as_str(),
             )
             .create_async()
             .await;

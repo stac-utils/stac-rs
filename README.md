@@ -1,18 +1,24 @@
-# stac-rs
+# rustac
 
-[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/stac-utils/stac-rs/ci.yml?branch=main&style=for-the-badge)](https://github.com/stac-utils/stac-rs/actions/workflows/ci.yml)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/stac-utils/rustac/ci.yml?branch=main&style=for-the-badge)](https://github.com/stac-utils/rustac/actions/workflows/ci.yml)
 ![Crates.io](https://img.shields.io/crates/l/stac?style=for-the-badge)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?style=for-the-badge)](./CODE_OF_CONDUCT)
+
+> The power of Rust for the STAC ecosystem
 
 ![Ferris the crab holding the STAC logo](./img/ferris-holding-stac-small.png)
 
 Command Line Interface (CLI) and Rust libraries for the [SpatioTemporal Asset Catalog (STAC)](https://stacspec.org/) specification.
-We have a Python package based on **stac-rs** that lives in its own repository, [stacrs](https://github.com/gadomski/stacrs).
-For more on the difference between **stac-rs** and **stacrs**, see [our docs](https://stac-utils.github.io/stac-rs/).
+We have a Python package based on **rustac** that lives in its own repository, [rustac-py](https://github.com/gadomski/rustac-py).
+For more on the difference between **rustac** and **rustac-py**, see [our docs](https://stac-utils.github.io/rustac/).
+
+> [!NOTE]
+> Until 2025-04-17, this repository was named **stac-rs**.
+> See [this RFC](https://github.com/stac-utils/rustac/issues/641) for context on the name change.
 
 ## Formats
 
-**stac-rs** "speaks" three forms of STAC:
+**rustac** "speaks" three forms of STAC:
 
 - **JSON**: STAC is derived from [GeoJSON](https://geojson.org/)
 - **Newline-delimited JSON (ndjson)**: One JSON [item](https://github.com/radiantearth/stac-spec/blob/master/item-spec/item-spec.md) per line, often used for bulk item loading and storage
@@ -103,7 +109,7 @@ See [RELEASING.md](./RELEASING.md) for a checklist to use when releasing a new v
 
 ## License
 
-**stac-rs** is dual-licensed under both the MIT license and the Apache license (Version 2.0).
+**rustac** is dual-licensed under both the MIT license and the Apache license (Version 2.0).
 See [LICENSE-APACHE](./LICENSE-APACHE) and [LICENSE-MIT](./LICENSE-MIT) for details.
 
 <!-- markdownlint-disable-file MD033 -->

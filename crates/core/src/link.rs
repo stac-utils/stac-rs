@@ -30,7 +30,7 @@ pub const COLLECTION_REL: &str = "collection";
 /// This link structure includes a few fields from the [STAC API
 /// specification](https://github.com/radiantearth/stac-api-spec/tree/main/item-search#pagination).
 /// Generally we keep STAC API structures in the [stac-api
-/// crate](https://github.com/stac-utils/stac-rs/stac-api), but in this case it
+/// crate](https://github.com/stac-utils/rustac/stac-api), but in this case it
 /// was simpler to include these attributes in the base [Link] rather to create a new one.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone, Fields)]
 pub struct Link {
@@ -606,7 +606,7 @@ impl Link {
     /// use stac::Link;
     ///
     /// assert!(Link::new("/a/local/path/item.json", "rel").is_absolute());
-    /// assert!(Link::new("http://stac-rs.test/item.json", "rel").is_absolute());
+    /// assert!(Link::new("http://rustac.test/item.json", "rel").is_absolute());
     /// assert!(!Link::new("./not/an/absolute/path", "rel").is_absolute());
     /// ```
     pub fn is_absolute(&self) -> bool {
@@ -621,7 +621,7 @@ impl Link {
     /// use stac::Link;
     ///
     /// assert!(!Link::new("/a/local/path/item.json", "rel").is_relative());
-    /// assert!(!Link::new("http://stac-rs.test/item.json", "rel").is_relative());
+    /// assert!(!Link::new("http://rustac.test/item.json", "rel").is_relative());
     /// assert!(Link::new("./not/an/absolute/path", "rel").is_relative());
     /// ```
     pub fn is_relative(&self) -> bool {
@@ -744,7 +744,7 @@ mod tests {
             catalog.links.push(Link::new("/child.json", "child"));
             catalog
                 .links
-                .push(Link::new("http://stac-rs.test/child.json", "child"));
+                .push(Link::new("http://rustac.test/child.json", "child"));
             catalog.remove_relative_links();
             assert_eq!(catalog.links.len(), 2);
         }
