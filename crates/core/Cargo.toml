@@ -15,6 +15,7 @@ rust-version.workspace = true
 geo = ["dep:geo"]
 geoarrow = [
     "dep:geoarrow",
+    "dep:geoarrow-schema",
     "dep:arrow-array",
     "dep:arrow-cast",
     "dep:arrow-json",
@@ -56,6 +57,7 @@ fluent-uri = { workspace = true, optional = true }
 geo = { workspace = true, optional = true }
 geo-types = { workspace = true, optional = true }
 geoarrow = { workspace = true, optional = true }
+geoarrow-schema = { workspace = true, optional = true }
 geojson.workspace = true
 jsonschema = { workspace = true, optional = true, features = ["resolve-http"] }
 log.workspace = true
