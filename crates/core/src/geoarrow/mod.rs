@@ -181,17 +181,11 @@ impl TableBuilder {
 /// # }
 /// ```
 pub fn from_table(table: Table) -> Result<ItemCollection> {
-    let version = table.schema().metadata.get(VERSION_KEY).cloned();
-    let mut item_collection = json::from_table(table)?
+    let item_collection = json::from_table(table)?
         .into_iter()
         .map(|item| serde_json::from_value(Value::Object(item)).map_err(Error::from))
         .collect::<Result<Vec<_>>>()
         .map(ItemCollection::from)?;
-    if let Some(version) = version {
-        let _ = item_collection
-            .additional_fields
-            .insert("stac_geoparquet:version".to_string(), version.into());
-    }
     Ok(item_collection)
 }
 
