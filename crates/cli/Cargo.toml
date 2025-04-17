@@ -1,5 +1,5 @@
 [package]
-name = "stac-cli"
+name = "rustac"
 description = "Command line interface for rustac"
 version = "0.5.3"
 keywords = ["geospatial", "stac", "metadata", "geo", "raster"]
@@ -48,7 +48,7 @@ rstest.workspace = true
 crate-type = ["lib", "cdylib"]
 
 [[bin]]
-name = "stacrs"
+name = "rustac"
 path = "src/main.rs"
 doc = false
 test = false

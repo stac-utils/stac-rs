@@ -32,16 +32,16 @@ Our command line interface (CLI) can query STAC APIs, validate STAC, and more.
 Install:
 
 ```shell
-python -m pip install stacrs
+python -m pip install rustac
 # or
-cargo install stac-cli
+cargo install rustac
 ```
 
 Then:
 
 ```shell
 # Search
-$ stacrs search https://landsatlook.usgs.gov/stac-server \
+$ rustac search https://landsatlook.usgs.gov/stac-server \
     --collections landsat-c2l2-sr \
     --intersects '{"type": "Point", "coordinates": [-105.119, 40.173]}' \
     --sortby='-properties.datetime' \
@@ -49,20 +49,20 @@ $ stacrs search https://landsatlook.usgs.gov/stac-server \
     items.parquet
 
 # Translate formats
-$ stacrs translate items.parquet items.ndjson
-$ stacrs translate items.ndjson items.json
+$ rustac translate items.parquet items.ndjson
+$ rustac translate items.ndjson items.json
 
 # Migrate STAC versions
-$ stacrs translate item-v1.0.json item-v1.1.json --migrate
+$ rustac translate item-v1.0.json item-v1.1.json --migrate
 
 # Search stac-geoparquet (no API server required)
-$ stacrs search items.parquet
+$ rustac search items.parquet
 
 # Server
-$ stacrs serve items.parquet  # Opens a STAC API server on http://localhost:7822
+$ rustac serve items.parquet  # Opens a STAC API server on http://localhost:7822
 
 # Validate
-$ stacrs validate item.json
+$ rustac validate item.json
 ```
 
 ## Crates
@@ -74,7 +74,7 @@ This monorepo contains several crates:
 | [stac](./crates/core/README.md)                  | Core data structures and I/O                                                                    | [![docs.rs](https://img.shields.io/docsrs/stac?style=flat-square)](https://docs.rs/stac/latest/stac/) <br> [![Crates.io](https://img.shields.io/crates/v/stac?style=flat-square)](https://crates.io/crates/stac)                                                        |
 | [stac-api](./crates/api/README.md)               | Data structures for the [STAC API](https://github.com/radiantearth/stac-api-spec) specification | [![docs.rs](https://img.shields.io/docsrs/stac-api?style=flat-square)](https://docs.rs/stac-api/latest/stac_api/) <br> [![Crates.io](https://img.shields.io/crates/v/stac-api?style=flat-square)](https://crates.io/crates/stac-api)                                    |
 | [stac-extensions](./crates/extensions/README.md) | Basic support for [STAC extensions](https://stac-extensions.github.io/)                         | [![docs.rs](https://img.shields.io/docsrs/stac-extensions?style=flat-square)](https://docs.rs/stac-extensions/latest/stac_extensions/) <br> [![Crates.io](https://img.shields.io/crates/v/stac-extensions?style=flat-square)](https://crates.io/crates/stac-extensions) |
-| [stac-cli](./crates/cli/README.md)               | Command line interface                                                                          | [![docs.rs](https://img.shields.io/docsrs/stac-cli?style=flat-square)](https://docs.rs/stac-cli/latest/stac_cli/) <br> [![Crates.io](https://img.shields.io/crates/v/stac-cli?style=flat-square)](https://crates.io/crates/stac-cli)                                    |
+| [rustac](./crates/cli/README.md)               | Command line interface                                                                          | [![docs.rs](https://img.shields.io/docsrs/rustac?style=flat-square)](https://docs.rs/rustac/latest/rustac/) <br> [![Crates.io](https://img.shields.io/crates/v/rustac?style=flat-square)](https://crates.io/crates/rustac)                                    |
 | [stac-server](./crates/server/README.md)         | STAC API server with multiple backends                                                          | [![docs.rs](https://img.shields.io/docsrs/stac-server?style=flat-square)](https://docs.rs/stac-server/latest/stac_server/) <br> [![Crates.io](https://img.shields.io/crates/v/stac-server?style=flat-square)](https://crates.io/crates/stac-server)                     |
 | [pgstac](./crates/pgstac/README.md)              | Bindings for [pgstac](https://github.com/stac-utils/pgstac)                                     | [![docs.rs](https://img.shields.io/docsrs/pgstac?style=flat-square)](https://docs.rs/pgstac/latest/pgstac/) <br> [![Crates.io](https://img.shields.io/crates/v/pgstac?style=flat-square)](https://crates.io/crates/pgstac)                                              |
 | [stac-duckdb](./crates/duckdb/README.md)         | Experimental client for [duckdb](https://duckdb.org/)                                           | [![docs.rs](https://img.shields.io/docsrs/stac-duckdb?style=flat-square)](https://docs.rs/stac-duckdb/latest/stac_duckdb/) <br> [![Crates.io](https://img.shields.io/crates/v/stac-duckdb?style=flat-square)](https://crates.io/crates/stac-duckdb)                     |
@@ -85,17 +85,17 @@ This monorepo contains several crates:
 graph TD
     stac --> stac-api
     stac --> stac-extensions
-    stac --> stac-cli
+    stac --> rustac
     stac --> pgstac
     stac --> stac-duckdb
     stac --> stac-server
     stac-api --> pgstac
     stac-api --> stac-duckdb
     stac-api --> stac-server
-    stac-api --> stac-cli
+    stac-api --> rustac
     pgstac --> stac-server
     stac-duckdb --> stac-server
-    stac-server --> stac-cli
+    stac-server --> rustac
 ```
 
 > [!NOTE]

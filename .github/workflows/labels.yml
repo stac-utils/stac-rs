@@ -18,6 +18,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
       - name: Build
-        run: cargo build -p stac-cli -F duckdb-bundled
+        run: cargo build -p rustac -F duckdb-bundled
       - name: Test
-        run: cargo test -p stac-cli -F duckdb-bundled
+        run: cargo test -p rustac -F duckdb-bundled
