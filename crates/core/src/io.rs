@@ -291,7 +291,7 @@ mod tests {
     #[cfg(not(feature = "reqwest"))]
     fn read_without_reqwest() {
         assert!(matches!(
-            super::read::<Item>("http://stac-rs.test/item.json").unwrap_err(),
+            super::read::<Item>("http://rustac.test/item.json").unwrap_err(),
             crate::Error::FeatureNotEnabled("reqwest")
         ));
     }

@@ -258,7 +258,7 @@ mod tests {
 
     #[test]
     fn remove_empty_bands() {
-        // https://github.com/stac-utils/stac-rs/issues/350
+        // https://github.com/stac-utils/rustac/issues/350
         let item: Item = crate::read("data/20201211_223832_CS2.json").unwrap();
         let item = item.migrate(&Version::v1_1_0).unwrap();
         let asset = &item.assets["data"];

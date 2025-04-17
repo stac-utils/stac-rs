@@ -10,18 +10,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Added
 
-- `Pgstac` trait ([#551](https://github.com/stac-utils/stac-rs/pull/551))
-- `python` feature ([#558](https://github.com/stac-utils/stac-rs/pull/558))
-- `readonly` ([#570](https://github.com/stac-utils/stac-rs/pull/570))
-- `update_collection_extents` ([#574](https://github.com/stac-utils/stac-rs/pull/574))
+- `Pgstac` trait ([#551](https://github.com/stac-utils/rustac/pull/551))
+- `python` feature ([#558](https://github.com/stac-utils/rustac/pull/558))
+- `readonly` ([#570](https://github.com/stac-utils/rustac/pull/570))
+- `update_collection_extents` ([#574](https://github.com/stac-utils/rustac/pull/574))
 
 ### Changed
 
-- Return JSON, not STAC ([#550](https://github.com/stac-utils/stac-rs/pull/550))
+- Return JSON, not STAC ([#550](https://github.com/stac-utils/rustac/pull/550))
 
 ### Removed
 
-- `Client` ([#551](https://github.com/stac-utils/stac-rs/pull/551))
+- `Client` ([#551](https://github.com/stac-utils/rustac/pull/551))
 
 ## [0.2.2] - 2024-11-12
 
@@ -37,7 +37,7 @@ Bump dependencies.
 
 ### Added
 
-- Unverified tls provider ([#383](https://github.com/stac-utils/stac-rs/pull/383))
+- Unverified tls provider ([#383](https://github.com/stac-utils/rustac/pull/383))
 
 ## [0.1.2] - 2024-09-05
 
@@ -56,7 +56,7 @@ Bump dependencies.
 
 ### Changed
 
-- Moved from <https://github.com/stac-utils/pgstac-rs> to the <https://github.com/stac-utils/stac-rs> monorepo ([#246](https://github.com/stac-utils/stac-rs/pull/246))
+- Moved from <https://github.com/stac-utils/pgrustac> to the <https://github.com/stac-utils/rustac> monorepo ([#246](https://github.com/stac-utils/rustac/pull/246))
 
 ## [0.0.6] - 2024-04-20
 
@@ -70,7 +70,7 @@ Bump dependencies.
 ## [0.0.4] - 2023-07-07
 
 - Bump **stac** version to v0.5
-- Bump **pgstac** version to v0.6.13 ([#2](https://github.com/stac-utils/pgstac-rs/pull/2))
+- Bump **pgstac** version to v0.6.13 ([#2](https://github.com/stac-utils/pgrustac/pull/2))
 
 ## [0.0.3] - 2023-01-08
 
@@ -92,19 +92,19 @@ Bump dependencies.
 
 Initial release
 
-[unreleased]: https://github.com/stac-utils/stac-rs/compare/pgstac-v0.3.0...HEAD
-[0.3.0]: https://github.com/stac-utils/stac-rs/compare/pgstac-v0.2.2..pgstac-v0.3.0
-[0.2.2]: https://github.com/stac-utils/stac-rs/compare/pgstac-v0.2.1..pgstac-v0.2.2
-[0.2.1]: https://github.com/stac-utils/stac-rs/compare/pgstac-v0.2.0..pgstac-v0.2.1
-[0.2.0]: https://github.com/stac-utils/stac-rs/compare/pgstac-v0.1.2..pgstac-v0.2.0
-[0.1.2]: https://github.com/stac-utils/stac-rs/compare/pgstac-v0.1.1..pgstac-v0.1.2
-[0.1.1]: https://github.com/stac-utils/stac-rs/compare/pgstac-v0.1.0..pgstac-v0.1.1
-[0.1.0]: https://github.com/stac-utils/stac-rs/releases/tag/pgstac-v0.1.0
-[0.0.6]: https://github.com/stac-utils/pgstac-rs/compare/v0.0.5...v0.0.6
-[0.0.5]: https://github.com/stac-utils/pgstac-rs/compare/v0.0.4...v0.0.5
-[0.0.4]: https://github.com/stac-utils/pgstac-rs/compare/v0.0.3...v0.0.4
-[0.0.3]: https://github.com/stac-utils/pgstac-rs/compare/v0.0.2...v0.0.3
-[0.0.2]: https://github.com/stac-utils/pgstac-rs/compare/v0.0.1...v0.0.2
-[0.0.1]: https://github.com/stac-utils/pgstac-rs/tree/v0.0.1
+[unreleased]: https://github.com/stac-utils/rustac/compare/pgstac-v0.3.0...HEAD
+[0.3.0]: https://github.com/stac-utils/rustac/compare/pgstac-v0.2.2..pgstac-v0.3.0
+[0.2.2]: https://github.com/stac-utils/rustac/compare/pgstac-v0.2.1..pgstac-v0.2.2
+[0.2.1]: https://github.com/stac-utils/rustac/compare/pgstac-v0.2.0..pgstac-v0.2.1
+[0.2.0]: https://github.com/stac-utils/rustac/compare/pgstac-v0.1.2..pgstac-v0.2.0
+[0.1.2]: https://github.com/stac-utils/rustac/compare/pgstac-v0.1.1..pgstac-v0.1.2
+[0.1.1]: https://github.com/stac-utils/rustac/compare/pgstac-v0.1.0..pgstac-v0.1.1
+[0.1.0]: https://github.com/stac-utils/rustac/releases/tag/pgstac-v0.1.0
+[0.0.6]: https://github.com/stac-utils/pgrustac/compare/v0.0.5...v0.0.6
+[0.0.5]: https://github.com/stac-utils/pgrustac/compare/v0.0.4...v0.0.5
+[0.0.4]: https://github.com/stac-utils/pgrustac/compare/v0.0.3...v0.0.4
+[0.0.3]: https://github.com/stac-utils/pgrustac/compare/v0.0.2...v0.0.3
+[0.0.2]: https://github.com/stac-utils/pgrustac/compare/v0.0.1...v0.0.2
+[0.0.1]: https://github.com/stac-utils/pgrustac/tree/v0.0.1
 
 <!-- markdownlint-disable-file MD024 -->

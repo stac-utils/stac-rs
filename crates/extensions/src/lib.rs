@@ -6,9 +6,9 @@
 //! [stac-extensions](https://github.com/stac-extensions/) organization.
 //! This crate currently supports only a few extensions, though we plan to add more as we find the time.
 //! See <https://stac-extensions.github.io/> for the latest table of community extensions.
-//! This table below lists all [stable](https://github.com/radiantearth/stac-spec/tree/master/extensions#extension-maturity) extensions, as well as any other extensions that are supported by **stac-rs**:
+//! This table below lists all [stable](https://github.com/radiantearth/stac-spec/tree/master/extensions#extension-maturity) extensions, as well as any other extensions that are supported by **rustac**:
 //!
-//! | Extension | Maturity | **stac-rs** supported version |
+//! | Extension | Maturity | **rustac** supported version |
 //! | -- | -- | -- |
 //! | [Authentication](https://github.com/stac-extensions/authentication) | Proposal | v1.1.0 |
 //! | [Electro-Optical](https://github.com/stac-extensions/eo) | Stable | v1.1.0 |

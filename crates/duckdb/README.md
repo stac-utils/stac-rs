@@ -1,6 +1,6 @@
 # pgstac
 
-[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/stac-utils/stac-rs/ci.yml?branch=main&style=for-the-badge)](https://github.com/stac-utils/stac-rs/actions/workflows/ci.yml)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/stac-utils/rustac/ci.yml?branch=main&style=for-the-badge)](https://github.com/stac-utils/rustac/actions/workflows/ci.yml)
 [![docs.rs](https://img.shields.io/docsrs/stac-duckdb?style=for-the-badge)](https://docs.rs/stac-duckdb/latest/stac_duckdb/)
 [![Crates.io](https://img.shields.io/crates/v/stac-duckdb?style=for-the-badge)](https://crates.io/crates/stac-duckdb)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?style=for-the-badge)](./CODE_OF_CONDUCT)
@@ -30,4 +30,4 @@ See [the duckdb-rs docs](https://github.com/duckdb/duckdb-rs?tab=readme-ov-file#
 
 ## Other info
 
-This crate is part of the [stac-rs](https://github.com/stac-utils/stac-rs) monorepo, see its README for contributing and license information.
+This crate is part of the [rustac](https://github.com/stac-utils/rustac) monorepo, see its README for contributing and license information.

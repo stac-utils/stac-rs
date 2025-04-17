@@ -1,5 +1,5 @@
 [project]
-name = "stac-rs"
+name = "rustac"
 version = "0.0.0"
 description = "This package should never be released, it's just for uv."
 requires-python = ">=3.12"

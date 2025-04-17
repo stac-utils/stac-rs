@@ -1,7 +1,7 @@
-site_name: stac-rs
+site_name: rustac
 site_description: Command Line Interface (CLI) and Rust crates the SpatioTemporal Asset Catalog (STAC) specification.
-site_url: https://stac-utils.github.io/stac-rs/
-repo_url: https://github.com/stac-utils/stac-rs
+site_url: https://stac-utils.github.io/rustac/
+repo_url: https://github.com/stac-utils/rustac
 theme:
   name: material
   logo: img/stac-ferris.png

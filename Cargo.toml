@@ -21,8 +21,8 @@ default-members = [
 [workspace.package]
 authors = ["Pete Gadomski <pete.gadomski@gmail.com>"]
 edition = "2024"
-homepage = "https://stac-utils.github.io/stac-rs"
-repository = "https://github.com/stac-utils/stac-rs"
+homepage = "https://stac-utils.github.io/rustac"
+repository = "https://github.com/stac-utils/rustac"
 license = "MIT OR Apache-2.0"
 categories = ["science", "data-structures"]
 rust-version = "1.85"

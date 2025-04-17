@@ -1,4 +1,4 @@
-# Contributing to **stac-rs**
+# Contributing to **rustac**
 
 First off, thanks for contributing!
 We appreciates you.
