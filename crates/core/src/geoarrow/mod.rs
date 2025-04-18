@@ -3,6 +3,7 @@
 pub mod json;
 
 use crate::{Error, ItemCollection, Result};
+use arrow_array::RecordBatchReader;
 use arrow_array::{GenericByteArray, RecordBatch, cast::AsArray, types::GenericBinaryType};
 use arrow_json::ReaderBuilder;
 use arrow_schema::{DataType, Field, SchemaBuilder, TimeUnit};
@@ -162,7 +163,7 @@ impl TableBuilder {
     }
 }
 
-/// Converts a [Table] to an [ItemCollection].
+/// Converts a [RecordBatchReader] to an [ItemCollection].
 ///
 /// # Examples
 ///
@@ -181,8 +182,8 @@ impl TableBuilder {
 /// let item_collection = stac::geoarrow::from_table(table).unwrap();
 /// # }
 /// ```
-pub fn from_table(table: Table) -> Result<ItemCollection> {
-    let item_collection = json::from_table(table)?
+pub fn from_record_batch_reader<R: RecordBatchReader>(reader: R) -> Result<ItemCollection> {
+    let item_collection = json::from_record_batch_reader(reader)?
         .into_iter()
         .map(|item| serde_json::from_value(Value::Object(item)).map_err(Error::from))
         .collect::<Result<Vec<_>>>()

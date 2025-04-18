@@ -38,11 +38,18 @@ const TOP_LEVEL_KEYS: [&str; 10] = [
     "collection",
 ];
 
+use arrow_array::RecordBatchReader;
 use arrow_array::{cast::*, types::*, *};
 use arrow_cast::display::{ArrayFormatter, FormatOptions};
 use arrow_json::JsonSerializable;
 use arrow_schema::*;
-use geoarrow::table::Table;
+use geo_traits::to_geo::{
+    ToGeoGeometry, ToGeoGeometryCollection, ToGeoLineString, ToGeoMultiLineString, ToGeoMultiPoint,
+    ToGeoMultiPolygon, ToGeoPoint, ToGeoPolygon, ToGeoRect,
+};
+use geoarrow_array::ArrayAccessor;
+use geoarrow_array::array::from_arrow_array;
+use geoarrow_array::cast::AsGeoArrowArray;
 use serde_json::{Value, json, map::Map as JsonMap};
 use std::iter;
 
@@ -417,36 +424,56 @@ fn set_column_for_json_rows(
     Ok(())
 }
 
-/// Converts a table to json rows.
-pub fn from_table(table: Table) -> Result<Vec<serde_json::Map<String, Value>>, crate::Error> {
-    use geoarrow::{array::AsNativeArray, datatypes::NativeType::*, trait_::ArrayAccessor};
-    use geojson::Value;
+pub fn from_record_batch_reader<R: RecordBatchReader>(
+    reader: R,
+) -> Result<Vec<serde_json::Map<String, Value>>, crate::Error> {
+    use geoarrow_array::GeoArrowType;
 
-    let index = table
-        .schema()
-        .column_with_name("geometry")
-        .map(|(index, _)| index);
-    let mut json_rows = record_batches_to_json_rows(table.batches(), index)?;
+    let schema = reader.schema();
+    let geometry_index = schema.column_with_name("geometry").map(|(index, _)| index);
+
+    // For now we collect all batches into memory, but in the future we could iterate on the stream
+    // directly.
+    let batches = reader.collect::<Result<Vec<_>, _>>()?;
+    let mut json_rows = record_batches_to_json_rows(&batches, geometry_index)?;
     let mut items = Vec::new();
-    if let Some(index) = index {
-        for chunk in table.geometry_column(Some(index))?.geometry_chunks() {
+    if let Some(index) = geometry_index {
+        let field = schema.field(index);
+        for batch in &batches {
+            let array = batch.column(index);
+            let chunk = from_arrow_array(array, field)?;
             for i in 0..chunk.len() {
+                use GeoArrowType::*;
                 let value = match chunk.data_type() {
-                    Point(_) => Value::from(&chunk.as_ref().as_point().value_as_geo(i)),
-                    LineString(_) => Value::from(&chunk.as_ref().as_line_string().value_as_geo(i)),
-                    Polygon(_) => Value::from(&chunk.as_ref().as_polygon().value_as_geo(i)),
-                    MultiPoint(_) => Value::from(&chunk.as_ref().as_multi_point().value_as_geo(i)),
-                    MultiLineString(_) => {
-                        Value::from(&chunk.as_ref().as_multi_line_string().value_as_geo(i))
+                    Point(_) => Value::from(chunk.as_point().value(i)?.to_point()),
+                    LineString(_) => {
+                        Value::from(&chunk.as_line_string().value(i)?.to_line_string())
                     }
+                    Polygon(_) => Value::from(&chunk.as_polygon().value(i)?.to_polygon()),
+                    MultiPoint(_) => {
+                        Value::from(&chunk.as_multi_point().value(i)?.to_multi_point())
+                    }
+                    MultiLineString(_) => Value::from(
+                        &chunk
+                            .as_multi_line_string()
+                            .value(i)?
+                            .to_multi_line_string(),
+                    ),
                     MultiPolygon(_) => {
-                        Value::from(&chunk.as_ref().as_multi_polygon().value_as_geo(i))
+                        Value::from(&chunk.as_multi_polygon().value(i)?.to_multi_polygon())
                     }
-                    Geometry(_) => Value::from(&chunk.as_ref().as_geometry().value_as_geo(i)),
-                    GeometryCollection(_) => {
-                        Value::from(&chunk.as_ref().as_geometry_collection().value_as_geo(i))
-                    }
-                    Rect(_) => Value::from(&chunk.as_ref().as_rect().value_as_geo(i)),
+                    Geometry(_) => Value::from(&chunk.as_geometry().value(i)?.to_geometry()),
+                    GeometryCollection(_) => Value::from(
+                        &chunk
+                            .as_geometry_collection()
+                            .value(i)?
+                            .to_geometry_collection(),
+                    ),
+                    Rect(_) => Value::from(&chunk.as_rect().value(i)?.to_rect()),
+                    Wkb(_) => Value::from(&chunk.as_wkb::<i32>().value(i)?.to_geometry()),
+                    LargeWkb(_) => Value::from(&chunk.as_wkb::<i64>().value(i)?.to_geometry()),
+                    Wkt(_) => Value::from(&chunk.as_wkt::<i32>().value(i)?.to_geometry()),
+                    LargeWkt(_) => Value::from(&chunk.as_wkt::<i64>().value(i)?.to_geometry()),
                 };
                 let mut row = json_rows
                     .next()
