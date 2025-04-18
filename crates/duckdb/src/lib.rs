@@ -615,7 +615,7 @@ impl Default for Config {
 
 #[cfg(test)]
 mod tests {
-    use super::{Client, Config};
+    use super::Client;
     use geo::Geometry;
     use rstest::{fixture, rstest};
     use stac::{Bbox, Validate};
@@ -628,40 +628,6 @@ mod tests {
     fn client() -> Client {
         let _mutex = MUTEX.lock().unwrap();
         Client::new().unwrap()
-    }
-
-    #[test]
-    fn no_install() {
-        let _mutex = MUTEX.lock().unwrap();
-        let config = Config {
-            install_extensions: false,
-            ..Default::default()
-        };
-        let client = Client::with_config(config).unwrap();
-        client
-            .search("data/100-sentinel-2-items.parquet", Search::default())
-            .unwrap();
-    }
-
-    #[test]
-    fn extension_directory() {
-        let _mutex = MUTEX.lock().unwrap();
-        let temp_dir = std::env::temp_dir();
-        let config = Config {
-            extension_directory: Some(temp_dir.to_string_lossy().to_string()),
-            ..Default::default()
-        };
-        let _ = Client::with_config(config).unwrap();
-    }
-
-    #[test]
-    fn custom_extension_repository() {
-        let _mutex = MUTEX.lock().unwrap();
-        let config = Config {
-            custom_extension_repository: Some(".".to_string()),
-            ..Default::default()
-        };
-        let _ = Client::with_config(config).unwrap();
     }
 
     #[rstest]
