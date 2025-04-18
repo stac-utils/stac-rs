@@ -445,35 +445,41 @@ pub fn from_record_batch_reader<R: RecordBatchReader>(
             for i in 0..chunk.len() {
                 use GeoArrowType::*;
                 let value = match chunk.data_type() {
-                    Point(_) => Value::from(chunk.as_point().value(i)?.to_point()),
+                    Point(_) => geojson::Value::from(&chunk.as_point().value(i)?.to_point()),
                     LineString(_) => {
-                        Value::from(&chunk.as_line_string().value(i)?.to_line_string())
+                        geojson::Value::from(&chunk.as_line_string().value(i)?.to_line_string())
                     }
-                    Polygon(_) => Value::from(&chunk.as_polygon().value(i)?.to_polygon()),
+                    Polygon(_) => geojson::Value::from(&chunk.as_polygon().value(i)?.to_polygon()),
                     MultiPoint(_) => {
-                        Value::from(&chunk.as_multi_point().value(i)?.to_multi_point())
+                        geojson::Value::from(&chunk.as_multi_point().value(i)?.to_multi_point())
                     }
-                    MultiLineString(_) => Value::from(
+                    MultiLineString(_) => geojson::Value::from(
                         &chunk
                             .as_multi_line_string()
                             .value(i)?
                             .to_multi_line_string(),
                     ),
                     MultiPolygon(_) => {
-                        Value::from(&chunk.as_multi_polygon().value(i)?.to_multi_polygon())
+                        geojson::Value::from(&chunk.as_multi_polygon().value(i)?.to_multi_polygon())
                     }
-                    Geometry(_) => Value::from(&chunk.as_geometry().value(i)?.to_geometry()),
-                    GeometryCollection(_) => Value::from(
+                    Geometry(_) => {
+                        geojson::Value::from(&chunk.as_geometry().value(i)?.to_geometry())
+                    }
+                    GeometryCollection(_) => geojson::Value::from(
                         &chunk
                             .as_geometry_collection()
                             .value(i)?
                             .to_geometry_collection(),
                     ),
-                    Rect(_) => Value::from(&chunk.as_rect().value(i)?.to_rect()),
-                    Wkb(_) => Value::from(&chunk.as_wkb::<i32>().value(i)?.to_geometry()),
-                    LargeWkb(_) => Value::from(&chunk.as_wkb::<i64>().value(i)?.to_geometry()),
-                    Wkt(_) => Value::from(&chunk.as_wkt::<i32>().value(i)?.to_geometry()),
-                    LargeWkt(_) => Value::from(&chunk.as_wkt::<i64>().value(i)?.to_geometry()),
+                    Rect(_) => geojson::Value::from(&chunk.as_rect().value(i)?.to_rect()),
+                    Wkb(_) => geojson::Value::from(&chunk.as_wkb::<i32>().value(i)?.to_geometry()),
+                    LargeWkb(_) => {
+                        geojson::Value::from(&chunk.as_wkb::<i64>().value(i)?.to_geometry())
+                    }
+                    Wkt(_) => geojson::Value::from(&chunk.as_wkt::<i32>().value(i)?.to_geometry()),
+                    LargeWkt(_) => {
+                        geojson::Value::from(&chunk.as_wkt::<i64>().value(i)?.to_geometry())
+                    }
                 };
                 let mut row = json_rows
                     .next()
