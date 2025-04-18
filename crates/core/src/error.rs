@@ -34,10 +34,10 @@ pub enum Error {
         path: String,
     },
 
-    /// [geoarrow::error::GeoArrowError]
+    /// [geoarrow_array::error::GeoArrowError]
     #[error(transparent)]
     #[cfg(feature = "geoarrow")]
-    GeoArrow(#[from] geoarrow::error::GeoArrowError),
+    GeoArrow(#[from] geoarrow_array::error::GeoArrowError),
 
     /// [geojson::Error]
     #[error(transparent)]

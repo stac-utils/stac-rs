@@ -48,9 +48,11 @@ duckdb = "1.2.2"
 fluent-uri = "0.3.2"
 futures = "0.3.31"
 geo = "0.30.0"
+geo-traits = "0.2"
 geo-types = "0.7.15"
-geoarrow = "0.4.0-beta.4"
-geoarrow-schema = { git = "https://github.com/geoarrow/geoarrow-rs/", rev = "80b15d4d5a69ab0828dbc3444f66df1e4c314bd0" }
+geoarrow-array = { git = "https://github.com/geoarrow/geoarrow-rs/", rev = "0951163e3e8724a528c2f680a4158106197e7a32" }
+geoarrow-geoparquet = { git = "https://github.com/geoarrow/geoarrow-rs/", rev = "0951163e3e8724a528c2f680a4158106197e7a32" }
+geoarrow-schema = { git = "https://github.com/geoarrow/geoarrow-rs/", rev = "0951163e3e8724a528c2f680a4158106197e7a32" }
 geojson = "0.24.1"
 http = "1.1"
 jsonschema = { version = "0.30.0", default-features = false }
@@ -95,5 +97,5 @@ url = "2.3"
 webpki-roots = "0.26.8"
 
 [patch.crates-io]
-geoarrow = { git = "https://github.com/geoarrow/geoarrow-rs/", rev = "80b15d4d5a69ab0828dbc3444f66df1e4c314bd0" }
+# geoarrow = { git = "https://github.com/geoarrow/geoarrow-rs/", rev = "80b15d4d5a69ab0828dbc3444f66df1e4c314bd0" }
 duckdb = { git = "https://github.com/gadomski/duckdb-rs/", branch = "arrow-v55" }
