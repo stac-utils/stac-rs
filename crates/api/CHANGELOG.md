@@ -6,8 +6,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
-## [0.8.0] - 2025-04-18
-
 ### Removed
 
 - Python ([#679](https://github.com/stac-utils/rustac/pull/679))
@@ -161,8 +159,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 Initial release
 
-[unreleased]: https://github.com/stac-utils/rustac/compare/stac-api-v0.8.0...main
-[0.8.0]: https://github.com/stac-utils/rustac/compare/stac-api-v0.7.1...stac-api-v0.8.0
+[unreleased]: https://github.com/stac-utils/rustac/compare/stac-api-v0.7.1...main
 [0.7.1]: https://github.com/stac-utils/rustac/compare/stac-api-v0.7.0...stac-api-v0.7.1
 [0.7.0]: https://github.com/stac-utils/rustac/compare/stac-api-v0.6.2...stac-api-v0.7.0
 [0.6.2]: https://github.com/stac-utils/rustac/compare/stac-api-v0.6.1...stac-api-v0.6.2

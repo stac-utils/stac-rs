@@ -6,15 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
-## [0.6.0] - 2025-04-18
-
 ### Added
 
 - DuckDB server backend ([#651](https://github.com/stac-utils/rustac/pull/651))
-
-### Changed
-
-- Crate name and executable to **rustac**
 
 ## [0.5.3] - 2025-02-20
 
@@ -142,8 +136,7 @@ Moved over from [stac-incubator-rs](https://github.com/gadomski/stac-incubator-r
 - Downloading ([#142](https://github.com/stac-utils/rustac/pull/142), [#152](https://github.com/stac-utils/rustac/pull/152))
 - Validation ([#155](https://github.com/stac-utils/rustac/pull/155))
 
-[Unreleased]: https://github.com/stac-utils/rustac/compare/rustac-v0.6.0..main
-[0.6.0]: https://github.com/stac-utils/rustac/compare/stac-cli-v0.5.3..rustac-v0.6.0
+[Unreleased]: https://github.com/stac-utils/rustac/compare/stac-cli-v0.5.3..main
 [0.5.3]: https://github.com/stac-utils/rustac/compare/stac-cli-v0.5.2..stac-cli-v0.5.3
 [0.5.2]: https://github.com/stac-utils/rustac/compare/stac-cli-v0.5.1..stac-cli-v0.5.2
 [0.5.1]: https://github.com/stac-utils/rustac/compare/stac-cli-v0.5.0..stac-cli-v0.5.1
