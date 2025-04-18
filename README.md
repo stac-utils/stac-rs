@@ -12,7 +12,7 @@
 ![Ferris the crab holding the STAC logo](./img/ferris-holding-stac-small.png)
 
 Command Line Interface (CLI) and Rust libraries for the [SpatioTemporal Asset Catalog (STAC)](https://stacspec.org/) specification.
-We have a Python package based on **rustac** that lives in its own repository, [rustac-py](https://github.com/gadomski/rustac-py).
+We have a Python package based on **rustac** that lives in its own repository, [rustac-py](https://github.com/stac-utils/rustac-py).
 For more on the difference between **rustac** and **rustac-py**, see [our docs](https://stac-utils.github.io/rustac/).
 
 > [!NOTE]
