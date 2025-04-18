@@ -3,9 +3,9 @@
 pub mod json;
 
 use crate::{Error, ItemCollection, Result};
-use arrow_array::{GenericByteArray, RecordBatch, cast::AsArray, types::GenericBinaryType};
-use arrow_json::ReaderBuilder;
-use arrow_schema::{DataType, Field, SchemaBuilder, TimeUnit};
+use arrow::array::{GenericByteArray, RecordBatch, cast::AsArray, types::GenericBinaryType};
+use arrow::datatypes::{DataType, Field, SchemaBuilder, TimeUnit};
+use arrow::json::ReaderBuilder;
 use geo_types::Geometry;
 use geoarrow::{
     ArrayBase,
@@ -131,7 +131,7 @@ impl TableBuilder {
             }
             values.push(value);
         }
-        let schema = arrow_json::reader::infer_json_schema_from_iterator(values.iter().map(Ok))?;
+        let schema = arrow::json::reader::infer_json_schema_from_iterator(values.iter().map(Ok))?;
         let mut schema_builder = SchemaBuilder::new();
         for field in schema.fields().iter() {
             if DATETIME_COLUMNS.contains(&field.name().as_str()) {
