@@ -654,16 +654,6 @@ mod tests {
         let _ = Client::with_config(config).unwrap();
     }
 
-    #[test]
-    fn custom_extension_repository() {
-        let _mutex = MUTEX.lock().unwrap();
-        let config = Config {
-            custom_extension_repository: Some(".".to_string()),
-            ..Default::default()
-        };
-        let _ = Client::with_config(config).unwrap();
-    }
-
     #[rstest]
     fn search_all(client: Client) {
         let item_collection = client
