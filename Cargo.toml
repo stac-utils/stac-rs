@@ -29,11 +29,11 @@ rust-version = "1.85"
 
 [workspace.dependencies]
 anyhow = "1.0"
-arrow = "54.2.1"
-arrow-array = "54.2.1"
-arrow-cast = "54.2.1"
-arrow-json = "54.2.1"
-arrow-schema = "54.2.1"
+arrow = "55.0.0"
+arrow-array = "55.0.0"
+arrow-cast = "55.0.0"
+arrow-json = "55.0.0"
+arrow-schema = "55.0.0"
 assert-json-diff = "2.0"
 assert_cmd = "2.0"
 async-stream = "0.3.6"
@@ -44,12 +44,13 @@ bytes = "1.7"
 chrono = "0.4.39"
 clap = "4.5"
 cql2 = "0.3.0"
-duckdb = "1.2.1"
+duckdb = "1.2.2"
 fluent-uri = "0.3.2"
 futures = "0.3.31"
-geo = "0.29.3"
+geo = "0.30.0"
 geo-types = "0.7.15"
 geoarrow = "0.4.0-beta.4"
+geoarrow-schema = { git = "https://github.com/geoarrow/geoarrow-rs/", rev = "80b15d4d5a69ab0828dbc3444f66df1e4c314bd0" }
 geojson = "0.24.1"
 http = "1.1"
 jsonschema = { version = "0.30.0", default-features = false }
@@ -58,7 +59,7 @@ log = "0.4.25"
 mime = "0.3.17"
 mockito = "1.5"
 object_store = "0.12.0"
-parquet = { version = "54.2.1", default-features = false }
+parquet = { version = "55.0.0", default-features = false }
 pgstac = { version = "0.3.0", path = "crates/pgstac" }
 quote = "1.0"
 reqwest = { version = "0.12.8", default-features = false, features = [
@@ -94,4 +95,5 @@ url = "2.3"
 webpki-roots = "0.26.8"
 
 [patch.crates-io]
-geoarrow = { git = "https://github.com/geoarrow/geoarrow-rs/", rev = "2cd0d623e4b9f1ac3bc5ff6563ccce689a47c641" }
+geoarrow = { git = "https://github.com/geoarrow/geoarrow-rs/", rev = "80b15d4d5a69ab0828dbc3444f66df1e4c314bd0" }
+duckdb = { git = "https://github.com/gadomski/duckdb-rs/", branch = "arrow-v55" }

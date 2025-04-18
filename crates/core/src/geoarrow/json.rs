@@ -432,22 +432,18 @@ pub fn from_table(table: Table) -> Result<Vec<serde_json::Map<String, Value>>, c
         for chunk in table.geometry_column(Some(index))?.geometry_chunks() {
             for i in 0..chunk.len() {
                 let value = match chunk.data_type() {
-                    Point(_, _) => Value::from(&chunk.as_ref().as_point().value_as_geo(i)),
-                    LineString(_, _) => {
-                        Value::from(&chunk.as_ref().as_line_string().value_as_geo(i))
-                    }
-                    Polygon(_, _) => Value::from(&chunk.as_ref().as_polygon().value_as_geo(i)),
-                    MultiPoint(_, _) => {
-                        Value::from(&chunk.as_ref().as_multi_point().value_as_geo(i))
-                    }
-                    MultiLineString(_, _) => {
+                    Point(_) => Value::from(&chunk.as_ref().as_point().value_as_geo(i)),
+                    LineString(_) => Value::from(&chunk.as_ref().as_line_string().value_as_geo(i)),
+                    Polygon(_) => Value::from(&chunk.as_ref().as_polygon().value_as_geo(i)),
+                    MultiPoint(_) => Value::from(&chunk.as_ref().as_multi_point().value_as_geo(i)),
+                    MultiLineString(_) => {
                         Value::from(&chunk.as_ref().as_multi_line_string().value_as_geo(i))
                     }
-                    MultiPolygon(_, _) => {
+                    MultiPolygon(_) => {
                         Value::from(&chunk.as_ref().as_multi_polygon().value_as_geo(i))
                     }
                     Geometry(_) => Value::from(&chunk.as_ref().as_geometry().value_as_geo(i)),
-                    GeometryCollection(_, _) => {
+                    GeometryCollection(_) => {
                         Value::from(&chunk.as_ref().as_geometry_collection().value_as_geo(i))
                     }
                     Rect(_) => Value::from(&chunk.as_ref().as_rect().value_as_geo(i)),

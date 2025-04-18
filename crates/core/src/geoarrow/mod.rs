@@ -9,10 +9,11 @@ use arrow_schema::{DataType, Field, SchemaBuilder, TimeUnit};
 use geo_types::Geometry;
 use geoarrow::{
     ArrayBase,
-    array::{CoordType, GeometryBuilder, NativeArrayDyn, WKBArray},
+    array::{GeometryBuilder, NativeArrayDyn, WKBArray},
     datatypes::NativeType,
     table::Table,
 };
+use geoarrow_schema::{GeometryType, Metadata};
 use serde_json::{Value, json};
 use std::sync::Arc;
 
@@ -201,7 +202,10 @@ pub fn with_native_geometry(
         let wkb_array = WKBArray::new(binary_array, Default::default());
         let geometry_array = geoarrow::io::wkb::from_wkb(
             &wkb_array,
-            NativeType::Geometry(CoordType::Interleaved),
+            NativeType::Geometry(GeometryType::new(
+                geoarrow_schema::CoordType::Interleaved,
+                Metadata::default().into(),
+            )),
             false,
         )?;
         let mut columns = record_batch.columns().to_vec();
