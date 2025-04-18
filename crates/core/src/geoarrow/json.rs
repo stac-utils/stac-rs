@@ -38,10 +38,11 @@ const TOP_LEVEL_KEYS: [&str; 10] = [
     "collection",
 ];
 
-use arrow_array::{cast::*, types::*, *};
-use arrow_cast::display::{ArrayFormatter, FormatOptions};
-use arrow_json::JsonSerializable;
-use arrow_schema::*;
+use arrow::array::{cast::*, types::*, *};
+use arrow::datatypes::*;
+use arrow::error::ArrowError;
+use arrow::json::JsonSerializable;
+use arrow::util::display::{ArrayFormatter, FormatOptions};
 use geoarrow::table::Table;
 use serde_json::{Value, json, map::Map as JsonMap};
 use std::iter;
@@ -364,7 +365,7 @@ fn set_column_for_json_rows(
                 })?;
         }
         DataType::Dictionary(_, value_type) => {
-            let hydrated = arrow_cast::cast::cast(&array, value_type)
+            let hydrated = arrow::compute::cast(&array, value_type)
                 .expect("cannot cast dictionary to underlying values");
             set_column_for_json_rows(rows, &hydrated, col_name, explicit_nulls)?;
         }

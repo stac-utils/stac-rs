@@ -8,7 +8,7 @@ pub enum Error {
     /// [arrow_schema::ArrowError]
     #[error(transparent)]
     #[cfg(feature = "geoarrow")]
-    Arrow(#[from] arrow_schema::ArrowError),
+    Arrow(#[from] arrow::error::ArrowError),
 
     /// [chrono::ParseError]
     #[error(transparent)]
