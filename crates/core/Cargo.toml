@@ -13,14 +13,7 @@ rust-version.workspace = true
 
 [features]
 geo = ["dep:geo"]
-geoarrow = [
-    "dep:geoarrow",
-    "dep:arrow-array",
-    "dep:arrow-cast",
-    "dep:arrow-json",
-    "dep:arrow-schema",
-    "dep:geo-types",
-]
+geoarrow = ["dep:geoarrow", "dep:arrow", "dep:geo-types"]
 geoparquet = ["geoarrow", "geoarrow/parquet", "dep:parquet"]
 geoparquet-compression = [
     "geoparquet",
@@ -46,10 +39,7 @@ reqwest = ["dep:reqwest"]
 validate = ["dep:jsonschema", "dep:fluent-uri", "reqwest"]
 
 [dependencies]
-arrow-array = { workspace = true, optional = true }
-arrow-cast = { workspace = true, optional = true }
-arrow-json = { workspace = true, optional = true }
-arrow-schema = { workspace = true, optional = true }
+arrow = { workspace = true, optional = true }
 bytes.workspace = true
 chrono = { workspace = true, features = ["serde"] }
 fluent-uri = { workspace = true, optional = true }
