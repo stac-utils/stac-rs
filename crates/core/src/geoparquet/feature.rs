@@ -112,7 +112,7 @@ where
     W: Write + Send,
 {
     let table = crate::geoarrow::to_table(item_collection)?;
-    geoarrow_geoparquet::write_geoparquet(table.into_record_batch_reader(), writer, options)
+    geoarrow_geoparquet::write_geoparquet(Box::new(table.into_reader()), writer, options)
         .map_err(Error::from)
 }
 
